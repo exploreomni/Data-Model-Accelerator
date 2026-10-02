@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "origin": "synthetic_independent_oracle",
+  "scenarios": [
+    {
+      "scenario_id": "a_usd_september_total",
+      "parameters": {
+        "tenant": "A",
+        "currency": "USD",
+        "start_date": "2026-09-01",
+        "end_date": "2026-10-01"
+      },
+      "rows": [
+        {
+          "invoice_count": 6,
+          "net_cents": 39900,
+          "paid_cents": 23000,
+          "payment_rate": "0.57644110275689223057644110275689223057644110275689"
+        }
+      ]
+    },
+    {
+      "scenario_id": "a_usd_september_by_segment",
+      "parameters": {
+        "tenant": "A",
+        "currency": "USD",
+        "start_date": "2026-09-01",
+        "end_date": "2026-10-01",
+        "group_by": [
+          "segment"
+        ]
+      },
+      "rows": [
+        {
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 18000,
+          "paid_cents": 9000,
+          "payment_rate": "0.5"
+        },
+        {
+          "segment": "MidMarket",
+          "invoice_count": 3,
+          "net_cents": 10900,
+          "paid_cents": 7000,
+          "payment_rate": "0.64220183486238532110091743119266055045871559633028"
+        },
+        {
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 8000,
+          "paid_cents": 6000,
+          "payment_rate": "0.75"
+        },
+        {
+          "segment": "Unknown",
+          "invoice_count": 1,
+          "net_cents": 3000,
+          "paid_cents": 1000,
+          "payment_rate": "0.33333333333333333333333333333333333333333333333333"
+        }
+      ]
+    },
+    {
+      "scenario_id": "a_usd_september_daily",
+      "parameters": {
+        "tenant": "A",
+        "currency": "USD",
+        "start_date": "2026-09-01",
+        "end_date": "2026-10-01",
+        "group_by": [
+          "invoice_date"
+        ]
+      },
+      "rows": [
+        {
+          "invoice_date": "2026-09-03",
+          "invoice_count": 1,
+          "net_cents": 8000,
+          "paid_cents": 6000,
+          "payment_rate": "0.75"
+        },
+        {
+          "invoice_date": "2026-09-13",
+          "invoice_count": 1,
+          "net_cents": 0,
+          "paid_cents": 0,
+          "payment_rate": null
+        },
+        {
+          "invoice_date": "2026-09-16",
+          "invoice_count": 1,
+          "net_cents": 3000,
+          "paid_cents": 1000,
+          "payment_rate": "0.33333333333333333333333333333333333333333333333333"
+        },
+        {
+          "invoice_date": "2026-09-20",
+          "invoice_count": 1,
+          "net_cents": 18000,
+          "paid_cents": 9000,
+          "payment_rate": "0.5"
+        },
+        {
+          "invoice_date": "2026-09-22",
+          "invoice_count": 1,
+          "net_cents": 3900,
+          "paid_cents": 0,
+          "payment_rate": "0"
+        },
+        {
+          "invoice_date": "2026-09-30",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": "1"
+        }
+      ]
+    },
+    {
+      "scenario_id": "a_usd_september_smb",
+      "parameters": {
+        "tenant": "A",
+        "currency": "USD",
+        "start_date": "2026-09-01",
+        "end_date": "2026-10-01",
+        "segment": "SMB"
+      },
+      "rows": [
+        {
+          "invoice_count": 1,
+          "net_cents": 8000,
+          "paid_cents": 6000,
+          "payment_rate": "0.75"
+        }
+      ]
+    },
+    {
+      "scenario_id": "a_eur_september_total",
+      "parameters": {
+        "tenant": "A",
+        "currency": "EUR",
+        "start_date": "2026-09-01",
+        "end_date": "2026-10-01"
+      },
+      "rows": [
+        {
+          "invoice_count": 1,
+          "net_cents": 9000,
+          "paid_cents": 4500,
+          "payment_rate": "0.5"
+        }
+      ]
+    },
+    {
+      "scenario_id": "b_usd_september_total",
+      "parameters": {
+        "tenant": "B",
+        "currency": "USD",
+        "start_date": "2026-09-01",
+        "end_date": "2026-10-01"
+      },
+      "rows": [
+        {
+          "invoice_count": 2,
+          "net_cents": 108000,
+          "paid_cents": 71000,
+          "payment_rate": "0.65740740740740740740740740740740740740740740740741"
+        }
+      ]
+    },
+    {
+      "scenario_id": "a_usd_august_total",
+      "parameters": {
+        "tenant": "A",
+        "currency": "USD",
+        "start_date": "2026-08-01",
+        "end_date": "2026-09-01"
+      },
+      "rows": [
+        {
+          "invoice_count": 2,
+          "net_cents": 14000,
+          "paid_cents": 14000,
+          "payment_rate": "1"
+        }
+      ]
+    },
+    {
+      "scenario_id": "a_usd_september_zero_net",
+      "parameters": {
+        "tenant": "A",
+        "currency": "USD",
+        "start_date": "2026-09-01",
+        "end_date": "2026-10-01",
+        "zero_net_only": true
+      },
+      "rows": [
+        {
+          "invoice_count": 1,
+          "net_cents": 0,
+          "paid_cents": 0,
+          "payment_rate": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "a_usd_empty_interval",
+      "parameters": {
+        "tenant": "A",
+        "currency": "USD",
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-01"
+      },
+      "rows": [
+        {
+          "invoice_count": 0,
+          "net_cents": 0,
+          "paid_cents": 0,
+          "payment_rate": null
+        }
+      ]
+    }
+  ]
+}

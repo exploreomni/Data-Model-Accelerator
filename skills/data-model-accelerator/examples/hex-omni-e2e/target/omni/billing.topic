@@ -1,0 +1,8 @@
+base_view: invoices
+label: Billing invoice reports
+joins:
+  customers: {}
+  customer_month: {}
+access_filters:
+- field: invoices.tenant_id
+  user_attribute: tenant_id

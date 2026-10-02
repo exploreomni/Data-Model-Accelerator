@@ -1,0 +1,626 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Data Model Accelerator dictionary v2",
+  "description": "Structural validation only. UNKNOWN/unresolved records are valid documentation, not metadata-deployment acceptance. Cross-record identity uniqueness and actual catalogue/review authority require semantic and release checks.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "kind",
+    "model_inventory_sha256",
+    "models"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 2
+    },
+    "kind": {
+      "const": "data_dictionary"
+    },
+    "model_inventory_sha256": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/model"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "source_inventory_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "required": [
+        "reference",
+        "sha256"
+      ],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "origin",
+        "evidence",
+        "review_reference"
+      ],
+      "properties": {
+        "origin": {
+          "enum": [
+            "source_metadata",
+            "reviewer",
+            "inferred",
+            "generated"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "review_reference": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "source_ref": {
+      "type": "object",
+      "required": [
+        "object_id",
+        "column_path",
+        "catalogue_sha256"
+      ],
+      "properties": {
+        "object_id": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "column_path": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "catalogue_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "object",
+      "required": [
+        "model_id",
+        "description",
+        "grain",
+        "columns",
+        "source_systems",
+        "model_role",
+        "owner",
+        "provenance",
+        "review_status"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "description": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "grain": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/column"
+          }
+        },
+        "source_systems": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "model_role": {
+          "enum": [
+            "UNKNOWN",
+            "STAGING",
+            "INTERMEDIATE",
+            "DIMENSION",
+            "FACT",
+            "BRIDGE",
+            "AGGREGATE",
+            "SNAPSHOT"
+          ]
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "review_status": {
+          "enum": [
+            "proposed",
+            "approved",
+            "unresolved"
+          ]
+        }
+      },
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "review_status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "review_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "evidence": {
+                    "minItems": 1
+                  },
+                  "review_reference": {
+                    "type": "string",
+                    "pattern": "\\S"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "column": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "data_type",
+        "nullability",
+        "key_role",
+        "source",
+        "transformation",
+        "units",
+        "classification",
+        "validation",
+        "column_id",
+        "sensitivity",
+        "sensitivity_evidence",
+        "sensitivity_review_status",
+        "sensitivity_review_reference",
+        "key_roles",
+        "source_refs",
+        "provenance",
+        "review_status"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "description": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "data_type": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "nullability": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "key_role": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "source": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "transformation": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "units": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "classification": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "validation": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "column_id": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "sensitivity": {
+          "enum": [
+            "UNKNOWN",
+            "PUBLIC",
+            "INTERNAL",
+            "CONFIDENTIAL",
+            "RESTRICTED"
+          ]
+        },
+        "sensitivity_evidence": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "sensitivity_review_status": {
+          "enum": [
+            "proposed",
+            "approved",
+            "unresolved"
+          ]
+        },
+        "sensitivity_review_reference": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "key_roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "UNKNOWN",
+              "NONE",
+              "PRIMARY_KEY",
+              "SURROGATE_PRIMARY_KEY",
+              "FOREIGN_KEY",
+              "SURROGATE_FOREIGN_KEY",
+              "CROSSWALK_ID",
+              "GRAIN_COMPONENT"
+            ]
+          },
+          "allOf": [
+            {
+              "if": {
+                "contains": {
+                  "enum": [
+                    "NONE",
+                    "UNKNOWN"
+                  ]
+                }
+              },
+              "then": {
+                "maxItems": 1
+              }
+            }
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "review_status": {
+          "enum": [
+            "proposed",
+            "approved",
+            "unresolved"
+          ]
+        }
+      },
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "review_status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "review_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "evidence": {
+                    "minItems": 1
+                  },
+                  "review_reference": {
+                    "type": "string",
+                    "pattern": "\\S"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sensitivity": {
+                "const": "UNKNOWN"
+              }
+            },
+            "required": [
+              "sensitivity"
+            ]
+          },
+          "then": {
+            "properties": {
+              "sensitivity_review_status": {
+                "const": "unresolved"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "sensitivity_evidence": {
+                "minItems": 1
+              },
+              "sensitivity_review_status": {
+                "enum": [
+                  "proposed",
+                  "approved"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sensitivity_review_status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "sensitivity_review_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "sensitivity_review_reference": {
+                "type": "string",
+                "pattern": "\\S"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "key_roles": {
+                "contains": {
+                  "const": "NONE"
+                }
+              }
+            },
+            "required": [
+              "key_roles"
+            ]
+          },
+          "then": {
+            "properties": {
+              "review_status": {
+                "const": "approved"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "description",
+        "grain",
+        "columns",
+        "source_systems",
+        "model_role",
+        "owner",
+        "provenance",
+        "review_status"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "grain": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/column"
+          }
+        },
+        "source_systems": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "model_role": {
+          "enum": [
+            "UNKNOWN",
+            "STAGING",
+            "INTERMEDIATE",
+            "DIMENSION",
+            "FACT",
+            "BRIDGE",
+            "AGGREGATE",
+            "SNAPSHOT"
+          ]
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "review_status": {
+          "enum": [
+            "proposed",
+            "approved",
+            "unresolved"
+          ]
+        },
+        "source_id": {
+          "type": "string",
+          "pattern": "\\S"
+        }
+      },
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "review_status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "review_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "evidence": {
+                    "minItems": 1
+                  },
+                  "review_reference": {
+                    "type": "string",
+                    "pattern": "\\S"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "not": {
+        "required": [
+          "model_id"
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "sources"
+        ],
+        "properties": {
+          "sources": {
+            "minItems": 1
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "source_inventory_sha256"
+        ]
+      }
+    }
+  ]
+}

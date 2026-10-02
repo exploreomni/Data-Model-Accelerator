@@ -1,0 +1,17 @@
+name: retail_quick_reports
+version: '1.0.0'
+config-version: 2
+profile: retail_source
+model-paths: [models]
+models:
+  retail_quick_reports:
+    staging:
+      +materialized: view
+    reports:
+      +materialized: table
+vars:
+  tenant: A
+  start_date: '2026-04-01'
+  end_date: '2026-04-04'
+  status: completed
+  product: ALL

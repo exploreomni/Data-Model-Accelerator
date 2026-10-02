@@ -1,0 +1,111 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "SegmentShare",
+  "position": {
+    "x": 0,
+    "y": 340,
+    "z": 1,
+    "height": 320,
+    "width": 1920,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Invoices"
+                    }
+                  },
+                  "Property": "Invoice Month"
+                }
+              },
+              "queryRef": "Invoices.Invoice Month"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Segment"
+                }
+              },
+              "queryRef": "Customers.Segment"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Revenue Cents"
+                }
+              },
+              "queryRef": "Scenario.Revenue Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "All Segment Revenue Cents"
+                }
+              },
+              "queryRef": "Scenario.All Segment Revenue Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Share All Segments"
+                }
+              },
+              "queryRef": "Scenario.Share All Segments"
+            }
+          ],
+          "showAll": false
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Segment Share'"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

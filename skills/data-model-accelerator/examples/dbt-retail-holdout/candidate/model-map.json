@@ -1,0 +1,75 @@
+{
+  "stg_orders": {
+    "schema": "SILVER",
+    "alias": "STG_ORDERS",
+    "columns": [
+      "TENANT_ID",
+      "ORDER_ID",
+      "ORDER_DATE",
+      "ORDER_STATUS",
+      "ORDER_KEY"
+    ],
+    "path": "dbt/models/staging/stg_orders.sql"
+  },
+  "stg_order_lines": {
+    "schema": "SILVER",
+    "alias": "STG_ORDER_LINES",
+    "columns": [
+      "TENANT_ID",
+      "ORDER_ID",
+      "LINE_ID",
+      "PRODUCT_ID",
+      "QUANTITY",
+      "UNIT_PRICE_CENTS",
+      "DISCOUNT_CENTS",
+      "LINE_NET_CENTS",
+      "LINE_KEY"
+    ],
+    "path": "dbt/models/staging/stg_order_lines.sql"
+  },
+  "stg_fulfillments": {
+    "schema": "SILVER",
+    "alias": "STG_FULFILLMENTS",
+    "columns": [
+      "TENANT_ID",
+      "FULFILLMENT_ID",
+      "ORDER_ID",
+      "LINE_ID",
+      "QUANTITY"
+    ],
+    "path": "dbt/models/staging/stg_fulfillments.sql"
+  },
+  "stg_returns": {
+    "schema": "SILVER",
+    "alias": "STG_RETURNS",
+    "columns": [
+      "TENANT_ID",
+      "RETURN_ID",
+      "ORDER_ID",
+      "LINE_ID",
+      "QUANTITY",
+      "REFUND_CENTS"
+    ],
+    "path": "dbt/models/staging/stg_returns.sql"
+  },
+  "fct_order_line_fulfillment": {
+    "schema": "GOLD",
+    "alias": "FCT_ORDER_LINE_FULFILLMENT",
+    "columns": [
+      "LINE_KEY",
+      "TENANT_ID",
+      "ORDER_ID",
+      "LINE_ID",
+      "PRODUCT_ID",
+      "ORDER_DATE",
+      "ORDER_STATUS",
+      "ORDERED_QUANTITY",
+      "FULFILLED_QUANTITY",
+      "RETURNED_QUANTITY",
+      "LINE_NET_CENTS",
+      "REFUND_CENTS",
+      "RETAINED_REVENUE_CENTS"
+    ],
+    "path": "dbt/models/gold/fct_order_line_fulfillment.sql"
+  }
+}

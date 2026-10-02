@@ -1,0 +1,18 @@
+# Gold: reusable invoice facts and effective customers
+
+Two table models serve the selected Power BI reports. Their exact 20 columns are included in the [64-column dictionary](data-dictionary.md); four raw and four silver objects complete the ten-model inventory. Context-sensitive measures are not precomputed as warehouse facts.
+
+| Model | Business purpose and grain | Keys / relationships |
+|---|---|---|
+| DMA_POWERBI.GOLD.DIM_CUSTOMERS | One effective customer history row per tenant/customer/valid-from | CUSTOMER_KEY = tenant + pipe + customer + pipe + YYYY-MM-DD start. Source Customers[Customer History Key] maps here; segment and effective interval remain historical. |
+| DMA_POWERBI.GOLD.FCT_INVOICES | One current nondeleted invoice per tenant/invoice, retaining all statuses | INVOICE_KEY includes tenant; CUSTOMER_KEY references exactly one effective customer row. Payment totals and optional adjustment join on tenant/invoice before facts are exposed. |
+
+Net cents is invoice amount plus signed adjustment, defaulting a missing valid adjustment row to zero. This moves the source M null replacement/Net Cents step upstream. Invoice month is the first day of the supplied invoice calendar month, preserving M Date.StartOfMonth. Outstanding cents is net minus paid, preserving the source DAX calculated column. Negative net and overpayment remain signed; no FX conversion or timezone conversion is introduced.
+
+Payment rows are first normalized at tenant/payment, then summed per tenant/invoice before joining. Customer binding uses tenant/customer and `invoice_date >= valid_from AND (invoice_date < valid_to OR valid_to IS NULL)`; absence or overlap fails. The fact carries matched SEGMENT for reconciliation, but selected Omni reports use `customers.segment` through the same effective key to preserve source relationship propagation. Tenant also appears explicitly in the target join.
+
+**Semantic consumers:** Revenue Trend uses month/segment with SUM money and ratio of sums. Segment Share removes only Customers Segment from denominator grouping/filter context, preserving month/date/status and security. KPI Totals has no dimensions and independently recomputes every measure. Status replacement can return posted revenue under a draft selection; status intersection must be BLANK there. These are candidate behavior-preserving definitions in [invoices.view](../target/omni/invoices.view) and [semantic mapping](semantic-mapping.md), not proof of native execution.
+
+Do not default aggregate empty sums to zero because source DAX uses BLANK. This is separate from valid-invoice row defaults for missing payments/adjustments. Grouped empty selections produce no rows; KPI returns one row with values computed in each measure's own context. The disconnected Scenario multiplier uses its sole selected value or alternate 1 for empty/multiple selection; it remains downstream and does not affect shared gold.
+
+**Refresh, controls and ownership:** both gold models are full tables, rebuilt after current-state silver in dependency order. Late history can change old invoice segment and therefore requires restatement. Nine authored singular assertions cover identity, reference cardinality, history, grains, balances and payments; independent output comparisons and source/native evidence are separate. Restore the validated capture and rebuild for recovery; production freshness, incremental optimization, atomic swap, grants/RLS/masking, retention, monitoring owner and business sign-off remain unknown. Synthetic keys reject pipes; production collision-safe encoding is unresolved. No enforced physical key/non-null constraints, native user provisioning or approved authoritative KPI definitions are asserted.

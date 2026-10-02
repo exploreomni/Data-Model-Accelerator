@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "catalogue_context_complete": true,
+  "errors": [],
+  "gaps": [],
+  "limitations": [
+    "Checks only declared visible scope, export integrity, and declared source-reference bindings; not parser completeness or evidence authenticity.",
+    "Metadata enrichment does not prove keys, constraints, access enforcement, replication ordering, replay, business correctness, or deployment readiness.",
+    "source_snapshot_sha256 is syntax-checked here; its alignment with the selected repository snapshot must be checked by the caller.",
+    "Synthetic catalogue fixture; it is not live warehouse evidence.",
+    "Enrichment is not fully observed for snowflake:DMA_HEX_SYNTHETIC:DMA_HEX.RAW.INVOICE_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+    "Enrichment is not fully observed for snowflake:DMA_HEX_SYNTHETIC:DMA_HEX.RAW.PAYMENT_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+    "Enrichment is not fully observed for snowflake:DMA_HEX_SYNTHETIC:DMA_HEX.RAW.CUSTOMER_HISTORY: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+    "Enrichment is not fully observed for snowflake:DMA_HEX_SYNTHETIC:DMA_HEX.RAW.ADJUSTMENTS: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown"
+  ],
+  "catalogue_sha256": "7c00a1f76e3660566f251e44e467ba22acfd0e1fc7f5385ac48231b0146b145e",
+  "source_snapshot_sha256": "b007073e7d7d4a0532de9aa63aac6b08a87840585981f00d649d814861a605da",
+  "origin": "synthetic",
+  "counts": {
+    "scopes": 1,
+    "extractions": 2,
+    "objects": 4,
+    "columns": 23,
+    "expected_references": 4,
+    "references": 4,
+    "resolved_references": 4
+  },
+  "native_metadata_consistency": {
+    "objects": 4,
+    "columns": 23,
+    "bootstrap_types_nulls_case_match": true,
+    "raw_fixture_columns_match": true,
+    "pinned_export_hashes_match": true,
+    "source_graph_physical_refs_match": true,
+    "native_warehouse_execution": false
+  }
+}

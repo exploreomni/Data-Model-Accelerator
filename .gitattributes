@@ -1,0 +1,8 @@
+# Preserve captured dbt stdout, including timestamp-only lines and compiled SQL.
+skills/data-model-accelerator/examples/dbt-retail-holdout/candidate/evidence/*.txt -whitespace
+skills/data-model-accelerator/examples/dbt-retail-holdout/candidate/evidence/native-build/*.txt -whitespace
+skills/data-model-accelerator/examples/dbt-retail-holdout/candidate/evidence/native-build/report-analysis.sql -whitespace
+
+# Preserve pinned fixture and vendor-license bytes exactly.
+skills/data-model-accelerator/examples/tableau-omni-e2e/input/repo/billing.tds -whitespace
+skills/data-model-accelerator/scripts/schemas/tableau/LICENSE.txt -whitespace

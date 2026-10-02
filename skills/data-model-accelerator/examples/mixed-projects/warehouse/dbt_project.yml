@@ -1,0 +1,5 @@
+name: synthetic_billing
+version: '1.0'
+config-version: 2
+profile: synthetic_no_credentials
+model-paths: [models]

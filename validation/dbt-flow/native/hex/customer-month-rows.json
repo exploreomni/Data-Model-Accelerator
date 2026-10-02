@@ -1,0 +1,122 @@
+[
+  {
+    "customer_id": "C1",
+    "customer_month_key": "A|C1|2026-01-01",
+    "first_paid_month": "2026-01-01",
+    "has_invoice": 1,
+    "has_paid_invoice": 1,
+    "invoice_month": "2026-01-01",
+    "net_cents": 11000,
+    "outstanding_cents": 1000,
+    "paid_cents": 10000,
+    "tenant_id": "A"
+  },
+  {
+    "customer_id": "C1",
+    "customer_month_key": "A|C1|2026-02-01",
+    "first_paid_month": "2026-01-01",
+    "has_invoice": 1,
+    "has_paid_invoice": 1,
+    "invoice_month": "2026-02-01",
+    "net_cents": 7000,
+    "outstanding_cents": 0,
+    "paid_cents": 7000,
+    "tenant_id": "A"
+  },
+  {
+    "customer_id": "C2",
+    "customer_month_key": "A|C2|2026-01-01",
+    "first_paid_month": "2026-01-01",
+    "has_invoice": 1,
+    "has_paid_invoice": 1,
+    "invoice_month": "2026-01-01",
+    "net_cents": 9000,
+    "outstanding_cents": 5000,
+    "paid_cents": 4000,
+    "tenant_id": "A"
+  },
+  {
+    "customer_id": "C2",
+    "customer_month_key": "A|C2|2026-02-01",
+    "first_paid_month": "2026-01-01",
+    "has_invoice": 1,
+    "has_paid_invoice": 1,
+    "invoice_month": "2026-02-01",
+    "net_cents": 7000,
+    "outstanding_cents": 6000,
+    "paid_cents": 1000,
+    "tenant_id": "A"
+  },
+  {
+    "customer_id": "C2",
+    "customer_month_key": "A|C2|2026-03-01",
+    "first_paid_month": "2026-01-01",
+    "has_invoice": 1,
+    "has_paid_invoice": 0,
+    "invoice_month": "2026-03-01",
+    "net_cents": 11000,
+    "outstanding_cents": 11000,
+    "paid_cents": 0,
+    "tenant_id": "A"
+  },
+  {
+    "customer_id": "C3",
+    "customer_month_key": "A|C3|2026-01-01",
+    "first_paid_month": null,
+    "has_invoice": 1,
+    "has_paid_invoice": 0,
+    "invoice_month": "2026-01-01",
+    "net_cents": 5000,
+    "outstanding_cents": 5000,
+    "paid_cents": 0,
+    "tenant_id": "A"
+  },
+  {
+    "customer_id": "C3",
+    "customer_month_key": "A|C3|2026-02-01",
+    "first_paid_month": null,
+    "has_invoice": 0,
+    "has_paid_invoice": 0,
+    "invoice_month": "2026-02-01",
+    "net_cents": 6000,
+    "outstanding_cents": 6000,
+    "paid_cents": 0,
+    "tenant_id": "A"
+  },
+  {
+    "customer_id": "C4",
+    "customer_month_key": "A|C4|2026-02-01",
+    "first_paid_month": null,
+    "has_invoice": 0,
+    "has_paid_invoice": 0,
+    "invoice_month": "2026-02-01",
+    "net_cents": 0,
+    "outstanding_cents": 0,
+    "paid_cents": 0,
+    "tenant_id": "A"
+  },
+  {
+    "customer_id": "C1",
+    "customer_month_key": "B|C1|2026-01-01",
+    "first_paid_month": "2026-01-01",
+    "has_invoice": 1,
+    "has_paid_invoice": 1,
+    "invoice_month": "2026-01-01",
+    "net_cents": 30500,
+    "outstanding_cents": 500,
+    "paid_cents": 30000,
+    "tenant_id": "B"
+  },
+  {
+    "customer_id": "C2",
+    "customer_month_key": "B|C2|2026-02-01",
+    "first_paid_month": "2026-02-01",
+    "has_invoice": 1,
+    "has_paid_invoice": 1,
+    "invoice_month": "2026-02-01",
+    "net_cents": 20000,
+    "outstanding_cents": 15000,
+    "paid_cents": 5000,
+    "tenant_id": "B"
+  }
+]

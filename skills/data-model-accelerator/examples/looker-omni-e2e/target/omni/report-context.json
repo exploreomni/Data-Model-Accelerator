@@ -1,0 +1,36 @@
+{
+  "model": "billing",
+  "explore": "invoices",
+  "filters": [
+    {
+      "name": "Reporting Date",
+      "field": "invoices.invoice_date",
+      "default_value": "2026/09/01 to 2026/09/30"
+    },
+    {
+      "name": "Currency",
+      "field": "invoices.currency",
+      "default_value": "USD"
+    }
+  ],
+  "element": {
+    "fields": [
+      "customers.segment",
+      "invoices.invoice_count",
+      "invoices.net_cents_sum",
+      "invoices.paid_cents_sum",
+      "invoices.payment_rate"
+    ],
+    "filters": {
+      "invoices.status": "posted"
+    },
+    "listen": {
+      "Reporting Date": "invoices.invoice_date",
+      "Currency": "invoices.currency"
+    },
+    "sorts": [
+      "customers.segment"
+    ],
+    "limit": 500
+  }
+}

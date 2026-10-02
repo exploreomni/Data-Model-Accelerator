@@ -1,0 +1,2647 @@
+{
+  "schema_version": 1,
+  "kind": "independent_documentation_projection_check",
+  "status": "pass",
+  "checks": [
+    {
+      "check": "model_denominator",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "raw_source_denominator",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_date__date.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.prior_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.next_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.prior_year_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.prior_year_over_year_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.day_of_week.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.day_of_week_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.day_of_month.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_date__date.day_of_year.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_date__date.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.prior_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.next_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.prior_year_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.prior_year_over_year_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.day_of_week.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.day_of_week_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.day_of_month.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_date__date.day_of_year.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_person__address.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.addressid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.addressline1.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.addressline2.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.city.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.stateprovinceid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.postalcode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.spatiallocation.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__address.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_person__address.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.addressid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.addressline1.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.addressline2.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.city.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.stateprovinceid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.postalcode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.spatiallocation.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__address.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__countryregion.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_person__countryregion.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__countryregion.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__countryregion.countryregioncode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__countryregion.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__countryregion.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__countryregion.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_person__countryregion.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__countryregion.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__countryregion.countryregioncode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__countryregion.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__countryregion.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_person__person.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.businessentityid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.title.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.firstname.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.middlename.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.lastname.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.persontype.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.namestyle.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.suffix.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__person.emailpromotion.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_person__person.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.businessentityid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.title.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.firstname.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.middlename.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.lastname.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.persontype.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.namestyle.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.suffix.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__person.emailpromotion.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_person__stateprovince.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.stateprovinceid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.countryregioncode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.territoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.isonlystateprovinceflag.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_person__stateprovince.stateprovincecode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_person__stateprovince.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.stateprovinceid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.countryregioncode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.territoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.isonlystateprovinceflag.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_person__stateprovince.stateprovincecode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_production__product.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.productid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.safetystocklevel.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.finishedgoodsflag.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.class.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.makeflag.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.productnumber.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.reorderpoint.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.productmodelid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.weightunitmeasurecode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.standardcost.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.productsubcategoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.listprice.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.daystomanufacture.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.productline.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.color.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.sellstartdate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__product.weight.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_production__product.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.productid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.safetystocklevel.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.finishedgoodsflag.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.class.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.makeflag.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.productnumber.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.reorderpoint.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.productmodelid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.weightunitmeasurecode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.standardcost.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.productsubcategoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.listprice.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.daystomanufacture.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.productline.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.color.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.sellstartdate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__product.weight.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productcategory.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_production__productcategory.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productcategory.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productcategory.productcategoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productcategory.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productcategory.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productcategory.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_production__productcategory.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productcategory.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productcategory.productcategoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productcategory.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productcategory.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productsubcategory.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_production__productsubcategory.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productsubcategory.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productsubcategory.productsubcategoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productsubcategory.productcategoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productsubcategory.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_production__productsubcategory.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productsubcategory.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_production__productsubcategory.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productsubcategory.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productsubcategory.productsubcategoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productsubcategory.productcategoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productsubcategory.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_production__productsubcategory.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__creditcard.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_sales__creditcard.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__creditcard.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__creditcard.creditcardid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__creditcard.cardtype.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__creditcard.expyear.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__creditcard.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__creditcard.expmonth.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__creditcard.cardnumber.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__creditcard.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_sales__creditcard.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__creditcard.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__creditcard.creditcardid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__creditcard.cardtype.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__creditcard.expyear.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__creditcard.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__creditcard.expmonth.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__creditcard.cardnumber.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__customer.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_sales__customer.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__customer.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__customer.customerid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__customer.personid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__customer.storeid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__customer.territoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__customer.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_sales__customer.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__customer.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__customer.customerid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__customer.personid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__customer.storeid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__customer.territoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_sales__salesorderdetail.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.salesorderid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.orderqty.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.salesorderdetailid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.unitprice.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.specialofferid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.productid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderdetail.unitpricediscount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_sales__salesorderdetail.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.salesorderid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.orderqty.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.salesorderdetailid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.unitprice.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.specialofferid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.productid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderdetail.unitpricediscount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_sales__salesorderheader.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.salesorderid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.shipmethodid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.billtoaddressid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.taxamt.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.shiptoaddressid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.onlineorderflag.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.territoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.status.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.orderdate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.creditcardapprovalcode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.subtotal.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.creditcardid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.currencyrateid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.revisionnumber.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.freight.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.duedate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.totaldue.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.customerid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.salespersonid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.shipdate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheader.accountnumber.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_sales__salesorderheader.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.salesorderid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.shipmethodid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.billtoaddressid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.rowguid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.taxamt.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.shiptoaddressid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.onlineorderflag.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.territoryid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.status.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.orderdate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.creditcardapprovalcode.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.subtotal.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.creditcardid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.currencyrateid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.revisionnumber.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.freight.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.duedate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.totaldue.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.customerid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.salespersonid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.shipdate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheader.accountnumber.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheadersalesreason.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_sales__salesorderheadersalesreason.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheadersalesreason.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheadersalesreason.salesorderid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheadersalesreason.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesorderheadersalesreason.salesreasonid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheadersalesreason.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_sales__salesorderheadersalesreason.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheadersalesreason.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheadersalesreason.salesorderid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheadersalesreason.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesorderheadersalesreason.salesreasonid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesreason.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_sales__salesreason.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesreason.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesreason.salesreasonid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesreason.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesreason.reasontype.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__salesreason.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesreason.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_sales__salesreason.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesreason.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesreason.salesreasonid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesreason.name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesreason.reasontype.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__salesreason.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__store.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "br_sales__store.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__store.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__store.businessentityid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__store.storename.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__store.salespersonid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "br_sales__store.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__store.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "stg_sales__store.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__store.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__store.businessentityid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__store.storename.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__store.salespersonid.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "stg_sales__store.modifieddate.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "int_products.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.product_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.product_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.product_number.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.subcategory_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.subcategory_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.category_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.category_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.color.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.product_class_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.product_line_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.is_finished_goods.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.is_manufactured.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.standard_cost.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.list_price.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.weight.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.weight_unit_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.sell_start_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.source_modified_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.has_subcategory_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_products.has_category_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "int_customers.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.customer_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.territory_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.store_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.store_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.person_type_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.has_person_reference.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.has_person_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.has_store_reference.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_customers.has_store_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "int_geographies.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.address_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.city.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.state_province_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.state_province_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.state_province_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.country_region_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.country_region_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.has_state_province_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_geographies.has_country_region_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_order_line_totals.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "int_order_line_totals.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_order_line_totals.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_order_line_totals.order_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_order_line_totals.observed_line_count.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_order_line_totals.observed_line_quantity.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_order_line_totals.observed_line_gross_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_order_line_totals.observed_line_discount_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "int_order_line_totals.observed_line_net_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "dim_products.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.product_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.product_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.product_number.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.subcategory_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.subcategory_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.category_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.category_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.color.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.product_class_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.product_line_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.is_finished_goods.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.is_manufactured.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.standard_cost.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.list_price.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.weight.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.weight_unit_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.sell_start_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.source_modified_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.has_subcategory_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_products.has_category_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "dim_customers.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.customer_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.territory_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.store_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.store_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.person_type_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.has_person_reference.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.has_person_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.has_store_reference.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_customers.has_store_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "dim_geographies.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.address_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.city.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.state_province_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.state_province_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.state_province_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.country_region_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.country_region_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.has_state_province_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_geographies.has_country_region_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_sales_reasons.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "dim_sales_reasons.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_sales_reasons.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_sales_reasons.sales_reason_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_sales_reasons.sales_reason_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_sales_reasons.sales_reason_type.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "dim_date.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.prior_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.next_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.prior_year_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.prior_year_over_year_date_day.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.day_of_week.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.day_of_week_name.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.day_of_month.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.day_of_year.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.calendar_year.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.calendar_month.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_date.calendar_quarter.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_payment_types.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "dim_payment_types.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_payment_types.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dim_payment_types.payment_card_type.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "fct_orders.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.order_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.customer_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.bill_to_address_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.ship_to_address_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.territory_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.salesperson_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.ship_method_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.currency_rate_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.status_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.revision_number.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.is_online_order.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.order_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.order_date.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.due_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.due_date.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.ship_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.ship_date.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.source_subtotal.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.source_tax_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.source_freight_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.source_total_due.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.observed_line_count.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.observed_line_quantity.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.observed_line_gross_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.observed_line_discount_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.observed_line_net_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.subtotal_minus_observed_line_net.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.has_customer_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.has_bill_to_address_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.has_ship_to_address_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.payment_card_type.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.has_card_reference.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.has_payment_card_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_orders.source_modified_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "fct_order_lines.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.order_line_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.order_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.product_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.special_offer_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.order_quantity.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.unit_price.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.unit_discount_fraction.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.candidate_line_gross_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.candidate_line_discount_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.candidate_line_net_amount.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.source_modified_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.has_order_header.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.has_product_record.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.customer_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.order_date.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.status_code.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "fct_order_lines.currency_rate_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "bridge_order_sales_reasons.parsed_projection",
+      "passed": true,
+      "detail": "Column order and names from Snowflake adapter SQL compared to contract"
+    },
+    {
+      "check": "bridge_order_sales_reasons.executed_projection",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "bridge_order_sales_reasons.lineage_dependencies",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "bridge_order_sales_reasons.order_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "bridge_order_sales_reasons.sales_reason_id.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "bridge_order_sales_reasons.source_modified_at.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "bridge_order_sales_reasons.has_order_header.lineage_resolution",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "dictionary_scoped_total",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "counts": {
+    "checks": 525,
+    "passed": 525,
+    "failed": 0,
+    "dbt_models": 43,
+    "dbt_columns": 393,
+    "dictionary_columns": 513
+  },
+  "scope": "Independently parsed Snowflake-adapter projection names/order and dependencies plus fully fetched local columns; prose business definitions and live target types remain unapproved",
+  "hashes": {
+    "model/model-contract.json": "e3b936e97fa30cb3f7f4b6c1b5c735d5a19885cbfa8c668fcab02caf8ea6854f",
+    "docs/data-dictionary.json": "1589c885d0d5deb88628d258e3a804d7a413e570455aac874ad2e90ca32b06cb",
+    "snowflake-offline-final/compile/manifest.json": "3d7dd83a2b6ef26bf5fc4ff331a2f666aeb57ed99c46a869d94542dd1a15e5e1",
+    "candidate/dbt_project/logs/receipts/projection-evaluation.json": "f60dc13036ec0d573d8abf1902022873933cb5f0539b85d2c2be6df1d1491c1c"
+  }
+}

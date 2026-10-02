@@ -1,0 +1,2 @@
+-r requirements-hex-e2e.txt
+lxml==6.1.0

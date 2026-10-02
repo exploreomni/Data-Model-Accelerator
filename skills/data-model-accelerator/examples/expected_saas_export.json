@@ -1,0 +1,38 @@
+{
+  "fixture_kind": "synthetic-hand-authored-expected-export",
+  "provenance": "Manually specified from the CASE.md business story and report contract; not a real SaaS export and not generated from candidate SQL.",
+  "initial_rows": [
+    ["A", "I100", "2026-01-31", "2026-01", "Aster Labs", "Startup", 10000, 6000, 0.6],
+    ["A", "I101", "2026-02-01", "2026-02", "Aster Labs", "Enterprise", 30000, 30000, 1.0],
+    ["A", "I102", "2026-02-02", "2026-02", "Beacon Retail", "SMB", 20000, 10000, 0.5],
+    ["A", "I105", "2026-02-04", "2026-02", "Beacon Retail", "SMB", 0, 0, null],
+    ["B", "I100", "2026-01-31", "2026-01", "Birch Media", "Enterprise", 50000, 25000, 0.5],
+    ["B", "I104", "2026-02-03", "2026-02", "Cedar Games", "Startup", 10000, 0, 0.0]
+  ],
+  "final_rows": [
+    ["A", "I100", "2026-01-31", "2026-01", "Aster Labs", "Startup", 10000, 6000, 0.6],
+    ["A", "I101", "2026-02-01", "2026-02", "Aster Labs", "Enterprise", 30000, 30000, 1.0],
+    ["A", "I103", "2026-02-03", "2026-02", "Beacon Retail", "SMB", 5000, 1000, 0.2],
+    ["A", "I105", "2026-02-04", "2026-02", "Beacon Retail", "SMB", 0, 0, null],
+    ["A", "I106", "2026-01-30", "2026-01", "Aster Labs", "Startup", 40000, 10000, 0.25],
+    ["A", "I107", "2026-02-01", "2026-02", "Aster Labs", "Enterprise", 15000, 7500, 0.5],
+    ["B", "I100", "2026-01-31", "2026-01", "Birch Media", "Enterprise", 50000, 25000, 0.5],
+    ["B", "I104", "2026-02-03", "2026-02", "Cedar Games", "Startup", 10000, 5000, 0.5]
+  ],
+  "final_groups": [
+    ["A", "2026-01", "Startup", 2, 50000, 16000, 0.32],
+    ["A", "2026-02", "Enterprise", 2, 45000, 37500, 0.8333333333333334],
+    ["A", "2026-02", "SMB", 2, 5000, 1000, 0.2],
+    ["B", "2026-01", "Enterprise", 1, 50000, 25000, 0.5],
+    ["B", "2026-02", "Startup", 1, 10000, 5000, 0.5]
+  ],
+  "scenarios": [
+    {"name": "all", "filters": {}, "row_keys": [["A","I100"],["A","I101"],["A","I103"],["A","I105"],["A","I106"],["A","I107"],["B","I100"],["B","I104"]], "totals": [8, 160000, 84500, 0.528125]},
+    {"name": "tenant_a", "filters": {"tenant_id":"A"}, "row_keys": [["A","I100"],["A","I101"],["A","I103"],["A","I105"],["A","I106"],["A","I107"]], "totals": [6, 100000, 54500, 0.545]},
+    {"name": "tenant_b", "filters": {"tenant_id":"B"}, "row_keys": [["B","I100"],["B","I104"]], "totals": [2, 60000, 30000, 0.5]},
+    {"name": "a_startup", "filters": {"tenant_id":"A","segment":"Startup"}, "row_keys": [["A","I100"],["A","I106"]], "totals": [2, 50000, 16000, 0.32]},
+    {"name": "a_enterprise_feb", "filters": {"tenant_id":"A","segment":"Enterprise","month":"2026-02"}, "row_keys": [["A","I101"],["A","I107"]], "totals": [2, 45000, 37500, 0.8333333333333334]},
+    {"name": "zero_denominator", "filters": {"tenant_id":"A","invoice_id":"I105"}, "row_keys": [["A","I105"]], "totals": [1, 0, 0, null]},
+    {"name": "empty_selection", "filters": {"tenant_id":"B","segment":"SMB"}, "row_keys": [], "totals": [0, 0, 0, null]}
+  ]
+}

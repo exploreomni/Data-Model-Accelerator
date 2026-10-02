@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "kind": "data_model_inventory",
+  "specification_version": "retail-holdout-1",
+  "identity_basis": "Local DuckDB validation identities; raw source Snowflake namespace preserved; proposed Snowflake target namespace is isolated by example profile.",
+  "models": [
+    {
+      "model_id": "DMA_RETAIL.RAW.ORDER_CDC",
+      "physical_name": "DMA_RETAIL.RAW.ORDER_CDC",
+      "layer": "bronze",
+      "columns": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "ORDER_DATE",
+        "STATUS",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "code": "evidence/catalogue/warehouse-catalogue.json",
+      "logical_name": "ORDER_CDC",
+      "materialization": "externally supplied synthetic raw table"
+    },
+    {
+      "model_id": "DMA_RETAIL.RAW.ORDER_LINE_CDC",
+      "physical_name": "DMA_RETAIL.RAW.ORDER_LINE_CDC",
+      "layer": "bronze",
+      "columns": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "PRODUCT_ID",
+        "QUANTITY",
+        "UNIT_PRICE_CENTS",
+        "DISCOUNT_CENTS",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "code": "evidence/catalogue/warehouse-catalogue.json",
+      "logical_name": "ORDER_LINE_CDC",
+      "materialization": "externally supplied synthetic raw table"
+    },
+    {
+      "model_id": "DMA_RETAIL.RAW.FULFILLMENT_CDC",
+      "physical_name": "DMA_RETAIL.RAW.FULFILLMENT_CDC",
+      "layer": "bronze",
+      "columns": [
+        "TENANT_ID",
+        "FULFILLMENT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "code": "evidence/catalogue/warehouse-catalogue.json",
+      "logical_name": "FULFILLMENT_CDC",
+      "materialization": "externally supplied synthetic raw table"
+    },
+    {
+      "model_id": "DMA_RETAIL.RAW.RETURN_CDC",
+      "physical_name": "DMA_RETAIL.RAW.RETURN_CDC",
+      "layer": "bronze",
+      "columns": [
+        "TENANT_ID",
+        "RETURN_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY",
+        "REFUND_CENTS",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "code": "evidence/catalogue/warehouse-catalogue.json",
+      "logical_name": "RETURN_CDC",
+      "materialization": "externally supplied synthetic raw table"
+    },
+    {
+      "model_id": "DMA_RETAIL.SILVER.STG_ORDERS",
+      "physical_name": "DMA_RETAIL.SILVER.STG_ORDERS",
+      "layer": "silver",
+      "columns": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "ORDER_DATE",
+        "ORDER_STATUS",
+        "ORDER_KEY"
+      ],
+      "code": "dbt/models/staging/stg_orders.sql",
+      "logical_name": "stg_orders",
+      "materialization": "view",
+      "scope_note": "Local validation database identity; Snowflake development profile uses an isolated database/schema prefix."
+    },
+    {
+      "model_id": "DMA_RETAIL.SILVER.STG_ORDER_LINES",
+      "physical_name": "DMA_RETAIL.SILVER.STG_ORDER_LINES",
+      "layer": "silver",
+      "columns": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "PRODUCT_ID",
+        "QUANTITY",
+        "UNIT_PRICE_CENTS",
+        "DISCOUNT_CENTS",
+        "LINE_NET_CENTS",
+        "LINE_KEY"
+      ],
+      "code": "dbt/models/staging/stg_order_lines.sql",
+      "logical_name": "stg_order_lines",
+      "materialization": "view",
+      "scope_note": "Local validation database identity; Snowflake development profile uses an isolated database/schema prefix."
+    },
+    {
+      "model_id": "DMA_RETAIL.SILVER.STG_FULFILLMENTS",
+      "physical_name": "DMA_RETAIL.SILVER.STG_FULFILLMENTS",
+      "layer": "silver",
+      "columns": [
+        "TENANT_ID",
+        "FULFILLMENT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY"
+      ],
+      "code": "dbt/models/staging/stg_fulfillments.sql",
+      "logical_name": "stg_fulfillments",
+      "materialization": "view",
+      "scope_note": "Local validation database identity; Snowflake development profile uses an isolated database/schema prefix."
+    },
+    {
+      "model_id": "DMA_RETAIL.SILVER.STG_RETURNS",
+      "physical_name": "DMA_RETAIL.SILVER.STG_RETURNS",
+      "layer": "silver",
+      "columns": [
+        "TENANT_ID",
+        "RETURN_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY",
+        "REFUND_CENTS"
+      ],
+      "code": "dbt/models/staging/stg_returns.sql",
+      "logical_name": "stg_returns",
+      "materialization": "view",
+      "scope_note": "Local validation database identity; Snowflake development profile uses an isolated database/schema prefix."
+    },
+    {
+      "model_id": "DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT",
+      "physical_name": "DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT",
+      "layer": "gold",
+      "columns": [
+        "LINE_KEY",
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "PRODUCT_ID",
+        "ORDER_DATE",
+        "ORDER_STATUS",
+        "ORDERED_QUANTITY",
+        "FULFILLED_QUANTITY",
+        "RETURNED_QUANTITY",
+        "LINE_NET_CENTS",
+        "REFUND_CENTS",
+        "RETAINED_REVENUE_CENTS"
+      ],
+      "code": "dbt/models/gold/fct_order_line_fulfillment.sql",
+      "logical_name": "fct_order_line_fulfillment",
+      "materialization": "table",
+      "scope_note": "Local validation database identity; Snowflake development profile uses an isolated database/schema prefix."
+    }
+  ]
+}

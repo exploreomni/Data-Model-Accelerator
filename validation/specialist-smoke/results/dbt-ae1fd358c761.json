@@ -1,0 +1,392 @@
+{
+  "schema_version": 1,
+  "task_id": "dbt-ae1fd358c761",
+  "source_snapshot_sha256": "a26b08504fbfb39a6ad335cd485332338f6d23354938b9170e34474055b4b91b",
+  "asset_coverage": [
+    {
+      "asset_id": "asset-c474e23c9d327d444116e4e6",
+      "status": "parsed",
+      "reason": "Interpreted all five authored YAML settings, preserving project/config versions, model paths and the unresolved profile name; no credentials or runtime configuration inspected."
+    },
+    {
+      "asset_id": "asset-00b9dd6068347a961e10228e",
+      "status": "parsed",
+      "reason": "Interpreted the complete simple authored SELECT, Jinja source reference, projected identifiers/status/amounts and row-level credit subtraction. No SQL/Jinja execution or target compatibility claim."
+    },
+    {
+      "asset_id": "asset-8c5af100076c30ca288f42ea",
+      "status": "parsed",
+      "reason": "Interpreted versioned source YAML, declared database/schema/table, exact column names and explicit uniqueness/replication caveat. No source rows, constraints, types or physical relation validation available."
+    }
+  ],
+  "objects": [
+    {
+      "object_id": "dbt:warehouse:project:synthetic_billing",
+      "native_id": null,
+      "kind": "dbt_project",
+      "name": "synthetic_billing",
+      "evidence": [
+        {
+          "asset_id": "asset-c474e23c9d327d444116e4e6",
+          "locator": "lines 1-5"
+        }
+      ],
+      "grain": {
+        "status": "unknown",
+        "description": "Project configuration is not a data relation."
+      },
+      "declared_project_version": "1.0",
+      "declared_config_version": 2,
+      "profile_reference": "synthetic_no_credentials",
+      "configured_model_paths": [
+        "models"
+      ],
+      "installed_dbt_version": "unknown",
+      "adapter": "unknown",
+      "native_id_note": "No manifest unique_id is supplied; the extraction ID is namespaced from the project root and authored name."
+    },
+    {
+      "object_id": "dbt:warehouse:source:billing.invoice_current",
+      "native_id": null,
+      "kind": "source_relation",
+      "name": "billing.invoice_current",
+      "evidence": [
+        {
+          "asset_id": "asset-8c5af100076c30ca288f42ea",
+          "locator": "lines 1-15"
+        }
+      ],
+      "grain": {
+        "status": "unknown",
+        "description": "The declared source description explicitly says uniqueness and replication semantics require validation; current-state or invoice uniqueness is not established."
+      },
+      "declared_database": "SYNTHETIC",
+      "declared_schema": "RAW",
+      "declared_table": "invoice_current",
+      "declared_columns": [
+        {
+          "name": "tenant_id",
+          "data_type": "not declared",
+          "nullable": "not declared"
+        },
+        {
+          "name": "invoice_id",
+          "data_type": "not declared",
+          "nullable": "not declared"
+        },
+        {
+          "name": "status",
+          "data_type": "not declared",
+          "nullable": "not declared"
+        },
+        {
+          "name": "gross_cents",
+          "data_type": "not declared",
+          "nullable": "not declared"
+        },
+        {
+          "name": "paid_cents",
+          "data_type": "not declared",
+          "nullable": "not declared"
+        },
+        {
+          "name": "credit_cents",
+          "data_type": "not declared",
+          "nullable": "not declared"
+        }
+      ],
+      "declared_description": "Synthetic replicated relation; uniqueness and replication semantics require validation.",
+      "replication_history_policy": "unknown",
+      "security_policy": "not declared in assigned evidence",
+      "freshness": "not declared in assigned evidence"
+    },
+    {
+      "object_id": "dbt:warehouse:model:invoice_reporting",
+      "native_id": null,
+      "kind": "model",
+      "name": "invoice_reporting",
+      "evidence": [
+        {
+          "asset_id": "asset-00b9dd6068347a961e10228e",
+          "locator": "lines 1-9"
+        },
+        {
+          "asset_id": "asset-c474e23c9d327d444116e4e6",
+          "locator": "line 5"
+        }
+      ],
+      "grain": {
+        "status": "observed",
+        "description": "The authored SELECT is a row-preserving projection with one source relation and no join, WHERE, GROUP BY, DISTINCT or window clause. Underlying business grain and source uniqueness remain unknown."
+      },
+      "output_columns": [
+        "tenant_id",
+        "invoice_id",
+        "status",
+        "gross_cents",
+        "paid_cents",
+        "net_cents"
+      ],
+      "materialization": "Not explicitly configured in the assigned files; resolved defaults or overrides are unverified.",
+      "physical_output_binding": {
+        "database": "unknown",
+        "schema": "unknown",
+        "alias": "not explicitly configured; actual target relation unverified"
+      },
+      "declared_tests": "No tests are declared in the three assigned files; this is not a whole-repository absence claim.",
+      "execution_evidence": "The source comment explicitly marks a synthetic assessment fixture with no target connection or compilation evidence."
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "dbt:warehouse:rule:source_relation_binding",
+      "kind": "source_binding",
+      "language": "dbt source YAML",
+      "expression": "sources: billing; database: SYNTHETIC; schema: RAW; tables: invoice_current",
+      "output_object_id": "dbt:warehouse:source:billing.invoice_current",
+      "input_refs": [
+        {
+          "reference": "SYNTHETIC.RAW.invoice_current",
+          "status": "unresolved"
+        }
+      ],
+      "context": {
+        "evaluation_grain": "unknown source grain",
+        "filters": [],
+        "security": "unknown",
+        "binding_status": "authored declaration only; physical relation was not inspected"
+      },
+      "evidence": [
+        {
+          "asset_id": "asset-8c5af100076c30ca288f42ea",
+          "locator": "lines 3-8"
+        }
+      ],
+      "placement_candidate": {
+        "destination": "warehouse",
+        "rationale": "Preserve the existing source declaration and actual qualified binding; do not create a competing source or infer a replication contract."
+      }
+    },
+    {
+      "rule_id": "dbt:warehouse:rule:model_source_reference",
+      "kind": "dependency_binding",
+      "language": "dbt Jinja within SQL; adapter dialect unknown",
+      "expression": "{{ source('billing', 'invoice_current') }}",
+      "output_object_id": "dbt:warehouse:model:invoice_reporting",
+      "input_refs": [
+        {
+          "reference": "source('billing', 'invoice_current')",
+          "status": "resolved",
+          "object_id": "dbt:warehouse:source:billing.invoice_current"
+        }
+      ],
+      "context": {
+        "evaluation_grain": "one source row as written; business key uniqueness unknown",
+        "filters": [],
+        "security": "No access policy in assigned evidence; projecting tenant_id is not access enforcement.",
+        "timezone": "not declared",
+        "currency": "not declared",
+        "source_kind": "authored dbt SQL; uncompiled",
+        "execution": "not executed",
+        "dependency_resolution": "The authored source() name binds to the assigned billing/invoice_current declaration; this is not live physical validation."
+      },
+      "evidence": [
+        {
+          "asset_id": "asset-00b9dd6068347a961e10228e",
+          "locator": "line 9"
+        },
+        {
+          "asset_id": "asset-8c5af100076c30ca288f42ea",
+          "locator": "lines 3-7"
+        }
+      ],
+      "placement_candidate": {
+        "destination": "warehouse",
+        "rationale": "Reuse the declared dbt dependency. Preserve adapter compilation and physical binding as separate unverified gates."
+      }
+    },
+    {
+      "rule_id": "dbt:warehouse:rule:base_column_projection",
+      "kind": "projection",
+      "language": "authored SQL; adapter dialect unknown",
+      "expression": "tenant_id, invoice_id, status, gross_cents, paid_cents",
+      "output_object_id": "dbt:warehouse:model:invoice_reporting",
+      "input_refs": [
+        {
+          "reference": "billing.invoice_current.tenant_id",
+          "status": "resolved",
+          "object_id": "dbt:warehouse:source:billing.invoice_current"
+        },
+        {
+          "reference": "billing.invoice_current.invoice_id",
+          "status": "resolved",
+          "object_id": "dbt:warehouse:source:billing.invoice_current"
+        },
+        {
+          "reference": "billing.invoice_current.status",
+          "status": "resolved",
+          "object_id": "dbt:warehouse:source:billing.invoice_current"
+        },
+        {
+          "reference": "billing.invoice_current.gross_cents",
+          "status": "resolved",
+          "object_id": "dbt:warehouse:source:billing.invoice_current"
+        },
+        {
+          "reference": "billing.invoice_current.paid_cents",
+          "status": "resolved",
+          "object_id": "dbt:warehouse:source:billing.invoice_current"
+        }
+      ],
+      "context": {
+        "evaluation_grain": "one source row as written; business key uniqueness unknown",
+        "filters": [],
+        "security": "No access policy in assigned evidence; projecting tenant_id is not access enforcement.",
+        "timezone": "not declared",
+        "currency": "not declared",
+        "source_kind": "authored dbt SQL; uncompiled",
+        "execution": "not executed",
+        "null_behavior": "No explicit null replacement on projected base fields.",
+        "aggregation": "none",
+        "joins": "none",
+        "status_population": "No WHERE predicate; no status is excluded by this model as written."
+      },
+      "evidence": [
+        {
+          "asset_id": "asset-00b9dd6068347a961e10228e",
+          "locator": "lines 3-7"
+        },
+        {
+          "asset_id": "asset-8c5af100076c30ca288f42ea",
+          "locator": "lines 10-14"
+        }
+      ],
+      "placement_candidate": {
+        "destination": "warehouse",
+        "rationale": "Candidate for reuse as existing reusable detail; retain tenant and invoice identifiers. Do not assume declared identifiers prove grain or access isolation."
+      }
+    },
+    {
+      "rule_id": "dbt:warehouse:rule:net_cents",
+      "kind": "row_calculation",
+      "language": "authored SQL; adapter dialect unknown",
+      "expression": "gross_cents - coalesce(credit_cents, 0) as net_cents",
+      "output_object_id": "dbt:warehouse:model:invoice_reporting",
+      "input_refs": [
+        {
+          "reference": "billing.invoice_current.gross_cents",
+          "status": "resolved",
+          "object_id": "dbt:warehouse:source:billing.invoice_current"
+        },
+        {
+          "reference": "billing.invoice_current.credit_cents",
+          "status": "resolved",
+          "object_id": "dbt:warehouse:source:billing.invoice_current"
+        }
+      ],
+      "context": {
+        "evaluation_grain": "one source row as written; business key uniqueness unknown",
+        "filters": [],
+        "security": "No access policy in assigned evidence; projecting tenant_id is not access enforcement.",
+        "timezone": "not declared",
+        "currency": "not declared",
+        "source_kind": "authored dbt SQL; uncompiled",
+        "execution": "not executed",
+        "output_field": "net_cents",
+        "null_behavior": "The expression substitutes 0 only for null credit_cents; it does not coalesce gross_cents.",
+        "rounding": "No explicit cast, rounding or conversion in the expression.",
+        "aggregation": "none",
+        "amount_units": "Names suggest cents; source data types, currency and unit contract are not declared.",
+        "credit_policy": "Credit sign, meaning, granularity and prior application are unknown; no accepted business definition was supplied."
+      },
+      "evidence": [
+        {
+          "asset_id": "asset-00b9dd6068347a961e10228e",
+          "locator": "line 8"
+        },
+        {
+          "asset_id": "asset-8c5af100076c30ca288f42ea",
+          "locator": "lines 13-15"
+        }
+      ],
+      "placement_candidate": {
+        "destination": "warehouse",
+        "rationale": "A reusable row-level credit subtraction already exists in dbt. Propose reuse subject to source/credit/null tests; downstream semantic review must prevent applying this same adjustment twice. This is a recommendation, not metric approval."
+      }
+    },
+    {
+      "rule_id": "dbt:warehouse:rule:project_profile",
+      "kind": "execution_configuration",
+      "language": "dbt project YAML",
+      "expression": "profile: synthetic_no_credentials",
+      "output_object_id": "dbt:warehouse:project:synthetic_billing",
+      "input_refs": [
+        {
+          "reference": "dbt profile synthetic_no_credentials",
+          "status": "unresolved"
+        }
+      ],
+      "context": {
+        "evaluation_grain": "project execution configuration",
+        "filters": [],
+        "security": "Execution identity and target are unknown; no credentials were sought.",
+        "model_paths": [
+          "models"
+        ]
+      },
+      "evidence": [
+        {
+          "asset_id": "asset-c474e23c9d327d444116e4e6",
+          "locator": "lines 4-5"
+        }
+      ],
+      "placement_candidate": {
+        "destination": "unresolved",
+        "rationale": "Target binding and authorized development scope are unavailable. Do not run compilation or infer a warehouse from this profile name."
+      }
+    }
+  ],
+  "unresolved_references": [
+    {
+      "reference": "SYNTHETIC.RAW.invoice_current",
+      "reason": "Physical source table is declared, but its existence, schema, row population, keys, CDC/history and access policy were not supplied or inspected."
+    },
+    {
+      "reference": "dbt profile synthetic_no_credentials",
+      "reason": "Profile/adapter/target settings and authorized execution scope are absent from the assigned files; no credential lookup was performed."
+    }
+  ],
+  "gaps": [
+    {
+      "kind": "business_grain_unverified",
+      "reason": "No unique keys, constraints, samples or tests establish tenant/invoice identity, duplicate handling or fanout risk in downstream joins."
+    },
+    {
+      "kind": "source_state_unverified",
+      "reason": "A source named invoice_current does not establish current-state retention, ordering, delete, replay or historical behavior."
+    },
+    {
+      "kind": "credit_definition_unapproved",
+      "reason": "Net amount arithmetic is observed, but credit meaning/sign/grain, amount units, currency, null conventions and business authority remain unknown."
+    },
+    {
+      "kind": "security_unverified",
+      "reason": "Tenant columns are projected, but no warehouse/semantic policy, user identity, grants or permitted/denied-role test evidence is assigned."
+    },
+    {
+      "kind": "target_and_consumer_coverage",
+      "reason": "No compiled manifest, installed dbt/adapter version, target object binding, run result, deployment overrides or external consumer evidence was assigned. No neighboring specialist files were inspected."
+    }
+  ],
+  "extraction_evidence": {
+    "mode": "actual_native_specialist_offline",
+    "method": "Bounded manual YAML/Jinja/SQL interpretation of these simple authored files; no full dialect parser or dbt compilation.",
+    "input_hashes_verified": true,
+    "assigned_asset_count": 3,
+    "source_files_executed": 0,
+    "network_calls": 0,
+    "target_queries": 0,
+    "scope": "Only the three assigned source files and referenced trusted skill guidance. Inventory metadata was used only to verify the assigned snapshot and file hashes.",
+    "authorization": "Extraction result only; no source mutation, target generation, business approval or deployment."
+  }
+}

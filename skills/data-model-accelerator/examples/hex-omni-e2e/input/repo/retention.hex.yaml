@@ -1,0 +1,127 @@
+schemaVersion: 3
+meta:
+  projectId: 3b237687-7ceb-5f7d-bec6-047158cb60ef
+  sourceVersionId: 868cc203-f123-504d-8c7f-b78d378cce86
+  codeLanguage: PYTHON
+  title: Customer retention
+  hexType: PROJECT
+  timezone: UTC
+  allowExecutionReordering: true
+  castDecimalsDefault: false
+cells:
+- cellId: 057830c6-6522-5632-aa68-9c25f86077f6
+  cellType: INPUT
+  cellLabel: tenant
+  config:
+    name: tenant
+    outputType: STRING
+    inputType: DROPDOWN
+    defaultValue: A
+    options:
+      valueOptions:
+      - A
+      - B
+      optional: false
+- cellId: 1de662e8-8308-5341-b82b-6f9ed42305a2
+  cellType: INPUT
+  cellLabel: start_date
+  config:
+    name: start_date
+    outputType: STRING
+    inputType: TEXT_INPUT
+    defaultValue: '2026-01-01'
+    options:
+      multiline: false
+- cellId: c6677e6c-7b23-5915-a881-67376f9a9253
+  cellType: INPUT
+  cellLabel: end_date
+  config:
+    name: end_date
+    outputType: STRING
+    inputType: TEXT_INPUT
+    defaultValue: '2026-03-01'
+    options:
+      multiline: false
+- cellId: d4aeab5f-a8be-5517-abc5-de9f9bdf8839
+  cellType: INPUT
+  cellLabel: segment
+  config:
+    name: segment
+    outputType: STRING
+    inputType: DROPDOWN
+    defaultValue: ALL
+    options:
+      valueOptions:
+      - ALL
+      - SMB
+      - Enterprise
+      optional: false
+- cellId: dcd60bc3-a992-5d08-863a-f9a614bfb391
+  cellType: COMPONENT_IMPORT
+  cellLabel: Revenue definition
+  config:
+    component:
+      id: 8c7958a3-573b-5b81-9a0e-02de54bed99d
+      version: 48181ff3-ae9a-5717-add9-699e64214924
+- cellId: 06a5206d-c15a-5f3d-b2ad-9116c2f34f33
+  cellType: SQL
+  cellLabel: Active customers
+  config:
+    source: "WITH first_paid AS (\n  SELECT TENANT_ID, CUSTOMER_ID, MIN(DATE_TRUNC('month', INVOICE_DATE)) AS FIRST_PAID_MONTH\n  FROM enriched WHERE STATUS = 'posted' AND PAID_CENTS > 0 GROUP BY TENANT_ID, CUSTOMER_ID\n)\nSELECT DISTINCT e.TENANT_ID AS tenant_id, e.CUSTOMER_ID AS customer_id,\n       DATE_TRUNC('month', e.INVOICE_DATE) AS month, e.SEGMENT AS segment,\n       f.FIRST_PAID_MONTH AS first_paid_month\nFROM enriched e LEFT JOIN first_paid f ON e.TENANT_ID = f.TENANT_ID AND e.CUSTOMER_ID = f.CUSTOMER_ID WHERE STATUS = 'posted'\n  AND e.TENANT_ID = {{ tenant }}\n  AND INVOICE_DATE >= CAST({{ start_date }} AS DATE)\n  AND INVOICE_DATE < CAST({{ end_date }} AS DATE)\n  AND ({{ segment }} = 'ALL' OR SEGMENT = {{ segment }}) AND NET_CENTS > 0"
+    resultVariableName: active_customer_detail
+    dataFrameCell: true
+    dataConnectionId: null
+    castDecimals: false
+    sqlCellOutputType: PANDAS
+- cellId: 8473ffd1-e376-5d15-b81f-689c9fa7a4b1
+  cellType: SQL
+  cellLabel: Monthly summary
+  config:
+    source: 'SELECT month, segment, COUNT(DISTINCT CUSTOMER_ID) AS active_customers
+
+      FROM active_customer_detail GROUP BY MONTH, SEGMENT ORDER BY MONTH, SEGMENT'
+    resultVariableName: retention_summary
+    dataFrameCell: true
+    dataConnectionId: null
+    castDecimals: false
+    sqlCellOutputType: PANDAS
+appLayout:
+  fullWidth: true
+  tabs:
+  - name: Overview
+    rows:
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: 057830c6-6522-5632-aa68-9c25f86077f6
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: 1de662e8-8308-5341-b82b-6f9ed42305a2
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: c6677e6c-7b23-5915-a881-67376f9a9253
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: d4aeab5f-a8be-5517-abc5-de9f9bdf8839
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: 8473ffd1-e376-5d15-b81f-689c9fa7a4b1
+          showSource: false
+          showLabel: true

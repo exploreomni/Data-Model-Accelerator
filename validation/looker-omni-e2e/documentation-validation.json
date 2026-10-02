@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "origin": "synthetic_documentation_contract_validation",
+  "documentation_contract_passed": true,
+  "errors": [],
+  "model_count": 10,
+  "column_count": 79,
+  "layers": {
+    "bronze": {
+      "models": 4,
+      "columns": 34
+    },
+    "silver": {
+      "models": 4,
+      "columns": 25
+    },
+    "gold": {
+      "models": 2,
+      "columns": 20
+    }
+  },
+  "model_inventory_sha256": "a6550a215986a1cb844c0f3f93bf081b4ad8a1e9487275b974fa65a3a0c341a7",
+  "documentation_artifacts": {
+    "skills/data-model-accelerator/examples/looker-omni-e2e/documentation/model-inventory.json": "a6550a215986a1cb844c0f3f93bf081b4ad8a1e9487275b974fa65a3a0c341a7",
+    "skills/data-model-accelerator/examples/looker-omni-e2e/documentation/data-dictionary.json": "aecd70800c12409420380fa3ba4f495550fc34667dabe5ab457301149461a506",
+    "skills/data-model-accelerator/examples/looker-omni-e2e/documentation/data-dictionary.md": "3b5facf5b79c9f1990f822a924114f7d9802831930d0642ca40c12332fe8ac85",
+    "skills/data-model-accelerator/examples/looker-omni-e2e/documentation/model-erd.md": "3d60b63e6fca9bb6dab0b0f22c3d00dff828dbfc535459714bdd50e784cff3dc",
+    "skills/data-model-accelerator/examples/looker-omni-e2e/documentation/bronze.md": "2a0ef776eb2dfa6e0afc27496b9976b5728eedee5ce2a90ba145f66e36991c16",
+    "skills/data-model-accelerator/examples/looker-omni-e2e/documentation/silver.md": "e0b4e955a122e870bc4caf64d7e8b85ba4777bbf995a809cc0384deb1bf51bd6",
+    "skills/data-model-accelerator/examples/looker-omni-e2e/documentation/gold.md": "61d956680336df034efbb20fba7661777ce7618e7fb29c3ebce03480f283d1bb"
+  },
+  "validation_evidence": [
+    "documentation-regression-tests.txt",
+    "documentation-review.md"
+  ],
+  "limits": "Validates declared documentation structure and coverage. Executed-schema comparison is local; content review was sampled. Native platform validation and human approval remain outstanding."
+}

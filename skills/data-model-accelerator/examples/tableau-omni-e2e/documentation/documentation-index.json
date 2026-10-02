@@ -1,0 +1,36 @@
+{
+  "inventory": "model-inventory.json",
+  "dictionary": "data-dictionary.json",
+  "readable_dictionary": "data-dictionary.md",
+  "erd": "model-erd.md",
+  "layers": [
+    {
+      "layer": "bronze",
+      "document": "bronze.md",
+      "model_ids": [
+        "DMA_TABLEAU.RAW.ADJUSTMENTS",
+        "DMA_TABLEAU.RAW.CUSTOMER_HISTORY",
+        "DMA_TABLEAU.RAW.INVOICE_CDC",
+        "DMA_TABLEAU.RAW.PAYMENT_CDC"
+      ]
+    },
+    {
+      "layer": "silver",
+      "document": "silver.md",
+      "model_ids": [
+        "DMA_TABLEAU.SILVER.BILLING_ADJUSTMENTS",
+        "DMA_TABLEAU.SILVER.BILLING_CUSTOMER_HISTORY",
+        "DMA_TABLEAU.SILVER.BILLING_INVOICES",
+        "DMA_TABLEAU.SILVER.BILLING_PAYMENTS"
+      ]
+    },
+    {
+      "layer": "gold",
+      "document": "gold.md",
+      "model_ids": [
+        "DMA_TABLEAU.GOLD.DIM_CUSTOMERS",
+        "DMA_TABLEAU.GOLD.FCT_INVOICES"
+      ]
+    }
+  ]
+}

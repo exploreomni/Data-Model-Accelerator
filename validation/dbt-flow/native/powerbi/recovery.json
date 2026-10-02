@@ -1,0 +1,17 @@
+{
+  "command": "build",
+  "complete_success": true,
+  "denominator": 79,
+  "evidence_complete": true,
+  "evidence_errors": [],
+  "exit_code": 0,
+  "failed_nodes": [],
+  "invocation_id": "2b83e5cf-2829-468f-9519-4070c2ce673f",
+  "manifest_sha256": "1b7977944c778fd7d71c18a0902fde91e75523e849cad61d297f05234f101f60",
+  "project_unchanged": true,
+  "run_results_sha256": "5e95b620bf129f568c21f6f5a34dea074d72c2681888e399663ac8b688d4a8b2",
+  "status_counts": {
+    "pass": 73,
+    "success": 6
+  }
+}

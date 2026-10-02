@@ -1,0 +1,30 @@
+14:37:07  Running with dbt=1.12.4
+14:37:08  Registered adapter: duckdb=1.11.0
+14:37:08  Found 5 models, 1 analysis, 52 data tests, 4 sources, 503 macros
+14:37:08  
+14:37:08  Concurrency: 1 threads (target='local')
+14:37:08  
+Compiled node 'retail_fulfillment_summary' is:
+
+  
+  
+  
+  
+  
+  
+  
+  
+select cast(date_trunc('month', ORDER_DATE) as date) as ORDER_MONTH,
+       PRODUCT_ID, sum(ORDERED_QUANTITY) as ORDERED_QUANTITY,
+       sum(FULFILLED_QUANTITY) as FULFILLED_QUANTITY,
+       sum(RETURNED_QUANTITY) as RETURNED_QUANTITY,
+       sum(LINE_NET_CENTS) as LINE_NET_CENTS, sum(REFUND_CENTS) as REFUND_CENTS,
+       sum(RETAINED_REVENUE_CENTS) as RETAINED_REVENUE_CENTS,
+       sum(FULFILLED_QUANTITY) * 1.0 / nullif(sum(ORDERED_QUANTITY), 0) as FULFILLMENT_RATE
+from DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT
+where TENANT_ID = 'A'
+  and ORDER_DATE >= cast('2026-04-01' as date)
+  and ORDER_DATE < cast('2026-04-04' as date)
+  and ORDER_STATUS = 'completed'
+  
+group by 1, 2

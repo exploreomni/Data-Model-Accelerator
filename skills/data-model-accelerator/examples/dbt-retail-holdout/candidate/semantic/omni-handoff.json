@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "native_omni_artifact": false,
+  "kind": "semantic_handoff_contract",
+  "target": "Omni proposal; no native files or workbook deployment claimed",
+  "source_report": "model.retail_quick_reports.retail_fulfillment_summary",
+  "base_relation": "DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT",
+  "grain": [
+    "TENANT_ID",
+    "ORDER_ID",
+    "LINE_ID"
+  ],
+  "dimensions": {
+    "ORDER_MONTH": "CAST(DATE_TRUNC(month, ORDER_DATE) AS DATE)",
+    "PRODUCT_ID": "PRODUCT_ID"
+  },
+  "measures": {
+    "ORDERED_QUANTITY": {
+      "aggregate": "sum",
+      "field": "ORDERED_QUANTITY",
+      "unit": "quantity"
+    },
+    "FULFILLED_QUANTITY": {
+      "aggregate": "sum",
+      "field": "FULFILLED_QUANTITY",
+      "unit": "quantity"
+    },
+    "RETURNED_QUANTITY": {
+      "aggregate": "sum",
+      "field": "RETURNED_QUANTITY",
+      "unit": "quantity"
+    },
+    "LINE_NET_CENTS": {
+      "aggregate": "sum",
+      "field": "LINE_NET_CENTS",
+      "unit": "USD cents"
+    },
+    "REFUND_CENTS": {
+      "aggregate": "sum",
+      "field": "REFUND_CENTS",
+      "unit": "USD cents"
+    },
+    "RETAINED_REVENUE_CENTS": {
+      "aggregate": "sum",
+      "field": "RETAINED_REVENUE_CENTS",
+      "unit": "USD cents"
+    }
+  },
+  "compound_measures": {
+    "FULFILLMENT_RATE": "SUM(FULFILLED_QUANTITY) / NULLIF(SUM(ORDERED_QUANTITY),0)"
+  },
+  "defaults": {
+    "tenant": "A",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-04",
+    "status": "completed",
+    "product": "ALL"
+  },
+  "filter_order": [
+    "principal authorization separate from filters",
+    "tenant",
+    "half-open order dates",
+    "status",
+    "optional product",
+    "month/product grouping",
+    "ratio of sums"
+  ],
+  "empty_grouped_report": [],
+  "zero_denominator": null,
+  "totals": "Recompute sums and ratio at requested grain; never sum displayed rates.",
+  "security": {
+    "local_boundary": "Omitted persona_tenant defaults to selected tenant for this synthetic trial; explicit null/mismatch fails. authorized omitted defaults true, explicit non-true fails.",
+    "production": "Principal/role provisioning and native Omni access rules unverified; SQL var is not RLS."
+  },
+  "native_qualification_required": [
+    "field mappings and date functions",
+    "user attribute binding and negative personas",
+    "filter defaults and totals",
+    "Snowflake target schema and numeric types"
+  ],
+  "source_of_authority": "Frozen synthetic contract supplies acceptance intent; no fabricated human approval.",
+  "report_analysis": "dbt/analyses/retail_fulfillment_summary.sql",
+  "report_map": "semantic/report-map.json",
+  "enabled_warehouse_report_model": false
+}

@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_dbt_holdout_input_manifest",
+  "frozen_at": "2026-09-11T12:00:00Z",
+  "origin": "synthetic",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7052,
+      "sha256": "2e94905328e98413e624a3912d850dd02fc51dd4fd6e2526b804e86eeb926219"
+    },
+    {
+      "path": "catalogue/exports/columns.json",
+      "bytes": 9261,
+      "sha256": "677819d1aa60cfa1862bc6faa06a4b5f78e536dcf5048bce2ac3a27e5465972c"
+    },
+    {
+      "path": "catalogue/exports/objects.json",
+      "bytes": 992,
+      "sha256": "203b098bd54ef1df4da2324b0bab7873cc9fd63edd281ad7d963ef4173c678a6"
+    },
+    {
+      "path": "catalogue/provenance.json",
+      "bytes": 670,
+      "sha256": "8e7c72333000cb6a309d34d0ada9075b0172f097c1db59e9acc7da22c2fb5ddc"
+    },
+    {
+      "path": "catalogue/warehouse-catalogue.json",
+      "bytes": 9542,
+      "sha256": "7c3c9fd13b4df18bd527392d892efc786216223a9b527bf9fe779e877e85959e"
+    },
+    {
+      "path": "contract.json",
+      "bytes": 3621,
+      "sha256": "5ffc5f1cf0e6b159db256a9a582bc17be4b45f45cfbf85865a89aa4d8096830b"
+    },
+    {
+      "path": "raw-data.json",
+      "bytes": 7342,
+      "sha256": "dab5b4505fe0660af2044f50994820d39382329f01fce1c898a88e4dc962fbe0"
+    },
+    {
+      "path": "repo/README.md",
+      "bytes": 1085,
+      "sha256": "9db0bc35ab89b4df24386af0d9cf3e4b2266f5a38c9a9c954a24d06268dbc921"
+    },
+    {
+      "path": "repo/dbt_project.yml",
+      "bytes": 323,
+      "sha256": "4adab8eaedc18e963346f3906a62ae92b4f6f5dfc0ad45a840fcdf61df072fc5"
+    },
+    {
+      "path": "repo/models/reports/retail_fulfillment_summary.sql",
+      "bytes": 1920,
+      "sha256": "a32a3881e4abd34ef05bae99c9e224299892541578ac45c2b0147a93dea8a3e3"
+    },
+    {
+      "path": "repo/models/reports/schema.yml",
+      "bytes": 284,
+      "sha256": "49ade92cf5c71215c6633df0c4ac5fa22cd857a8516d6d58437d367e8baf20c3"
+    },
+    {
+      "path": "repo/models/sources.yml",
+      "bytes": 417,
+      "sha256": "8988c4f905bedee56d9c497d62e9f0ac8d8c4a3514e68d4dcb59fff698a77d03"
+    },
+    {
+      "path": "repo/models/staging/schema.yml",
+      "bytes": 434,
+      "sha256": "b208059bb4361d29b819fe369be9ba9f4d1e06b4c7a6645b4f234ccf1e54943e"
+    },
+    {
+      "path": "repo/models/staging/stg_order_lines.sql",
+      "bytes": 626,
+      "sha256": "7f52d3c4f60624af997794e034137d33e20d3ad2a132a5582dca6f0aa637d4de"
+    },
+    {
+      "path": "repo/models/staging/stg_orders.sql",
+      "bytes": 449,
+      "sha256": "123bf463c2e6dcb558654ab536299aa1f961e50e4c2f314076a7a94a408e0099"
+    }
+  ],
+  "content_snapshot_sha256": "3a5bd552c860769ff8cd5facd51b0e988fd0bf4f9b3927866c8889a1c1a49edb",
+  "hash_basis": "Sorted files array serialized UTF-8 JSON with sorted keys and compact separators; manifest excludes itself."
+}

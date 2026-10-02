@@ -1,0 +1,14 @@
+# Unexecuted example. No credentials or deployment authority supplied.
+retail_candidate:
+  target: snowflake_development
+  outputs:
+    snowflake_development:
+      type: snowflake
+      account: "{{ env_var('RETAIL_SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('RETAIL_SNOWFLAKE_USER') }}"
+      authenticator: externalbrowser
+      database: DMA_RETAIL_CANDIDATE
+      schema: DEV_RETAIL
+      warehouse: "{{ env_var('RETAIL_SNOWFLAKE_WAREHOUSE') }}"
+      role: "{{ env_var('RETAIL_SNOWFLAKE_ROLE') }}"
+      threads: 1

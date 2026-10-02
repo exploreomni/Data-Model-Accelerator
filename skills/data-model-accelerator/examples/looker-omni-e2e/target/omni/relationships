@@ -1,0 +1,6 @@
+# Keys include tenant identity; relationship cardinality is subject to data tests.
+- join_from_view: invoices
+  join_to_view: customers
+  join_type: always_left
+  on_sql: ${invoices.customer_key} = ${customers.customer_key}
+  relationship_type: many_to_one

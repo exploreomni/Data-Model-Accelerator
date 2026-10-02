@@ -1,0 +1,834 @@
+{
+  "schema_version": 1,
+  "origin": "synthetic_independent_oracle",
+  "platform_instance": "DMA_TABLEAU_SYNTHETIC",
+  "catalogue": "DMA_TABLEAU",
+  "input_sha256": {
+    "input/scenario.md": "e897f8c89794d2c8f58db53464da25e8ccbc7441dad838ad9036de75416b6f84",
+    "input/raw-data.json": "d28ffee6457c1d8ebcde1d5e756f10771ec42b4d76c844e582cd1c981ce94d9c",
+    "input/repo/adjustments.csv": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e"
+  },
+  "ratio_absolute_tolerance": "1e-12",
+  "scenarios": [
+    {
+      "scenario_id": "default_a",
+      "parameters": {},
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 5000
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.14285714285714285714285714285714285714285714285714",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 7000,
+            "fixed_customer_revenue_cents": 18000
+          },
+          {
+            "customer_id": "C1",
+            "segment": "SMB",
+            "selected_revenue_cents": 11000,
+            "fixed_customer_revenue_cents": 18000
+          },
+          {
+            "customer_id": "C2",
+            "segment": "SMB",
+            "selected_revenue_cents": 16000,
+            "fixed_customer_revenue_cents": 16000
+          },
+          {
+            "customer_id": "C3",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 5000,
+            "fixed_customer_revenue_cents": 5000
+          },
+          {
+            "customer_id": "C4",
+            "segment": "SMB",
+            "selected_revenue_cents": 0,
+            "fixed_customer_revenue_cents": 0
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "share_of_month": "0.2"
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "share_of_month": "0.8"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "share_of_month": "0.5"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "share_of_month": "0.5"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "tenant_b",
+      "parameters": {
+        "tenant": "B"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 30500,
+            "paid_cents": 30000,
+            "outstanding_cents": 500,
+            "payment_rate": "0.98360655737704918032786885245901639344262295081967",
+            "scenario_revenue_cents": 30500
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 5000,
+            "outstanding_cents": 15000,
+            "payment_rate": "0.25",
+            "scenario_revenue_cents": 20000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 30500,
+            "fixed_customer_revenue_cents": 30500
+          },
+          {
+            "customer_id": "C2",
+            "segment": "SMB",
+            "selected_revenue_cents": 20000,
+            "fixed_customer_revenue_cents": 20000
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 30500,
+            "share_of_month": "1"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "share_of_month": "1"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "january_a",
+      "parameters": {
+        "end_date": "2026-02-01"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 5000
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "SMB",
+            "selected_revenue_cents": 11000,
+            "fixed_customer_revenue_cents": 11000
+          },
+          {
+            "customer_id": "C2",
+            "segment": "SMB",
+            "selected_revenue_cents": 9000,
+            "fixed_customer_revenue_cents": 9000
+          },
+          {
+            "customer_id": "C3",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 5000,
+            "fixed_customer_revenue_cents": 5000
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "share_of_month": "0.2"
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "share_of_month": "0.8"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "february_a",
+      "parameters": {
+        "start_date": "2026-02-01"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.14285714285714285714285714285714285714285714285714",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 7000,
+            "fixed_customer_revenue_cents": 7000
+          },
+          {
+            "customer_id": "C2",
+            "segment": "SMB",
+            "selected_revenue_cents": 7000,
+            "fixed_customer_revenue_cents": 7000
+          },
+          {
+            "customer_id": "C4",
+            "segment": "SMB",
+            "selected_revenue_cents": 0,
+            "fixed_customer_revenue_cents": 0
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "share_of_month": "0.5"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "share_of_month": "0.5"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "february_boundary_a",
+      "parameters": {
+        "start_date": "2026-02-01",
+        "end_date": "2026-02-02"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 7000,
+            "fixed_customer_revenue_cents": 7000
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "share_of_month": "1"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "segment_smb_a",
+      "parameters": {
+        "segment": "SMB"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.14285714285714285714285714285714285714285714285714",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "SMB",
+            "selected_revenue_cents": 11000,
+            "fixed_customer_revenue_cents": 18000
+          },
+          {
+            "customer_id": "C2",
+            "segment": "SMB",
+            "selected_revenue_cents": 16000,
+            "fixed_customer_revenue_cents": 16000
+          },
+          {
+            "customer_id": "C4",
+            "segment": "SMB",
+            "selected_revenue_cents": 0,
+            "fixed_customer_revenue_cents": 0
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "share_of_month": "1"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "share_of_month": "1"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "segment_enterprise_a",
+      "parameters": {
+        "segment": "Enterprise"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 5000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 7000,
+            "fixed_customer_revenue_cents": 18000
+          },
+          {
+            "customer_id": "C3",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 5000,
+            "fixed_customer_revenue_cents": 5000
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "share_of_month": "1"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "share_of_month": "1"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "segment_smb_b",
+      "parameters": {
+        "tenant": "B",
+        "segment": "SMB"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 5000,
+            "outstanding_cents": 15000,
+            "payment_rate": "0.25",
+            "scenario_revenue_cents": 20000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C2",
+            "segment": "SMB",
+            "selected_revenue_cents": 20000,
+            "fixed_customer_revenue_cents": 20000
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "share_of_month": "1"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "segment_enterprise_b",
+      "parameters": {
+        "tenant": "B",
+        "segment": "Enterprise"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 30500,
+            "paid_cents": 30000,
+            "outstanding_cents": 500,
+            "payment_rate": "0.98360655737704918032786885245901639344262295081967",
+            "scenario_revenue_cents": 30500
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 30500,
+            "fixed_customer_revenue_cents": 30500
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 30500,
+            "share_of_month": "1"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "empty_equal_bounds",
+      "parameters": {
+        "end_date": "2026-01-01"
+      },
+      "outputs": {
+        "revenue_trend": [],
+        "customer_value": [],
+        "revenue_share": []
+      }
+    },
+    {
+      "scenario_id": "empty_after_snapshot",
+      "parameters": {
+        "start_date": "2026-04-01",
+        "end_date": "2026-05-01"
+      },
+      "outputs": {
+        "revenue_trend": [],
+        "customer_value": [],
+        "revenue_share": []
+      }
+    },
+    {
+      "scenario_id": "zero_revenue_a",
+      "parameters": {
+        "start_date": "2026-02-20",
+        "end_date": "2026-02-21"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 0,
+            "paid_cents": 0,
+            "outstanding_cents": 0,
+            "payment_rate": null,
+            "scenario_revenue_cents": 0
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C4",
+            "segment": "SMB",
+            "selected_revenue_cents": 0,
+            "fixed_customer_revenue_cents": 0
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 0,
+            "share_of_month": null
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "multiplier_double",
+      "parameters": {
+        "multiplier": 2
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 10000
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 40000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 14000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.14285714285714285714285714285714285714285714285714",
+            "scenario_revenue_cents": 14000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 7000,
+            "fixed_customer_revenue_cents": 18000
+          },
+          {
+            "customer_id": "C1",
+            "segment": "SMB",
+            "selected_revenue_cents": 11000,
+            "fixed_customer_revenue_cents": 18000
+          },
+          {
+            "customer_id": "C2",
+            "segment": "SMB",
+            "selected_revenue_cents": 16000,
+            "fixed_customer_revenue_cents": 16000
+          },
+          {
+            "customer_id": "C3",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 5000,
+            "fixed_customer_revenue_cents": 5000
+          },
+          {
+            "customer_id": "C4",
+            "segment": "SMB",
+            "selected_revenue_cents": 0,
+            "fixed_customer_revenue_cents": 0
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "share_of_month": "0.2"
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "share_of_month": "0.8"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "share_of_month": "0.5"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "share_of_month": "0.5"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "context_january_smb",
+      "parameters": {
+        "end_date": "2026-02-01",
+        "segment": "SMB"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "SMB",
+            "selected_revenue_cents": 11000,
+            "fixed_customer_revenue_cents": 11000
+          },
+          {
+            "customer_id": "C2",
+            "segment": "SMB",
+            "selected_revenue_cents": 9000,
+            "fixed_customer_revenue_cents": 9000
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "share_of_month": "1"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "context_february_enterprise",
+      "parameters": {
+        "start_date": "2026-02-01",
+        "segment": "Enterprise"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "customer_value": [
+          {
+            "customer_id": "C1",
+            "segment": "Enterprise",
+            "selected_revenue_cents": 7000,
+            "fixed_customer_revenue_cents": 7000
+          }
+        ],
+        "revenue_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "share_of_month": "1"
+          }
+        ]
+      }
+    },
+    {
+      "scenario_id": "unknown_segment_empty",
+      "parameters": {
+        "segment": "Unrepresented"
+      },
+      "outputs": {
+        "revenue_trend": [],
+        "customer_value": [],
+        "revenue_share": []
+      }
+    }
+  ],
+  "error_scenarios": [
+    {
+      "scenario_id": "unknown_tenant",
+      "parameters": {
+        "tenant": "C"
+      },
+      "expected_error_code": "unknown_tenant"
+    },
+    {
+      "scenario_id": "missing_tenant",
+      "parameters": {
+        "tenant": null
+      },
+      "expected_error_code": "unknown_tenant"
+    },
+    {
+      "scenario_id": "unauthorized_persona",
+      "parameters": {
+        "authorized": false
+      },
+      "expected_error_code": "unauthorized"
+    },
+    {
+      "scenario_id": "persona_mismatch",
+      "parameters": {
+        "tenant": "A",
+        "persona_tenant": "B"
+      },
+      "expected_error_code": "persona_mismatch"
+    },
+    {
+      "scenario_id": "reversed_dates",
+      "parameters": {
+        "start_date": "2026-03-01",
+        "end_date": "2026-01-01"
+      },
+      "expected_error_code": "reversed_dates"
+    },
+    {
+      "scenario_id": "invalid_date",
+      "parameters": {
+        "start_date": "2026-02-30"
+      },
+      "expected_error_code": "invalid_date"
+    },
+    {
+      "scenario_id": "nonfinite_multiplier_nan",
+      "parameters": {
+        "multiplier": "NaN"
+      },
+      "expected_error_code": "invalid_multiplier"
+    },
+    {
+      "scenario_id": "nonfinite_multiplier_infinity",
+      "parameters": {
+        "multiplier": "Infinity"
+      },
+      "expected_error_code": "invalid_multiplier"
+    }
+  ]
+}

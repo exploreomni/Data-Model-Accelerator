@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "extraction_complete": true,
+  "tasks_expected": 1,
+  "tasks_returned": 1,
+  "assets_expected": 8,
+  "objects_returned": 7,
+  "rules_returned": 3,
+  "errors": [],
+  "gaps": [],
+  "limitation": "Checks declared extraction/provenance only; does not establish business equivalence, independent execution, placement approval or deployment readiness.",
+  "source_snapshot_sha256": "f9b71a11e4604d41e0d76c1b29933c97554976b59b5c12ef8b76379a33d2a098"
+}

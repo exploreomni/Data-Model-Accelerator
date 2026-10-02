@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_tableau_catalogue_provenance",
+  "origin": "synthetic",
+  "context": {
+    "platform_instance": "DMA_TABLEAU_SYNTHETIC",
+    "connection_id": "tableau-billing-snowflake",
+    "catalog": "DMA_TABLEAU",
+    "schema": "RAW",
+    "location": "synthetic-location-not-a-real-region"
+  },
+  "captured_at": "2026-09-10T19:57:31.104516+00:00",
+  "exports": {
+    "exports/columns.json": "4a341faddcbdd8df29ab872c4b54ddb5ac812403dd297b48b8544853dbfe2880",
+    "exports/objects.json": "851bd48c44aa1bff2a3d05fd15313a19428be4589555c1e1e3f3f5f5339e60c5"
+  },
+  "generation_basis": "Authored from target/snowflake/00_raw_contract.sql, independently rechecked at build; no warehouse connection/query",
+  "proposed_objects": [
+    "DMA_TABLEAU.RAW.ADJUSTMENTS"
+  ],
+  "logical_required_values": "All raw fields except CUSTOMER_HISTORY.VALID_TO are required by scenario; bootstrap declares no NOT NULL constraints",
+  "note": "Synthetic metadata fixture reused with an explicit Tableau-specific namespace; no account metadata was fetched."
+}

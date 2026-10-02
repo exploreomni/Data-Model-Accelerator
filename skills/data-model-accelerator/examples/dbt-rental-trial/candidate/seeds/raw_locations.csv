@@ -1,0 +1,5 @@
+tenant_id,location_id,location_name,updated_at,cdc_sequence,is_deleted
+A,L1,East Yard,2026-08-01 10:00:00,1,false
+A,L1,Central Yard,2026-08-15 12:00:00,2,false
+B,L1,West Yard,2026-08-01 10:00:00,1,false
+C,L9,Harbor Yard,2026-08-01 10:00:00,1,false

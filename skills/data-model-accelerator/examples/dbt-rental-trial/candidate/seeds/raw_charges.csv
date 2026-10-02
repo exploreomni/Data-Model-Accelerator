@@ -1,0 +1,13 @@
+tenant_id,charge_id,rental_id,charge_type,amount,currency,updated_at,cdc_sequence,is_deleted
+A,C1,R1,rental_fee,100.00,USD,2026-08-14 09:00:00,1,false
+A,C1,R1,rental_fee,120.00,USD,2026-08-15 18:10:00,2,false
+A,C1,R1,rental_fee,120.00,USD,2026-08-15 18:10:00,2,false
+A,C2,R1,refund,20.00,USD,2026-08-15 18:15:00,1,false
+A,C3,R1,refundable_deposit,50.00,USD,2026-08-14 09:00:00,1,false
+A,C4,R1,damage_fee,7.00,USD,2026-08-14 18:00:00,1,false
+A,C4,R1,damage_fee,7.00,USD,2026-08-15 18:20:00,2,true
+A,C5,R3,rental_fee,30.00,USD,2026-08-15 19:05:00,1,false
+A,C6,R4,rental_fee,40.00,USD,2026-08-14 19:05:00,1,false
+B,C1,R1,rental_fee,70.00,USD,2026-08-15 16:05:00,1,false
+B,C2,R1,refund,5.00,USD,2026-08-15 16:10:00,1,false
+C,C9,R9,rental_fee,42.00,USD,2026-08-15 15:05:00,1,false

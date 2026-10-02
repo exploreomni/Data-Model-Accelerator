@@ -1,0 +1,49 @@
+{
+  "rows": [
+    {
+      "charge_id": "C1",
+      "charge_type": "rental_fee",
+      "currency": "USD",
+      "rental_id": "R1",
+      "signed_amount": "120.00",
+      "source_amount": "120.00",
+      "tenant_id": "A"
+    },
+    {
+      "charge_id": "C2",
+      "charge_type": "refund",
+      "currency": "USD",
+      "rental_id": "R1",
+      "signed_amount": "-20.00",
+      "source_amount": "20.00",
+      "tenant_id": "A"
+    },
+    {
+      "charge_id": "C1",
+      "charge_type": "rental_fee",
+      "currency": "USD",
+      "rental_id": "R1",
+      "signed_amount": "70.00",
+      "source_amount": "70.00",
+      "tenant_id": "B"
+    },
+    {
+      "charge_id": "C2",
+      "charge_type": "refund",
+      "currency": "USD",
+      "rental_id": "R1",
+      "signed_amount": "-5.00",
+      "source_amount": "5.00",
+      "tenant_id": "B"
+    },
+    {
+      "charge_id": "C9",
+      "charge_type": "rental_fee",
+      "currency": "USD",
+      "rental_id": "R9",
+      "signed_amount": "42.00",
+      "source_amount": "42.00",
+      "tenant_id": "C"
+    }
+  ]
+}

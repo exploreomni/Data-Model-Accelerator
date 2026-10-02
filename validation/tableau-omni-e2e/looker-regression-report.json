@@ -1,0 +1,715 @@
+{
+  "schema_version": 1,
+  "origin": "synthetic_local_e2e",
+  "simulation_passed": true,
+  "checks": [
+    {
+      "id": "catalogue-physical-input-coverage",
+      "category": "source_contract",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "physical_inputs": 4,
+        "columns": 34,
+        "source_snapshot_sha256": "51817151dc36bb7bd5b9fb8d24cf2196a06d9a8b60502405935e89ddcbd3f9c3",
+        "catalogue_sha256": "08e5d35a4cfba0c06b32ad818d9ea07002671a79de28dd43f3c9adad7165e0e8"
+      }
+    },
+    {
+      "id": "raw-cdc-types-currency-history-contract",
+      "category": "source_contract",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "raw_rows": {
+          "invoice_cdc": 17,
+          "payment_cdc": 18,
+          "credit_cdc": 9,
+          "customer_history": 4
+        },
+        "replayed_versions": 5,
+        "replayed_history_rows": 0,
+        "distinct_history_rows": 4,
+        "current_invoices": 12
+      }
+    },
+    {
+      "id": "gold-rows-independent-oracle",
+      "category": "logic",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-derived-rows-independent-oracle",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "fact-grain-and-key",
+      "category": "grain",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "dimension-key-unique",
+      "category": "grain",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "fact-dimension-exactly-one-match",
+      "category": "fanout",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "tenant-dimension-isolation",
+      "category": "security",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "effective-customer-history",
+      "category": "history",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "retain-nonreport-populations",
+      "category": "logic",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "report-fields-controls-and-defaults-preserved",
+      "category": "report_context",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-dashboard-defaults-executed",
+      "category": "report_context",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "looker-dashboard-defaults-executed",
+      "category": "report_context",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_september_by_segment",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_by_segment",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_september_daily",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_daily",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_september_smb",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_smb",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_eur_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_eur_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-b_usd_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-b_usd_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_august_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_august_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_september_zero_net",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_zero_net",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_empty_interval",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "source-empty-sql-boundary-recorded",
+      "category": "logic",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-measure-filters-without-dashboard",
+      "category": "logic",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "looker-measure-filters-without-dashboard",
+      "category": "logic",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-deny-persona-None",
+      "category": "security",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "denied": true,
+        "reason": "A valid tenant attribute ('A' or 'B') is required; no security fallback exists",
+        "scope": "local policy simulation only"
+      }
+    },
+    {
+      "id": "looker-deny-persona-None",
+      "category": "security",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "denied": true,
+        "reason": "A valid tenant attribute ('A' or 'B') is required; no security fallback exists",
+        "scope": "local policy simulation only"
+      }
+    },
+    {
+      "id": "omni-deny-persona-''",
+      "category": "security",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "denied": true,
+        "reason": "A valid tenant attribute ('A' or 'B') is required; no security fallback exists",
+        "scope": "local policy simulation only"
+      }
+    },
+    {
+      "id": "looker-deny-persona-''",
+      "category": "security",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "denied": true,
+        "reason": "A valid tenant attribute ('A' or 'B') is required; no security fallback exists",
+        "scope": "local policy simulation only"
+      }
+    },
+    {
+      "id": "omni-deny-persona-'unknown'",
+      "category": "security",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "denied": true,
+        "reason": "A valid tenant attribute ('A' or 'B') is required; no security fallback exists",
+        "scope": "local policy simulation only"
+      }
+    },
+    {
+      "id": "looker-deny-persona-'unknown'",
+      "category": "security",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "denied": true,
+        "reason": "A valid tenant attribute ('A' or 'B') is required; no security fallback exists",
+        "scope": "local policy simulation only"
+      }
+    },
+    {
+      "id": "replay-preserves-gold",
+      "category": "replay",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "raw_events_loaded_twice": true,
+        "same_gold_rows": true,
+        "mode": "full model rebuild, not incremental MERGE"
+      }
+    },
+    {
+      "id": "arrival-order-does-not-select-source-version",
+      "category": "replay",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "reject-conflicting-version",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "conflicting CDC payload",
+        "caught": true,
+        "reason": "Conflicting payload for the same source version"
+      }
+    },
+    {
+      "id": "reject-currency-mismatch",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "cross currency ledger",
+        "caught": true,
+        "reason": "Ledger/invoice currency mismatch"
+      }
+    },
+    {
+      "id": "reject-overlapping-history",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "overlapping history",
+        "caught": true,
+        "reason": "Overlapping customer history"
+      }
+    },
+    {
+      "id": "reject-invalid-amount",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "non numeric cents",
+        "caught": true,
+        "reason": "Amount is not exact integer cents"
+      }
+    },
+    {
+      "id": "kill-missing-tenant-join",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "missing payment tenant join",
+        "caught": true,
+        "reason": "Row count differs: 16 vs 12"
+      }
+    },
+    {
+      "id": "kill-missing-temporal-join",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "missing temporal relationship",
+        "caught": true,
+        "reason": "Row count differs: 14 vs 12"
+      }
+    },
+    {
+      "id": "kill-double-credit",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "credit subtracted twice",
+        "caught": true,
+        "reason": "net_cents differs at row 0: 6500 vs 8000"
+      }
+    },
+    {
+      "id": "kill-arrival-order-cdc",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "arrival replaces source order",
+        "caught": true,
+        "reason": "gross_cents differs at row 0: 12000 vs 10000"
+      }
+    },
+    {
+      "id": "kill-early-delete-filter",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "deletes filtered before version ranking",
+        "caught": true,
+        "reason": "paid_cents differs at row 0: 6500 vs 6000"
+      }
+    },
+    {
+      "id": "kill-sum-of-row-ratios",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "sum of row ratios",
+        "caught": true,
+        "reason": "Ratio mismatch at row 0"
+      }
+    },
+    {
+      "id": "kill-lost-measure-filter",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "measure filter lost outside dashboard",
+        "caught": true,
+        "reason": "net_cents differs at row 0: 49900 vs 39900"
+      }
+    },
+    {
+      "id": "kill-omitted-access-policy",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "topic access filter removed",
+        "caught": true,
+        "reason": "Tenant access policy: exactly one declaration is required"
+      }
+    },
+    {
+      "id": "kill-quoted-lowercase-physical-column",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "quoted physical column changes case",
+        "caught": true,
+        "reason": "Quoted physical column 'tenant_id' is not uppercase; Snowflake case must match the fixture"
+      }
+    },
+    {
+      "id": "kill-catalogue-normalization-omission",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "normalized catalogue omits raw column",
+        "caught": true,
+        "reason": "Raw rows, native column export and normalized columns disagree"
+      }
+    },
+    {
+      "id": "kill-connection-binding",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "Looker connection points at a different warehouse instance",
+        "caught": true,
+        "reason": "Looker connection must match the fixed synthetic_billing_snowflake fixture binding"
+      }
+    },
+    {
+      "id": "kill-dashboard-default-currency",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "USD default silently becomes EUR",
+        "caught": true,
+        "reason": "Dashboard fields, filters, controls, defaults, ordering or limit changed"
+      }
+    },
+    {
+      "id": "kill-dashboard-default-dates",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "September default silently becomes August",
+        "caught": true,
+        "reason": "Dashboard fields, filters, controls, defaults, ordering or limit changed"
+      }
+    },
+    {
+      "id": "kill-dashboard-missing-measure",
+      "category": "negative_controls",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "mutation": "paid measure omitted from report",
+        "caught": true,
+        "reason": "Report tile must expose all four requested output measures"
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "empty-total-policy",
+      "observed": "Offline direct SQL aggregate expansion returns NULL sums for empty population.",
+      "proposed": "Omni compound wrappers explicitly return zero totals under the synthetic scenario contract.",
+      "native_looker_behavior": "unverified",
+      "business_approval": false
+    },
+    {
+      "id": "native-runtimes",
+      "detail": "No native Snowflake/Looker/Omni compilation, execution, roles or tenant validation."
+    },
+    {
+      "id": "code-replay",
+      "detail": "Regression replay parses source and emitted target artifacts; original multi-agent design/extraction is separately archived, not rerun by this command."
+    },
+    {
+      "id": "source-evidence",
+      "detail": "Source specialist retained runtime and binding gaps; integrated synthetic catalogue binding is separate evidence."
+    },
+    {
+      "id": "security",
+      "detail": "Local policy generation and tenant-key checks do not prove warehouse RLS or Omni runtime enforcement."
+    },
+    {
+      "id": "refresh",
+      "detail": "Rebuild/replay simulation is not a deployed incremental/CDC ingestion service."
+    },
+    {
+      "id": "presentation",
+      "detail": "Fixed-USD display corrected to selected-currency numeric display as a proposal; no rendered dashboard or native formatting parity."
+    }
+  ],
+  "failures": [],
+  "native_snowflake_execution": "unavailable",
+  "native_looker_execution": "unavailable",
+  "native_omni_validation_execution": "unavailable",
+  "production_approved": false,
+  "implementation_hashes": {
+    "run_looker_omni_e2e.py": "5b71f2596ee5b949bcf8c9940ef71a096c41b0af131792f073ae8f638fb911d3",
+    "e2e_warehouse.py": "c036bec8e1b50fdf7faf5773ddd3c37ec5557e5a387fc1c08ba62118d25e4a61",
+    "e2e_semantics.py": "48e354da818ef0bf88b9fd0530e81b56cac4568381747ef30fd6e765788b57bd",
+    "plan_specialists.py": "8ce5a5d1b152ff9fa5a3f58664a35376c58efd29c69c5bbbda31cc4edd293006",
+    "verify_catalogue.py": "3dba7c255c88ddc253818724d74e836aa11b49974d4f19ffebc4adb383746cf2"
+  },
+  "dependencies": {
+    "duckdb": "1.5.5",
+    "sqlglot": "30.18.0",
+    "lkml": "1.3.7",
+    "PyYAML": "6.0.3"
+  },
+  "test_plan_sha256": "65937cf5f3f58331de227b7f97c14173db16d76b33621ea89089a2fd8406db5a",
+  "required_test_ids": [
+    "catalogue-physical-input-coverage",
+    "raw-cdc-types-currency-history-contract",
+    "gold-rows-independent-oracle",
+    "legacy-derived-rows-independent-oracle",
+    "fact-grain-and-key",
+    "dimension-key-unique",
+    "fact-dimension-exactly-one-match",
+    "tenant-dimension-isolation",
+    "effective-customer-history",
+    "retain-nonreport-populations",
+    "omni-a_usd_september_total",
+    "legacy-a_usd_september_total",
+    "omni-a_usd_september_by_segment",
+    "legacy-a_usd_september_by_segment",
+    "omni-a_usd_september_daily",
+    "legacy-a_usd_september_daily",
+    "omni-a_usd_september_smb",
+    "legacy-a_usd_september_smb",
+    "omni-a_eur_september_total",
+    "legacy-a_eur_september_total",
+    "omni-b_usd_september_total",
+    "legacy-b_usd_september_total",
+    "omni-a_usd_august_total",
+    "legacy-a_usd_august_total",
+    "omni-a_usd_september_zero_net",
+    "legacy-a_usd_september_zero_net",
+    "omni-a_usd_empty_interval",
+    "source-empty-sql-boundary-recorded",
+    "omni-measure-filters-without-dashboard",
+    "looker-measure-filters-without-dashboard",
+    "omni-deny-persona-None",
+    "looker-deny-persona-None",
+    "omni-deny-persona-''",
+    "looker-deny-persona-''",
+    "omni-deny-persona-'unknown'",
+    "looker-deny-persona-'unknown'",
+    "replay-preserves-gold",
+    "arrival-order-does-not-select-source-version",
+    "reject-conflicting-version",
+    "reject-currency-mismatch",
+    "reject-overlapping-history",
+    "reject-invalid-amount",
+    "kill-missing-tenant-join",
+    "kill-missing-temporal-join",
+    "kill-double-credit",
+    "kill-arrival-order-cdc",
+    "kill-early-delete-filter",
+    "kill-sum-of-row-ratios",
+    "kill-lost-measure-filter",
+    "kill-omitted-access-policy",
+    "kill-quoted-lowercase-physical-column",
+    "kill-catalogue-normalization-omission",
+    "report-fields-controls-and-defaults-preserved",
+    "omni-dashboard-defaults-executed",
+    "looker-dashboard-defaults-executed",
+    "kill-dashboard-default-currency",
+    "kill-dashboard-default-dates",
+    "kill-dashboard-missing-measure",
+    "kill-connection-binding"
+  ],
+  "raw_counts": {
+    "invoice_cdc": 17,
+    "payment_cdc": 18,
+    "credit_cdc": 9,
+    "customer_history": 4
+  },
+  "source_counts": {
+    "assets": 4,
+    "ctes": 9,
+    "dimensions": 9,
+    "measures": 5,
+    "physical_inputs": 4
+  },
+  "target_counts": {
+    "facts": 12,
+    "dimension_rows": 6,
+    "report_scenarios": 9,
+    "report_result_rows": 17
+  },
+  "artifact_hashes": {
+    "input/scenario.md": "cef44718d15b689c7a6c6ec15492e3de72503c2eecfc9181fd80fe76bf5602c7",
+    "input/raw-data.json": "f345f387c7df7c65d480878dd92c7cab4cfc8454a58843621271c9c9e8388d48",
+    "input/catalogue/warehouse-catalogue.json": "14721c8a38705eb4f04536a3e2d7b5a9d7dc9c7cbd6c108dae3690bffabc38b6",
+    "input/repo/manifest.lkml": "034bd83c3c1fcd4f9929bdfc36b0467296a6661cc1c559f78ae722cb9461a02f",
+    "input/catalogue/exports/columns.json": "fc869ed2293e9c63ab21ec5b2eb1fa1fdd5d08ce42875140a696425c3aa5fb1f",
+    "input/catalogue/exports/objects.json": "35de6c78a7b12f17a098cfe738b6a21ee2541243467a6d030a55bbec6bdc64d9",
+    "input/repo/models/billing.model.lkml": "a4712508aa87c398062edfa4db48d24286430c4c16f2be5a450886e2310efa88",
+    "input/repo/dashboards/exec_collections.dashboard.lookml": "8ebf7949ba056955819e656a5b91573e8cc153b50562814f7a76ff4ec718371c",
+    "input/repo/views/invoice_chaos.view.lkml": "385c9feb98b7ee7af2455ac64b2a2f786a31350fd74f8c5066bf91913086aae0",
+    "target/semantic-assessment.md": "70a9d8f21c683bb409d697a1e3e53d5d70de2350ed017e5986c974372f3117bf",
+    "target/snowflake/12_silver_credit.sql": "772cffd68ed66a995c4f1bcf40f87d371df6b656707b44dea7699f5f2c71f074",
+    "target/snowflake/20_gold_dim_customers.sql": "fb0d0b51a67fbcc9736fa205c0dac6e08e6086631a92d11dc8d08de26e4a2895",
+    "target/snowflake/13_silver_customer_history.sql": "91d3bdfe79cd0ea175cb76d48cbc41ed5596402939d2a7515f155f5a37abb5ff",
+    "target/snowflake/21_gold_fct_invoices.sql": "55c0b10a5e5d05f2e949683a34810fd12b3e17c448d52fcc3f7a0c48350af8e4",
+    "target/snowflake/00_bronze.sql": "6980f370810996e99dd1c6d36419256574f6867546d85381293cd46ec98c19ea",
+    "target/snowflake/11_silver_payment.sql": "2f32648bf5f4abff75165a6271e4e9ef05780467a20f2f682948cef7c7e1ac1a",
+    "target/snowflake/10_silver_invoice.sql": "e15ed28a8f87a87f0aa38a155782b702d2416b80dc6959eb55f1b88e77e9d5af",
+    "target/omni/invoices.view": "84936b1c2f73bb403a8dd5f14095e4068014f25bca3d19f7b637b42c538998f4",
+    "target/omni/report-context.json": "2b874a7307b9704297f0991f190e26e78ce07b9483ecfdd7ecdccb39df7ae980",
+    "target/omni/customers.view": "52930907cefa311b1e56bf54167d1b8a86b374278a8480626b38e38af1a2cd52",
+    "target/omni/billing.topic": "8778b851ec7ea7c8dc532571d5a5979746c49261e162df0c55d27b5b7a2bb1e0",
+    "target/omni/relationships": "f85bd6a245b4aab2b729d4f243d156a5d6b43573ac0e019d7208698f13da2c29",
+    "expected/expected_reports.json": "856f7c9050c7c5554043193ccbc6b05d80e140db8b4749edfb8a886513a4bd42",
+    "expected/expected_rows.json": "b5ecab7ce84733fa6e0758ea7e31c18d62c640b36c079b5615771075822c9601",
+    "expected/oracle-notes.md": "52acf2ce5207075423dd93a7318ad95d0bbb47217ddc6aa146efb933b3655046",
+    "expected/oracle.py": "1bb111c4f28d059dbbb82ff87c8a9ed693d9a90a484a9a7b00b8031e7b6c16a8"
+  },
+  "dialect_adapter": "Snowflake SQLGlot -> DuckDB, strict unsupported errors; one explicit TO_CHAR timestamp format -> STRFTIME adapter.",
+  "summary": {
+    "executed": 59,
+    "passed": 59,
+    "failed": 0,
+    "negative_controls_caught": 18
+  }
+}

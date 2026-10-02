@@ -1,0 +1,10 @@
+tenant_id,rental_id,location_id,rental_status,rental_date,currency,updated_at,cdc_sequence,is_deleted
+A,R1,L1,active,2026-08-14,USD,2026-08-14 08:00:00,1,false
+A,R1,L1,completed,2026-08-14,USD,2026-08-15 18:00:00,2,false
+A,R1,L1,completed,2026-08-14,USD,2026-08-15 18:00:00,2,false
+A,R2,L1,completed,2026-08-15,USD,2026-08-15 17:00:00,1,false
+A,R3,L1,cancelled,2026-08-15,USD,2026-08-15 19:00:00,1,false
+A,R4,L1,completed,2026-08-14,USD,2026-08-14 19:00:00,1,false
+A,R4,L1,completed,2026-08-14,USD,2026-08-15 20:00:00,2,true
+B,R1,L1,completed,2026-08-15,USD,2026-08-15 16:00:00,1,false
+C,R9,L9,completed,2026-08-15,USD,2026-08-15 15:00:00,1,false

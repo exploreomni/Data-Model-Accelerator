@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-01",
+  "original_commit": "a23c7ba4df7fa420c16e98d6428a1f4c2c8aa7c8",
+  "finding": "Dependency-free CI does not install jsonschema; schema parity test imported it unconditionally.",
+  "correction": "Explicit optional-dependency skip in the dependency-free lane; dedicated pinned metadata lane still runs JSON Schema parity.",
+  "corrected_test_sha256": "021f119abffd5ff7c3f5601cb61d6b1933d2ffb5461daeb1f2ea30ebb979dd46",
+  "checks": [
+    {
+      "runtime": "Python 3.9 without site packages",
+      "command": "python3 -S -m unittest discover -s tests -v",
+      "tests": 1108,
+      "skipped": 462,
+      "status": "passed",
+      "scope": "Dependency-free lane, optional-runtime skips explicit"
+    },
+    {
+      "runtime": "Pinned Python 3.12 environment",
+      "command": "python -m unittest discover -s tests -p 'test_data_dictionary_v2.py' -v",
+      "tests": 29,
+      "skipped": 0,
+      "status": "passed"
+    }
+  ],
+  "native_warehouse_execution": false
+}

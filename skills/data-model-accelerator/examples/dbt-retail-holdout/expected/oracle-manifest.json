@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "kind": "private_oracle_manifest",
+  "input_content_snapshot_sha256": "3a5bd552c860769ff8cd5facd51b0e988fd0bf4f9b3927866c8889a1c1a49edb",
+  "input_manifest_sha256": "b463464049ad2313b4b24459f7c2cdaf6c70fd96848f2af2df70300a99ab4496",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3843,
+      "sha256": "0ad52c20ba09b9a7db38a72f8e3089a5d942fd7371a629b4a8e6f4b021d3464c"
+    },
+    {
+      "path": "build_expected.py",
+      "bytes": 2492,
+      "sha256": "b492615803357535ce734b5a67dfa69f75c751dcb71eb091208cd6b776d25242"
+    },
+    {
+      "path": "build_input.py",
+      "bytes": 7619,
+      "sha256": "557f321a036a775607825ef8efeb924a5c55c587c93ca45464296705d266a7bd"
+    },
+    {
+      "path": "evaluate.py",
+      "bytes": 8326,
+      "sha256": "4aecb2f1d0e881cedbd4470352f213c8ba95ba81d34225da6ece53ef595dceb5"
+    },
+    {
+      "path": "expected.json",
+      "bytes": 27391,
+      "sha256": "0cc8cfc1a3ff10e96d1bc60d4d66c86d145d31b9ecfced1dd9b88f053c4f20fc"
+    }
+  ],
+  "content_snapshot_sha256": "6a09e97396174a02a734d7128674a21942f107fde59c1cb71973ac2c887d3463"
+}

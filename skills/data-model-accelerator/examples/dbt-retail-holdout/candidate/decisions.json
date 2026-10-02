@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "specification_version": "retail-holdout-1",
+  "approval_status": "No human production approval claimed",
+  "decisions": [
+    {
+      "id": "reuse-correct-staging",
+      "rule_ids": [
+        "rule.source.stg_orders",
+        "rule.source.stg_order_lines"
+      ],
+      "disposition": "reuse_existing",
+      "status": "implemented for synthetic trial",
+      "basis": "Frozen input explicitly identifies both staging models as correct; source and target hashes/bytes match.",
+      "alternative": "Rewrite normalization unnecessarily",
+      "owner": "Unknown production model owner",
+      "expected_tests": [
+        "staging-byte-equality",
+        "source_contract",
+        "history",
+        "replay"
+      ]
+    },
+    {
+      "id": "split-defective-report",
+      "rule_ids": [
+        "rule.source.retail_fulfillment_summary"
+      ],
+      "disposition": "split",
+      "status": "implemented requested synthetic correction",
+      "basis": "Frozen README names independent-child fanout defect, not an approved legacy metric.",
+      "warehouse": "Current event normalization and independent line-grain aggregates; reusable signed retained fact",
+      "semantic": "Population filters, order-month/product grouping and ratio of sums",
+      "presentation": "Formatting and UI state stay downstream; no scaling specified",
+      "expected_tests": [
+        "fanout",
+        "reconciliation",
+        "logic"
+      ]
+    },
+    {
+      "id": "remove-materialized-context",
+      "rule_ids": [
+        "rule.source.retail_fulfillment_summary"
+      ],
+      "disposition": "retain_semantic",
+      "status": "implemented after parent first-pass architecture finding",
+      "basis": "Parent review of enabled warehouse models; initial snapshot preserved before mutation",
+      "before": "Enabled filtered report view",
+      "after": "Nonmaterialized dbt analysis plus semantic handoff; only five warehouse models",
+      "expected_tests": [
+        "native-placement"
+      ]
+    },
+    {
+      "id": "full-capture-current-state",
+      "disposition": "move_upstream",
+      "status": "implemented under supplied contract",
+      "basis": "All versions checked for ambiguous payload before latest-version selection; tombstones applied afterward; complete rebuild acceptable",
+      "alternative": "Incremental merge and SCD history",
+      "rationale": "Not required or supported by supplied arrival metadata; current attributes intentionally restate history",
+      "expected_tests": [
+        "history",
+        "replay",
+        "source_contract"
+      ]
+    },
+    {
+      "id": "local-default-persona",
+      "disposition": "retain_semantic",
+      "status": "documented contract interpretation",
+      "basis": "README: caller-supplied persona must equal selected tenant; explicit null differs from omission. authorized defaults true only when omitted.",
+      "implementation": "Omitted persona defaults selected tenant locally; explicit null/mismatch fails. Omitted authorization true; explicit non-true fails.",
+      "production": "Requires trusted principal/user-attribute binding; no SQL var or harness flag establishes RLS"
+    },
+    {
+      "id": "native-snowflake",
+      "status": "pending production qualification",
+      "owner": "Unknown platform owner",
+      "required": "Designated isolated Snowflake development account/role, source catalogue refresh, native full build and performance/correctness evidence",
+      "scope": "Outside local synthetic acceptance"
+    },
+    {
+      "id": "native-omni",
+      "status": "pending production qualification",
+      "owner": "Unknown semantic owner",
+      "required": "Author and natively validate Omni field definitions, filters, totals, principal binding and negative personas; no native Omni files claimed",
+      "scope": "Outside local synthetic acceptance"
+    },
+    {
+      "id": "operating-acceptance",
+      "status": "pending human decision",
+      "owner": "Unknown business and operations owners",
+      "required": "Independent business acceptance, freshness/retention/grants, publish/rollback and ownership approval for exact candidate hashes",
+      "scope": "Deployment blocked; local review remains possible"
+    }
+  ]
+}

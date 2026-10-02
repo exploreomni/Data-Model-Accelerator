@@ -1,0 +1,12 @@
+retail_candidate:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: "{{ env_var('DMA_RETAIL_DB_PATH') }}"
+      schema: MAIN
+      threads: 1
+      settings:
+        enable_external_access: false
+        autoinstall_known_extensions: false
+        autoload_known_extensions: false

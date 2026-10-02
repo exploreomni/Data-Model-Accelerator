@@ -1,0 +1,28 @@
+14:36:59  Running with dbt=1.12.4
+14:36:59  Registered adapter: duckdb=1.11.0
+14:37:00  Found 5 models, 1 analysis, 52 data tests, 4 sources, 503 macros
+14:37:00  
+14:37:00  Concurrency: 1 threads (target='local')
+14:37:00  
+14:37:01  1 of 8 START test source_fulfillment_cdc_conflicts ............................. [RUN]
+14:37:01  1 of 8 PASS source_fulfillment_cdc_conflicts ................................... [PASS in 0.03s]
+14:37:01  2 of 8 START test source_fulfillment_cdc_values ................................ [RUN]
+14:37:01  2 of 8 PASS source_fulfillment_cdc_values ...................................... [PASS in 0.02s]
+14:37:01  3 of 8 START test source_order_cdc_conflicts ................................... [RUN]
+14:37:01  3 of 8 PASS source_order_cdc_conflicts ......................................... [PASS in 0.01s]
+14:37:01  4 of 8 START test source_order_cdc_values ...................................... [RUN]
+14:37:01  4 of 8 PASS source_order_cdc_values ............................................ [PASS in 0.02s]
+14:37:01  5 of 8 START test source_order_line_cdc_conflicts .............................. [RUN]
+14:37:01  5 of 8 PASS source_order_line_cdc_conflicts .................................... [PASS in 0.02s]
+14:37:01  6 of 8 START test source_order_line_cdc_values ................................. [RUN]
+14:37:01  6 of 8 PASS source_order_line_cdc_values ....................................... [PASS in 0.02s]
+14:37:01  7 of 8 START test source_return_cdc_conflicts .................................. [RUN]
+14:37:01  7 of 8 PASS source_return_cdc_conflicts ........................................ [PASS in 0.02s]
+14:37:01  8 of 8 START test source_return_cdc_values ..................................... [RUN]
+14:37:01  8 of 8 PASS source_return_cdc_values ........................................... [PASS in 0.01s]
+14:37:01  
+14:37:01  Finished running 8 data tests in 0 hours 0 minutes and 0.53 seconds (0.53s).
+14:37:01  
+14:37:01  Completed successfully
+14:37:01  
+14:37:01  Done. PASS=8 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=8

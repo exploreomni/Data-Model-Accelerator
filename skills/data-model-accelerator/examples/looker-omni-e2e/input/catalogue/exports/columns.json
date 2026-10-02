@@ -1,0 +1,277 @@
+{
+  "origin": "synthetic",
+  "rows": [
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "TENANT_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "INVOICE_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "CUSTOMER_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "ISSUED_AT",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "GROSS_CENTS",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "DISCOUNT_CENTS",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "STATUS",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "CURRENCY",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "SOURCE_SEQ",
+      "DATA_TYPE": "NUMBER(38,0)",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "OP",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_INVOICE_CDC",
+      "COLUMN_NAME": "ARRIVAL_SEQ",
+      "DATA_TYPE": "NUMBER(38,0)",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_PAYMENT_CDC",
+      "COLUMN_NAME": "TENANT_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_PAYMENT_CDC",
+      "COLUMN_NAME": "ENTRY_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_PAYMENT_CDC",
+      "COLUMN_NAME": "INVOICE_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_PAYMENT_CDC",
+      "COLUMN_NAME": "AMOUNT_CENTS",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_PAYMENT_CDC",
+      "COLUMN_NAME": "STATUS",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_PAYMENT_CDC",
+      "COLUMN_NAME": "CURRENCY",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_PAYMENT_CDC",
+      "COLUMN_NAME": "SOURCE_SEQ",
+      "DATA_TYPE": "NUMBER(38,0)",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_PAYMENT_CDC",
+      "COLUMN_NAME": "OP",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_PAYMENT_CDC",
+      "COLUMN_NAME": "ARRIVAL_SEQ",
+      "DATA_TYPE": "NUMBER(38,0)",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CREDIT_CDC",
+      "COLUMN_NAME": "TENANT_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CREDIT_CDC",
+      "COLUMN_NAME": "ENTRY_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CREDIT_CDC",
+      "COLUMN_NAME": "INVOICE_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CREDIT_CDC",
+      "COLUMN_NAME": "AMOUNT_CENTS",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CREDIT_CDC",
+      "COLUMN_NAME": "STATUS",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CREDIT_CDC",
+      "COLUMN_NAME": "CURRENCY",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CREDIT_CDC",
+      "COLUMN_NAME": "SOURCE_SEQ",
+      "DATA_TYPE": "NUMBER(38,0)",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CREDIT_CDC",
+      "COLUMN_NAME": "OP",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CREDIT_CDC",
+      "COLUMN_NAME": "ARRIVAL_SEQ",
+      "DATA_TYPE": "NUMBER(38,0)",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CUSTOMER_HISTORY",
+      "COLUMN_NAME": "TENANT_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CUSTOMER_HISTORY",
+      "COLUMN_NAME": "CUSTOMER_ID",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CUSTOMER_HISTORY",
+      "COLUMN_NAME": "VALID_FROM",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CUSTOMER_HISTORY",
+      "COLUMN_NAME": "VALID_TO",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_SIM",
+      "TABLE_SCHEMA": "BRONZE",
+      "TABLE_NAME": "BILLING_CUSTOMER_HISTORY",
+      "COLUMN_NAME": "SEGMENT",
+      "DATA_TYPE": "VARCHAR",
+      "IS_NULLABLE": "NO"
+    }
+  ]
+}

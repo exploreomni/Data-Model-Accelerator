@@ -1,0 +1,187 @@
+{
+  "command": "build",
+  "complete_success": false,
+  "denominator": 79,
+  "evidence_complete": false,
+  "evidence_errors": [
+    "Native process did not exit successfully"
+  ],
+  "exit_code": 1,
+  "failed_nodes": [
+    {
+      "failures": null,
+      "status": "error",
+      "unique_id": "test.powerbi_billing_migration.source_identity_and_required_values"
+    },
+    {
+      "failures": null,
+      "status": "error",
+      "unique_id": "test.powerbi_billing_migration.source_not_null_raw_invoice_cdc_AMOUNT_CENTS.0881de21c2"
+    },
+    {
+      "failures": null,
+      "status": "error",
+      "unique_id": "test.powerbi_billing_migration.source_version_conflicts"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "model.powerbi_billing_migration.billing_invoices"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_billing_invoices_AMOUNT_CENTS.892120d1e6"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_billing_invoices_CUSTOMER_ID.6ac585a8e0"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_billing_invoices_INVOICE_DATE.a4a2f11b6e"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_billing_invoices_INVOICE_ID.3b79de6fcf"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_billing_invoices_SOURCE_SEQUENCE.0f231f019c"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_billing_invoices_STATUS.7d53987abc"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_billing_invoices_TENANT_ID.a67840b3ae"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.current_orphan_references"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.invoice_history_exactly_one"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "model.powerbi_billing_migration.fct_invoices"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.declared_grains"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.fact_balance_and_customer_binding"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_ADJUSTMENT_CENTS.f7c35e7e9e"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_AMOUNT_CENTS.59eea9c656"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_CUSTOMER_ID.3e74d0aba5"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_CUSTOMER_KEY.421f12e752"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_INVOICE_DATE.f9836a6774"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_INVOICE_ID.e7baf06214"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_INVOICE_KEY.6b54359f90"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_INVOICE_MONTH.df5e5077bf"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_NET_CENTS.9a60b5519b"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_OUTSTANDING_CENTS.697553baf6"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_PAID_CENTS.cb6ad76482"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_SEGMENT.cf876540b2"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_STATUS.f63284c2f6"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.not_null_fct_invoices_TENANT_ID.d6f7e0387f"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.payment_reconciliation"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.relationships_fct_invoices_CUSTOMER_KEY__CUSTOMER_KEY__ref_dim_customers_.28ed7672c7"
+    },
+    {
+      "failures": null,
+      "status": "skipped",
+      "unique_id": "test.powerbi_billing_migration.unique_fct_invoices_INVOICE_KEY.1285546d49"
+    }
+  ],
+  "invocation_id": "3bbb3720-3599-4778-81ec-78db4a0903ca",
+  "manifest_sha256": "189e39a9c9d28109bcd6be077b252c243f757ca59274824ef77ceb60d4e54463",
+  "project_unchanged": true,
+  "run_results_sha256": "297c3e55067897ed8d0b0ecb97a6ca94e2ac784879d6e996d35319362048581c",
+  "status_counts": {
+    "error": 3,
+    "pass": 42,
+    "skipped": 30,
+    "success": 4
+  }
+}

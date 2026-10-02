@@ -1,0 +1,47 @@
+schemaVersion: 3
+meta:
+  projectId: 8c7958a3-573b-5b81-9a0e-02de54bed99d
+  sourceVersionId: 48181ff3-ae9a-5717-add9-699e64214924
+  codeLanguage: PYTHON
+  title: Shared revenue calculation
+  hexType: COMPONENT
+  timezone: UTC
+  allowExecutionReordering: true
+  castDecimalsDefault: false
+cells:
+- cellId: fb1b0798-bd91-5b31-873c-2736038d7153
+  cellType: SQL
+  cellLabel: Current invoices
+  config:
+    source: "WITH invoice_versions AS (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, INVOICE_ID ORDER BY SEQUENCE DESC) AS RN\n  FROM DMA_HEX.RAW.INVOICE_CDC\n), payment_versions AS (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, PAYMENT_ID ORDER BY SEQUENCE DESC) AS RN\n  FROM DMA_HEX.RAW.PAYMENT_CDC\n), payments AS (\n  SELECT TENANT_ID, INVOICE_ID, SUM(PAID_CENTS) AS PAID_CENTS\n  FROM payment_versions WHERE RN = 1 AND NOT IS_DELETED\n  GROUP BY TENANT_ID, INVOICE_ID\n), history AS (\n  SELECT DISTINCT TENANT_ID, CUSTOMER_ID, SEGMENT, VALID_FROM, VALID_TO\n  FROM DMA_HEX.RAW.CUSTOMER_HISTORY\n)\nSELECT i.TENANT_ID, i.INVOICE_ID, i.CUSTOMER_ID,\n       CAST(i.INVOICE_DATE AS DATE) AS INVOICE_DATE,\n       i.AMOUNT_CENTS, LOWER(TRIM(i.STATUS)) AS STATUS,\n       COALESCE(p.PAID_CENTS, 0) AS PAID_CENTS, h.SEGMENT\nFROM invoice_versions i\nLEFT JOIN payments p ON i.TENANT_ID = p.TENANT_ID AND i.INVOICE_ID = p.INVOICE_ID\nLEFT JOIN history h ON i.TENANT_ID = h.TENANT_ID\
+      \ AND i.CUSTOMER_ID = h.CUSTOMER_ID\n  AND CAST(i.INVOICE_DATE AS DATE) >= CAST(h.VALID_FROM AS DATE)\n  AND (CAST(i.INVOICE_DATE AS DATE) < CAST(h.VALID_TO AS DATE) OR h.VALID_TO IS NULL)\nWHERE i.RN = 1 AND NOT i.IS_DELETED"
+    resultVariableName: invoice_base
+    dataFrameCell: false
+    dataConnectionId: 11111111-1111-4111-8111-111111111111
+    castDecimals: false
+    sqlCellOutputType: PANDAS
+- cellId: 019ca33f-6110-5123-8c28-0b8fbb312f3f
+  cellType: CODE
+  cellLabel: Revenue definition
+  config:
+    source: 'import pandas as pd
+
+      adjustments = pd.read_csv("adjustments.csv")
+
+      enriched = invoice_base.merge(adjustments, on=["TENANT_ID", "INVOICE_ID"], how="left", validate="many_to_one")
+
+      enriched["ADJUSTMENT_CENTS"] = enriched["ADJUSTMENT_CENTS"].fillna(0).astype(int)
+
+      enriched["NET_CENTS"] = enriched["AMOUNT_CENTS"] + enriched["ADJUSTMENT_CENTS"]
+
+      enriched["OUTSTANDING_CENTS"] = enriched["NET_CENTS"] - enriched["PAID_CENTS"]
+
+      '
+sharedAssets:
+  dataConnections:
+  - dataConnectionId: 11111111-1111-4111-8111-111111111111
+appLayout:
+  fullWidth: true
+  tabs:
+  - name: Overview
+    rows: []

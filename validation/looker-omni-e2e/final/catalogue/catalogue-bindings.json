@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "kind": "warehouse_catalogue_bindings",
+  "catalogue_sha256": "4d2c213015e62c96a824e96f45aeb965bc1e6721372e8ea23bb7d072a918c699",
+  "source_snapshot_sha256": "51817151dc36bb7bd5b9fb8d24cf2196a06d9a8b60502405935e89ddcbd3f9c3",
+  "expected_reference_ids": [
+    "DMA_SIM.BRONZE.BILLING_CREDIT_CDC",
+    "DMA_SIM.BRONZE.BILLING_CUSTOMER_HISTORY",
+    "DMA_SIM.BRONZE.BILLING_INVOICE_CDC",
+    "DMA_SIM.BRONZE.BILLING_PAYMENT_CDC"
+  ],
+  "references": [
+    {
+      "reference_id": "DMA_SIM.BRONZE.BILLING_CREDIT_CDC",
+      "source_reference": "DMA_SIM.BRONZE.BILLING_CREDIT_CDC",
+      "status": "resolved",
+      "object_id": "snowflake:synthetic:DMA_SIM:BRONZE:BILLING_CREDIT_CDC",
+      "column_paths": [
+        [
+          "TENANT_ID"
+        ],
+        [
+          "ENTRY_ID"
+        ],
+        [
+          "INVOICE_ID"
+        ],
+        [
+          "AMOUNT_CENTS"
+        ],
+        [
+          "STATUS"
+        ],
+        [
+          "CURRENCY"
+        ],
+        [
+          "SOURCE_SEQ"
+        ],
+        [
+          "OP"
+        ],
+        [
+          "ARRIVAL_SEQ"
+        ]
+      ],
+      "namespace": {
+        "platform_instance": "synthetic-snowflake-account",
+        "catalog": "DMA_SIM",
+        "schema": "BRONZE"
+      },
+      "evidence": "Native Snowflake SQL AST physical input; source SELECT stars expanded against verified synthetic raw schema."
+    },
+    {
+      "reference_id": "DMA_SIM.BRONZE.BILLING_CUSTOMER_HISTORY",
+      "source_reference": "DMA_SIM.BRONZE.BILLING_CUSTOMER_HISTORY",
+      "status": "resolved",
+      "object_id": "snowflake:synthetic:DMA_SIM:BRONZE:BILLING_CUSTOMER_HISTORY",
+      "column_paths": [
+        [
+          "TENANT_ID"
+        ],
+        [
+          "CUSTOMER_ID"
+        ],
+        [
+          "VALID_FROM"
+        ],
+        [
+          "VALID_TO"
+        ],
+        [
+          "SEGMENT"
+        ]
+      ],
+      "namespace": {
+        "platform_instance": "synthetic-snowflake-account",
+        "catalog": "DMA_SIM",
+        "schema": "BRONZE"
+      },
+      "evidence": "Native Snowflake SQL AST physical input; source SELECT stars expanded against verified synthetic raw schema."
+    },
+    {
+      "reference_id": "DMA_SIM.BRONZE.BILLING_INVOICE_CDC",
+      "source_reference": "DMA_SIM.BRONZE.BILLING_INVOICE_CDC",
+      "status": "resolved",
+      "object_id": "snowflake:synthetic:DMA_SIM:BRONZE:BILLING_INVOICE_CDC",
+      "column_paths": [
+        [
+          "TENANT_ID"
+        ],
+        [
+          "INVOICE_ID"
+        ],
+        [
+          "CUSTOMER_ID"
+        ],
+        [
+          "ISSUED_AT"
+        ],
+        [
+          "GROSS_CENTS"
+        ],
+        [
+          "DISCOUNT_CENTS"
+        ],
+        [
+          "STATUS"
+        ],
+        [
+          "CURRENCY"
+        ],
+        [
+          "SOURCE_SEQ"
+        ],
+        [
+          "OP"
+        ],
+        [
+          "ARRIVAL_SEQ"
+        ]
+      ],
+      "namespace": {
+        "platform_instance": "synthetic-snowflake-account",
+        "catalog": "DMA_SIM",
+        "schema": "BRONZE"
+      },
+      "evidence": "Native Snowflake SQL AST physical input; source SELECT stars expanded against verified synthetic raw schema."
+    },
+    {
+      "reference_id": "DMA_SIM.BRONZE.BILLING_PAYMENT_CDC",
+      "source_reference": "DMA_SIM.BRONZE.BILLING_PAYMENT_CDC",
+      "status": "resolved",
+      "object_id": "snowflake:synthetic:DMA_SIM:BRONZE:BILLING_PAYMENT_CDC",
+      "column_paths": [
+        [
+          "TENANT_ID"
+        ],
+        [
+          "ENTRY_ID"
+        ],
+        [
+          "INVOICE_ID"
+        ],
+        [
+          "AMOUNT_CENTS"
+        ],
+        [
+          "STATUS"
+        ],
+        [
+          "CURRENCY"
+        ],
+        [
+          "SOURCE_SEQ"
+        ],
+        [
+          "OP"
+        ],
+        [
+          "ARRIVAL_SEQ"
+        ]
+      ],
+      "namespace": {
+        "platform_instance": "synthetic-snowflake-account",
+        "catalog": "DMA_SIM",
+        "schema": "BRONZE"
+      },
+      "evidence": "Native Snowflake SQL AST physical input; source SELECT stars expanded against verified synthetic raw schema."
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "captured_at": "2026-09-11T14:20:52.600032+00:00",
+  "checks": [
+    {
+      "detail": null,
+      "id": "powerbi:native_build_all_nodes",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:independent_fact_rows",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:development_schema_isolation",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:repeat_build",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:identical_replay",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:late_correction",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:conflicting_version_rejected",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:recovery_from_failed_build",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:source_candidate_unchanged",
+      "passed": true
+    }
+  ],
+  "origin": "synthetic",
+  "passed": 9,
+  "schema_version": 1,
+  "scope": "Native local dbt/DuckDB build qualification; explicit dialect overlay. No Snowflake, Omni, source-native or production approval claim.",
+  "status": "pass",
+  "total": 9,
+  "versions": {
+    "PyYAML": "6.0.3",
+    "dbt-core": "1.12.4",
+    "dbt-duckdb": "1.11.0",
+    "duckdb": "1.5.5"
+  }
+}

@@ -1,0 +1,144 @@
+version: 2
+models:
+- name: stg_orders
+  description: Current-state reusable model
+  config:
+    alias: STG_ORDERS
+  columns:
+  - name: TENANT_ID
+    data_tests:
+    - not_null
+  - name: ORDER_ID
+    data_tests:
+    - not_null
+  - name: ORDER_DATE
+    data_tests:
+    - not_null
+  - name: ORDER_STATUS
+    data_tests:
+    - not_null
+  - name: ORDER_KEY
+    data_tests:
+    - not_null
+    - unique
+- name: stg_order_lines
+  description: Current-state reusable model
+  config:
+    alias: STG_ORDER_LINES
+  columns:
+  - name: TENANT_ID
+    data_tests:
+    - not_null
+  - name: ORDER_ID
+    data_tests:
+    - not_null
+  - name: LINE_ID
+    data_tests:
+    - not_null
+  - name: PRODUCT_ID
+    data_tests:
+    - not_null
+  - name: QUANTITY
+    data_tests:
+    - not_null
+  - name: UNIT_PRICE_CENTS
+    data_tests:
+    - not_null
+  - name: DISCOUNT_CENTS
+    data_tests:
+    - not_null
+  - name: LINE_NET_CENTS
+    data_tests:
+    - not_null
+  - name: LINE_KEY
+    data_tests:
+    - not_null
+    - unique
+- name: stg_fulfillments
+  description: Current-state reusable model
+  config:
+    alias: STG_FULFILLMENTS
+  columns:
+  - name: TENANT_ID
+    data_tests:
+    - not_null
+  - name: FULFILLMENT_ID
+    data_tests:
+    - not_null
+  - name: ORDER_ID
+    data_tests:
+    - not_null
+  - name: LINE_ID
+    data_tests:
+    - not_null
+  - name: QUANTITY
+    data_tests:
+    - not_null
+- name: stg_returns
+  description: Current-state reusable model
+  config:
+    alias: STG_RETURNS
+  columns:
+  - name: TENANT_ID
+    data_tests:
+    - not_null
+  - name: RETURN_ID
+    data_tests:
+    - not_null
+  - name: ORDER_ID
+    data_tests:
+    - not_null
+  - name: LINE_ID
+    data_tests:
+    - not_null
+  - name: QUANTITY
+    data_tests:
+    - not_null
+  - name: REFUND_CENTS
+    data_tests:
+    - not_null
+- name: fct_order_line_fulfillment
+  description: Line-grain reusable fact
+  config:
+    alias: FCT_ORDER_LINE_FULFILLMENT
+  columns:
+  - name: LINE_KEY
+    data_tests:
+    - not_null
+    - unique
+  - name: TENANT_ID
+    data_tests:
+    - not_null
+  - name: ORDER_ID
+    data_tests:
+    - not_null
+  - name: LINE_ID
+    data_tests:
+    - not_null
+  - name: PRODUCT_ID
+    data_tests:
+    - not_null
+  - name: ORDER_DATE
+    data_tests:
+    - not_null
+  - name: ORDER_STATUS
+    data_tests:
+    - not_null
+  - name: ORDERED_QUANTITY
+    data_tests:
+    - not_null
+  - name: FULFILLED_QUANTITY
+    data_tests:
+    - not_null
+  - name: RETURNED_QUANTITY
+    data_tests:
+    - not_null
+  - name: LINE_NET_CENTS
+    data_tests:
+    - not_null
+  - name: REFUND_CENTS
+    data_tests:
+    - not_null
+  - name: RETAINED_REVENUE_CENTS
+    data_tests:
+    - not_null

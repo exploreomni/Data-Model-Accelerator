@@ -1,0 +1,9 @@
+# Synthetic candidate. Actual user-attribute assignments and live security are unverified.
+base_view: invoices
+label: Executive Collections Reconciliation
+description: Invoice collections by historical customer segment. Select one currency and reporting period; tenant identity is supplied separately by the access filter.
+joins:
+  customers: {}
+access_filters:
+  - field: invoices.tenant_id
+    user_attribute: tenant_id

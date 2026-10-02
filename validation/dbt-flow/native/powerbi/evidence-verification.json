@@ -1,0 +1,28 @@
+{
+  "adapter_type": "duckdb",
+  "counts": {
+    "model": 6,
+    "project_files": 21,
+    "runnable_nodes": 79,
+    "seed": 0,
+    "snapshot": 0,
+    "test": 73
+  },
+  "dbt_version": "1.12.4",
+  "declared_project_root": "/private/tmp/dma-dbt-native-verified/powerbi/project",
+  "errors": [],
+  "evidence_complete": true,
+  "invocation_id": "253ce77c-bdf9-465f-888a-89ff156a09a1",
+  "kind": "dbt_evidence_verification",
+  "limitations": [
+    "Self-attested artifact association; does not authenticate native execution, warehouse identity, data correctness, dependency installation or human approval.",
+    "DuckDB evidence is local only. Full root-project builds only; external package resources, unit tests, functions, operation hooks and YAML snapshots are unqualified.",
+    "Current byte hashes detect drift relative to the supplied pre-execution snapshot; trusted execution controls must establish when that snapshot was actually captured.",
+    "Built-in macro implementation is version-bound here, not authenticated; profiles, environment variables and live database state require separate execution controls."
+  ],
+  "project_snapshot_sha256": "d0cc48e05cd794241190e7e38e709a526e11e42530dcad35002de80ce1eaaf9d",
+  "receipt_sha256": "5f58b574b504dff71aaba14271aa739418d0d314685700c4af0838d862d197c5",
+  "schema_version": 1,
+  "validation_scope": "local",
+  "verified_project_root": "/private/tmp/dma-dbt-native-verified/powerbi/project"
+}

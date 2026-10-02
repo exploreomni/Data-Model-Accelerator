@@ -1,0 +1,2087 @@
+[
+  {
+    "scenario_id": "default_a",
+    "parameters": {},
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": 0.0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.7
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.14285714285714285
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": 0.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": 0.7,
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": 0.14285714285714285,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": 0.0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.7
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.14285714285714285
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": 0.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": 0.7,
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": 0.14285714285714285,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": "0"
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": "0.7"
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": "1"
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": "0.14285714285714285714285714285714285714285714285714"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": "0",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": "0.7",
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": "1",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": "0.14285714285714285714285714285714285714285714285714",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "tenant_b",
+    "parameters": {
+      "tenant": "B"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "outstanding_cents": 500,
+          "payment_rate": 0.9836065573770492
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "outstanding_cents": 15000,
+          "payment_rate": 0.25
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "B",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "B",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-02-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "payment_rate": 0.9836065573770492,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "payment_rate": 0.25,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "outstanding_cents": 500,
+          "payment_rate": 0.9836065573770492
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "outstanding_cents": 15000,
+          "payment_rate": 0.25
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "B",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "B",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-02-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "payment_rate": 0.9836065573770492,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "payment_rate": 0.25,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "outstanding_cents": 500,
+          "payment_rate": "0.98360655737704918032786885245901639344262295081967"
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "outstanding_cents": 15000,
+          "payment_rate": "0.25"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "B",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "B",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-02-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "payment_rate": "0.98360655737704918032786885245901639344262295081967",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "payment_rate": "0.25",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "january_a",
+    "parameters": {
+      "end_date": "2026-02-01"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": 0.0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.7
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": 0.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": 0.7,
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": 0.0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.7
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": 0.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": 0.7,
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": "0"
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": "0.7"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": "0",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": "0.7",
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "february_a",
+    "parameters": {
+      "start_date": "2026-02-01"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.14285714285714285
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": 0.14285714285714285,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.14285714285714285
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": 0.14285714285714285,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": "1"
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": "0.14285714285714285714285714285714285714285714285714"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": "1",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": "0.14285714285714285714285714285714285714285714285714",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "february_boundary_a",
+    "parameters": {
+      "start_date": "2026-02-01",
+      "end_date": "2026-02-02"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": "1"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": "1",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "segment_smb_a",
+    "parameters": {
+      "segment": "SMB"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.7
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.14285714285714285
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": 0.7,
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": 0.14285714285714285,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.7
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.14285714285714285
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": 0.7,
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": 0.14285714285714285,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": "0.7"
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": "0.14285714285714285714285714285714285714285714285714"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": "0.7",
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": "0.14285714285714285714285714285714285714285714285714",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "segment_enterprise_a",
+    "parameters": {
+      "segment": "Enterprise"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": 0.0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": 0.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": 0.0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": 0.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": "0"
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": "1"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": "0",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": "1",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "segment_smb_b",
+    "parameters": {
+      "tenant": "B",
+      "segment": "SMB"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "outstanding_cents": 15000,
+          "payment_rate": 0.25
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "B",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-02-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "payment_rate": 0.25,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "outstanding_cents": 15000,
+          "payment_rate": 0.25
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "B",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-02-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "payment_rate": 0.25,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "outstanding_cents": 15000,
+          "payment_rate": "0.25"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "B",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-02-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 5000,
+          "payment_rate": "0.25",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "segment_enterprise_b",
+    "parameters": {
+      "tenant": "B",
+      "segment": "Enterprise"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "outstanding_cents": 500,
+          "payment_rate": 0.9836065573770492
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "B",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "payment_rate": 0.9836065573770492,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "outstanding_cents": 500,
+          "payment_rate": 0.9836065573770492
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "B",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "payment_rate": 0.9836065573770492,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "outstanding_cents": 500,
+          "payment_rate": "0.98360655737704918032786885245901639344262295081967"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "B",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 30500,
+          "paid_cents": 30000,
+          "payment_rate": "0.98360655737704918032786885245901639344262295081967",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "empty_equal_bounds",
+    "parameters": {
+      "end_date": "2026-01-01"
+    },
+    "source": {
+      "revenue": [],
+      "retention": [],
+      "executive": []
+    },
+    "target": {
+      "revenue": [],
+      "retention": [],
+      "executive": []
+    },
+    "expected": {
+      "revenue": [],
+      "retention": [],
+      "executive": []
+    }
+  },
+  {
+    "scenario_id": "empty_after_snapshot",
+    "parameters": {
+      "start_date": "2026-04-01",
+      "end_date": "2026-05-01"
+    },
+    "source": {
+      "revenue": [],
+      "retention": [],
+      "executive": []
+    },
+    "target": {
+      "revenue": [],
+      "retention": [],
+      "executive": []
+    },
+    "expected": {
+      "revenue": [],
+      "retention": [],
+      "executive": []
+    }
+  },
+  {
+    "scenario_id": "zero_revenue_a",
+    "parameters": {
+      "start_date": "2026-02-20",
+      "end_date": "2026-02-21"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 0,
+          "paid_cents": 0,
+          "outstanding_cents": 0,
+          "payment_rate": null
+        }
+      ],
+      "retention": [],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 0,
+          "paid_cents": 0,
+          "payment_rate": null,
+          "invoiced_active_customers": 0,
+          "paying_active_customers": 0
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 0,
+          "paid_cents": 0,
+          "outstanding_cents": 0,
+          "payment_rate": null
+        }
+      ],
+      "retention": [],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 0,
+          "paid_cents": 0,
+          "payment_rate": null,
+          "invoiced_active_customers": 0,
+          "paying_active_customers": 0
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 1,
+          "net_cents": 0,
+          "paid_cents": 0,
+          "outstanding_cents": 0,
+          "payment_rate": null
+        }
+      ],
+      "retention": [],
+      "executive": [
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 0,
+          "paid_cents": 0,
+          "payment_rate": null,
+          "invoiced_active_customers": 0,
+          "paying_active_customers": 0
+        }
+      ]
+    }
+  },
+  {
+    "scenario_id": "retained_what_if_double",
+    "parameters": {
+      "what_if_multiplier": "2"
+    },
+    "source": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": 0.0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.7
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.14285714285714285
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": 0.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": 0.7,
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": 0.14285714285714285,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "target": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": 0.0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.7
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": 1.0
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": 0.14285714285714285
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": 0.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": 0.7,
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": 1.0,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": 0.14285714285714285,
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    },
+    "expected": {
+      "revenue": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "outstanding_cents": 5000,
+          "payment_rate": "0"
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "outstanding_cents": 6000,
+          "payment_rate": "0.7"
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "invoice_count": 1,
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "outstanding_cents": 0,
+          "payment_rate": "1"
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "invoice_count": 2,
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "outstanding_cents": 6000,
+          "payment_rate": "0.14285714285714285714285714285714285714285714285714"
+        }
+      ],
+      "retention": [
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C1",
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C2",
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "first_paid_month": "2026-01-01"
+        },
+        {
+          "tenant_id": "A",
+          "customer_id": "C3",
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "first_paid_month": null
+        }
+      ],
+      "executive": [
+        {
+          "month": "2026-01-01",
+          "segment": "Enterprise",
+          "net_cents": 5000,
+          "paid_cents": 0,
+          "payment_rate": "0",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 0
+        },
+        {
+          "month": "2026-01-01",
+          "segment": "SMB",
+          "net_cents": 20000,
+          "paid_cents": 14000,
+          "payment_rate": "0.7",
+          "invoiced_active_customers": 2,
+          "paying_active_customers": 2
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "Enterprise",
+          "net_cents": 7000,
+          "paid_cents": 7000,
+          "payment_rate": "1",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        },
+        {
+          "month": "2026-02-01",
+          "segment": "SMB",
+          "net_cents": 7000,
+          "paid_cents": 1000,
+          "payment_rate": "0.14285714285714285714285714285714285714285714285714",
+          "invoiced_active_customers": 1,
+          "paying_active_customers": 1
+        }
+      ]
+    }
+  }
+]

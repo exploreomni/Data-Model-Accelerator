@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "source_snapshot_sha256": "51817151dc36bb7bd5b9fb8d24cf2196a06d9a8b60502405935e89ddcbd3f9c3",
+  "asset_comparisons": [
+    {
+      "path": "dashboards/exec_collections.dashboard.lookml",
+      "asset_id": "asset-648914427195584d99586999",
+      "sha256": "8ebf7949ba056955819e656a5b91573e8cc153b50562814f7a76ff4ec718371c",
+      "size_bytes": 1041,
+      "byte_identical_to_original": true,
+      "parse_status": "parsed",
+      "parser": "PyYAML"
+    },
+    {
+      "path": "manifest.lkml",
+      "asset_id": "asset-a7dc7d3502100ca109593825",
+      "sha256": "034bd83c3c1fcd4f9929bdfc36b0467296a6661cc1c559f78ae722cb9461a02f",
+      "size_bytes": 39,
+      "byte_identical_to_original": true,
+      "parse_status": "parsed",
+      "parser": "lkml"
+    },
+    {
+      "path": "models/billing.model.lkml",
+      "asset_id": "asset-299de3a9de0c6ef90a1d10ec",
+      "sha256": "a4712508aa87c398062edfa4db48d24286430c4c16f2be5a450886e2310efa88",
+      "size_bytes": 267,
+      "byte_identical_to_original": true,
+      "parse_status": "parsed",
+      "parser": "lkml"
+    },
+    {
+      "path": "views/invoice_chaos.view.lkml",
+      "asset_id": "asset-6385233e4d2495b571b687c9",
+      "sha256": "385c9feb98b7ee7af2455ac64b2a2f786a31350fd74f8c5066bf91913086aae0",
+      "size_bytes": 4180,
+      "byte_identical_to_original": true,
+      "parse_status": "parsed",
+      "parser": "lkml"
+    }
+  ],
+  "native_parse_summary": {
+    "ctes": [
+      "invoice_versions",
+      "invoice_current",
+      "payment_versions",
+      "payment_current",
+      "credit_versions",
+      "credit_current",
+      "posted_payments",
+      "posted_credits",
+      "customer_history"
+    ],
+    "physical_relations": [
+      "DMA_SIM.BRONZE.BILLING_INVOICE_CDC",
+      "DMA_SIM.BRONZE.BILLING_PAYMENT_CDC",
+      "DMA_SIM.BRONZE.BILLING_CREDIT_CDC",
+      "DMA_SIM.BRONZE.BILLING_CUSTOMER_HISTORY"
+    ],
+    "derived_columns": [
+      "tenant_id",
+      "invoice_id",
+      "customer_id",
+      "issued_at",
+      "invoice_date",
+      "currency",
+      "status",
+      "segment",
+      "gross_cents",
+      "discount_cents",
+      "credit_cents",
+      "net_cents",
+      "paid_cents",
+      "legacy_invoice_key"
+    ],
+    "dimensions": 9,
+    "measures": 5,
+    "explores": 1,
+    "dashboards": 1,
+    "dashboard_controls": 2,
+    "dashboard_elements": 1
+  },
+  "parsers": {
+    "lkml": "1.3.7",
+    "sqlglot": "30.18.0",
+    "PyYAML": "6.0.3"
+  },
+  "historical_result_sha256": "3d0d55a76402d32e174f3364b190f84423f207e50dbf2a48ea1c8a6289921954",
+  "source_sql_executed": false,
+  "native_vendor_validation": false,
+  "result_sha256": "c70845c42669afe52b879e74c7078629809944df4dfaf09079aefecbb895e044"
+}

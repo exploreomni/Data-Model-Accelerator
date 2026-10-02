@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_powerbi_report_context",
+  "native_omni_artifact": false,
+  "purpose": "Local report selection, runtime bindings, DAX empty/total semantics and disconnected presentation selection. Not a native Omni workbook or Power BI parser.",
+  "defaults": {
+    "tenant": "A",
+    "start_date": "2026-01-01",
+    "end_date": "2026-03-01",
+    "segment": "ALL",
+    "status": "posted",
+    "multipliers": [
+      1
+    ]
+  },
+  "default_provenance": {
+    "report_values": "Source-author frozen input/repo/Billing.Report/definition/report.json, filterConfig/filters: ReportingStart gte 2026-01-01; ReportingEnd lt 2026-03-01; StatusSelection posted; SegmentSelection card without predicate means ALL; MultiplierSelection 1L means [1]. Exact hash and native selectors are in documentation/source-to-target.json and must match the independent source graph.",
+    "tenant": "Synthetic role/persona harness boundary, not inferred from report filter UI."
+  },
+  "parameter_contract": {
+    "tenant": {
+      "allowed": [
+        "A",
+        "B"
+      ],
+      "required": true,
+      "role_map": {
+        "A": "TenantA",
+        "B": "TenantB"
+      },
+      "persona_must_match": true,
+      "authorization_required": true
+    },
+    "date_window": {
+      "format": "YYYY-MM-DD",
+      "lower": "inclusive",
+      "upper": "exclusive",
+      "equal_endpoints": "empty",
+      "reversed": "error"
+    },
+    "segment": {
+      "type": "string",
+      "all_value": "ALL"
+    },
+    "status": {
+      "allowed": [
+        "posted",
+        "draft"
+      ]
+    },
+    "multipliers": {
+      "allowed": [
+        1,
+        2
+      ],
+      "unique": true,
+      "selection": "sole_selected_value_else_alternate",
+      "alternate": 1
+    }
+  },
+  "security": {
+    "ordinary_measure_filters_cannot_remove": [
+      "invoices.tenant_id",
+      "customers.tenant_id"
+    ],
+    "source_role_tables": [
+      "Invoices",
+      "Customers"
+    ],
+    "relationship_required": true
+  },
+  "blank_contract": {
+    "representation": null,
+    "empty_sum": null,
+    "divide_zero_or_blank_denominator": null,
+    "multiply_blank": null,
+    "coalesce_aggregates": false
+  },
+  "measure_context_contracts": {
+    "invoices.all_segment_revenue_cents": {
+      "behavior": "remove_only_segment",
+      "remove_query_filters": [
+        "customers.segment"
+      ],
+      "remove_grouping": [
+        "customers.segment"
+      ],
+      "preserve": [
+        "invoices.invoice_month",
+        "invoices.invoice_date",
+        "invoices.status",
+        "security"
+      ],
+      "evaluate_on_independent_changed_context": true,
+      "native_runtime_status": "candidate_not_executed"
+    },
+    "invoices.posted_revenue_cents": {
+      "behavior": "replace_status",
+      "replace_query_filters": {
+        "invoices.status": "posted"
+      },
+      "preserve": [
+        "customers.segment",
+        "invoices.invoice_month",
+        "invoices.invoice_date",
+        "security"
+      ],
+      "evaluate_on_independent_changed_context": true,
+      "native_runtime_status": "candidate_not_executed"
+    },
+    "invoices.posted_intersection_cents": {
+      "behavior": "intersect_status",
+      "intersect_query_filters": {
+        "invoices.status": "posted"
+      },
+      "preserve": [
+        "customers.segment",
+        "invoices.invoice_month",
+        "invoices.invoice_date",
+        "security"
+      ],
+      "native_runtime_status": "candidate_not_executed"
+    }
+  },
+  "reports": {
+    "revenue_trend": {
+      "source_visual": "Revenue Trend",
+      "topic": "billing",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "customers.segment"
+      },
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents",
+        "paid_cents": "invoices.paid_cents_total",
+        "outstanding_cents": "invoices.outstanding_cents_total",
+        "payment_rate": "invoices.payment_rate"
+      },
+      "filters": {},
+      "runtime_field_bindings": {
+        "tenant": "invoices.tenant_id",
+        "date": "invoices.invoice_date",
+        "segment": "customers.segment",
+        "status": "invoices.status"
+      },
+      "context_order": [
+        "security",
+        "ordinary_report_filters",
+        "relationship_propagation",
+        "per_measure_context_changes",
+        "aggregate_in_context",
+        "presentation"
+      ],
+      "row_policy": "visible_selected_fact_keys",
+      "empty_population": "zero_rows",
+      "totals": "not_summed_to_form_KPI",
+      "sorts": [
+        "month",
+        "segment"
+      ],
+      "presentation": [
+        {
+          "alias": "scenario_revenue_cents",
+          "kind": "selected_value_multiply",
+          "input": "revenue_cents",
+          "parameter": "multipliers",
+          "allowed_values": [
+            1,
+            2
+          ],
+          "alternate": 1,
+          "blank_input": null,
+          "expression": "revenue_cents * sole_selected_value_or_1(multipliers)",
+          "native_candidate": {
+            "status": "proposal_only",
+            "surface": "Omni workbook spreadsheet calculation after query",
+            "example_single_selection_2": "=${invoices.revenue_cents} * 2",
+            "dynamic_selection_mapping": "Unverified. No native SELECTEDVALUE or control interpolation asserted; local companion validates unique selections and applies alternate 1.",
+            "blank_behavior": "Must be validated in native calculation; local replay preserves null.",
+            "documentation": "https://docs.omni.co/analyze-explore/calculations"
+          }
+        }
+      ]
+    },
+    "segment_share": {
+      "source_visual": "Segment Share",
+      "topic": "billing",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "customers.segment"
+      },
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents",
+        "all_segment_revenue_cents": "invoices.all_segment_revenue_cents",
+        "share_all_segments": "invoices.share_all_segments"
+      },
+      "filters": {},
+      "runtime_field_bindings": {
+        "tenant": "invoices.tenant_id",
+        "date": "invoices.invoice_date",
+        "segment": "customers.segment",
+        "status": "invoices.status"
+      },
+      "context_order": [
+        "security",
+        "ordinary_report_filters",
+        "relationship_propagation",
+        "per_measure_context_changes",
+        "aggregate_in_context",
+        "presentation"
+      ],
+      "row_policy": "visible_selected_fact_keys",
+      "empty_population": "zero_rows",
+      "totals": "not_summed_to_form_KPI",
+      "sorts": [
+        "month",
+        "segment"
+      ],
+      "presentation": []
+    },
+    "kpi_totals": {
+      "source_visual": "KPI Totals",
+      "topic": "billing",
+      "dimensions": {},
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents",
+        "paid_cents": "invoices.paid_cents_total",
+        "outstanding_cents": "invoices.outstanding_cents_total",
+        "payment_rate": "invoices.payment_rate",
+        "all_segment_revenue_cents": "invoices.all_segment_revenue_cents",
+        "share_all_segments": "invoices.share_all_segments",
+        "posted_revenue_cents": "invoices.posted_revenue_cents",
+        "posted_intersection_cents": "invoices.posted_intersection_cents"
+      },
+      "filters": {},
+      "runtime_field_bindings": {
+        "tenant": "invoices.tenant_id",
+        "date": "invoices.invoice_date",
+        "segment": "customers.segment",
+        "status": "invoices.status"
+      },
+      "context_order": [
+        "security",
+        "ordinary_report_filters",
+        "relationship_propagation",
+        "per_measure_context_changes",
+        "aggregate_in_context",
+        "presentation"
+      ],
+      "row_policy": "one_row_recomputed",
+      "empty_population": "one_row_per_measure_context",
+      "totals": "recompute_in_own_context",
+      "sorts": [],
+      "presentation": [
+        {
+          "alias": "scenario_revenue_cents",
+          "kind": "selected_value_multiply",
+          "input": "revenue_cents",
+          "parameter": "multipliers",
+          "allowed_values": [
+            1,
+            2
+          ],
+          "alternate": 1,
+          "blank_input": null,
+          "expression": "revenue_cents * sole_selected_value_or_1(multipliers)",
+          "native_candidate": {
+            "status": "proposal_only",
+            "surface": "Omni workbook spreadsheet calculation after query",
+            "example_single_selection_2": "=${invoices.revenue_cents} * 2",
+            "dynamic_selection_mapping": "Unverified. No native SELECTEDVALUE or control interpolation asserted; local companion validates unique selections and applies alternate 1.",
+            "blank_behavior": "Must be validated in native calculation; local replay preserves null.",
+            "documentation": "https://docs.omni.co/analyze-explore/calculations"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,219 @@
+test_all_providers_and_declared_origins_use_same_exact_contract (test_catalogue.CatalogueTests) ... ok
+test_catalogue_hash_and_source_hash_are_validated_without_claiming_source_authenticity (test_catalogue.CatalogueTests) ... ok
+test_catalogue_only_selection_remains_incomplete_until_references_selected (test_catalogue.CatalogueTests) ... ok
+test_cli_returns_json_and_nonzero_for_incomplete_context (test_catalogue.CatalogueTests) ... ok
+test_complete_declared_scope_preserves_synthetic_label_and_counts (test_catalogue.CatalogueTests) ... ok
+test_duplicate_ids_and_physical_identities_are_rejected (test_catalogue.CatalogueTests) ... ok
+test_duplicate_omitted_and_undeclared_references_are_rejected (test_catalogue.CatalogueTests) ... ok
+test_each_object_requires_same_scope_objects_and_columns_evidence (test_catalogue.CatalogueTests) ... ok
+test_empty_columns_cannot_be_hidden_by_a_table_only_binding (test_catalogue.CatalogueTests) ... ok
+test_empty_visible_schema_is_allowed_alongside_a_bound_scope (test_catalogue.CatalogueTests) ... ok
+test_exact_namespace_and_column_case_are_enforced (test_catalogue.CatalogueTests) ... ok
+test_export_escape_and_symlink_are_rejected (test_catalogue.CatalogueTests) ... ok
+test_max_age_and_now_configuration_are_validated (test_catalogue.CatalogueTests) ... ok
+test_missing_objects_or_column_fields_cannot_pass (test_catalogue.CatalogueTests) ... ok
+test_missing_required_export_and_changed_export_hash_are_errors (test_catalogue.CatalogueTests) ... ok
+test_nested_column_path_and_unknown_object_binding (test_catalogue.CatalogueTests) ... ok
+test_optional_enrichment_failure_does_not_erase_complete_core_exports (test_catalogue.CatalogueTests) ... ok
+test_required_components_need_exports_and_pagination (test_catalogue.CatalogueTests) ... ok
+test_selected_input_symlink_and_redirected_ancestor_are_rejected (test_catalogue.CatalogueTests) ... ok
+test_stale_future_naive_and_invalid_capture_timestamps (test_catalogue.CatalogueTests) ... ok
+test_strict_json_types_and_duplicate_keys (test_catalogue.CatalogueTests) ... ok
+test_unknown_and_partial_enrichment_are_limitations_not_structural_gaps (test_catalogue.CatalogueTests) ... ok
+test_unresolved_and_ambiguous_bindings_remain_gaps (test_catalogue.CatalogueTests) ... ok
+test_visibility_status_and_declared_coverage_gaps_block (test_catalogue.CatalogueTests) ... ok
+test_dashboard_behavior_change_fails_even_with_explicit_query_overrides (test_e2e_runner.E2EReviewIntegrity) ... skipped 'Install scripts/requirements-e2e.txt for the optional E2E suite'
+test_duplicate_check_cannot_fill_coverage (test_e2e_runner.E2EReviewIntegrity) ... skipped 'Install scripts/requirements-e2e.txt for the optional E2E suite'
+test_expected_rows_cannot_be_rewritten_to_match_candidate (test_e2e_runner.E2EReviewIntegrity) ... skipped 'Install scripts/requirements-e2e.txt for the optional E2E suite'
+test_failed_required_check_cannot_pass (test_e2e_runner.E2EReviewIntegrity) ... skipped 'Install scripts/requirements-e2e.txt for the optional E2E suite'
+test_missing_required_test_fails (test_e2e_runner.E2EReviewIntegrity) ... skipped 'Install scripts/requirements-e2e.txt for the optional E2E suite'
+test_predeclared_plan_and_report_mapping (test_e2e_runner.E2EReviewIntegrity) ... skipped 'Install scripts/requirements-e2e.txt for the optional E2E suite'
+test_scenario_inventory_cannot_silently_shrink (test_e2e_runner.E2EReviewIntegrity) ... skipped 'Install scripts/requirements-e2e.txt for the optional E2E suite'
+test_changed_source_measure_changes_executed_result (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_changed_target_measure_changes_executed_result (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_dates_currency_tenant_and_weighted_ratio_execute_from_definitions (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_diagnostic_removes_tile_status_only_and_preserves_measure_filters (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_empty_sum_boundary_is_declared_in_target_not_hidden_in_source_compiler (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_equal_date_endpoints_execute_as_an_empty_half_open_selection (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_listen_and_dashboard_default_are_validated_even_when_overridden (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_missing_misbound_and_invalid_tenant_policies_fail_closed (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_parameter_contract_rejects_invalid_dates_and_unknown_grouping (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_relationship_sql_is_executed_instead_of_replaced_by_hardcoded_join (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_security_dimension_cannot_be_rebound_to_a_constant (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_snowflake_quoted_case_and_unsupported_join_do_not_pass_duckdb_silently (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_sql_literal_escaping_does_not_expand_the_segment_filter (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_unknown_aggregate_filter_function_and_cycles_are_rejected (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_unknown_semantic_keys_and_unincluded_source_are_rejected (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_zero_net_is_raw_row_filter_with_null_ratio (test_e2e_semantics.E2ESemanticTests) ... skipped 'E2E semantic probes require the optional pinned simulation dependencies'
+test_catalogue_platform_and_object_namespace_must_match_fixed_connection (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_connection_blocks_external_reads_and_automatic_extensions_independently (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_create_scope_options_and_other_statements_fail_closed (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_different_history_payload_on_same_interval_is_still_rejected (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_documentation_inventory_covers_executed_models_and_columns (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_file_tables_unqualified_relations_and_unrelated_namespaces_fail (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_identical_history_replays_do_not_multiply_gold_rows (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_lookml_connection_mismatch_is_rejected_by_source_loading_and_build (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_named_external_readers_and_anonymous_functions_are_rejected (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_only_visible_ctes_can_supply_unqualified_relations (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_packaged_source_target_and_compiled_reports_execute_with_guards (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_raw_column_names_cannot_supply_sql_identifiers (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_read_csv_in_extra_create_statement_is_rejected_before_execution (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_source_sql_cannot_add_unqualified_or_external_relations (test_e2e_warehouse.WarehouseFixtureTests) ... skipped 'Warehouse probes require the optional pinned simulation dependencies'
+test_bootstrap_type_drift (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_changed_raw_value_type (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_complete_four_object_twenty_three_column_binding (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_csv_column_loss (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_export_hash_mutation (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_header_only_adjustments_preserves_metadata_and_binding (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_missing_native_column (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_missing_raw_column (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_native_type_null_and_case_mismatches (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_other_empty_raw_tables_remain_unsupported (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_pinned_receipts_not_retimestamped (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_source_hash_required (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_unknown_physical_graph_binding (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_wrong_account (test_hex_catalogue.HexCatalogueTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_all_13_source_and_omni_scenarios_match_frozen_oracle (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_all_invoice_and_customer_month_rows_match (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_canceling_adjustment_errors_do_not_hide_in_total (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_cents_beyond_float_exactness_preserved (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_changed_dbt_destination_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_changed_native_connection_and_missing_component_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_cross_tenant_python_merge_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_dbt_hooks_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_duplicate_dbt_model_identity_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_every_native_cell_is_executed_or_retained (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_exact_replay_and_arrival_shuffle_preserve_rows_and_reports (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_external_sql_denied_by_parser_and_connection (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_five_invalid_or_denied_contexts_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_integer_overflow_is_rejected_or_stays_exact (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_invalid_raw_contracts_fail_before_sql (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_omitted_revenue_calculation_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_omni_access_contract_change_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_omni_changed_metric_and_filter_caught (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_omni_cross_tenant_join_caught_by_reports (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_overpayment_preserves_negative_balance (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_present_empty_adjustment_export_means_zero_adjustment (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_quoted_physical_case_mismatch_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_quoted_physical_column_case_mismatch_rejected (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_source_join_mutation_caught_by_grain_and_reports (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_target_join_mutation_caught_by_invoice_grain (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_unsafe_python_has_no_side_effect (test_hex_execution.HexExecutionTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_complete_three_project_run_covers_every_predeclared_check (test_hex_runner.HexRunnerTests) ... skipped 'Optional Hex E2E dependencies absent'
+test_duplicated_check_is_not_extra_coverage (test_hex_runner.HexRunnerTests) ... skipped 'Optional Hex E2E dependencies absent'
+test_expected_rows_cannot_be_replaced_to_make_candidate_pass (test_hex_runner.HexRunnerTests) ... skipped 'Optional Hex E2E dependencies absent'
+test_missing_native_cell_cannot_report_complete (test_hex_runner.HexRunnerTests) ... skipped 'Optional Hex E2E dependencies absent'
+test_output_cannot_replace_existing_evidence (test_hex_runner.HexRunnerTests) ... skipped 'Optional Hex E2E dependencies absent'
+test_removed_expected_pin_rejected (test_hex_runner.HexRunnerTests) ... skipped 'Optional Hex E2E dependencies absent'
+test_self_consistent_dictionary_omission_detected_against_built_schema (test_hex_runner.HexRunnerTests) ... skipped 'Optional Hex E2E dependencies absent'
+test_ambiguous_variable (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_cell_id_in_other_project_scoped (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_component_version (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_duplicate_cell (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_duplicate_project (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_duplicate_yaml_keys (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_dynamic_file (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_dynamic_python_never_executes (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_dynamic_template (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_fixture_coverage_and_scoped_identity (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_missing_cells (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_missing_component (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_missing_file (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_missing_identity (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_mutation_sql (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_native_type (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_omitted_referenced_cell (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_schema_checksum (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_schema_version (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_self_dependent_state (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_sql_python_chart_evidence (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_unqualified_namespace (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_uuid_format (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_yaml_alias (test_hex_source.HexSourceTests) ... skipped 'Optional Hex E2E dependencies are required'
+test_all_three_layer_documents_are_required (test_review_package.ReviewPackageTests) ... ok
+test_blockers_prevent_completeness (test_review_package.ReviewPackageTests) ... ok
+test_catalogue_binding_cannot_use_another_repository_snapshot (test_review_package.ReviewPackageTests) ... ok
+test_catalogue_binding_is_checked_beyond_artifact_hashes (test_review_package.ReviewPackageTests) ... ok
+test_catalogue_freshness_bound_must_be_explicit (test_review_package.ReviewPackageTests) ... ok
+test_changed_code_invalidates_evidence_integrity (test_review_package.ReviewPackageTests) ... ok
+test_complete_declared_local_evidence (test_review_package.ReviewPackageTests) ... ok
+test_complete_specialist_bundle_rechecks_actual_source_integrity (test_review_package.ReviewPackageTests) ... ok
+test_deleting_category_from_denominator_does_not_pass (test_review_package.ReviewPackageTests) ... ok
+test_dictionary_cannot_duplicate_models_or_columns (test_review_package.ReviewPackageTests) ... ok
+test_dictionary_cannot_omit_columns_even_with_fresh_hash (test_review_package.ReviewPackageTests) ... ok
+test_dictionary_is_required_despite_erd_and_model_spec (test_review_package.ReviewPackageTests) ... ok
+test_dictionary_requires_lineage_and_null_policy (test_review_package.ReviewPackageTests) ... ok
+test_dictionary_version_cannot_lag_model_changes (test_review_package.ReviewPackageTests) ... ok
+test_documentation_association_is_required (test_review_package.ReviewPackageTests) ... ok
+test_documentation_invalid_shapes_report_errors (test_review_package.ReviewPackageTests) ... ok
+test_duplicate_json_keys_rejected (test_review_package.ReviewPackageTests) ... ok
+test_each_layer_requires_a_real_erd_artifact (test_review_package.ReviewPackageTests) ... ok
+test_empty_layer_document_cannot_pass_with_correct_hash (test_review_package.ReviewPackageTests) ... ok
+test_escaped_and_symlinked_artifacts_rejected (test_review_package.ReviewPackageTests) ... ok
+test_invalid_shapes_report_errors (test_review_package.ReviewPackageTests) ... ok
+test_layer_documentation_cannot_claim_wrong_models (test_review_package.ReviewPackageTests) ... ok
+test_local_results_cannot_establish_target_validation (test_review_package.ReviewPackageTests) ... ok
+test_missing_and_skipped_checks_do_not_pass (test_review_package.ReviewPackageTests) ... ok
+test_missing_specialist_dispatch_blocks_even_with_passing_declared_tests (test_review_package.ReviewPackageTests) ... ok
+test_only_history_replay_allow_documented_inapplicability (test_review_package.ReviewPackageTests) ... ok
+test_orphaned_specialist_result_still_requires_dispatch (test_review_package.ReviewPackageTests) ... ok
+test_raw_metadata_exports_must_be_included_as_hashed_artifacts (test_review_package.ReviewPackageTests) ... ok
+test_readable_dictionary_cannot_be_omitted_or_aliased_to_json (test_review_package.ReviewPackageTests) ... ok
+test_removing_catalogue_requirement_does_not_pass (test_review_package.ReviewPackageTests) ... ok
+test_removing_dispatch_association_cannot_downgrade_specialist_package (test_review_package.ReviewPackageTests) ... ok
+test_specialist_source_evidence_is_actually_inspected (test_review_package.ReviewPackageTests) ... ok
+test_stale_catalogue_cannot_pass_review (test_review_package.ReviewPackageTests) ... ok
+test_synthetic_catalogue_cannot_establish_target_validation (test_review_package.ReviewPackageTests) ... ok
+test_target_scoped_evidence_can_be_complete (test_review_package.ReviewPackageTests) ... ok
+test_admin_exclusions_and_business_context_keep_meaningful_scope (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_binary_packages_are_hashed_not_extracted (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_bounded_file_count_is_explicitly_incomplete (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_byte_limits_preserve_unreadable_assets_without_invented_hashes (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_cli_exit_codes_for_planned_incomplete_and_hard_error (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_credentials_dependencies_and_symlinks_are_not_read (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_deterministic_manifest_and_asset_ids_change_with_content (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_explicit_profiles_preserve_shared_assignments_and_evidence (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_generated_dbt_evidence_is_gap_unless_explicitly_selected (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_generic_sql_and_data_formats_do_not_prove_vendor (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_missing_and_remote_powerbi_dependencies_stay_gaps (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_mixed_native_projects_route_by_project_not_file (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_nested_dbt_marker_uses_nearest_native_project (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_non_git_fixture_has_explicit_repository_status (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_output_safety_and_existing_output_never_overwritten (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_output_symlink_into_input_is_rejected (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_source_profile_validation (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_two_projects_of_same_source_remain_partitioned (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_unreadable_source_is_preserved_and_hard_failure (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_verified_native_signatures_and_standalone_scope (test_specialist_planner.SpecialistPlannerTests) ... ok
+test_binary_cannot_be_claimed_parsed (test_specialist_results.SpecialistResultTests) ... ok
+test_changed_inventory_or_stale_result_invalidates_handoff (test_specialist_results.SpecialistResultTests) ... ok
+test_changed_source_invalidates_dispatch (test_specialist_results.SpecialistResultTests) ... ok
+test_complete_mixed_results_retain_context_without_approving_placement (test_specialist_results.SpecialistResultTests) ... ok
+test_context_free_translation_is_incomplete (test_specialist_results.SpecialistResultTests) ... ok
+test_dangling_resolved_reference_rejected (test_specialist_results.SpecialistResultTests) ... ok
+test_explicit_cross_task_reference_can_resolve (test_specialist_results.SpecialistResultTests) ... ok
+test_id_collision_is_not_silently_deduplicated (test_specialist_results.SpecialistResultTests) ... ok
+test_invalid_shapes_return_structured_failure (test_specialist_results.SpecialistResultTests) ... ok
+test_missing_specialist_does_not_pass (test_specialist_results.SpecialistResultTests) ... ok
+test_omitted_assigned_file_and_out_of_scope_evidence_are_rejected (test_specialist_results.SpecialistResultTests) ... ok
+test_partial_assets_and_incomplete_inventory_prevent_completeness (test_specialist_results.SpecialistResultTests) ... ok
+test_planner_read_limit_is_preserved_by_verifier (test_specialist_results.SpecialistResultTests) ... ok
+test_relocated_source_ancestor_symlink_is_rejected (test_specialist_results.SpecialistResultTests) ... ok
+test_relocated_source_root_symlink_is_rejected_even_with_identical_content (test_specialist_results.SpecialistResultTests) ... ok
+test_result_path_escape_and_source_symlink_rejected (test_specialist_results.SpecialistResultTests) ... ok
+test_unresolved_reference_remains_gap (test_specialist_results.SpecialistResultTests) ... ok
+test_cli_from_another_directory_writes_complete_json (test_validate_example.ValidationExampleTests) ... ok
+test_cli_nonzero_for_missing_input_and_mismatch (test_validate_example.ValidationExampleTests) ... ok
+test_conflicting_duplicate_source_version_blocks_sql (test_validate_example.ValidationExampleTests) ... ok
+test_corrupt_expected_row_fails_even_if_overall_cents_do_not_change (test_validate_example.ValidationExampleTests) ... ok
+test_dropped_filter_breaks_candidate_despite_unfiltered_match (test_validate_example.ValidationExampleTests) ... ok
+test_golden_export_and_all_negative_probes_execute (test_validate_example.ValidationExampleTests) ... ok
+test_missing_input_is_failure_with_missing_check_coverage (test_validate_example.ValidationExampleTests) ... ok
+test_missing_registered_check_cannot_report_success (test_validate_example.ValidationExampleTests) ... ok
+test_orphan_temporal_dimension_fails_relationship_gate (test_validate_example.ValidationExampleTests) ... ok
+test_overlapping_customer_history_blocks_sql (test_validate_example.ValidationExampleTests) ... ok
+
+----------------------------------------------------------------------
+Ran 214 tests in 2.864s
+
+OK (skipped=108)

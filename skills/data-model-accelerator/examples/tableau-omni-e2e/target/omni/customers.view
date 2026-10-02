@@ -1,0 +1,18 @@
+catalog: DMA_TABLEAU
+schema: GOLD
+table_name: DIM_CUSTOMERS
+label: Customer history
+dimensions:
+  customer_key:
+    sql: '"CUSTOMER_KEY"'
+    primary_key: true
+  tenant_id:
+    sql: '"TENANT_ID"'
+  customer_id:
+    sql: '"CUSTOMER_ID"'
+  segment:
+    sql: '"SEGMENT"'
+  valid_from:
+    sql: '"VALID_FROM"'
+  valid_to:
+    sql: '"VALID_TO"'

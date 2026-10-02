@@ -1,0 +1,403 @@
+version: 2
+models:
+- name: stg_rentals
+  description: One latest live row per (tenant_id, rental_id). Latest live current-state snapshot at the
+    fixed watermark; rank all versions by cdc_sequence DESC, updated_at DESC, then exclude tombstones.
+    Exact duplicate versions are equivalent. CDC metadata retained; is_deleted removed. No as-of history
+    or SCD.
+  columns:
+  - name: tenant_id
+    data_type: varchar
+    description: Tenant boundary; required in every key, partition and relationship. Exposing it does
+      not enforce authorization.
+    data_tests:
+    - not_null
+  - name: rental_id
+    data_type: varchar
+    description: Rental identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: location_id
+    data_type: varchar
+    description: Location identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: rental_status
+    data_type: varchar
+    description: Current source status; completed is required for revenue eligibility.
+    data_tests:
+    - not_null
+  - name: rental_date
+    data_type: varchar
+    description: UTC rental date represented as a canonical VARCHAR; used for downstream reporting filters.
+    data_tests:
+    - not_null
+  - name: currency
+    data_type: varchar
+    description: Currency code; USD in this fixture. Eligible charge and rental currencies must agree.
+    data_tests:
+    - not_null
+  - name: updated_at
+    data_type: varchar
+    description: Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.
+    data_tests:
+    - not_null
+  - name: cdc_sequence
+    data_type: bigint
+    description: Integer CDC sequence; primary descending CDC ordering field.
+    data_tests:
+    - not_null
+  config:
+    contract:
+      enforced: true
+- name: stg_charges
+  description: One latest live row per (tenant_id, charge_id). Latest live current-state snapshot at the
+    fixed watermark; rank all versions by cdc_sequence DESC, updated_at DESC, then exclude tombstones.
+    Exact duplicate versions are equivalent. CDC metadata retained; is_deleted removed. No as-of history
+    or SCD.
+  columns:
+  - name: tenant_id
+    data_type: varchar
+    description: Tenant boundary; required in every key, partition and relationship. Exposing it does
+      not enforce authorization.
+    data_tests:
+    - not_null
+  - name: charge_id
+    data_type: varchar
+    description: Charge identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: rental_id
+    data_type: varchar
+    description: Rental identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: charge_type
+    data_type: varchar
+    description: 'Source category: rental_fee, damage_fee, refund or refundable_deposit. Deposits are
+      excluded from eligible revenue.'
+    data_tests:
+    - not_null
+  - name: amount
+    data_type: decimal(18,2)
+    description: Nonnegative source magnitude in USD with fixed decimal precision; refunds are not signed
+      at source.
+    data_tests:
+    - not_null
+  - name: currency
+    data_type: varchar
+    description: Currency code; USD in this fixture. Eligible charge and rental currencies must agree.
+    data_tests:
+    - not_null
+  - name: updated_at
+    data_type: varchar
+    description: Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.
+    data_tests:
+    - not_null
+  - name: cdc_sequence
+    data_type: bigint
+    description: Integer CDC sequence; primary descending CDC ordering field.
+    data_tests:
+    - not_null
+  config:
+    contract:
+      enforced: true
+- name: stg_locations
+  description: One latest live row per (tenant_id, location_id). Latest live current-state snapshot at
+    the fixed watermark; rank all versions by cdc_sequence DESC, updated_at DESC, then exclude tombstones.
+    Exact duplicate versions are equivalent. CDC metadata retained; is_deleted removed. No as-of history
+    or SCD.
+  columns:
+  - name: tenant_id
+    data_type: varchar
+    description: Tenant boundary; required in every key, partition and relationship. Exposing it does
+      not enforce authorization.
+    data_tests:
+    - not_null
+  - name: location_id
+    data_type: varchar
+    description: Location identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: location_name
+    data_type: varchar
+    description: Current live location label; not the historical label at rental time.
+    data_tests:
+    - not_null
+  - name: updated_at
+    data_type: varchar
+    description: Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.
+    data_tests:
+    - not_null
+  - name: cdc_sequence
+    data_type: bigint
+    description: Integer CDC sequence; primary descending CDC ordering field.
+    data_tests:
+    - not_null
+  config:
+    contract:
+      enforced: true
+- name: int_eligible_charges
+  description: One current eligible charge per (tenant_id, charge_id), belonging to a completed live same-tenant
+    rental. Current live eligible charges only; no independent history or CDC metadata. Refund signs and
+    deposit exclusion reflect synthetic accepted rules.
+  columns:
+  - name: tenant_id
+    data_type: varchar
+    description: Tenant boundary; required in every key, partition and relationship. Exposing it does
+      not enforce authorization.
+    data_tests:
+    - not_null
+  - name: charge_id
+    data_type: varchar
+    description: Charge identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: rental_id
+    data_type: varchar
+    description: Rental identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: charge_type
+    data_type: varchar
+    description: 'Source category: rental_fee, damage_fee, refund or refundable_deposit. Deposits are
+      excluded from eligible revenue.'
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - rental_fee
+          - damage_fee
+          - refund
+  - name: currency
+    data_type: varchar
+    description: Currency code; USD in this fixture. Eligible charge and rental currencies must agree.
+    data_tests:
+    - not_null
+  - name: source_amount
+    data_type: decimal(18,2)
+    description: Unmodified nonnegative magnitude from the current live source charge.
+    data_tests:
+    - not_null
+  - name: signed_amount
+    data_type: decimal(18,2)
+    description: Source amount for rental/damage fees, negative source amount for refunds; deposits are
+      absent.
+    data_tests:
+    - not_null
+  config:
+    contract:
+      enforced: true
+- name: fct_rental_revenue
+  description: Exactly one row per completed live rental (tenant_id, rental_id), before downstream report
+    aggregation. Current-state rental snapshot using current live locations, including for older rental
+    dates. No historical label/status preservation or as-of reconstruction. Completed live rentals without
+    charges remain as zero-valued rows.
+  columns:
+  - name: tenant_id
+    data_type: varchar
+    description: Tenant boundary; required in every key, partition and relationship. Exposing it does
+      not enforce authorization.
+    data_tests:
+    - not_null
+  - name: rental_id
+    data_type: varchar
+    description: Rental identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: location_id
+    data_type: varchar
+    description: Location identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: location_name
+    data_type: varchar
+    description: Current live location label; not the historical label at rental time.
+    data_tests:
+    - not_null
+  - name: rental_status
+    data_type: varchar
+    description: Current source status; completed is required for revenue eligibility.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - completed
+  - name: rental_date
+    data_type: varchar
+    description: UTC rental date represented as a canonical VARCHAR; used for downstream reporting filters.
+    data_tests:
+    - not_null
+  - name: currency
+    data_type: varchar
+    description: Currency code; USD in this fixture. Eligible charge and rental currencies must agree.
+    data_tests:
+    - not_null
+  - name: fee_amount
+    data_type: decimal(18,2)
+    description: Sum of eligible rental and damage fees for this rental, decimal zero when none.
+    data_tests:
+    - not_null
+  - name: refund_amount
+    data_type: decimal(18,2)
+    description: Sum of signed eligible refunds for this rental; negative or decimal zero.
+    data_tests:
+    - not_null
+  - name: net_revenue
+    data_type: decimal(18,2)
+    description: fee_amount + refund_amount, fixed DECIMAL(18,2); downstream revenue metric sums this
+      field.
+    data_tests:
+    - not_null
+  - name: eligible_charge_count
+    data_type: bigint
+    description: Count of actual eligible charge IDs at rental grain, integer zero when none; deposits
+      are excluded.
+    data_tests:
+    - not_null
+  config:
+    contract:
+      enforced: true
+seeds:
+- name: raw_rentals
+  description: replicated CDC event for (tenant_id, rental_id); multiple versions and exact replay duplicates
+    are allowed Immutable replicated CDC history through 2026-08-16T00:00:00Z; multiple versions, tombstones
+    and exact replay duplicates retained. Entity keys are not unique event keys.
+  columns:
+  - name: tenant_id
+    data_type: varchar
+    description: Tenant boundary; required in every key, partition and relationship. Exposing it does
+      not enforce authorization.
+    data_tests:
+    - not_null
+  - name: rental_id
+    data_type: varchar
+    description: Rental identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: location_id
+    data_type: varchar
+    description: Location identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: rental_status
+    data_type: varchar
+    description: Current source status; completed is required for revenue eligibility.
+    data_tests:
+    - not_null
+  - name: rental_date
+    data_type: varchar
+    description: UTC rental date represented as a canonical VARCHAR; used for downstream reporting filters.
+    data_tests:
+    - not_null
+  - name: currency
+    data_type: varchar
+    description: Currency code; USD in this fixture. Eligible charge and rental currencies must agree.
+    data_tests:
+    - not_null
+  - name: updated_at
+    data_type: varchar
+    description: Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.
+    data_tests:
+    - not_null
+  - name: cdc_sequence
+    data_type: bigint
+    description: Integer CDC sequence; primary descending CDC ordering field.
+    data_tests:
+    - not_null
+  - name: is_deleted
+    data_type: boolean
+    description: Source tombstone flag; evaluate only after selecting the latest entity version.
+    data_tests:
+    - not_null
+- name: raw_charges
+  description: replicated CDC event for (tenant_id, charge_id); multiple versions and exact replay duplicates
+    are allowed Immutable replicated CDC history through 2026-08-16T00:00:00Z; multiple versions, tombstones
+    and exact replay duplicates retained. Entity keys are not unique event keys.
+  columns:
+  - name: tenant_id
+    data_type: varchar
+    description: Tenant boundary; required in every key, partition and relationship. Exposing it does
+      not enforce authorization.
+    data_tests:
+    - not_null
+  - name: charge_id
+    data_type: varchar
+    description: Charge identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: rental_id
+    data_type: varchar
+    description: Rental identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: charge_type
+    data_type: varchar
+    description: 'Source category: rental_fee, damage_fee, refund or refundable_deposit. Deposits are
+      excluded from eligible revenue.'
+    data_tests:
+    - not_null
+  - name: amount
+    data_type: decimal(18,2)
+    description: Nonnegative source magnitude in USD with fixed decimal precision; refunds are not signed
+      at source.
+    data_tests:
+    - not_null
+  - name: currency
+    data_type: varchar
+    description: Currency code; USD in this fixture. Eligible charge and rental currencies must agree.
+    data_tests:
+    - not_null
+  - name: updated_at
+    data_type: varchar
+    description: Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.
+    data_tests:
+    - not_null
+  - name: cdc_sequence
+    data_type: bigint
+    description: Integer CDC sequence; primary descending CDC ordering field.
+    data_tests:
+    - not_null
+  - name: is_deleted
+    data_type: boolean
+    description: Source tombstone flag; evaluate only after selecting the latest entity version.
+    data_tests:
+    - not_null
+- name: raw_locations
+  description: replicated CDC event for (tenant_id, location_id); multiple versions and exact replay duplicates
+    are allowed Immutable replicated CDC history through 2026-08-16T00:00:00Z; multiple versions, tombstones
+    and exact replay duplicates retained. Entity keys are not unique event keys.
+  columns:
+  - name: tenant_id
+    data_type: varchar
+    description: Tenant boundary; required in every key, partition and relationship. Exposing it does
+      not enforce authorization.
+    data_tests:
+    - not_null
+  - name: location_id
+    data_type: varchar
+    description: Location identifier local to a tenant.
+    data_tests:
+    - not_null
+  - name: location_name
+    data_type: varchar
+    description: Current live location label; not the historical label at rental time.
+    data_tests:
+    - not_null
+  - name: updated_at
+    data_type: varchar
+    description: Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.
+    data_tests:
+    - not_null
+  - name: cdc_sequence
+    data_type: bigint
+    description: Integer CDC sequence; primary descending CDC ordering field.
+    data_tests:
+    - not_null
+  - name: is_deleted
+    data_type: boolean
+    description: Source tombstone flag; evaluate only after selecting the latest entity version.
+    data_tests:
+    - not_null

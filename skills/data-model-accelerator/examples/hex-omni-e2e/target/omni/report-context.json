@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_hex_report_context",
+  "native_omni_artifact": false,
+  "defaults": {
+    "tenant": "A",
+    "start_date": "2026-01-01",
+    "end_date": "2026-03-01",
+    "segment": "ALL"
+  },
+  "parameter_contract": {
+    "tenant": "Explicit authorized persona A or B; unknown or explicitly unauthorized denied. UI tenant is not authorization.",
+    "date_range": "ISO dates, inclusive start/exclusive end; equal endpoints empty, reversed rejected.",
+    "segment": "ALL bypasses segment restriction; otherwise exact invoice historical segment.",
+    "what_if_multiplier": "Exploration-only; never applied to shared revenue."
+  },
+  "reports": {
+    "revenue": {
+      "topic": "billing",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "invoices.segment"
+      },
+      "measures": {
+        "invoice_count": "invoices.invoice_count",
+        "net_cents": "invoices.revenue_cents",
+        "paid_cents": "invoices.paid_cents_total",
+        "outstanding_cents": "invoices.outstanding_cents_total",
+        "payment_rate": "invoices.payment_rate"
+      },
+      "filters": {
+        "invoices.status": {
+          "is": "posted"
+        }
+      },
+      "source_project_id": "5e760dfd-fdc7-5462-9807-a12f807eebc9",
+      "source_output_variable": "revenue_summary",
+      "source_contract": "input/repo/report-contract.json#projects/revenue",
+      "runtime_field_bindings": {
+        "date": "invoices.invoice_date",
+        "segment": "invoices.segment"
+      },
+      "sorts": [
+        "month",
+        "segment"
+      ]
+    },
+    "retention": {
+      "topic": "billing",
+      "dimensions": {
+        "tenant_id": "invoices.tenant_id",
+        "customer_id": "invoices.customer_id",
+        "month": "invoices.invoice_month",
+        "segment": "invoices.segment",
+        "first_paid_month": "invoices.first_paid_month"
+      },
+      "population": "posted and invoices.net_cents > 0; distinct dimension tuples",
+      "original_metric": "active_customers",
+      "proposed_metric": "invoiced_active_customers",
+      "source_project_id": "3b237687-7ceb-5f7d-bec6-047158cb60ef",
+      "source_output_variable": "active_customer_detail",
+      "source_contract": "input/repo/report-contract.json#projects/retention",
+      "filters": {
+        "invoices.status": {
+          "is": "posted"
+        },
+        "invoices.net_cents": {
+          "greater_than": 0
+        }
+      },
+      "measures": {},
+      "distinct": true,
+      "runtime_field_bindings": {
+        "date": "invoices.invoice_date",
+        "segment": "invoices.segment"
+      },
+      "sorts": [
+        "tenant_id",
+        "customer_id",
+        "month",
+        "segment",
+        "first_paid_month"
+      ]
+    },
+    "executive": {
+      "topic": "billing",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "invoices.segment"
+      },
+      "measures": {
+        "net_cents": "invoices.revenue_cents",
+        "paid_cents": "invoices.paid_cents_total",
+        "payment_rate": "invoices.payment_rate",
+        "invoiced_active_customers": "invoices.invoiced_active_customers",
+        "paying_active_customers": "invoices.paying_active_customers"
+      },
+      "filters": {
+        "invoices.status": {
+          "is": "posted"
+        }
+      },
+      "original_metric": "active_customers",
+      "proposed_metric": "paying_active_customers",
+      "source_project_id": "8a6acc93-05da-50b1-91a3-c09584f72f7c",
+      "source_output_variable": "executive_summary",
+      "source_contract": "input/repo/report-contract.json#projects/executive",
+      "runtime_field_bindings": {
+        "date": "invoices.invoice_date",
+        "segment": "invoices.segment"
+      },
+      "sorts": [
+        "month",
+        "segment"
+      ]
+    }
+  },
+  "unresolved_decision": "No canonical active_customers metric exists until a human approves its intended meaning."
+}

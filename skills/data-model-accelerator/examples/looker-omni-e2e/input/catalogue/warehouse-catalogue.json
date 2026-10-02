@@ -1,0 +1,405 @@
+{
+  "schema_version": 1,
+  "kind": "warehouse_raw_catalogue",
+  "provider": "snowflake",
+  "origin": "synthetic",
+  "captured_at": "2026-09-10T02:37:20.158107+00:00",
+  "context": {
+    "platform_instance": "synthetic-snowflake-account",
+    "principal": "synthetic_metadata_collector",
+    "scope": [
+      {
+        "scope_id": "billing-raw",
+        "catalog": "DMA_SIM",
+        "schema": "BRONZE",
+        "location": "synthetic-us-central"
+      }
+    ]
+  },
+  "coverage": {
+    "status": "complete_for_visible_scope",
+    "gaps": []
+  },
+  "extractions": [
+    {
+      "extraction_id": "objects",
+      "scope_id": "billing-raw",
+      "component": "objects",
+      "status": "complete",
+      "artifact_path": "exports/objects.json",
+      "sha256": "35de6c78a7b12f17a098cfe738b6a21ee2541243467a6d030a55bbec6bdc64d9",
+      "query_id": null,
+      "pagination_complete": true
+    },
+    {
+      "extraction_id": "columns",
+      "scope_id": "billing-raw",
+      "component": "columns",
+      "status": "complete",
+      "artifact_path": "exports/columns.json",
+      "sha256": "fc869ed2293e9c63ab21ec5b2eb1fa1fdd5d08ce42875140a696425c3aa5fb1f",
+      "query_id": null,
+      "pagination_complete": true
+    }
+  ],
+  "objects": [
+    {
+      "object_id": "snowflake:synthetic:DMA_SIM:BRONZE:BILLING_INVOICE_CDC",
+      "scope_id": "billing-raw",
+      "identity": {
+        "catalog": "DMA_SIM",
+        "schema": "BRONZE",
+        "name": "BILLING_INVOICE_CDC"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "INVOICE_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "CUSTOMER_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "ISSUED_AT"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "GROSS_CENTS"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "DISCOUNT_CENTS"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "STATUS"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "CURRENCY"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "SOURCE_SEQ"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": false
+        },
+        {
+          "path": [
+            "OP"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "ARRIVAL_SEQ"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": false
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "BILLING_INVOICE_CDC"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "BILLING_INVOICE_CDC"
+        }
+      ]
+    },
+    {
+      "object_id": "snowflake:synthetic:DMA_SIM:BRONZE:BILLING_PAYMENT_CDC",
+      "scope_id": "billing-raw",
+      "identity": {
+        "catalog": "DMA_SIM",
+        "schema": "BRONZE",
+        "name": "BILLING_PAYMENT_CDC"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "ENTRY_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "INVOICE_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "AMOUNT_CENTS"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "STATUS"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "CURRENCY"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "SOURCE_SEQ"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": false
+        },
+        {
+          "path": [
+            "OP"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "ARRIVAL_SEQ"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": false
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "BILLING_PAYMENT_CDC"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "BILLING_PAYMENT_CDC"
+        }
+      ]
+    },
+    {
+      "object_id": "snowflake:synthetic:DMA_SIM:BRONZE:BILLING_CREDIT_CDC",
+      "scope_id": "billing-raw",
+      "identity": {
+        "catalog": "DMA_SIM",
+        "schema": "BRONZE",
+        "name": "BILLING_CREDIT_CDC"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "ENTRY_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "INVOICE_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "AMOUNT_CENTS"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "STATUS"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "CURRENCY"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "SOURCE_SEQ"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": false
+        },
+        {
+          "path": [
+            "OP"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "ARRIVAL_SEQ"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": false
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "BILLING_CREDIT_CDC"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "BILLING_CREDIT_CDC"
+        }
+      ]
+    },
+    {
+      "object_id": "snowflake:synthetic:DMA_SIM:BRONZE:BILLING_CUSTOMER_HISTORY",
+      "scope_id": "billing-raw",
+      "identity": {
+        "catalog": "DMA_SIM",
+        "schema": "BRONZE",
+        "name": "BILLING_CUSTOMER_HISTORY"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "CUSTOMER_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "VALID_FROM"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        },
+        {
+          "path": [
+            "VALID_TO"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "SEGMENT"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": false
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "BILLING_CUSTOMER_HISTORY"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "BILLING_CUSTOMER_HISTORY"
+        }
+      ]
+    }
+  ]
+}

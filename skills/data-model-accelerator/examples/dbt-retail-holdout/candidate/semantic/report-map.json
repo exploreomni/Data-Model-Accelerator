@@ -1,0 +1,16 @@
+{
+  "columns": [
+    "ORDER_MONTH",
+    "PRODUCT_ID",
+    "ORDERED_QUANTITY",
+    "FULFILLED_QUANTITY",
+    "RETURNED_QUANTITY",
+    "LINE_NET_CENTS",
+    "REFUND_CENTS",
+    "RETAINED_REVENUE_CENTS",
+    "FULFILLMENT_RATE"
+  ],
+  "path": "dbt/analyses/retail_fulfillment_summary.sql",
+  "materialization": "none; downstream dbt analysis",
+  "analysis_id": "analysis.retail_candidate.retail_fulfillment_summary"
+}

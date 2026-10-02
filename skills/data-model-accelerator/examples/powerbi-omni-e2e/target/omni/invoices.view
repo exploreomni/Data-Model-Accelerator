@@ -1,0 +1,124 @@
+# Native Omni candidate syntax; model/query acceptance has not been run.
+catalog: DMA_POWERBI
+schema: GOLD
+table_name: FCT_INVOICES
+label: Power BI billing migration
+description: All current invoice statuses at tenant/invoice grain. Runtime status
+  is ordinary filter context, changed only by explicitly modeled measures.
+dimensions:
+  tenant_id:
+    sql: '"TENANT_ID"'
+    hidden: true
+  invoice_id:
+    sql: '"INVOICE_ID"'
+  customer_id:
+    sql: '"CUSTOMER_ID"'
+  invoice_date:
+    sql: '"INVOICE_DATE"'
+  invoice_month:
+    sql: '"INVOICE_MONTH"'
+  status:
+    sql: '"STATUS"'
+  amount_cents:
+    sql: '"AMOUNT_CENTS"'
+    hidden: true
+  adjustment_cents:
+    sql: '"ADJUSTMENT_CENTS"'
+    hidden: true
+  net_cents:
+    sql: '"NET_CENTS"'
+    hidden: true
+  paid_cents:
+    sql: '"PAID_CENTS"'
+    hidden: true
+  outstanding_cents:
+    sql: '"OUTSTANDING_CENTS"'
+    hidden: true
+  invoice_key:
+    sql: '"INVOICE_KEY"'
+    primary_key: true
+    hidden: true
+  customer_key:
+    sql: '"CUSTOMER_KEY"'
+    hidden: true
+  segment:
+    sql: '"SEGMENT"'
+    description: Invoice-date segment carried as a tested physical convenience. Selected
+      reports use customers.segment through the effective customer relationship.
+    hidden: true
+measures:
+  revenue_cents:
+    sql: ${invoices.net_cents}
+    aggregate_type: sum
+    label: Revenue (USD cents)
+    format: '#,##0'
+    description: SUM in current report context. Preserve empty input as NULL to model
+      DAX BLANK; no COALESCE or fixed posted filter. Native empty-result behavior
+      requires qualification.
+  paid_cents_total:
+    sql: ${invoices.paid_cents}
+    aggregate_type: sum
+    label: Paid (USD cents)
+    format: '#,##0'
+    description: SUM in current report context. Preserve empty input as NULL to model
+      DAX BLANK; no COALESCE or fixed posted filter. Native empty-result behavior
+      requires qualification.
+  outstanding_cents_total:
+    sql: ${invoices.outstanding_cents}
+    aggregate_type: sum
+    label: Outstanding (USD cents)
+    format: '#,##0'
+    description: SUM in current report context. Preserve empty input as NULL to model
+      DAX BLANK; no COALESCE or fixed posted filter. Native empty-result behavior
+      requires qualification.
+  payment_rate:
+    sql: ${invoices.paid_cents_total} / NULLIF(${invoices.revenue_cents}, 0)
+    label: Payment rate
+    format: 0.00%
+    description: Ratio of sums; NULL for zero or NULL denominator. Totals recompute
+      in their own context.
+  all_segment_revenue_cents:
+    sql: ${invoices.net_cents}
+    aggregate_type: min
+    label: Revenue across all segments
+    format: '#,##0'
+    description: 'Candidate for REMOVEFILTERS(Customers[Segment]): inner SUM excludes
+      only segment grouping/filter; outer MIN repeats the contextual denominator.
+      Retains month, date, status and security. Native behavior when selected outer
+      facts are empty is unverified.'
+    level_of_detail:
+      aggregate_type: sum
+      always_exclude:
+      - customers.segment
+      filters:
+        customers.segment:
+          is: ''
+          cancel_query_filter: true
+  share_all_segments:
+    sql: ${invoices.revenue_cents} / NULLIF(${invoices.all_segment_revenue_cents},
+      0)
+    label: Share across all segments
+    format: 0.00%
+    description: Selected revenue divided by measure context with only segment removed.
+      No visible-mark or all-month denominator; NULL on zero/NULL denominator.
+  posted_revenue_cents:
+    sql: ${invoices.net_cents}
+    aggregate_type: sum
+    filters:
+      invoices.status:
+        is: posted
+        cancel_query_filter: true
+    label: Posted revenue (replace status)
+    description: Candidate for CALCULATE status replacement; keeps date, segment and
+      security. Native empty-selected-context behavior requires qualification.
+    format: '#,##0'
+  posted_intersection_cents:
+    sql: ${invoices.net_cents}
+    aggregate_type: sum
+    filters:
+      invoices.status:
+        is: posted
+    label: Posted revenue (intersect status)
+    description: 'KEEPFILTERS equivalent candidate: intersect posted with query status;
+      a draft restriction gives no values and must remain NULL.'
+    format: '#,##0'

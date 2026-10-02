@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "catalogue_context_complete": true,
+  "errors": [],
+  "gaps": [],
+  "limitations": [
+    "Checks only declared visible scope, export integrity, and declared source-reference bindings; not parser completeness or evidence authenticity.",
+    "Metadata enrichment does not prove keys, constraints, access enforcement, replication ordering, replay, business correctness, or deployment readiness.",
+    "source_snapshot_sha256 is syntax-checked here; its alignment with the selected repository snapshot must be checked by the caller.",
+    "Synthetic catalogue fixture; it is not live warehouse evidence.",
+    "Enrichment is not fully observed for snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.ORDER_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+    "Enrichment is not fully observed for snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.ORDER_LINE_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+    "Enrichment is not fully observed for snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.FULFILLMENT_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+    "Enrichment is not fully observed for snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.RETURN_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown"
+  ],
+  "catalogue_sha256": "7c3c9fd13b4df18bd527392d892efc786216223a9b527bf9fe779e877e85959e",
+  "source_snapshot_sha256": "f9b71a11e4604d41e0d76c1b29933c97554976b59b5c12ef8b76379a33d2a098",
+  "origin": "synthetic",
+  "counts": {
+    "scopes": 1,
+    "extractions": 2,
+    "objects": 4,
+    "columns": 30,
+    "expected_references": 4,
+    "references": 4,
+    "resolved_references": 4
+  }
+}

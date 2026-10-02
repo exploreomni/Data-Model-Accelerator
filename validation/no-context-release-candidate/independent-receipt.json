@@ -1,0 +1,112 @@
+{
+  "schema_version": 2,
+  "kind": "independent_validation_receipt",
+  "completed_at_utc": "2026-09-25T03:25:13.020505+00:00",
+  "status": "local_source_derived_and_bounded_semantic_checks_pass",
+  "candidate_database_sha256": "eebbd3a657f05074da1210d4c844780ed62ebb5effe4878ee6812b1ee3859008",
+  "candidate_copy_matches_original": true,
+  "all_input_hashes_verified_unchanged": true,
+  "all_native_omni_definition_hashes_verified": true,
+  "original_expectation_freeze_verified_unchanged": true,
+  "original_expected_results_sha256": "ac68064f50972e7ce1be750bb1327ef1ab1f7f5abec4bf8465077e0a8a576ab4",
+  "source_snapshot_sha256": "fa1af13ae9a65201e9f368cd6f1c76a0d1a27850a3eefa9286d446e79bb93991",
+  "model_contract_sha256": "e3b936e97fa30cb3f7f4b6c1b5c735d5a19885cbfa8c668fcab02caf8ea6854f",
+  "previous_pass": {
+    "receipt": "prior-pass-01/independent-validation-receipt.json",
+    "receipt_sha256": "71212804c5c0d756c2150775ffa1205611d18e9aa3500e7fc908b56bc5d9535b",
+    "candidate_database_sha256": "96ac0ae236949164a05e160fcd8c2ea85f5343510d032574db097781b7e9be36",
+    "status": "local_source_derived_checks_pass",
+    "repeat_reason": "Modeler nonsemantic authored formatting and dbt metadata deprecation corrections; benchmark and test logic unchanged except new explicit semantic replay lane."
+  },
+  "summaries": {
+    "candidate_comparison": {
+      "source_relations_compared": 30,
+      "source_relations_passed": 30,
+      "gold_roles_compared": 6,
+      "gold_roles_passed": 6,
+      "relations_fully_projected": 58,
+      "projection_columns": 513,
+      "projection_failures": 0,
+      "normalized_source_mismatch_cells": 0,
+      "source_compared_cells": 692214,
+      "gold_compared_cells": 216289,
+      "gold_mismatch_cells": 0,
+      "published_surface_failures": 0
+    },
+    "candidate_probes": {
+      "slice_checks": 13,
+      "slice_passes": 13,
+      "geography_status": "pass",
+      "publication_checks": 9,
+      "publication_passes": 9,
+      "negative_controls": 5,
+      "intended_defects_detected": 5
+    },
+    "dimension_comparison": {
+      "source_dimensions": 5,
+      "source_dimensions_passed": 5,
+      "compared_cells": 78654,
+      "normalized_mismatch_cells": 0,
+      "payment_type_status": "pass",
+      "reason_slice_status": "pass"
+    },
+    "omni_local_replay": {
+      "views": 9,
+      "dimensions_projected": 99,
+      "dimension_projection_passes": 9,
+      "measure_definitions_replayed": 15,
+      "measure_cases": 52,
+      "measure_case_passes": 52,
+      "join_roles": 11,
+      "join_role_passes": 11,
+      "topic_grains": 3,
+      "topic_grain_passes": 3,
+      "grouped_query_cases": 8,
+      "grouped_query_passes": 8,
+      "semantic_negative_controls": 3,
+      "semantic_negative_controls_detected": 3
+    }
+  },
+  "artifacts": {
+    "omni-local-replay.json": "004cd246c4d24e2f1f970909766bbf09aba0647fdfac09466dec139c8be7ad56",
+    "input-hashes.json": "92d6f56c1bef23afdfc26ab4d8ea48315afadf395aa955724f3b4f8bb5fbbbfb",
+    "INDEPENDENT_REVIEW.md": "c637970f48027076559a5f129ff633f61a893cad85d6afc6157413ee6c180692",
+    "candidate-comparison.json": "436db51ecbaaf595bd83b0a1a440400474294718767b873d4caaafb59731cacd",
+    "timestamp-normalization-erratum.json": "70eaca481eb27b4ceb052b84db7060a78ce6b540fb8ff510f17817bcc0d57ad2",
+    "supplemental-expected-results.json": "f55a0b695bda476845b851852775f41997980add6f665b590f4ae84cef5a2eeb",
+    "probe_candidate.py": "b69f885537b80450878a44c796e3d96abddda84bce17b8656e7169c71d082e86",
+    "compare_candidate.py": "c7e51eff607526afb2428608ad1f40e5edb4a3b94560202911218eed95bd38a9",
+    "supplemental_oracle.py": "ec091f689f6a2b4e8bcc05bd6a5dcefe18731810890f26e4f598cce5c6870c4b",
+    "timestamp_normalization_erratum.py": "844e674977a598cac2d354c368e6ae654cca38c734ca731edf5f15e5509e57ac",
+    "candidate-probes.json": "77ba1677e415a7b5dcab5da9ed66a04bc023f5f7a09ee938f41102ee9bd24d9d",
+    "candidate-mapping.json": "2b0633c9baf329700a973db4d613c3856bec527df0285bdedf6912c17a3da077",
+    "source-row-fingerprints.json": "1e20500c72481c905904d67cdeeb9efb01a2d2b3548f17068dd6caa70aa93527",
+    "supplemental-freeze.json": "ff22e1f137da577238e54b33d0f906502b08c711f4feda20f7a96ad172553945",
+    "expected-results.json": "ac68064f50972e7ce1be750bb1327ef1ab1f7f5abec4bf8465077e0a8a576ab4",
+    "dimension-comparison.json": "b9be33655a146c16dd2510c5d9c88cacafbe9f299eacef6215588a602d494562",
+    "FINDINGS.md": "64603d508c4a3e3bd793c336dc1d8145ab772fece55243eecc6d567adbcbabf7",
+    "oracle.py": "810135cc8877ac95897a3ee1c378ae7e96d99d9f940e4ba686b230b3010feadc",
+    "expectation-contract.json": "20f93f6925bf9103ef78c0b5647e8275b82c4ffd82ea379fdb88ff43c5743ff2",
+    "benchmark-freeze.json": "186e4be4b524014f5f025a90f99bd53e61105e293e87abf0b0ffb09f4ec1eb0e",
+    "compare_dimensions.py": "7f39e279160896fe5b44d0ddef0b4f21bbf555194bd1bf512019fe934c474811",
+    "omni-local-replay-initial.json": "c0bbb88512b0cb7fd2d43e443e80a9f64c02237394084e1697fcb6616af41ffc",
+    "candidate-comparison-initial.json": "a2297e170a187ddebb3c8b48e36133370fd05806f67984b76b4b61ef4a6852f0",
+    "replay_omni.py": "05bce76614ede19ddbda67e72c6b65192242c4c15fa1174f947c1e521f7f639a"
+  },
+  "environment": {
+    "oracle_system_python": "Python 3.9.6",
+    "candidate_comparison_python": "Python 3.12.14",
+    "semantic_parser": {
+      "sqlglot": "30.18.0",
+      "PyYAML": "6.0.3",
+      "duckdb": "1.5.5"
+    }
+  },
+  "qualification_limits": [
+    "No native Snowflake compilation/execution or actual warehouse catalogue established by these checks.",
+    "Actual Omni YAML replay is bounded local interpretation, not native Omni import/query/planning or access-persona execution.",
+    "No legacy workbook or accepted business metric baseline.",
+    "One transparent source timestamp normalization erratum; initial diagnostic report retained.",
+    "Raw, bronze and silver contain sensitive source values. DB copies are restricted working artifacts, not distributable package content."
+  ]
+}

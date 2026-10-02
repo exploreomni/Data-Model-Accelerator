@@ -1,0 +1,387 @@
+{
+  "schema_version": 1,
+  "kind": "warehouse_raw_catalogue",
+  "provider": "snowflake",
+  "origin": "synthetic",
+  "captured_at": "2026-09-11T13:41:35.775337+00:00",
+  "capture_basis": "Fresh local reconstruction validated against current synthetic inputs and bootstrap DDL; no warehouse query and no change to pinned receipt capture times.",
+  "source_receipt_captured_at": "2026-09-10T19:57:31.104516+00:00",
+  "context": {
+    "platform_instance": "DMA_POWERBI_SYNTHETIC",
+    "principal": "synthetic_metadata_builder",
+    "connection_id": "powerbi-billing-snowflake",
+    "scope": [
+      {
+        "scope_id": "dma-powerbi-raw",
+        "catalog": "DMA_POWERBI",
+        "schema": "RAW",
+        "location": "synthetic-location-not-a-real-region"
+      }
+    ]
+  },
+  "coverage": {
+    "status": "complete_for_visible_scope",
+    "gaps": [],
+    "scope_meaning": "Exactly four authored synthetic bootstrap objects, including one proposed CSV landing; not a discovered account inventory."
+  },
+  "extractions": [
+    {
+      "extraction_id": "objects",
+      "scope_id": "dma-powerbi-raw",
+      "component": "objects",
+      "status": "complete",
+      "artifact_path": "exports/objects.json",
+      "sha256": "a00f396424e405771e6b66c08cec7c0ebce6292a56733f737464eb218503c1f1",
+      "query_id": null,
+      "pagination_complete": true
+    },
+    {
+      "extraction_id": "columns",
+      "scope_id": "dma-powerbi-raw",
+      "component": "columns",
+      "status": "complete",
+      "artifact_path": "exports/columns.json",
+      "sha256": "882a554ffe31daa882604d8a04664d10300380a41ae3eccf84084935cabc8011",
+      "query_id": null,
+      "pagination_complete": true
+    }
+  ],
+  "objects": [
+    {
+      "object_id": "snowflake:DMA_POWERBI_SYNTHETIC:DMA_POWERBI.RAW.INVOICE_CDC",
+      "scope_id": "dma-powerbi-raw",
+      "identity": {
+        "catalog": "DMA_POWERBI",
+        "schema": "RAW",
+        "name": "INVOICE_CDC"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "INVOICE_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "CUSTOMER_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "INVOICE_DATE"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "AMOUNT_CENTS"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "STATUS"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "IS_DELETED"
+          ],
+          "data_type": "BOOLEAN",
+          "nullable": true
+        },
+        {
+          "path": [
+            "SEQUENCE"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "lifecycle": "synthetic_replication_source_contract",
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "rows[TABLE_NAME='INVOICE_CDC']"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "rows[TABLE_NAME='INVOICE_CDC']"
+        }
+      ],
+      "logical_nullability": "Scenario requires every field except CUSTOMER_HISTORY.VALID_TO; physical bootstrap columns all allow null. Validation is separate from enforcement.",
+      "simulation_types": {
+        "TENANT_ID": "VARCHAR",
+        "INVOICE_ID": "VARCHAR",
+        "CUSTOMER_ID": "VARCHAR",
+        "INVOICE_DATE": "DATE",
+        "AMOUNT_CENTS": "BIGINT",
+        "STATUS": "VARCHAR",
+        "IS_DELETED": "BOOLEAN",
+        "SEQUENCE": "BIGINT"
+      },
+      "simulation_type_note": "DATE runtime fields parse physical VARCHAR date strings; BIGINT runtime fields simulate physical NUMBER(38,0). This is not Snowflake native type introspection."
+    },
+    {
+      "object_id": "snowflake:DMA_POWERBI_SYNTHETIC:DMA_POWERBI.RAW.PAYMENT_CDC",
+      "scope_id": "dma-powerbi-raw",
+      "identity": {
+        "catalog": "DMA_POWERBI",
+        "schema": "RAW",
+        "name": "PAYMENT_CDC"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "PAYMENT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "INVOICE_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "PAID_CENTS"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "IS_DELETED"
+          ],
+          "data_type": "BOOLEAN",
+          "nullable": true
+        },
+        {
+          "path": [
+            "SEQUENCE"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "lifecycle": "synthetic_replication_source_contract",
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "rows[TABLE_NAME='PAYMENT_CDC']"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "rows[TABLE_NAME='PAYMENT_CDC']"
+        }
+      ],
+      "logical_nullability": "Scenario requires every field except CUSTOMER_HISTORY.VALID_TO; physical bootstrap columns all allow null. Validation is separate from enforcement.",
+      "simulation_types": {
+        "TENANT_ID": "VARCHAR",
+        "PAYMENT_ID": "VARCHAR",
+        "INVOICE_ID": "VARCHAR",
+        "PAID_CENTS": "BIGINT",
+        "IS_DELETED": "BOOLEAN",
+        "SEQUENCE": "BIGINT"
+      },
+      "simulation_type_note": "DATE runtime fields parse physical VARCHAR date strings; BIGINT runtime fields simulate physical NUMBER(38,0). This is not Snowflake native type introspection."
+    },
+    {
+      "object_id": "snowflake:DMA_POWERBI_SYNTHETIC:DMA_POWERBI.RAW.CUSTOMER_HISTORY",
+      "scope_id": "dma-powerbi-raw",
+      "identity": {
+        "catalog": "DMA_POWERBI",
+        "schema": "RAW",
+        "name": "CUSTOMER_HISTORY"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "CUSTOMER_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "SEGMENT"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "VALID_FROM"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "VALID_TO"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "lifecycle": "synthetic_replication_source_contract",
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "rows[TABLE_NAME='CUSTOMER_HISTORY']"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "rows[TABLE_NAME='CUSTOMER_HISTORY']"
+        }
+      ],
+      "logical_nullability": "Scenario requires every field except CUSTOMER_HISTORY.VALID_TO; physical bootstrap columns all allow null. Validation is separate from enforcement.",
+      "simulation_types": {
+        "TENANT_ID": "VARCHAR",
+        "CUSTOMER_ID": "VARCHAR",
+        "SEGMENT": "VARCHAR",
+        "VALID_FROM": "DATE",
+        "VALID_TO": "DATE"
+      },
+      "simulation_type_note": "DATE runtime fields parse physical VARCHAR date strings; BIGINT runtime fields simulate physical NUMBER(38,0). This is not Snowflake native type introspection."
+    },
+    {
+      "object_id": "snowflake:DMA_POWERBI_SYNTHETIC:DMA_POWERBI.RAW.ADJUSTMENTS",
+      "scope_id": "dma-powerbi-raw",
+      "identity": {
+        "catalog": "DMA_POWERBI",
+        "schema": "RAW",
+        "name": "ADJUSTMENTS"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "INVOICE_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "ADJUSTMENT_CENTS"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "REASON"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "lifecycle": "proposed_governed_csv_landing",
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "rows[TABLE_NAME='ADJUSTMENTS']"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "rows[TABLE_NAME='ADJUSTMENTS']"
+        }
+      ],
+      "logical_nullability": "Scenario requires every field except CUSTOMER_HISTORY.VALID_TO; physical bootstrap columns all allow null. Validation is separate from enforcement.",
+      "simulation_types": {
+        "TENANT_ID": "VARCHAR",
+        "INVOICE_ID": "VARCHAR",
+        "ADJUSTMENT_CENTS": "BIGINT",
+        "REASON": "VARCHAR"
+      },
+      "simulation_type_note": "DATE runtime fields parse physical VARCHAR date strings; BIGINT runtime fields simulate physical NUMBER(38,0). This is not Snowflake native type introspection."
+    }
+  ],
+  "input_evidence": {
+    "raw_snapshot_at": "2026-03-02T00:00:00Z",
+    "raw_sha256": "d28ffee6457c1d8ebcde1d5e756f10771ec42b4d76c844e582cd1c981ce94d9c",
+    "csv_sha256": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e",
+    "row_counts": {
+      "INVOICE_CDC": 14,
+      "PAYMENT_CDC": 11,
+      "CUSTOMER_HISTORY": 8,
+      "ADJUSTMENTS": 4
+    }
+  },
+  "bootstrap_sha256": "07a030a47f84b6858d103b939ffc03efde7aa50ad437f201e36799cd5989a84d"
+}

@@ -1,0 +1,5 @@
+TENANT_ID,INVOICE_ID,ADJUSTMENT_CENTS,REASON
+A,I1,-1000,service_credit
+A,I2,1000,correction
+A,I5,-2000,service_credit
+B,I1,500,correction

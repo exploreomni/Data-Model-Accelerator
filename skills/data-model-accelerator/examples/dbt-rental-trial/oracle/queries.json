@@ -1,0 +1,10 @@
+{
+  "clean_compatibility": "select tenant_id, rental_id, location_id, location_name, rental_status, rental_date, currency, net_revenue from fct_rental_revenue where tenant_id = 'C' and rental_id = 'R9' order by tenant_id, rental_id",
+  "denied_persona": "select tenant_id, rental_id, location_id, location_name, rental_status, rental_date, currency, fee_amount, refund_amount, net_revenue, eligible_charge_count from fct_rental_revenue where tenant_id = '__DENIED__' order by tenant_id, rental_id",
+  "eligible_charges": "select tenant_id, charge_id, rental_id, charge_type, currency, source_amount, signed_amount from int_eligible_charges order by tenant_id, charge_id",
+  "gold_all": "select tenant_id, rental_id, location_id, location_name, rental_status, rental_date, currency, fee_amount, refund_amount, net_revenue, eligible_charge_count from fct_rental_revenue order by tenant_id, rental_id",
+  "staging_charges": "select tenant_id, charge_id, rental_id, charge_type, amount, currency, updated_at, cdc_sequence from stg_charges order by tenant_id, charge_id",
+  "staging_locations": "select tenant_id, location_id, location_name, updated_at, cdc_sequence from stg_locations order by tenant_id, location_id",
+  "staging_rentals": "select tenant_id, rental_id, location_id, rental_status, rental_date, currency, updated_at, cdc_sequence from stg_rentals order by tenant_id, rental_id",
+  "tenant_A": "select tenant_id, rental_id, location_id, location_name, rental_status, rental_date, currency, fee_amount, refund_amount, net_revenue, eligible_charge_count from fct_rental_revenue where tenant_id = 'A' order by tenant_id, rental_id"
+}

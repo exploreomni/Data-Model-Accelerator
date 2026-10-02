@@ -1,0 +1,27 @@
+# Synthetic candidate; customer history keys and interval integrity require data tests.
+catalog: DMA_SIM
+schema: GOLD
+table_name: DIM_CUSTOMERS
+label: Historical customers
+description: Customer history versions plus a scoped Unknown member per tenant. Invoices reference the version effective at issue time.
+
+dimensions:
+  customer_key:
+    sql: '"CUSTOMER_KEY"'
+    primary_key: true
+    hidden: true
+    description: Warehouse history surrogate; uniqueness is required for the declared many-to-one relationship.
+  tenant_id:
+    sql: '"TENANT_ID"'
+    hidden: true
+  customer_id:
+    sql: '"CUSTOMER_ID"'
+  valid_from:
+    sql: '"VALID_FROM"'
+    description: Inclusive UTC effective start; null for the tenant-scoped Unknown member.
+  valid_to:
+    sql: '"VALID_TO"'
+    description: Exclusive UTC effective end, null when open-ended or the Unknown member.
+  segment:
+    sql: '"SEGMENT"'
+    description: Historical segment of the customer version referenced by an invoice; Unknown when no history matches.

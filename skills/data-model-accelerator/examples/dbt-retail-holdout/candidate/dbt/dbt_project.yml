@@ -1,0 +1,30 @@
+name: retail_candidate
+version: 1.0.0
+config-version: 2
+profile: retail_candidate
+model-paths:
+- models
+test-paths:
+- tests
+macro-paths:
+- macros
+quoting:
+  database: false
+  schema: false
+  identifier: false
+models:
+  retail_candidate:
+    staging:
+      +schema: SILVER
+      +materialized: view
+    gold:
+      +schema: GOLD
+      +materialized: table
+vars:
+  tenant: A
+  start_date: '2026-04-01'
+  end_date: '2026-04-04'
+  status: completed
+  product: ALL
+analysis-paths:
+- analyses

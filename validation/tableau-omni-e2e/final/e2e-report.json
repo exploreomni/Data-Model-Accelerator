@@ -1,0 +1,1711 @@
+{
+  "schema_version": 1,
+  "kind": "tableau_synthetic_e2e",
+  "started_at": "2026-09-10T23:27:36.605252+00:00",
+  "simulation_passed": true,
+  "checks": [
+    {
+      "id": "source-static-graph",
+      "category": "source_contract",
+      "negative_control": false,
+      "evidence": {
+        "assets": 3,
+        "workbooks": 1,
+        "datasources": 1,
+        "fields": 29,
+        "calculations": 15,
+        "parameters": 5,
+        "worksheets": 3,
+        "dashboards": 1,
+        "edges": 60,
+        "errors": 0,
+        "review_gaps": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-native-inventory",
+      "category": "source_contract",
+      "negative_control": false,
+      "evidence": {
+        "workbooks": 1,
+        "worksheets": 3,
+        "fields": 29,
+        "parameters": 5,
+        "native_schema": {
+          "xsd_sha256": "8bb236b72c1c388aca92bcd00164f65c0d4f5efeaf225252ce0619d8f631e923",
+          "native_application_opened": false,
+          "validated": false,
+          "status": "unavailable_publisher_schema_dependency",
+          "reason": "Element '{http://www.w3.org/2001/XMLSchema}attributeGroup', attribute 'ref': The QName value '{http://www.tableausoftware.com/xml/user}UserAttributes-AG' does not resolve to a(n) attribute group definition., line 2774"
+        }
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-package",
+      "category": "source_contract",
+      "negative_control": false,
+      "evidence": {
+        "path": "/Users/austinaranda/Desktop/Codex/DataModelAccelerator/skills/data-model-accelerator/examples/tableau-omni-e2e/input/packages/billing.twbx",
+        "sha256": "17b0366294490d3fe0db18664f100f602a0151eea6ebc1243867731722f7c35d",
+        "members": [
+          {
+            "path": "billing.twb",
+            "bytes": 34722,
+            "sha256": "3511aa9fc45072153b0af3d1e27ac43f5e82788c7cd059fcc38620f6518d518f",
+            "matches_repo": true
+          },
+          {
+            "path": "billing.tds",
+            "bytes": 10010,
+            "sha256": "7060aa92b4828169f71c2481868ba7d79613e3b1015d0add9ec28b3c42465ab8",
+            "matches_repo": true
+          },
+          {
+            "path": "adjustments.csv",
+            "bytes": 138,
+            "sha256": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e",
+            "matches_repo": true
+          }
+        ],
+        "errors": [],
+        "gaps": [],
+        "safe": true,
+        "matches_repo": true,
+        "extracted": false
+      },
+      "status": "pass"
+    },
+    {
+      "id": "catalogue-bindings",
+      "category": "source_contract",
+      "negative_control": false,
+      "evidence": {
+        "schema_version": 1,
+        "catalogue_context_complete": true,
+        "errors": [],
+        "gaps": [],
+        "limitations": [
+          "Checks only declared visible scope, export integrity, and declared source-reference bindings; not parser completeness or evidence authenticity.",
+          "Metadata enrichment does not prove keys, constraints, access enforcement, replication ordering, replay, business correctness, or deployment readiness.",
+          "source_snapshot_sha256 is syntax-checked here; its alignment with the selected repository snapshot must be checked by the caller.",
+          "Synthetic catalogue fixture; it is not live warehouse evidence.",
+          "Enrichment is not fully observed for snowflake:DMA_TABLEAU_SYNTHETIC:DMA_TABLEAU.RAW.INVOICE_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+          "Enrichment is not fully observed for snowflake:DMA_TABLEAU_SYNTHETIC:DMA_TABLEAU.RAW.PAYMENT_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+          "Enrichment is not fully observed for snowflake:DMA_TABLEAU_SYNTHETIC:DMA_TABLEAU.RAW.CUSTOMER_HISTORY: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+          "Enrichment is not fully observed for snowflake:DMA_TABLEAU_SYNTHETIC:DMA_TABLEAU.RAW.ADJUSTMENTS: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown"
+        ],
+        "catalogue_sha256": "e919f2576da514d458038bb4ae8e3ef8b5327634103bad2a51f92df4559d9038",
+        "source_snapshot_sha256": "a0d6ccd3c05514495659154598f621d26c33e2a670e3191194beaaf38edbf371",
+        "origin": "synthetic",
+        "counts": {
+          "scopes": 1,
+          "extractions": 2,
+          "objects": 4,
+          "columns": 23,
+          "expected_references": 4,
+          "references": 4,
+          "resolved_references": 4
+        },
+        "native_metadata_consistency": {
+          "objects": 4,
+          "columns": 23,
+          "bootstrap_types_nulls_case_match": true,
+          "raw_fixture_columns_match": true,
+          "pinned_export_hashes_match": true,
+          "source_graph_physical_refs_match": true,
+          "native_warehouse_execution": false
+        }
+      },
+      "status": "pass"
+    },
+    {
+      "id": "model-inventory",
+      "category": "grain",
+      "negative_control": false,
+      "evidence": {
+        "models": 6
+      },
+      "status": "pass"
+    },
+    {
+      "id": "gold-independent-rows",
+      "category": "reconciliation",
+      "negative_control": false,
+      "evidence": {
+        "rows": 10
+      },
+      "status": "pass"
+    },
+    {
+      "id": "complete-model-documentation",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "models": 10,
+        "columns": 64
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-independent-rows",
+      "category": "fanout",
+      "negative_control": false,
+      "evidence": {
+        "rows": 10
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-field-coverage",
+      "category": "source_contract",
+      "negative_control": false,
+      "evidence": {
+        "fields": 29
+      },
+      "status": "pass"
+    },
+    {
+      "id": "repeat-build-idempotent",
+      "category": "replay",
+      "negative_control": false,
+      "evidence": {
+        "rows": 10
+      },
+      "status": "pass"
+    },
+    {
+      "id": "dbt-adjustment_key_unique",
+      "category": "grain",
+      "negative_control": false,
+      "evidence": {
+        "violations": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "dbt-current_orphan_references",
+      "category": "grain",
+      "negative_control": false,
+      "evidence": {
+        "violations": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "dbt-declared_grains",
+      "category": "grain",
+      "negative_control": false,
+      "evidence": {
+        "violations": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "dbt-fact_balance_and_customer_binding",
+      "category": "grain",
+      "negative_control": false,
+      "evidence": {
+        "violations": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "dbt-invoice_history_exactly_one",
+      "category": "history",
+      "negative_control": false,
+      "evidence": {
+        "violations": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "dbt-payment_reconciliation",
+      "category": "grain",
+      "negative_control": false,
+      "evidence": {
+        "violations": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "dbt-source_history_overlap",
+      "category": "history",
+      "negative_control": false,
+      "evidence": {
+        "violations": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "dbt-source_identity_and_required_values",
+      "category": "grain",
+      "negative_control": false,
+      "evidence": {
+        "violations": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "dbt-source_version_conflicts",
+      "category": "grain",
+      "negative_control": false,
+      "evidence": {
+        "violations": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-default_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 4
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-default_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 4
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-default_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 5
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-default_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 5
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-default_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 4
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-default_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 4
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-tenant_b-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-tenant_b-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-tenant_b-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-tenant_b-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-tenant_b-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-tenant_b-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-january_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-january_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-january_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 3
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-january_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 3
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-january_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-january_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-february_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-february_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-february_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 3
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-february_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 3
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-february_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-february_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-february_boundary_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-february_boundary_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-february_boundary_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-february_boundary_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-february_boundary_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-february_boundary_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_smb_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_smb_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_smb_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 3
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_smb_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 3
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_smb_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_smb_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_enterprise_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_enterprise_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_enterprise_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_enterprise_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_enterprise_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_enterprise_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_smb_b-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_smb_b-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_smb_b-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_smb_b-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_smb_b-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_smb_b-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_enterprise_b-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_enterprise_b-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_enterprise_b-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_enterprise_b-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-segment_enterprise_b-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-segment_enterprise_b-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-empty_equal_bounds-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-empty_equal_bounds-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-empty_equal_bounds-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-empty_equal_bounds-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-empty_equal_bounds-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-empty_equal_bounds-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-empty_after_snapshot-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-empty_after_snapshot-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-empty_after_snapshot-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-empty_after_snapshot-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-empty_after_snapshot-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-empty_after_snapshot-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-zero_revenue_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-zero_revenue_a-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-zero_revenue_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-zero_revenue_a-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-zero_revenue_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-zero_revenue_a-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-multiplier_double-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 4
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-multiplier_double-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 4
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-multiplier_double-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 5
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-multiplier_double-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 5
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-multiplier_double-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 4
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-multiplier_double-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 4
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-context_january_smb-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-context_january_smb-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-context_january_smb-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-context_january_smb-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 2
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-context_january_smb-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-context_january_smb-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-context_february_enterprise-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-context_february_enterprise-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-context_february_enterprise-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-context_february_enterprise-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-context_february_enterprise-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-context_february_enterprise-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 1
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-unknown_segment_empty-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-unknown_segment_empty-revenue_trend",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-unknown_segment_empty-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-unknown_segment_empty-customer_value",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-unknown_segment_empty-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-unknown_segment_empty-revenue_share",
+      "category": "logic",
+      "negative_control": false,
+      "evidence": {
+        "rows": 0
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-deny-unknown_tenant",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tenant/persona access denied"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-deny-unknown_tenant",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tenant/persona access denied"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-deny-missing_tenant",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tenant/persona access denied"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-deny-missing_tenant",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tenant/persona access denied"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-deny-unauthorized_persona",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tenant/persona access denied"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-deny-unauthorized_persona",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tenant/persona access denied"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-deny-persona_mismatch",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tenant/persona access denied"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-deny-persona_mismatch",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tenant/persona access denied"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-deny-reversed_dates",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Invalid date window"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-deny-reversed_dates",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Invalid date window"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-deny-invalid_date",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Invalid date window"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-deny-invalid_date",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Invalid date window"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-deny-nonfinite_multiplier_nan",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Invalid multiplier"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-deny-nonfinite_multiplier_nan",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Invalid multiplier"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "source-deny-nonfinite_multiplier_infinity",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Invalid multiplier"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "target-deny-nonfinite_multiplier_infinity",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Invalid multiplier"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-net-sign",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: revenue_cents row 3"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-payment-tenant",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: revenue_cents row 1"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-context-order",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: fixed_customer_revenue_cents row 0"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-segment-promoted",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: fixed_customer_revenue_cents row 0"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-fixed-scope",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: fixed_customer_revenue_cents row 0"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-partition",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: share_of_month"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-population-filter",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: revenue_cents row 2"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-parameter-drift",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tableau native parameter default drift"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-worksheet-omitted",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Tableau workbook/worksheet inventory changed"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-field-omitted",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Unbound Tableau field [Net Cents]"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-source-unsafe-function",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Unsupported Tableau function SCRIPT_REAL"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-xml-doctype",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "errors": [
+          {
+            "kind": "xml_invalid",
+            "severity": "error",
+            "message": "DTD/entity declarations are forbidden",
+            "path": "bad.twb",
+            "id": null
+          },
+          {
+            "kind": "no_workbooks",
+            "severity": "error",
+            "message": "No safely parsed workbook found",
+            "path": null,
+            "id": null
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-zip-traversal",
+      "category": "security",
+      "negative_control": true,
+      "evidence": {
+        "path": "/var/folders/91/20bk1nzx139bgw8qlxzr65w40000gn/T/dma-tableau-zip-dfrwaw0t/bad.twbx",
+        "sha256": "b8ad2e70cb4ed255b8cf06615c16562250ee46e4f59619b65f1d55068620e4b5",
+        "members": [],
+        "errors": [
+          "Unsafe archive member path: ../escape.twb"
+        ],
+        "gaps": [],
+        "safe": false,
+        "matches_repo": false,
+        "extracted": false
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-tds-mirror",
+      "category": "source_contract",
+      "negative_control": true,
+      "evidence": {
+        "gaps": [
+          {
+            "kind": "official_schema_unvalidated",
+            "severity": "review",
+            "message": "Element '{http://www.w3.org/2001/XMLSchema}attributeGroup', attribute 'ref': The QName value '{http://www.tableausoftware.com/xml/user}UserAttributes-AG' does not resolve to a(n) attribute group definition., line 2774",
+            "path": "billing.twb",
+            "id": "billing.twb#tableau-billing-synthetic"
+          },
+          {
+            "kind": "tds_mirror_drift",
+            "severity": "error",
+            "message": "TDS differs from embedded datasource including SQL/fields/filters/connections",
+            "path": "billing.tds",
+            "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing"
+          },
+          {
+            "kind": "native_runtime_unverified",
+            "severity": "review",
+            "message": "No Tableau opening, rendering, connection authentication, server permissions, refresh, densification or dashboard-action validation occurred",
+            "path": "billing.twb",
+            "id": "billing.twb#tableau-billing-synthetic"
+          }
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-conflicting-cdc",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Conflicting CDC version"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-duplicate-adjustments",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Duplicate manual adjustment key"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-orphan-payment",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Unsafe/colliding fixture identity"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-overlap-history",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Overlapping customer history"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-null-key",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Required raw field null: TENANT_ID"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-missing-csv",
+      "category": "source_contract",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "[Errno 2] No such file or directory: '/var/folders/91/20bk1nzx139bgw8qlxzr65w40000gn/T/dma-tableau-input-rw4_fa36/input/repo/adjustments.csv'"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-target-lod-filter",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: fixed_customer_revenue_cents row 0"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-target-lod-blanket-cancel",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Unsupported/blanket LOD filter cancellation"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-target-access",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Omni tenant access contract changed"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-target-join-fanout",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: revenue_cents row 1"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-target-context-order",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Unsupported worksheet context order/filter roles"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-target-partition",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: share_of_month"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-target-model-sign",
+      "category": "negative_controls",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Value mismatch: net_cents row 0"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "negative-dictionary-coverage",
+      "category": "logic",
+      "negative_control": true,
+      "evidence": {
+        "rejected": true,
+        "reason": "Dictionary column coverage differs from model inventory: DMA_TABLEAU.RAW.ADJUSTMENTS"
+      },
+      "status": "pass"
+    },
+    {
+      "id": "exact-duplicate-replay",
+      "category": "replay",
+      "negative_control": false,
+      "evidence": {
+        "rows": 10
+      },
+      "status": "pass"
+    }
+  ],
+  "failures": [],
+  "native_tableau_execution": "unavailable",
+  "native_snowflake_execution": "unavailable",
+  "native_omni_execution": "unavailable",
+  "native_dbt_compile_execution": "unavailable",
+  "production_approved": false,
+  "limitations": [
+    "Authored synthetic XML/artifacts and bounded replay, not a universal Tableau compiler or fresh model generation.",
+    "Source/target calculations and catalogue are local; no Tableau/Snowflake/Omni runtime, server permissions, extracts or customer output captured.",
+    "Presentation companion is explicitly local metadata, not a native Omni workbook export."
+  ],
+  "counts": {
+    "checks": 160,
+    "passed": 160,
+    "negative_controls": 44,
+    "worksheets": 3,
+    "valid_scenarios": 16,
+    "report_comparisons": 96
+  },
+  "finished_at": "2026-09-10T23:27:37.436339+00:00",
+  "case_hashes": {
+    "documentation/README.md": "531ee80a5284806554f75bc7c2cb03c45303dcdfafea5295fe5860b41f2ea6d3",
+    "documentation/bronze.md": "dfab93f45b542899195bbaf69711593b63117168382161c7443b48d34855daca",
+    "documentation/data-dictionary.json": "23ef0827e9fad12d19776281441e3e112714e0d219572e7a8227120e65811d58",
+    "documentation/data-dictionary.md": "afa24c27fd0b05af47301e763bdc2184edb484e2eb77079adac6e2cddcbcd640",
+    "documentation/documentation-index.json": "740aed8524a021425d37da4b1f9aff960ffd42bdb4dddbc3d6b74f3573697d51",
+    "documentation/gold.md": "284d671ca312a846cf62a6086b16e79bd255b56b915362e2ffa4a8983c05400d",
+    "documentation/model-erd.md": "e441e93a8279af879f1a0b411b891ec4304a2c58cb214394354f3a9121934dd7",
+    "documentation/model-inventory.json": "33ae215b90914301c46c76b57d3ee10da6579602e2a1c582e4ca3fbfcfbbab1e",
+    "documentation/placement-and-decisions.json": "10383ed3fa74da76bb77984a9aac6c9b3b24022b2938d50740f9179d74b0daeb",
+    "documentation/semantic-mapping.md": "f1e2353e903c80a135b6fbff7ff9b8e09f5fb6e7e2732efb1945d80879be8b6a",
+    "documentation/silver.md": "15e8d4c1325f7ea8377934a042573abd517f84958f0b6738e31a9bf5c6e019f8",
+    "documentation/source-to-target.json": "0f75c488fb627edb3f04106942a58b1b4a8d29566b5676bad619f1213ddf2679",
+    "expected/expected_reports.json": "3055ada6aa096af171499321e7cefe3776858dd088baa27fc03e16c29de9509d",
+    "expected/expected_rows.json": "ad4a964a7778cd655ac988847ee6a57d7eb4563e1cb6275615c715b1ada0e128",
+    "expected/oracle-notes.md": "c0486aecdad92dbcede6e639377be11a804c3aae60389d3320700e50218b9161",
+    "expected/oracle.py": "ca32b55be8025170829ceeba3f43a74ed1046891320d8ceed5e81a1d331851b0",
+    "input/catalogue/exports/columns.json": "4a341faddcbdd8df29ab872c4b54ddb5ac812403dd297b48b8544853dbfe2880",
+    "input/catalogue/exports/objects.json": "851bd48c44aa1bff2a3d05fd15313a19428be4589555c1e1e3f3f5f5339e60c5",
+    "input/catalogue/provenance.json": "8728967e7c537156750dd9eed5a1a243e8a75a87d23a45cb609271082be26853",
+    "input/packages/billing.twbx": "17b0366294490d3fe0db18664f100f602a0151eea6ebc1243867731722f7c35d",
+    "input/raw-data.json": "d28ffee6457c1d8ebcde1d5e756f10771ec42b4d76c844e582cd1c981ce94d9c",
+    "input/repo/adjustments.csv": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e",
+    "input/repo/billing.tds": "7060aa92b4828169f71c2481868ba7d79613e3b1015d0add9ec28b3c42465ab8",
+    "input/repo/billing.twb": "3511aa9fc45072153b0af3d1e27ac43f5e82788c7cd059fcc38620f6518d518f",
+    "input/scenario.md": "e897f8c89794d2c8f58db53464da25e8ccbc7441dad838ad9036de75416b6f84",
+    "target/dbt/README.md": "7821ed216d7f7d034f9d9b30f4b7c7925e4b9d9b9c44ca59df21c91019e20e59",
+    "target/dbt/dbt_project.yml": "3bd95e2d8b8a83f23960a56f7fca626ec321c2dbc8025ac68b8137334d9a0053",
+    "target/dbt/macros/generate_schema_name.sql": "9fca7565eb8e2c6cf5c6269f57bbccbfd2a36e18602c3ff3d0c08c1c2f19ea48",
+    "target/dbt/models/gold/dim_customers.sql": "e2b514e66c04c99e7c0c06fb4f2ca0dd829c6dde376ad247b22d2df41f251f54",
+    "target/dbt/models/gold/fct_invoices.sql": "31d9351915bd0013cadc075613492b7fea777e1407c79cb57fdcbdd9acd725a7",
+    "target/dbt/models/models.yml": "b1641e9321d0eeb7dbdea6cac5df5b4365d96fa64e7be0f329543b82c649de2f",
+    "target/dbt/models/silver/billing_adjustments.sql": "254c5bb8264bccc99965ea6d1e5da046031cb5a83f5a78fc9b639a7dec9abffc",
+    "target/dbt/models/silver/billing_customer_history.sql": "d33106d046df01395d6557bdf79c6c400f12e020cd532fc62133d1751a9d5ade",
+    "target/dbt/models/silver/billing_invoices.sql": "362049667a6d9206926bc36462169565153eb1a9b29f4204f41c3abd657d5d83",
+    "target/dbt/models/silver/billing_payments.sql": "8c2ad9b2c3370fbe95f7eb241ac37badfa14ddb4dd1df322dcf46bd27be872a5",
+    "target/dbt/models/sources.yml": "604d16338f5fb0ae674f0a7cf09b626310071ce2cfe0b69649162bc034ab65ac",
+    "target/dbt/profiles.yml.example": "d60aaeb004cee7e13907fa0f0b71b468f526ca38a67b3c98887cf902e32b019d",
+    "target/dbt/tests/adjustment_key_unique.sql": "8acc551d6f36f57efa14238054ab2b70096bbf42c5b1c96bd635a92462134937",
+    "target/dbt/tests/current_orphan_references.sql": "9c0f1611aafc2e479cd0d81a2e372d074441db06b0ec8120d63b5f4992778ce9",
+    "target/dbt/tests/declared_grains.sql": "75dcd700a0d8839303aee9cf3048969824eaf2a3f1c76e3357a75b5c9c9658e9",
+    "target/dbt/tests/fact_balance_and_customer_binding.sql": "b01f463efeddd2923a397c0d5566be15d474e5e25b5b93e8cf99fcfac82eb5d9",
+    "target/dbt/tests/invoice_history_exactly_one.sql": "e3e36bfa0a7ea0240ad10909e2c9813bd6e9d189472bc60f7b1febc2132b8727",
+    "target/dbt/tests/payment_reconciliation.sql": "b69dd3782a5affa700dc1b76faae0e4a9ea47fb7c09c7394fbd355b6a63c7197",
+    "target/dbt/tests/source_history_overlap.sql": "720382abea31c3c35b214b2dc3f5a26fec1a6ad9334cc6d697ade305c41faa68",
+    "target/dbt/tests/source_identity_and_required_values.sql": "d6187eb8b4f57aaf0752d7793567f30623af47978c927c92a03825a50bef13a5",
+    "target/dbt/tests/source_version_conflicts.sql": "793881c185dfa02f4453a618a8f64e625ed9fc534f1fc2792c71ec78394455cb",
+    "target/model-map.json": "fbb6f61d983764ba8838a115379ba49a5add09d075824361414f47deef60748e",
+    "target/omni/billing.topic": "d60c1e6e9aa4bda121bd7a7b13293afd80396fa35fb235b55f578155fe8b4717",
+    "target/omni/customers.view": "0b4eaa0669ec70b25cb17f571e06ff85d264042fc26619b5dacd9eb0ce1d91c1",
+    "target/omni/invoices.view": "18d719bb60e89c543b2c0ad55a251c382d7a2c304ef16043b6cf0fe58f1afad3",
+    "target/omni/relationships": "75479767684f833412d9d3a1c70367f2ec4eb4d1ed402092fab2c231cd2882a0",
+    "target/omni/report-context.json": "098a4dc17511c9bf7a8bdaf1d3797d962307d5936176ee86945e8133a215dc7e",
+    "target/snowflake/00_raw_contract.sql": "347f7e780a12608eede8ee08c42549d5fe7caf9c0aba5791a409c87f7be2dbbb",
+    "test-plan.json": "aafbed3e3ae4ceb8c28b86144a79645deed523829d6fef126bdebf75706faeac"
+  },
+  "implementation_hashes": {
+    "tableau_source.py": "d32f3aa76f6efe2c2dc6ae347d7baf318eb9b960824b728c9169b7eef40953f9",
+    "tableau_execution.py": "0ae495d37d07ded72cc51116648e884cbe82d406c00182265fb8a36a5119d342",
+    "tableau_catalogue.py": "de6c91613ae903c7422eefcf6ad8f7a72733b2bf0393cafca57f8e636c3ec1d9",
+    "run_tableau_omni_e2e.py": "d77a8120a89ecd755e057d6f29340c0d2dd5b9f699c7414667226a370468b198",
+    "requirements-tableau-e2e.txt": "21b420b306f650c66902f01eca8da20d49ed4d6d2a87ce1b081cc5937066c8d3",
+    "hex_execution.py": "044d4a5b3078377abfc107f295625be05dc6fa20fe9dfd2345ed868f734cfbae",
+    "hex_catalogue.py": "844b6abb46cb0412e7fb2b688d5db4803bdb7b6bdb2c575fbb3429b7eabc8fea",
+    "run_hex_omni_e2e.py": "0aa0c95d3a74d457acc6757bf76c244d1e85ff71a3704edd0cb434587d9b6942",
+    "verify_catalogue.py": "3dba7c255c88ddc253818724d74e836aa11b49974d4f19ffebc4adb383746cf2",
+    "verify_model_documentation.py": "11dd298cde5e8e0300970288542cd399d33d58fd4384ec978aa04a4b088d2020"
+  },
+  "dependencies": {
+    "duckdb": "1.5.5",
+    "sqlglot": "30.18.0",
+    "pandas": "2.3.3",
+    "PyYAML": "6.0.3",
+    "lxml": "6.0.2"
+  }
+}

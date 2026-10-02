@@ -1,0 +1,289 @@
+{
+  "schema_version": 1,
+  "task_id": "dbt-cdb4ee2aea69",
+  "source_snapshot_sha256": "f9b71a11e4604d41e0d76c1b29933c97554976b59b5c12ef8b76379a33d2a098",
+  "execution_mode": "inline_specialist",
+  "execution_reason": "User prohibited nested delegation; source, warehouse, semantic and author QA passes are sequential, not independently staffed.",
+  "asset_coverage": [
+    {
+      "asset_id": "asset-219cd5ff676cef1342212444",
+      "status": "parsed",
+      "reason": "Read synthetic scope, known defect and approval limitations"
+    },
+    {
+      "asset_id": "asset-8fb5a5e1cdd9dc81e370e66e",
+      "status": "parsed",
+      "reason": "Safe YAML parsed for configured paths, vars, source/test declarations"
+    },
+    {
+      "asset_id": "asset-b4281a80fa8b8a38005dc5c7",
+      "status": "parsed",
+      "reason": "SQL/Jinja parsed without source execution"
+    },
+    {
+      "asset_id": "asset-3d2a00f5e1afe84944b97775",
+      "status": "parsed",
+      "reason": "Safe YAML parsed for configured paths, vars, source/test declarations"
+    },
+    {
+      "asset_id": "asset-5f5d965b8e3071d248f65311",
+      "status": "parsed",
+      "reason": "Safe YAML parsed for configured paths, vars, source/test declarations"
+    },
+    {
+      "asset_id": "asset-e67db92257dccda983c5581c",
+      "status": "parsed",
+      "reason": "Safe YAML parsed for configured paths, vars, source/test declarations"
+    },
+    {
+      "asset_id": "asset-b2e0d28eba170bae1cdf8e89",
+      "status": "parsed",
+      "reason": "SQL/Jinja parsed without source execution"
+    },
+    {
+      "asset_id": "asset-1aa024c509d9f386b5b803b2",
+      "status": "parsed",
+      "reason": "SQL/Jinja parsed without source execution"
+    }
+  ],
+  "objects": [
+    {
+      "object_id": "source.retail_quick_reports.retail_raw.orders",
+      "native_id": null,
+      "kind": "source",
+      "name": "orders",
+      "physical_name": "DMA_RETAIL.RAW.ORDER_CDC",
+      "evidence": [
+        {
+          "asset_id": "asset-5f5d965b8e3071d248f65311",
+          "locator": "sources[retail_raw].tables[orders]"
+        }
+      ],
+      "grain": {
+        "status": "observed",
+        "description": "Version occurrence for TENANT_ID,ORDER_ID,SEQUENCE; exact replays allowed by input contract"
+      }
+    },
+    {
+      "object_id": "source.retail_quick_reports.retail_raw.order_lines",
+      "native_id": null,
+      "kind": "source",
+      "name": "order_lines",
+      "physical_name": "DMA_RETAIL.RAW.ORDER_LINE_CDC",
+      "evidence": [
+        {
+          "asset_id": "asset-5f5d965b8e3071d248f65311",
+          "locator": "sources[retail_raw].tables[order_lines]"
+        }
+      ],
+      "grain": {
+        "status": "observed",
+        "description": "Version occurrence for TENANT_ID,ORDER_ID,LINE_ID,SEQUENCE; exact replays allowed by input contract"
+      }
+    },
+    {
+      "object_id": "source.retail_quick_reports.retail_raw.fulfillments",
+      "native_id": null,
+      "kind": "source",
+      "name": "fulfillments",
+      "physical_name": "DMA_RETAIL.RAW.FULFILLMENT_CDC",
+      "evidence": [
+        {
+          "asset_id": "asset-5f5d965b8e3071d248f65311",
+          "locator": "sources[retail_raw].tables[fulfillments]"
+        }
+      ],
+      "grain": {
+        "status": "observed",
+        "description": "Version occurrence for TENANT_ID,FULFILLMENT_ID,SEQUENCE; exact replays allowed by input contract"
+      }
+    },
+    {
+      "object_id": "source.retail_quick_reports.retail_raw.returns",
+      "native_id": null,
+      "kind": "source",
+      "name": "returns",
+      "physical_name": "DMA_RETAIL.RAW.RETURN_CDC",
+      "evidence": [
+        {
+          "asset_id": "asset-5f5d965b8e3071d248f65311",
+          "locator": "sources[retail_raw].tables[returns]"
+        }
+      ],
+      "grain": {
+        "status": "observed",
+        "description": "Version occurrence for TENANT_ID,RETURN_ID,SEQUENCE; exact replays allowed by input contract"
+      }
+    },
+    {
+      "object_id": "model.retail_quick_reports.stg_orders",
+      "native_id": null,
+      "kind": "model",
+      "name": "stg_orders",
+      "evidence": [
+        {
+          "asset_id": "asset-1aa024c509d9f386b5b803b2",
+          "locator": "lines 1-12"
+        }
+      ],
+      "grain": {
+        "status": "observed",
+        "description": "tenant/order"
+      }
+    },
+    {
+      "object_id": "model.retail_quick_reports.stg_order_lines",
+      "native_id": null,
+      "kind": "model",
+      "name": "stg_order_lines",
+      "evidence": [
+        {
+          "asset_id": "asset-b2e0d28eba170bae1cdf8e89",
+          "locator": "lines 1-14"
+        }
+      ],
+      "grain": {
+        "status": "observed",
+        "description": "tenant/order/line"
+      }
+    },
+    {
+      "object_id": "model.retail_quick_reports.retail_fulfillment_summary",
+      "native_id": null,
+      "kind": "model",
+      "name": "retail_fulfillment_summary",
+      "evidence": [
+        {
+          "asset_id": "asset-b4281a80fa8b8a38005dc5c7",
+          "locator": "lines 1-41"
+        }
+      ],
+      "grain": {
+        "status": "observed",
+        "description": "order month/product output with defective independent-child joins"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "rule.source.stg_orders",
+      "kind": "current_state",
+      "language": "dbt Jinja + Snowflake SQL",
+      "expression": "-- Correct on contract-valid CDC input: resolve latest version before tombstones.\nwith ranked as (\n  select *, row_number() over (\n    partition by TENANT_ID, ORDER_ID order by SEQUENCE desc\n  ) as version_rank\n  from {{ source('retail_raw', 'orders') }}\n)\nselect TENANT_ID, ORDER_ID, cast(ORDER_DATE as date) as ORDER_DATE,\n  STATUS as ORDER_STATUS,\n  TENANT_ID || '|' || ORDER_ID as ORDER_KEY\nfrom ranked\nwhere version_rank = 1 and not IS_DELETED\n",
+      "output_object_id": "model.retail_quick_reports.stg_orders",
+      "input_refs": [
+        {
+          "reference": "source('retail_raw', 'orders')",
+          "status": "resolved",
+          "object_id": "source.retail_quick_reports.retail_raw.orders"
+        }
+      ],
+      "context": {
+        "evaluation_grain": "tenant/order",
+        "filters": [],
+        "security": "Legacy SQL tenant predicate is not proven RLS; persona contract supplied separately.",
+        "parsed_sql_root": "Select",
+        "source_compilation": "Not executed; reviewed Jinja references resolved and SQL parsed for analysis only."
+      },
+      "evidence": [
+        {
+          "asset_id": "asset-1aa024c509d9f386b5b803b2",
+          "locator": "entire SQL; SHA256 123bf463c2e6dcb558654ab536299aa1f961e50e4c2f314076a7a94a408e0099"
+        }
+      ],
+      "placement_candidate": {
+        "destination": "warehouse",
+        "rationale": "Retain correct staging bytes."
+      }
+    },
+    {
+      "rule_id": "rule.source.stg_order_lines",
+      "kind": "current_state",
+      "language": "dbt Jinja + Snowflake SQL",
+      "expression": "-- Trusted reusable rule: DISCOUNT_CENTS is the TOTAL LINE discount, applied ONCE.\n-- This staging calculation is correct for input satisfying the CDC contract.\nwith ranked as (\n  select *, row_number() over (\n    partition by TENANT_ID, ORDER_ID, LINE_ID order by SEQUENCE desc\n  ) as version_rank\n  from {{ source('retail_raw', 'order_lines') }}\n)\nselect TENANT_ID, ORDER_ID, LINE_ID, PRODUCT_ID, QUANTITY,\n  UNIT_PRICE_CENTS, DISCOUNT_CENTS,\n  QUANTITY * UNIT_PRICE_CENTS - DISCOUNT_CENTS as LINE_NET_CENTS,\n  TENANT_ID || '|' || ORDER_ID || '|' || LINE_ID as LINE_KEY\nfrom ranked\nwhere version_rank = 1 and not IS_DELETED\n",
+      "output_object_id": "model.retail_quick_reports.stg_order_lines",
+      "input_refs": [
+        {
+          "reference": "source('retail_raw', 'order_lines')",
+          "status": "resolved",
+          "object_id": "source.retail_quick_reports.retail_raw.order_lines"
+        }
+      ],
+      "context": {
+        "evaluation_grain": "tenant/order/line",
+        "filters": [],
+        "security": "Legacy SQL tenant predicate is not proven RLS; persona contract supplied separately.",
+        "parsed_sql_root": "Select",
+        "source_compilation": "Not executed; reviewed Jinja references resolved and SQL parsed for analysis only."
+      },
+      "evidence": [
+        {
+          "asset_id": "asset-b2e0d28eba170bae1cdf8e89",
+          "locator": "entire SQL; SHA256 7f52d3c4f60624af997794e034137d33e20d3ad2a132a5582dca6f0aa637d4de"
+        }
+      ],
+      "placement_candidate": {
+        "destination": "warehouse",
+        "rationale": "Retain correct staging bytes."
+      }
+    },
+    {
+      "rule_id": "rule.source.retail_fulfillment_summary",
+      "kind": "report_query",
+      "language": "dbt Jinja + Snowflake SQL",
+      "expression": "-- Executive request implemented directly in a report model.\n-- Known defect: joining independent child events below multiplies line measures.\nwith fulfillment_versions as (\n  select *, row_number() over (\n    partition by TENANT_ID, FULFILLMENT_ID order by SEQUENCE desc\n  ) as version_rank\n  from {{ source('retail_raw', 'fulfillments') }}\n), return_versions as (\n  select *, row_number() over (\n    partition by TENANT_ID, RETURN_ID order by SEQUENCE desc\n  ) as version_rank\n  from {{ source('retail_raw', 'returns') }}\n), fulfillments as (\n  select * from fulfillment_versions where version_rank = 1 and not IS_DELETED\n), returns as (\n  select * from return_versions where version_rank = 1 and not IS_DELETED\n)\nselect cast(date_trunc('month', o.ORDER_DATE) as date) as ORDER_MONTH,\n  l.PRODUCT_ID,\n  sum(l.QUANTITY) as ORDERED_QUANTITY,\n  sum(coalesce(f.QUANTITY, 0)) as FULFILLED_QUANTITY,\n  sum(coalesce(r.QUANTITY, 0)) as RETURNED_QUANTITY,\n  sum(l.LINE_NET_CENTS) as LINE_NET_CENTS,\n  sum(coalesce(r.REFUND_CENTS, 0)) as REFUND_CENTS,\n  sum(l.LINE_NET_CENTS - coalesce(r.REFUND_CENTS, 0)) as RETAINED_REVENUE_CENTS,\n  sum(coalesce(f.QUANTITY, 0)) * 1.0 / nullif(sum(l.QUANTITY), 0) as FULFILLMENT_RATE\nfrom {{ ref('stg_orders') }} o\njoin {{ ref('stg_order_lines') }} l\n  on o.TENANT_ID = l.TENANT_ID and o.ORDER_ID = l.ORDER_ID\nleft join fulfillments f\n  on l.TENANT_ID = f.TENANT_ID and l.ORDER_ID = f.ORDER_ID and l.LINE_ID = f.LINE_ID\nleft join returns r\n  on l.TENANT_ID = r.TENANT_ID and l.ORDER_ID = r.ORDER_ID and l.LINE_ID = r.LINE_ID\nwhere o.TENANT_ID = '{{ var(\"tenant\", \"A\") }}'\n  and o.ORDER_DATE >= cast('{{ var(\"start_date\", \"2026-04-01\") }}' as date)\n  and o.ORDER_DATE < cast('{{ var(\"end_date\", \"2026-04-04\") }}' as date)\n  and o.ORDER_STATUS = '{{ var(\"status\", \"completed\") }}'\n  {% if var('product', 'ALL') != 'ALL' %}\n  and l.PRODUCT_ID = '{{ var(\"product\") }}'\n  {% endif %}\ngroup by 1, 2\n",
+      "output_object_id": "model.retail_quick_reports.retail_fulfillment_summary",
+      "input_refs": [
+        {
+          "reference": "source('retail_raw', 'fulfillments')",
+          "status": "resolved",
+          "object_id": "source.retail_quick_reports.retail_raw.fulfillments"
+        },
+        {
+          "reference": "source('retail_raw', 'returns')",
+          "status": "resolved",
+          "object_id": "source.retail_quick_reports.retail_raw.returns"
+        },
+        {
+          "reference": "ref('stg_orders')",
+          "status": "resolved",
+          "object_id": "model.retail_quick_reports.stg_orders"
+        },
+        {
+          "reference": "ref('stg_order_lines')",
+          "status": "resolved",
+          "object_id": "model.retail_quick_reports.stg_order_lines"
+        }
+      ],
+      "context": {
+        "evaluation_grain": "order month/product output with defective independent-child joins",
+        "filters": {
+          "tenant": "A",
+          "start_date": "2026-04-01",
+          "end_date": "2026-04-04",
+          "status": "completed",
+          "product": "ALL"
+        },
+        "security": "Legacy SQL tenant predicate is not proven RLS; persona contract supplied separately.",
+        "parsed_sql_root": "Select",
+        "source_compilation": "Not executed; reviewed Jinja references resolved and SQL parsed for analysis only."
+      },
+      "evidence": [
+        {
+          "asset_id": "asset-b4281a80fa8b8a38005dc5c7",
+          "locator": "entire SQL; SHA256 a32a3881e4abd34ef05bae99c9e224299892541578ac45c2b0147a93dea8a3e3"
+        }
+      ],
+      "placement_candidate": {
+        "destination": "split",
+        "rationale": "Move independent event normalization/aggregation upstream; retain report context and ratio downstream."
+      }
+    }
+  ],
+  "unresolved_references": [],
+  "gaps": [],
+  "limitations": [
+    "Native source dbt/Snowflake and external consumers unverified; no source manifest supplied.",
+    "No independent agent QA claimed; independent withheld evaluator belongs to orchestrator."
+  ]
+}

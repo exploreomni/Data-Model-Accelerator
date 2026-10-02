@@ -1,0 +1,235 @@
+{
+  "schema_version": 1,
+  "origin": "synthetic_local_e2e",
+  "simulation_passed": false,
+  "checks": [
+    {
+      "id": "catalogue-physical-input-coverage",
+      "category": "source_contract",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "physical_inputs": 4,
+        "columns": 34,
+        "source_snapshot_sha256": "6bc16edf65649fc696cf5055a8b2e7ab09dcdc35f75459dcebce64644b79332b",
+        "catalogue_sha256": "930f3bf5cf0e90d75788083e903dd7678f2df6993153a253964cb28f964dcabc"
+      }
+    },
+    {
+      "id": "raw-cdc-types-currency-history-contract",
+      "category": "source_contract",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "raw_rows": {
+          "invoice_cdc": 17,
+          "payment_cdc": 18,
+          "credit_cdc": 9,
+          "customer_history": 4
+        },
+        "replayed_versions": 5,
+        "current_invoices": 12
+      }
+    },
+    {
+      "id": "gold-rows-independent-oracle",
+      "category": "logic",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-derived-rows-independent-oracle",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "fact-grain-and-key",
+      "category": "grain",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "dimension-key-unique",
+      "category": "grain",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "fact-dimension-exactly-one-match",
+      "category": "fanout",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "tenant-dimension-isolation",
+      "category": "security",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "effective-customer-history",
+      "category": "history",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "retain-nonreport-populations",
+      "category": "logic",
+      "status": "pass",
+      "scope": "local",
+      "detail": {
+        "violations": 0
+      }
+    },
+    {
+      "id": "omni-a_usd_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_september_by_segment",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_by_segment",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_september_daily",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_daily",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_september_smb",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_smb",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_eur_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_eur_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-b_usd_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-b_usd_september_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_august_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_august_total",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "omni-a_usd_september_zero_net",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    },
+    {
+      "id": "legacy-a_usd_september_zero_net",
+      "category": "reconciliation",
+      "status": "pass",
+      "scope": "local",
+      "detail": null
+    }
+  ],
+  "boundaries": [],
+  "failures": [
+    "SemanticCompileError: The half-open date interval must have start_date < end_date"
+  ],
+  "native_snowflake_execution": "unavailable",
+  "native_looker_execution": "unavailable",
+  "native_omni_validation_execution": "unavailable",
+  "production_approved": false,
+  "dependencies": {
+    "duckdb": "1.5.5",
+    "sqlglot": "30.18.0",
+    "lkml": "1.3.7",
+    "PyYAML": "6.0.3"
+  },
+  "summary": {
+    "executed": 26,
+    "passed": 26,
+    "failed": 0,
+    "negative_controls_caught": 0
+  }
+}

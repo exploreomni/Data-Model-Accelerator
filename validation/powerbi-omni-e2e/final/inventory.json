@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "origin": "synthetic",
+  "source": "powerbi",
+  "assets": [
+    {
+      "path": "Billing.Report/definition.pbir",
+      "sha256": "bdc31a6a042b4b0aab5981604ce4ec51003ebddbc741e8827799fb431a5910bf",
+      "bytes": 234
+    },
+    {
+      "path": "Billing.Report/definition/pages/ReportSectionBilling/page.json",
+      "sha256": "621aae5eb066a75b3e6ce6a322ef4061a787daaf912a82ca0c8d84a8322df375",
+      "bytes": 255
+    },
+    {
+      "path": "Billing.Report/definition/pages/ReportSectionBilling/visuals/KPITotals/visual.json",
+      "sha256": "05f16ff1f8b9e337ce29f797e7940d2a86676d385e881d9a7ff0e3f0d97453f9",
+      "bytes": 4326
+    },
+    {
+      "path": "Billing.Report/definition/pages/ReportSectionBilling/visuals/RevenueTrend/visual.json",
+      "sha256": "6202bc00cd083941ede68f5f61af474040f17d90b3daacf205bd078759e1f52c",
+      "bytes": 3506
+    },
+    {
+      "path": "Billing.Report/definition/pages/ReportSectionBilling/visuals/SegmentShare/visual.json",
+      "sha256": "2d897fe78a6bb17fa9e91b3d5a9fb06d0cd1e3d42aa0c52fbbf5b711dbabe96e",
+      "bytes": 2784
+    },
+    {
+      "path": "Billing.Report/definition/pages/pages.json",
+      "sha256": "3b92d6ccba5847e60aeb732251fa7fc6060ed339a17d4058425be51bf8ec2ed4",
+      "bytes": 219
+    },
+    {
+      "path": "Billing.Report/definition/report.json",
+      "sha256": "0bd26ad6305b31851c43a4085110b75c897e5c7dd94057f4ec75ac1a88a2443e",
+      "bytes": 5608
+    },
+    {
+      "path": "Billing.Report/definition/version.json",
+      "sha256": "0f9f217a60981bf882d7b1963977fc72cc051078df8512b46caa607aff2e5220",
+      "bytes": 150
+    },
+    {
+      "path": "Billing.SemanticModel/definition.pbism",
+      "sha256": "1e5231e7a103017c1c0c48c928314e4037121135024b075e73d60e8d7848ccf4",
+      "bytes": 167
+    },
+    {
+      "path": "Billing.SemanticModel/model.bim",
+      "sha256": "69b9637d186d7f8ea0d7ff7aea336df12ccbf89eaac2d627c05a253c8605cdac",
+      "bytes": 12329
+    },
+    {
+      "path": "Billing.pbip",
+      "sha256": "1ae748ef53885e94f107db2a1b58a1f6d47fe62df516042542ba650f3fed5459",
+      "bytes": 222
+    },
+    {
+      "path": "adjustments.csv",
+      "sha256": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e",
+      "bytes": 138
+    }
+  ],
+  "counts": {
+    "assets": 12,
+    "projects": 1,
+    "tables": 3,
+    "columns": 20,
+    "measures": 9,
+    "partitions": 3,
+    "relationships": 1,
+    "roles": 2,
+    "pages": 1,
+    "visuals": 3,
+    "filters": 5,
+    "edges": 48,
+    "errors": 0,
+    "review_gaps": 2,
+    "schema_validated_files": 10
+  },
+  "projects": [
+    {
+      "id": "Billing.pbip",
+      "path": "Billing.pbip",
+      "native": {
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/pbip/pbipProperties/1.0.0/schema.json",
+        "version": "1.0",
+        "artifacts": [
+          {
+            "report": {
+              "path": "Billing.Report"
+            }
+          }
+        ]
+      },
+      "report_path": "Billing.Report",
+      "model_path": "Billing.SemanticModel/model.bim",
+      "dataset_reference": {
+        "byPath": {
+          "path": "../Billing.SemanticModel"
+        }
+      },
+      "definition_pbir_path": "Billing.Report/definition.pbir",
+      "definition_pbism_path": "Billing.SemanticModel/definition.pbism"
+    }
+  ]
+}

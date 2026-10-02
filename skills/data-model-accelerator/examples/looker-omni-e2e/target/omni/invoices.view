@@ -1,0 +1,98 @@
+# Synthetic candidate. Native Omni validation and production approval are outstanding.
+catalog: DMA_SIM
+schema: GOLD
+table_name: FCT_INVOICES
+label: Invoices
+description: One current invoice per tenant and invoice ID. Includes drafts, all currencies and dates; reporting restrictions are applied downstream.
+
+dimensions:
+  invoice_key:
+    sql: '"INVOICE_KEY"'
+    primary_key: true
+    hidden: true
+    description: Warehouse tenant-aware invoice surrogate. Uniqueness and non-nullness require data tests.
+  customer_key:
+    sql: '"CUSTOMER_KEY"'
+    hidden: true
+    description: Warehouse key of the customer history row effective at invoice issue time, including a tenant-scoped Unknown member.
+  tenant_id:
+    sql: '"TENANT_ID"'
+    hidden: true
+    description: Tenant identifier retained for topic access filtering and lineage. Hidden is not an access control.
+  invoice_id:
+    sql: '"INVOICE_ID"'
+  customer_id:
+    sql: '"CUSTOMER_ID"'
+  issued_at:
+    sql: '"ISSUED_AT"'
+    description: UTC instant represented as TIMESTAMP_NTZ under the synthetic ingestion contract.
+  invoice_date:
+    sql: '"INVOICE_DATE"'
+    description: America/Chicago calendar date derived upstream from issued_at; do not apply another timezone conversion.
+  currency:
+    sql: '"CURRENCY"'
+    description: Source currency code. Filter to one currency when aggregating money; no exchange-rate conversion is supplied.
+  status:
+    sql: '"STATUS"'
+    description: Status normalized upstream with trim and lowercase. Posted population is selected by measures and report context.
+  gross_cents:
+    sql: '"GROSS_CENTS"'
+    hidden: true
+  discount_cents:
+    sql: '"DISCOUNT_CENTS"'
+    hidden: true
+  credit_cents:
+    sql: '"CREDIT_CENTS"'
+    hidden: true
+  net_cents:
+    sql: '"NET_CENTS"'
+    hidden: true
+    description: Gross minus discount minus posted credits, in source currency minor units; computed exactly once upstream.
+  paid_cents:
+    sql: '"PAID_CENTS"'
+    hidden: true
+    description: Sum of current posted payment entries at tenant/invoice/currency grain, in minor units.
+
+measures:
+  invoice_count:
+    sql: ${invoices.invoice_key}
+    aggregate_type: count
+    filters:
+      status:
+        is: posted
+    label: Posted invoice count
+    description: Count of non-null invoice keys after query filters; expected invoice uniqueness must be tested.
+  raw_net_cents_sum:
+    sql: ${invoices.net_cents}
+    aggregate_type: sum
+    filters:
+      status:
+        is: posted
+    hidden: true
+  raw_paid_cents_sum:
+    sql: ${invoices.paid_cents}
+    aggregate_type: sum
+    filters:
+      status:
+        is: posted
+    hidden: true
+  net_cents_sum:
+    sql: COALESCE(${raw_net_cents_sum}, 0)
+    label: Net amount (minor currency units)
+    description: Posted net total in cents for the selected currency. Empty-set zero is an explicit simulation contract; native source empty behavior remains unverified.
+    format: '#,##0'
+  paid_cents_sum:
+    sql: COALESCE(${raw_paid_cents_sum}, 0)
+    label: Paid amount (minor currency units)
+    description: Posted paid total in cents for the selected currency. Empty-set zero is an explicit simulation contract.
+    format: '#,##0'
+  payment_rate:
+    sql: ${paid_cents_sum} / NULLIF(${net_cents_sum}, 0)
+    label: Payment rate
+    description: Ratio of posted paid and net sums after selected filters and grouping. Zero net produces null; never average invoice ratios.
+    format: '0.00%'
+  net_amount_display:
+    sql: ${net_cents_sum} / 100.0
+    label: Net amount (selected currency)
+    description: Numeric major-unit display for a single selected USD or EUR currency in this fixture. Proposed correction removes the source unconditional USD label. Not selected in the preserved source tile. Do not divide cents twice or sum mixed currencies.
+    format: '#,##0.00'

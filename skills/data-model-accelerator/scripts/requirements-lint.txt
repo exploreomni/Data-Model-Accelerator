@@ -1,0 +1,2 @@
+# Optional isolated static SQL lint runtime. No dbt templater or warehouse adapter.
+sqlfluff==4.3.0

@@ -1,0 +1,56 @@
+{
+  "rows": [
+    {
+      "currency": "USD",
+      "eligible_charge_count": 2,
+      "fee_amount": "120.00",
+      "location_id": "L1",
+      "location_name": "Central Yard",
+      "net_revenue": "100.00",
+      "refund_amount": "-20.00",
+      "rental_date": "2026-08-14",
+      "rental_id": "R1",
+      "rental_status": "completed",
+      "tenant_id": "A"
+    },
+    {
+      "currency": "USD",
+      "eligible_charge_count": 0,
+      "fee_amount": "0.00",
+      "location_id": "L1",
+      "location_name": "Central Yard",
+      "net_revenue": "0.00",
+      "refund_amount": "0.00",
+      "rental_date": "2026-08-15",
+      "rental_id": "R2",
+      "rental_status": "completed",
+      "tenant_id": "A"
+    },
+    {
+      "currency": "USD",
+      "eligible_charge_count": 2,
+      "fee_amount": "70.00",
+      "location_id": "L1",
+      "location_name": "West Yard",
+      "net_revenue": "65.00",
+      "refund_amount": "-5.00",
+      "rental_date": "2026-08-15",
+      "rental_id": "R1",
+      "rental_status": "completed",
+      "tenant_id": "B"
+    },
+    {
+      "currency": "USD",
+      "eligible_charge_count": 1,
+      "fee_amount": "42.00",
+      "location_id": "L9",
+      "location_name": "Harbor Yard",
+      "net_revenue": "42.00",
+      "refund_amount": "0.00",
+      "rental_date": "2026-08-15",
+      "rental_id": "R9",
+      "rental_status": "completed",
+      "tenant_id": "C"
+    }
+  ]
+}

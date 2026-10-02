@@ -1,0 +1,325 @@
+{
+  "origin": "synthetic",
+  "snapshot_at": "2026-09-11T12:00:00Z",
+  "tables": {
+    "ORDER_CDC": [
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O1",
+        "ORDER_DATE": "2026-04-01",
+        "STATUS": "completed",
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O2",
+        "ORDER_DATE": "2026-04-02",
+        "STATUS": "pending",
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O3",
+        "ORDER_DATE": "2026-04-03",
+        "STATUS": "completed",
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O4",
+        "ORDER_DATE": "2026-04-04",
+        "STATUS": "completed",
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O4",
+        "ORDER_DATE": "2026-04-04",
+        "STATUS": "cancelled",
+        "SEQUENCE": 2,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "B",
+        "ORDER_ID": "O1",
+        "ORDER_DATE": "2026-04-01",
+        "STATUS": "completed",
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      }
+    ],
+    "ORDER_LINE_CDC": [
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "PRODUCT_ID": "P1",
+        "QUANTITY": 3,
+        "UNIT_PRICE_CENTS": 1000,
+        "DISCOUNT_CENTS": 300,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "PRODUCT_ID": "P1",
+        "QUANTITY": 3,
+        "UNIT_PRICE_CENTS": 1000,
+        "DISCOUNT_CENTS": 600,
+        "SEQUENCE": 2,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "PRODUCT_ID": "P1",
+        "QUANTITY": 3,
+        "UNIT_PRICE_CENTS": 1000,
+        "DISCOUNT_CENTS": 600,
+        "SEQUENCE": 2,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L2",
+        "PRODUCT_ID": "P2",
+        "QUANTITY": 2,
+        "UNIT_PRICE_CENTS": 2500,
+        "DISCOUNT_CENTS": 500,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O2",
+        "LINE_ID": "L1",
+        "PRODUCT_ID": "P1",
+        "QUANTITY": 1,
+        "UNIT_PRICE_CENTS": 1000,
+        "DISCOUNT_CENTS": 0,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O3",
+        "LINE_ID": "L1",
+        "PRODUCT_ID": "P3",
+        "QUANTITY": 1,
+        "UNIT_PRICE_CENTS": 2000,
+        "DISCOUNT_CENTS": 0,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O3",
+        "LINE_ID": "L2",
+        "PRODUCT_ID": "P2",
+        "QUANTITY": 1,
+        "UNIT_PRICE_CENTS": 500,
+        "DISCOUNT_CENTS": 0,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O3",
+        "LINE_ID": "L2",
+        "PRODUCT_ID": "P2",
+        "QUANTITY": 1,
+        "UNIT_PRICE_CENTS": 500,
+        "DISCOUNT_CENTS": 0,
+        "SEQUENCE": 2,
+        "IS_DELETED": true
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O4",
+        "LINE_ID": "L1",
+        "PRODUCT_ID": "P2",
+        "QUANTITY": 1,
+        "UNIT_PRICE_CENTS": 2500,
+        "DISCOUNT_CENTS": 0,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "ORDER_ID": "O4",
+        "LINE_ID": "L1",
+        "PRODUCT_ID": "P2",
+        "QUANTITY": 1,
+        "UNIT_PRICE_CENTS": 2500,
+        "DISCOUNT_CENTS": 0,
+        "SEQUENCE": 2,
+        "IS_DELETED": true
+      },
+      {
+        "TENANT_ID": "B",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "PRODUCT_ID": "P1",
+        "QUANTITY": 2,
+        "UNIT_PRICE_CENTS": 1500,
+        "DISCOUNT_CENTS": 0,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      }
+    ],
+    "FULFILLMENT_CDC": [
+      {
+        "TENANT_ID": "A",
+        "FULFILLMENT_ID": "F1",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "FULFILLMENT_ID": "F1",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "QUANTITY": 2,
+        "SEQUENCE": 2,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "FULFILLMENT_ID": "F2",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "FULFILLMENT_ID": "F3",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L2",
+        "QUANTITY": 1,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "FULFILLMENT_ID": "F4",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L2",
+        "QUANTITY": 1,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "FULFILLMENT_ID": "F4",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L2",
+        "QUANTITY": 1,
+        "SEQUENCE": 2,
+        "IS_DELETED": true
+      },
+      {
+        "TENANT_ID": "A",
+        "FULFILLMENT_ID": "F5",
+        "ORDER_ID": "O3",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "B",
+        "FULFILLMENT_ID": "F1",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      }
+    ],
+    "RETURN_CDC": [
+      {
+        "TENANT_ID": "A",
+        "RETURN_ID": "R1",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "REFUND_CENTS": 800,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "RETURN_ID": "R2",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "REFUND_CENTS": 900,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "RETURN_ID": "R2",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "REFUND_CENTS": 700,
+        "SEQUENCE": 2,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "RETURN_ID": "R3",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L2",
+        "QUANTITY": 1,
+        "REFUND_CENTS": 2250,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "RETURN_ID": "R4",
+        "ORDER_ID": "O3",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "REFUND_CENTS": 2000,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      },
+      {
+        "TENANT_ID": "A",
+        "RETURN_ID": "R4",
+        "ORDER_ID": "O3",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "REFUND_CENTS": 2000,
+        "SEQUENCE": 2,
+        "IS_DELETED": true
+      },
+      {
+        "TENANT_ID": "B",
+        "RETURN_ID": "R1",
+        "ORDER_ID": "O1",
+        "LINE_ID": "L1",
+        "QUANTITY": 1,
+        "REFUND_CENTS": 1500,
+        "SEQUENCE": 1,
+        "IS_DELETED": false
+      }
+    ]
+  }
+}

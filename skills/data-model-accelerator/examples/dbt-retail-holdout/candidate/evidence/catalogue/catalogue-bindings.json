@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "kind": "warehouse_catalogue_bindings",
+  "catalogue_sha256": "7c3c9fd13b4df18bd527392d892efc786216223a9b527bf9fe779e877e85959e",
+  "source_snapshot_sha256": "f9b71a11e4604d41e0d76c1b29933c97554976b59b5c12ef8b76379a33d2a098",
+  "expected_reference_ids": [
+    "retail:ORDER_CDC",
+    "retail:ORDER_LINE_CDC",
+    "retail:FULFILLMENT_CDC",
+    "retail:RETURN_CDC"
+  ],
+  "references": [
+    {
+      "reference_id": "retail:ORDER_CDC",
+      "source_reference": "source.retail_quick_reports.retail_raw.orders",
+      "status": "resolved",
+      "object_id": "snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.ORDER_CDC",
+      "namespace": {
+        "platform_instance": "DMA_RETAIL_SYNTHETIC",
+        "catalog": "DMA_RETAIL",
+        "schema": "RAW"
+      },
+      "connection_id": "retail-source-synthetic",
+      "column_paths": [
+        [
+          "TENANT_ID"
+        ],
+        [
+          "ORDER_ID"
+        ],
+        [
+          "ORDER_DATE"
+        ],
+        [
+          "STATUS"
+        ],
+        [
+          "SEQUENCE"
+        ],
+        [
+          "IS_DELETED"
+        ]
+      ],
+      "evidence": "models/sources.yml table identifier + frozen scoped catalogue/native receipts + contract full entity schema. Column business lineage is separately documented."
+    },
+    {
+      "reference_id": "retail:ORDER_LINE_CDC",
+      "source_reference": "source.retail_quick_reports.retail_raw.order_lines",
+      "status": "resolved",
+      "object_id": "snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.ORDER_LINE_CDC",
+      "namespace": {
+        "platform_instance": "DMA_RETAIL_SYNTHETIC",
+        "catalog": "DMA_RETAIL",
+        "schema": "RAW"
+      },
+      "connection_id": "retail-source-synthetic",
+      "column_paths": [
+        [
+          "TENANT_ID"
+        ],
+        [
+          "ORDER_ID"
+        ],
+        [
+          "LINE_ID"
+        ],
+        [
+          "PRODUCT_ID"
+        ],
+        [
+          "QUANTITY"
+        ],
+        [
+          "UNIT_PRICE_CENTS"
+        ],
+        [
+          "DISCOUNT_CENTS"
+        ],
+        [
+          "SEQUENCE"
+        ],
+        [
+          "IS_DELETED"
+        ]
+      ],
+      "evidence": "models/sources.yml table identifier + frozen scoped catalogue/native receipts + contract full entity schema. Column business lineage is separately documented."
+    },
+    {
+      "reference_id": "retail:FULFILLMENT_CDC",
+      "source_reference": "source.retail_quick_reports.retail_raw.fulfillments",
+      "status": "resolved",
+      "object_id": "snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.FULFILLMENT_CDC",
+      "namespace": {
+        "platform_instance": "DMA_RETAIL_SYNTHETIC",
+        "catalog": "DMA_RETAIL",
+        "schema": "RAW"
+      },
+      "connection_id": "retail-source-synthetic",
+      "column_paths": [
+        [
+          "TENANT_ID"
+        ],
+        [
+          "FULFILLMENT_ID"
+        ],
+        [
+          "ORDER_ID"
+        ],
+        [
+          "LINE_ID"
+        ],
+        [
+          "QUANTITY"
+        ],
+        [
+          "SEQUENCE"
+        ],
+        [
+          "IS_DELETED"
+        ]
+      ],
+      "evidence": "models/sources.yml table identifier + frozen scoped catalogue/native receipts + contract full entity schema. Column business lineage is separately documented."
+    },
+    {
+      "reference_id": "retail:RETURN_CDC",
+      "source_reference": "source.retail_quick_reports.retail_raw.returns",
+      "status": "resolved",
+      "object_id": "snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.RETURN_CDC",
+      "namespace": {
+        "platform_instance": "DMA_RETAIL_SYNTHETIC",
+        "catalog": "DMA_RETAIL",
+        "schema": "RAW"
+      },
+      "connection_id": "retail-source-synthetic",
+      "column_paths": [
+        [
+          "TENANT_ID"
+        ],
+        [
+          "RETURN_ID"
+        ],
+        [
+          "ORDER_ID"
+        ],
+        [
+          "LINE_ID"
+        ],
+        [
+          "QUANTITY"
+        ],
+        [
+          "REFUND_CENTS"
+        ],
+        [
+          "SEQUENCE"
+        ],
+        [
+          "IS_DELETED"
+        ]
+      ],
+      "evidence": "models/sources.yml table identifier + frozen scoped catalogue/native receipts + contract full entity schema. Column business lineage is separately documented."
+    }
+  ]
+}

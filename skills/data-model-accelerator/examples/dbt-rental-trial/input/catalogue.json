@@ -1,0 +1,209 @@
+{
+  "captured_at": "2026-08-16T00:00:00Z",
+  "evidence_class": "synthetic_catalogue",
+  "live_catalogue_claim": false,
+  "objects": [
+    {
+      "columns": [
+        {
+          "data_type": "VARCHAR",
+          "name": "tenant_id",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "rental_id",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "location_id",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "rental_status",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "rental_date",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "currency",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "updated_at",
+          "nullable": false
+        },
+        {
+          "data_type": "BIGINT",
+          "name": "cdc_sequence",
+          "nullable": false
+        },
+        {
+          "data_type": "BOOLEAN",
+          "name": "is_deleted",
+          "nullable": false
+        }
+      ],
+      "database": "synthetic",
+      "entity_key": [
+        "tenant_id",
+        "rental_id"
+      ],
+      "grain": "replicated CDC event for (tenant_id, rental_id); multiple versions and exact replay duplicates are allowed",
+      "id": "seed.rental_trial.raw_rentals",
+      "name": "raw_rentals",
+      "provenance": {
+        "kind": "fabricated_csv",
+        "path": "repo/seeds/raw_rentals.csv",
+        "query_id": null,
+        "row_count": 9,
+        "sha256": "b55e667a24d458f9c0453ba5c29d40f428343ea0c77430106a05cded240358e3"
+      },
+      "relation_kind": "dbt_seed",
+      "schema": "raw",
+      "version_order": [
+        "cdc_sequence DESC",
+        "updated_at DESC"
+      ]
+    },
+    {
+      "columns": [
+        {
+          "data_type": "VARCHAR",
+          "name": "tenant_id",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "charge_id",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "rental_id",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "charge_type",
+          "nullable": false
+        },
+        {
+          "data_type": "DECIMAL(18,2)",
+          "name": "amount",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "currency",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "updated_at",
+          "nullable": false
+        },
+        {
+          "data_type": "BIGINT",
+          "name": "cdc_sequence",
+          "nullable": false
+        },
+        {
+          "data_type": "BOOLEAN",
+          "name": "is_deleted",
+          "nullable": false
+        }
+      ],
+      "database": "synthetic",
+      "entity_key": [
+        "tenant_id",
+        "charge_id"
+      ],
+      "grain": "replicated CDC event for (tenant_id, charge_id); multiple versions and exact replay duplicates are allowed",
+      "id": "seed.rental_trial.raw_charges",
+      "name": "raw_charges",
+      "provenance": {
+        "kind": "fabricated_csv",
+        "path": "repo/seeds/raw_charges.csv",
+        "query_id": null,
+        "row_count": 12,
+        "sha256": "6c017a4c989d1fcd6592db6e38764e517b40217a79caf692518868c8a345f4f0"
+      },
+      "relation_kind": "dbt_seed",
+      "schema": "raw",
+      "version_order": [
+        "cdc_sequence DESC",
+        "updated_at DESC"
+      ]
+    },
+    {
+      "columns": [
+        {
+          "data_type": "VARCHAR",
+          "name": "tenant_id",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "location_id",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "location_name",
+          "nullable": false
+        },
+        {
+          "data_type": "VARCHAR",
+          "name": "updated_at",
+          "nullable": false
+        },
+        {
+          "data_type": "BIGINT",
+          "name": "cdc_sequence",
+          "nullable": false
+        },
+        {
+          "data_type": "BOOLEAN",
+          "name": "is_deleted",
+          "nullable": false
+        }
+      ],
+      "database": "synthetic",
+      "entity_key": [
+        "tenant_id",
+        "location_id"
+      ],
+      "grain": "replicated CDC event for (tenant_id, location_id); multiple versions and exact replay duplicates are allowed",
+      "id": "seed.rental_trial.raw_locations",
+      "name": "raw_locations",
+      "provenance": {
+        "kind": "fabricated_csv",
+        "path": "repo/seeds/raw_locations.csv",
+        "query_id": null,
+        "row_count": 4,
+        "sha256": "16008454e843d42866eee1f5739366aff432f0d95417f5af0ea7a36038939539"
+      },
+      "relation_kind": "dbt_seed",
+      "schema": "raw",
+      "version_order": [
+        "cdc_sequence DESC",
+        "updated_at DESC"
+      ]
+    }
+  ],
+  "provenance": {
+    "author": "/root/rental_analyst",
+    "method": "Fabricated schema and rows authored for a bounded qualification exercise; no warehouse discovery performed."
+  },
+  "schema_version": 1,
+  "timezone": "UTC",
+  "watermark": "2026-08-16T00:00:00Z"
+}

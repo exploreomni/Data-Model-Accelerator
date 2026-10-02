@@ -1,0 +1,7 @@
+# Full local/CI regression environment. Use isolated Python 3.12 on POSIX.
+# Customer/native warehouse adapters are intentionally separate.
+-r skills/data-model-accelerator/scripts/requirements-deployment.txt
+-r skills/data-model-accelerator/scripts/requirements-lint.txt
+-r skills/data-model-accelerator/scripts/requirements-dbt-qualification.txt
+-r skills/data-model-accelerator/scripts/requirements-powerbi-e2e.txt
+-r skills/data-model-accelerator/scripts/requirements-metadata.txt

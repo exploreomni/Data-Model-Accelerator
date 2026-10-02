@@ -1,0 +1,15 @@
+version: 2
+sources:
+  - name: billing
+    database: SYNTHETIC
+    schema: RAW
+    tables:
+      - name: invoice_current
+        description: Synthetic replicated relation; uniqueness and replication semantics require validation.
+        columns:
+          - name: tenant_id
+          - name: invoice_id
+          - name: status
+          - name: gross_cents
+          - name: paid_cents
+          - name: credit_cents

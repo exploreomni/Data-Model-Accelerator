@@ -1,0 +1,5 @@
+# Native local dbt execution. This does not qualify the Snowflake adapter.
+dbt-core==1.12.4
+dbt-duckdb==1.11.0
+duckdb==1.5.5
+PyYAML==6.0.3

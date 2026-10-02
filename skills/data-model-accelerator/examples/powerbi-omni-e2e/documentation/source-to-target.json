@@ -1,0 +1,516 @@
+{
+  "schema_version": 1,
+  "kind": "source_to_target_crosswalk",
+  "specification_version": "powerbi-billing-1.0.0",
+  "evidence_basis": "Scenario plus native paths/names supplied by independent source-format author; oracle/runtime not inspected by target author.",
+  "source": {
+    "project_path": "input/repo/Billing.pbip",
+    "model_path": "input/repo/Billing.SemanticModel/model.bim",
+    "model_definition_path": "input/repo/Billing.SemanticModel/definition.pbism",
+    "report_definition_path": "input/repo/Billing.Report/definition.pbir",
+    "database_name": "DMA Power BI Billing",
+    "model_name": "Model",
+    "page_id": "ReportSectionBilling",
+    "tables": [
+      "Invoices",
+      "Customers",
+      "Scenario"
+    ],
+    "measure_home_table": "Scenario",
+    "relationship_name": "Invoices_Customers_History",
+    "roles": [
+      "TenantA",
+      "TenantB"
+    ],
+    "artifact_hash_status": "Frozen native byte hashes supplied by independent source-format author; orchestrator must independently verify them in source graph.",
+    "artifact_sha256": {
+      "input/repo/Billing.Report/definition/pages/ReportSectionBilling/page.json": "621aae5eb066a75b3e6ce6a322ef4061a787daaf912a82ca0c8d84a8322df375",
+      "input/repo/Billing.Report/definition/pages/ReportSectionBilling/visuals/KPITotals/visual.json": "05f16ff1f8b9e337ce29f797e7940d2a86676d385e881d9a7ff0e3f0d97453f9",
+      "input/repo/Billing.Report/definition/pages/ReportSectionBilling/visuals/RevenueTrend/visual.json": "6202bc00cd083941ede68f5f61af474040f17d90b3daacf205bd078759e1f52c",
+      "input/repo/Billing.Report/definition/pages/ReportSectionBilling/visuals/SegmentShare/visual.json": "2d897fe78a6bb17fa9e91b3d5a9fb06d0cd1e3d42aa0c52fbbf5b711dbabe96e",
+      "input/repo/Billing.Report/definition/pages/pages.json": "3b92d6ccba5847e60aeb732251fa7fc6060ed339a17d4058425be51bf8ec2ed4",
+      "input/repo/Billing.Report/definition/report.json": "0bd26ad6305b31851c43a4085110b75c897e5c7dd94057f4ec75ac1a88a2443e",
+      "input/repo/Billing.Report/definition/version.json": "0f9f217a60981bf882d7b1963977fc72cc051078df8512b46caa607aff2e5220",
+      "input/repo/Billing.Report/definition.pbir": "bdc31a6a042b4b0aab5981604ce4ec51003ebddbc741e8827799fb431a5910bf",
+      "input/repo/Billing.SemanticModel/definition.pbism": "1e5231e7a103017c1c0c48c928314e4037121135024b075e73d60e8d7848ccf4",
+      "input/repo/Billing.SemanticModel/model.bim": "69b9637d186d7f8ea0d7ff7aea336df12ccbf89eaac2d627c05a253c8605cdac",
+      "input/repo/Billing.pbip": "1ae748ef53885e94f107db2a1b58a1f6d47fe62df516042542ba650f3fed5459",
+      "input/repo/adjustments.csv": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e"
+    },
+    "table_lineage_tags": {
+      "Invoices": "0f7e4e05-e6df-53cb-9926-fb722bc65c9c",
+      "Customers": "a8a988e6-0bab-5367-9091-a573454ebfe6",
+      "Scenario": "fa57bbcb-b535-52b7-9e76-81cbf1ab335f"
+    },
+    "relationship_contract": {
+      "name": "Invoices_Customers_History",
+      "from": "Invoices[Customer History Key]",
+      "to": "Customers[Customer History Key]",
+      "cardinality": "many_to_one",
+      "active": true,
+      "filter_direction": "single",
+      "target": "target/omni/relationships",
+      "source_evidence": "Independently extracted model.bim relationship; no real service identity claimed."
+    },
+    "role_contracts": [
+      {
+        "role_name": "TenantA",
+        "table_predicates": {
+          "Invoices": "[Tenant ID] = \"A\"",
+          "Customers": "[Tenant ID] = \"A\""
+        },
+        "service_membership": "unverified"
+      },
+      {
+        "role_name": "TenantB",
+        "table_predicates": {
+          "Invoices": "[Tenant ID] = \"B\"",
+          "Customers": "[Tenant ID] = \"B\""
+        },
+        "service_membership": "unverified"
+      }
+    ]
+  },
+  "warehouse_binding": {
+    "platform": "snowflake",
+    "platform_instance": "DMA_POWERBI_SYNTHETIC",
+    "database": "DMA_POWERBI",
+    "schema": "RAW",
+    "snapshot_at": "2026-03-02T00:00:00Z"
+  },
+  "column_mappings": [
+    {
+      "source_table": "Invoices",
+      "source_column": "Tenant ID",
+      "source_identifier": "Invoices[Tenant ID]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "TENANT_ID",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.TENANT_ID",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "9d7f1187-5df1-56a7-a06c-1df990424670"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Invoice ID",
+      "source_identifier": "Invoices[Invoice ID]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "INVOICE_ID",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.INVOICE_ID",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "bb8be7ac-0636-50dc-9f11-19630378603b"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Customer ID",
+      "source_identifier": "Invoices[Customer ID]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "CUSTOMER_ID",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.CUSTOMER_ID",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "efbda197-f561-5a5f-b657-d62848a8abc7"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Invoice Date",
+      "source_identifier": "Invoices[Invoice Date]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "INVOICE_DATE",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.INVOICE_DATE",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "132829f2-536b-587f-9e78-3ba7a8f1cf09"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Invoice Month",
+      "source_identifier": "Invoices[Invoice Month]",
+      "source_definition_stage": "M post-SQL step",
+      "source_column_mapping": "INVOICE_MONTH",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.INVOICE_MONTH",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "rule": "M Date.StartOfMonth corresponds to target date-truncation/cast.",
+      "source_lineage_tag": "f6655c01-f269-5ef2-a2ef-c17e7421b92d"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Status",
+      "source_identifier": "Invoices[Status]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "STATUS",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.STATUS",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "5ec3e9ba-c009-546d-a4d2-535fe4d50dd1"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Amount Cents",
+      "source_identifier": "Invoices[Amount Cents]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "AMOUNT_CENTS",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.AMOUNT_CENTS",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "76e9fc36-399f-5a5c-9c71-e325d5f1bc6e"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Adjustment Cents",
+      "source_identifier": "Invoices[Adjustment Cents]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "ADJUSTMENT_CENTS",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.ADJUSTMENT_CENTS",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "rule": "Source native SQL can expose NULL on absent valid-invoice correction; M Net Cents handles the missing row. Target gold exposes zero adjustment and applies the same row arithmetic. Aggregate SUM remains blank-aware.",
+      "source_lineage_tag": "7b7fd52e-7e23-5f87-96cb-a1caf40a2af0"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Paid Cents",
+      "source_identifier": "Invoices[Paid Cents]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "PAID_CENTS",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.PAID_CENTS",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "30746a63-ab30-5c1e-9129-5d506f88dc9d"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Net Cents",
+      "source_identifier": "Invoices[Net Cents]",
+      "source_definition_stage": "M post-SQL step",
+      "source_column_mapping": "NET_CENTS",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.NET_CENTS",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "rule": "M computes Amount Cents plus adjustment with null-to-zero replacement; target implements this once in gold.",
+      "source_lineage_tag": "69b70e2f-1b33-5750-860a-6298be3a342b"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Outstanding Cents",
+      "source_identifier": "Invoices[Outstanding Cents]",
+      "source_definition_stage": "DAX calculated column",
+      "source_column_mapping": null,
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.OUTSTANDING_CENTS",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "rule": "Calculated column expression, not a physical sourceColumn property: Invoices[Net Cents] - Invoices[Paid Cents].",
+      "source_lineage_tag": "84afe179-0cc4-520b-8aaa-780de4171e11"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Customer History Key",
+      "source_identifier": "Invoices[Customer History Key]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "CUSTOMER_HISTORY_KEY",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.CUSTOMER_KEY",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "3a0f2ee0-cb8b-5e3c-b565-2845d3b6ea77"
+    },
+    {
+      "source_table": "Invoices",
+      "source_column": "Invoice Key",
+      "source_identifier": "Invoices[Invoice Key]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "INVOICE_KEY",
+      "target": "DMA_POWERBI.GOLD.FCT_INVOICES.INVOICE_KEY",
+      "target_artifact": "target/dbt/models/gold/fct_invoices.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "7a81004e-7d93-52aa-b91f-016a67fb4cc3"
+    },
+    {
+      "source_table": "Customers",
+      "source_column": "Tenant ID",
+      "source_identifier": "Customers[Tenant ID]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "TENANT_ID",
+      "target": "DMA_POWERBI.GOLD.DIM_CUSTOMERS.TENANT_ID",
+      "target_artifact": "target/dbt/models/gold/dim_customers.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "7aaa3c3e-a24e-5a09-b377-2471d5bcdd47"
+    },
+    {
+      "source_table": "Customers",
+      "source_column": "Customer ID",
+      "source_identifier": "Customers[Customer ID]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "CUSTOMER_ID",
+      "target": "DMA_POWERBI.GOLD.DIM_CUSTOMERS.CUSTOMER_ID",
+      "target_artifact": "target/dbt/models/gold/dim_customers.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "88ae46ce-bbac-5238-9b63-d494bf3f6e21"
+    },
+    {
+      "source_table": "Customers",
+      "source_column": "Segment",
+      "source_identifier": "Customers[Segment]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "SEGMENT",
+      "target": "DMA_POWERBI.GOLD.DIM_CUSTOMERS.SEGMENT",
+      "target_artifact": "target/dbt/models/gold/dim_customers.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "4437b44f-7ca6-5e8a-b8e1-f5dc851cad1f"
+    },
+    {
+      "source_table": "Customers",
+      "source_column": "Valid From",
+      "source_identifier": "Customers[Valid From]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "VALID_FROM",
+      "target": "DMA_POWERBI.GOLD.DIM_CUSTOMERS.VALID_FROM",
+      "target_artifact": "target/dbt/models/gold/dim_customers.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "5834155e-5c50-5cc5-aff7-0495c86dbdd9"
+    },
+    {
+      "source_table": "Customers",
+      "source_column": "Valid To",
+      "source_identifier": "Customers[Valid To]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "VALID_TO",
+      "target": "DMA_POWERBI.GOLD.DIM_CUSTOMERS.VALID_TO",
+      "target_artifact": "target/dbt/models/gold/dim_customers.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "bba95669-ee07-5ba1-a0f3-98150d14826e"
+    },
+    {
+      "source_table": "Customers",
+      "source_column": "Customer History Key",
+      "source_identifier": "Customers[Customer History Key]",
+      "source_definition_stage": "M native SQL projection",
+      "source_column_mapping": "CUSTOMER_HISTORY_KEY",
+      "target": "DMA_POWERBI.GOLD.DIM_CUSTOMERS.CUSTOMER_KEY",
+      "target_artifact": "target/dbt/models/gold/dim_customers.sql",
+      "mapping_provenance": "Scenario source column contract; independently extracted source graph supplies exact native expression and property evidence.",
+      "source_lineage_tag": "448a7be1-9c9f-58f5-a005-884453a046a6"
+    }
+  ],
+  "measure_mappings": [
+    {
+      "source_table": "Scenario",
+      "source_measure": "Revenue Cents",
+      "source_identifier": "Scenario[Revenue Cents]",
+      "expression_from_scenario": "SUM(Invoices[Net Cents])",
+      "target": "invoices.revenue_cents",
+      "target_kind": "native_omni_candidate",
+      "expression_provenance": "Scenario semantic contract; exact native DAX text/hash retained in independently extracted source graph.",
+      "source_lineage_tag": "d91e5d93-56a3-5626-9866-a47aac5cce98"
+    },
+    {
+      "source_table": "Scenario",
+      "source_measure": "Paid Cents",
+      "source_identifier": "Scenario[Paid Cents]",
+      "expression_from_scenario": "SUM(Invoices[Paid Cents])",
+      "target": "invoices.paid_cents_total",
+      "target_kind": "native_omni_candidate",
+      "expression_provenance": "Scenario semantic contract; exact native DAX text/hash retained in independently extracted source graph.",
+      "source_lineage_tag": "79f82cdb-5918-5eec-90b4-f8a763a92ae7"
+    },
+    {
+      "source_table": "Scenario",
+      "source_measure": "Outstanding Cents",
+      "source_identifier": "Scenario[Outstanding Cents]",
+      "expression_from_scenario": "SUM(Invoices[Outstanding Cents])",
+      "target": "invoices.outstanding_cents_total",
+      "target_kind": "native_omni_candidate",
+      "expression_provenance": "Scenario semantic contract; exact native DAX text/hash retained in independently extracted source graph.",
+      "source_lineage_tag": "f2fc3b26-e4e6-57bb-970c-2b7cbdb7c9c3"
+    },
+    {
+      "source_table": "Scenario",
+      "source_measure": "Payment Rate",
+      "source_identifier": "Scenario[Payment Rate]",
+      "expression_from_scenario": "DIVIDE([Paid Cents],[Revenue Cents])",
+      "target": "invoices.payment_rate",
+      "target_kind": "native_omni_candidate",
+      "expression_provenance": "Scenario semantic contract; exact native DAX text/hash retained in independently extracted source graph.",
+      "source_lineage_tag": "d9e3386b-0f04-570e-9e37-b10af0221e35"
+    },
+    {
+      "source_table": "Scenario",
+      "source_measure": "All Segment Revenue Cents",
+      "source_identifier": "Scenario[All Segment Revenue Cents]",
+      "expression_from_scenario": "CALCULATE([Revenue Cents],REMOVEFILTERS(Customers[Segment]))",
+      "target": "invoices.all_segment_revenue_cents",
+      "target_kind": "native_omni_candidate",
+      "expression_provenance": "Scenario semantic contract; exact native DAX text/hash retained in independently extracted source graph.",
+      "source_lineage_tag": "09957226-ba26-5573-b810-fe844bc0f5a3"
+    },
+    {
+      "source_table": "Scenario",
+      "source_measure": "Share All Segments",
+      "source_identifier": "Scenario[Share All Segments]",
+      "expression_from_scenario": "DIVIDE([Revenue Cents],[All Segment Revenue Cents])",
+      "target": "invoices.share_all_segments",
+      "target_kind": "native_omni_candidate",
+      "expression_provenance": "Scenario semantic contract; exact native DAX text/hash retained in independently extracted source graph.",
+      "source_lineage_tag": "e900cea6-85d0-5433-a90f-a38f942dd531"
+    },
+    {
+      "source_table": "Scenario",
+      "source_measure": "Posted Revenue Cents",
+      "source_identifier": "Scenario[Posted Revenue Cents]",
+      "expression_from_scenario": "CALCULATE([Revenue Cents],Invoices[Status]=\"posted\")",
+      "target": "invoices.posted_revenue_cents",
+      "target_kind": "native_omni_candidate",
+      "expression_provenance": "Scenario semantic contract; exact native DAX text/hash retained in independently extracted source graph.",
+      "source_lineage_tag": "257b85cf-5308-59b3-ab5d-0d8dbf1cd057"
+    },
+    {
+      "source_table": "Scenario",
+      "source_measure": "Posted Intersection Cents",
+      "source_identifier": "Scenario[Posted Intersection Cents]",
+      "expression_from_scenario": "CALCULATE([Revenue Cents],KEEPFILTERS(Invoices[Status]=\"posted\"))",
+      "target": "invoices.posted_intersection_cents",
+      "target_kind": "native_omni_candidate",
+      "expression_provenance": "Scenario semantic contract; exact native DAX text/hash retained in independently extracted source graph.",
+      "source_lineage_tag": "cc190d50-7963-5e9a-8eac-aabe99812ff0"
+    },
+    {
+      "source_table": "Scenario",
+      "source_measure": "Scenario Revenue Cents",
+      "source_identifier": "Scenario[Scenario Revenue Cents]",
+      "expression_from_scenario": "[Revenue Cents]*SELECTEDVALUE(Scenario[Multiplier],1)",
+      "target": "report-context.json presentation scenario_revenue_cents",
+      "target_kind": "local_presentation_proposal",
+      "expression_provenance": "Scenario semantic contract; exact native DAX text/hash retained in independently extracted source graph.",
+      "source_lineage_tag": "e25fac60-cc44-5658-b2bf-f3b761184a64"
+    }
+  ],
+  "report_mappings": [
+    {
+      "native_page_id": "ReportSectionBilling",
+      "native_visual_id": "RevenueTrend",
+      "display_name": "Revenue Trend",
+      "target_report_key": "revenue_trend",
+      "target_context": "target/omni/report-context.json#/reports/revenue_trend",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "customers.segment"
+      },
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents",
+        "paid_cents": "invoices.paid_cents_total",
+        "outstanding_cents": "invoices.outstanding_cents_total",
+        "payment_rate": "invoices.payment_rate"
+      },
+      "row_policy": "visible_selected_fact_keys",
+      "source_artifact": "input/repo/Billing.Report/definition/pages/ReportSectionBilling/visuals/RevenueTrend/visual.json",
+      "display_name_provenance": "Native visualContainerObjects title supplied by source author."
+    },
+    {
+      "native_page_id": "ReportSectionBilling",
+      "native_visual_id": "SegmentShare",
+      "display_name": "Segment Share",
+      "target_report_key": "segment_share",
+      "target_context": "target/omni/report-context.json#/reports/segment_share",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "customers.segment"
+      },
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents",
+        "all_segment_revenue_cents": "invoices.all_segment_revenue_cents",
+        "share_all_segments": "invoices.share_all_segments"
+      },
+      "row_policy": "visible_selected_fact_keys",
+      "source_artifact": "input/repo/Billing.Report/definition/pages/ReportSectionBilling/visuals/SegmentShare/visual.json",
+      "display_name_provenance": "Native visualContainerObjects title supplied by source author."
+    },
+    {
+      "native_page_id": "ReportSectionBilling",
+      "native_visual_id": "KPITotals",
+      "display_name": "KPI Totals",
+      "target_report_key": "kpi_totals",
+      "target_context": "target/omni/report-context.json#/reports/kpi_totals",
+      "dimensions": {},
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents",
+        "paid_cents": "invoices.paid_cents_total",
+        "outstanding_cents": "invoices.outstanding_cents_total",
+        "payment_rate": "invoices.payment_rate",
+        "all_segment_revenue_cents": "invoices.all_segment_revenue_cents",
+        "share_all_segments": "invoices.share_all_segments",
+        "posted_revenue_cents": "invoices.posted_revenue_cents",
+        "posted_intersection_cents": "invoices.posted_intersection_cents"
+      },
+      "row_policy": "one_row_recomputed",
+      "source_artifact": "input/repo/Billing.Report/definition/pages/ReportSectionBilling/visuals/KPITotals/visual.json",
+      "display_name_provenance": "Native visualContainerObjects title supplied by source author."
+    }
+  ],
+  "unresolved": [
+    "Native source and target execution, service security and visual parity unverified.",
+    "No approved authoritative business definitions or operational owner supplied."
+  ],
+  "disconnected_column": {
+    "source_identifier": "Scenario[Multiplier]",
+    "source_values": [
+      1,
+      2
+    ],
+    "warehouse_target": null,
+    "target": "target/omni/report-context.json presentation selection contract",
+    "rule": "No physical join; sole selection else1.",
+    "source_lineage_tag": "939bf52f-6c37-5044-9413-4c902af7560f"
+  },
+  "source_graph_binding": "The orchestrator must bind this crosswalk to its independently parsed, hashed source graph; path strings and copied IDs alone do not prove source extraction.",
+  "report_filter_bindings": {
+    "source_artifact": "input/repo/Billing.Report/definition/report.json",
+    "source_collection": "filterConfig/filters",
+    "bindings": [
+      {
+        "native_filter_name": "ReportingStart",
+        "native_field": "Invoices[Invoice Date]",
+        "operator": "greater_than_or_equal_to",
+        "default": "2026-01-01",
+        "target_parameter": "start_date",
+        "target_field": "invoices.invoice_date"
+      },
+      {
+        "native_filter_name": "ReportingEnd",
+        "native_field": "Invoices[Invoice Date]",
+        "operator": "less_than",
+        "default": "2026-03-01",
+        "target_parameter": "end_date",
+        "target_field": "invoices.invoice_date"
+      },
+      {
+        "native_filter_name": "StatusSelection",
+        "native_field": "Invoices[Status]",
+        "operator": "is",
+        "default": "posted",
+        "target_parameter": "status",
+        "target_field": "invoices.status"
+      },
+      {
+        "native_filter_name": "SegmentSelection",
+        "native_field": "Customers[Segment]",
+        "operator": "no_predicate",
+        "default": "ALL",
+        "target_parameter": "segment",
+        "target_field": "customers.segment"
+      },
+      {
+        "native_filter_name": "MultiplierSelection",
+        "native_field": "Scenario[Multiplier]",
+        "operator": "in",
+        "default": [
+          1
+        ],
+        "native_literal": "1L",
+        "target_parameter": "multipliers",
+        "target_field": null
+      }
+    ],
+    "tenant_binding": "Local selected role/persona; not a native report default filter."
+  }
+}

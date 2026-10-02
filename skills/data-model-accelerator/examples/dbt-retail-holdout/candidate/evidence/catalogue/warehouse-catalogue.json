@@ -1,0 +1,383 @@
+{
+  "schema_version": 1,
+  "kind": "warehouse_raw_catalogue",
+  "provider": "snowflake",
+  "origin": "synthetic",
+  "captured_at": "2026-09-11T12:00:00Z",
+  "context": {
+    "platform_instance": "DMA_RETAIL_SYNTHETIC",
+    "principal": "synthetic_fixture_author",
+    "connection_id": "retail-source-synthetic",
+    "scope": [
+      {
+        "scope_id": "retail-raw",
+        "catalog": "DMA_RETAIL",
+        "schema": "RAW",
+        "location": "synthetic-local-no-cloud-region"
+      }
+    ]
+  },
+  "coverage": {
+    "status": "complete_for_visible_scope",
+    "gaps": [],
+    "scope_meaning": "Exactly four authored synthetic raw tables; not warehouse discovery."
+  },
+  "extractions": [
+    {
+      "extraction_id": "objects",
+      "scope_id": "retail-raw",
+      "component": "objects",
+      "status": "complete",
+      "artifact_path": "exports/objects.json",
+      "sha256": "203b098bd54ef1df4da2324b0bab7873cc9fd63edd281ad7d963ef4173c678a6",
+      "query_id": null,
+      "pagination_complete": true
+    },
+    {
+      "extraction_id": "columns",
+      "scope_id": "retail-raw",
+      "component": "columns",
+      "status": "complete",
+      "artifact_path": "exports/columns.json",
+      "sha256": "677819d1aa60cfa1862bc6faa06a4b5f78e536dcf5048bce2ac3a27e5465972c",
+      "query_id": null,
+      "pagination_complete": true
+    }
+  ],
+  "objects": [
+    {
+      "object_id": "snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.ORDER_CDC",
+      "scope_id": "retail-raw",
+      "identity": {
+        "catalog": "DMA_RETAIL",
+        "schema": "RAW",
+        "name": "ORDER_CDC"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "ORDER_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "ORDER_DATE"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "STATUS"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "SEQUENCE"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "IS_DELETED"
+          ],
+          "data_type": "BOOLEAN",
+          "nullable": true
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "rows[TABLE_NAME='ORDER_CDC']"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "rows[TABLE_NAME='ORDER_CDC']"
+        }
+      ],
+      "logical_contract_note": "All values logically required; physical columns permit null. Enforce using data checks. CDC behavior is provided scenario evidence, not inferred from metadata."
+    },
+    {
+      "object_id": "snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.ORDER_LINE_CDC",
+      "scope_id": "retail-raw",
+      "identity": {
+        "catalog": "DMA_RETAIL",
+        "schema": "RAW",
+        "name": "ORDER_LINE_CDC"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "ORDER_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "LINE_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "PRODUCT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "QUANTITY"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "UNIT_PRICE_CENTS"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "DISCOUNT_CENTS"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "SEQUENCE"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "IS_DELETED"
+          ],
+          "data_type": "BOOLEAN",
+          "nullable": true
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "rows[TABLE_NAME='ORDER_LINE_CDC']"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "rows[TABLE_NAME='ORDER_LINE_CDC']"
+        }
+      ],
+      "logical_contract_note": "All values logically required; physical columns permit null. Enforce using data checks. CDC behavior is provided scenario evidence, not inferred from metadata."
+    },
+    {
+      "object_id": "snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.FULFILLMENT_CDC",
+      "scope_id": "retail-raw",
+      "identity": {
+        "catalog": "DMA_RETAIL",
+        "schema": "RAW",
+        "name": "FULFILLMENT_CDC"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "FULFILLMENT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "ORDER_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "LINE_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "QUANTITY"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "SEQUENCE"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "IS_DELETED"
+          ],
+          "data_type": "BOOLEAN",
+          "nullable": true
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "rows[TABLE_NAME='FULFILLMENT_CDC']"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "rows[TABLE_NAME='FULFILLMENT_CDC']"
+        }
+      ],
+      "logical_contract_note": "All values logically required; physical columns permit null. Enforce using data checks. CDC behavior is provided scenario evidence, not inferred from metadata."
+    },
+    {
+      "object_id": "snowflake:DMA_RETAIL_SYNTHETIC:DMA_RETAIL.RAW.RETURN_CDC",
+      "scope_id": "retail-raw",
+      "identity": {
+        "catalog": "DMA_RETAIL",
+        "schema": "RAW",
+        "name": "RETURN_CDC"
+      },
+      "object_type": "BASE TABLE",
+      "columns": [
+        {
+          "path": [
+            "TENANT_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "RETURN_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "ORDER_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "LINE_ID"
+          ],
+          "data_type": "VARCHAR",
+          "nullable": true
+        },
+        {
+          "path": [
+            "QUANTITY"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "REFUND_CENTS"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "SEQUENCE"
+          ],
+          "data_type": "NUMBER(38,0)",
+          "nullable": true
+        },
+        {
+          "path": [
+            "IS_DELETED"
+          ],
+          "data_type": "BOOLEAN",
+          "nullable": true
+        }
+      ],
+      "metadata_status": {
+        "comments": "unknown",
+        "relationships": "unknown",
+        "ownership": "unknown",
+        "security": "unknown",
+        "replication": "unknown",
+        "statistics": "unknown"
+      },
+      "evidence": [
+        {
+          "extraction_id": "objects",
+          "locator": "rows[TABLE_NAME='RETURN_CDC']"
+        },
+        {
+          "extraction_id": "columns",
+          "locator": "rows[TABLE_NAME='RETURN_CDC']"
+        }
+      ],
+      "logical_contract_note": "All values logically required; physical columns permit null. Enforce using data checks. CDC behavior is provided scenario evidence, not inferred from metadata."
+    }
+  ]
+}

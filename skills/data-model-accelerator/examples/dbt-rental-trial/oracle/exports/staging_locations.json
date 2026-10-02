@@ -1,0 +1,25 @@
+{
+  "rows": [
+    {
+      "cdc_sequence": 2,
+      "location_id": "L1",
+      "location_name": "Central Yard",
+      "tenant_id": "A",
+      "updated_at": "2026-08-15 12:00:00"
+    },
+    {
+      "cdc_sequence": 1,
+      "location_id": "L1",
+      "location_name": "West Yard",
+      "tenant_id": "B",
+      "updated_at": "2026-08-01 10:00:00"
+    },
+    {
+      "cdc_sequence": 1,
+      "location_id": "L9",
+      "location_name": "Harbor Yard",
+      "tenant_id": "C",
+      "updated_at": "2026-08-01 10:00:00"
+    }
+  ]
+}

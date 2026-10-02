@@ -1,0 +1,6 @@
+base_view: customer_month
+label: Customer-month cohort proxy
+joins: {}
+access_filters:
+- field: customer_month.tenant_id
+  user_attribute: tenant_id

@@ -1,0 +1,47 @@
+test_duplicate_and_reordered_capture_is_idempotent (test_evaluator.RetailTests.test_duplicate_and_reordered_capture_is_idempotent) ... ok
+test_full_capture_types_keys_and_discount_validation (test_evaluator.RetailTests.test_full_capture_types_keys_and_discount_validation) ... ok
+test_gold_retains_tenants_and_statuses_independent_of_report (test_evaluator.RetailTests.test_gold_retains_tenants_and_statuses_independent_of_report) ... ok
+test_half_open_dates_empty_and_product_literal_safety (test_evaluator.RetailTests.test_half_open_dates_empty_and_product_literal_safety) ... ok
+test_hand_derived_fact_no_fanout_discount_once (test_evaluator.RetailTests.test_hand_derived_fact_no_fanout_discount_once) ... ok
+test_invalid_quantities_and_refund_policy (test_evaluator.RetailTests.test_invalid_quantities_and_refund_policy) ... ok
+test_later_correction_and_older_conflict (test_evaluator.RetailTests.test_later_correction_and_older_conflict) ... ok
+test_missing_defaults_distinct_from_explicit_null_or_unauthorized (test_evaluator.RetailTests.test_missing_defaults_distinct_from_explicit_null_or_unauthorized) ... ok
+test_negative_control_double_discount_changes_independent_assertion (test_evaluator.RetailTests.test_negative_control_double_discount_changes_independent_assertion) ... ERROR
+test_negative_control_removed_tenant_join_is_detected (test_evaluator.RetailTests.test_negative_control_removed_tenant_join_is_detected) ... ERROR
+test_original_staging_bytes_reused (test_evaluator.RetailTests.test_original_staging_bytes_reused) ... ok
+test_orphan_lines_and_children_fail_with_no_accepted_output (test_evaluator.RetailTests.test_orphan_lines_and_children_fail_with_no_accepted_output) ... ok
+test_tombstone_applied_after_latest_for_each_event_and_line (test_evaluator.RetailTests.test_tombstone_applied_after_latest_for_each_event_and_line) ... ok
+test_weighted_ratio_recomputed_not_average_line_rates (test_evaluator.RetailTests.test_weighted_ratio_recomputed_not_average_line_rates) ... ok
+
+======================================================================
+ERROR: test_negative_control_double_discount_changes_independent_assertion (test_evaluator.RetailTests.test_negative_control_double_discount_changes_independent_assertion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/austinaranda/Desktop/Codex/DataModelAccelerator/skills/data-model-accelerator/examples/dbt-retail-holdout/candidate/test_evaluator.py", line 90, in test_negative_control_double_discount_changes_independent_assertion
+    with tempfile.TemporaryDirectory(dir=e.ROOT/'runtime') as temp:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/austinaranda/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/tempfile.py", line 886, in __init__
+    self.name = mkdtemp(suffix, prefix, dir)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/austinaranda/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/tempfile.py", line 384, in mkdtemp
+    _os.mkdir(file, 0o700)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/austinaranda/Desktop/Codex/DataModelAccelerator/skills/data-model-accelerator/examples/dbt-retail-holdout/candidate/runtime/tmpq8eawhp9'
+
+======================================================================
+ERROR: test_negative_control_removed_tenant_join_is_detected (test_evaluator.RetailTests.test_negative_control_removed_tenant_join_is_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/austinaranda/Desktop/Codex/DataModelAccelerator/skills/data-model-accelerator/examples/dbt-retail-holdout/candidate/test_evaluator.py", line 83, in test_negative_control_removed_tenant_join_is_detected
+    with tempfile.TemporaryDirectory(dir=e.ROOT/'runtime') as temp:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/austinaranda/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/tempfile.py", line 886, in __init__
+    self.name = mkdtemp(suffix, prefix, dir)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/austinaranda/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/tempfile.py", line 384, in mkdtemp
+    _os.mkdir(file, 0o700)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/austinaranda/Desktop/Codex/DataModelAccelerator/skills/data-model-accelerator/examples/dbt-retail-holdout/candidate/runtime/tmpvfbobvcj'
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.753s
+
+FAILED (errors=2)

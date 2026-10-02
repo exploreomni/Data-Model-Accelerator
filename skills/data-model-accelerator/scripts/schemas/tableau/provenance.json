@@ -1,0 +1,13 @@
+{
+  "origin": "official_public_repository",
+  "repository": "https://github.com/tableau/tableau-document-schemas",
+  "commit": "f4bce1eb55f0c1c010c0ef826cf531528d5910eb",
+  "retrieved_on": "2026-09-10",
+  "files": {
+    "twb_2026.1.0.xsd": "8bb236b72c1c388aca92bcd00164f65c0d4f5efeaf225252ce0619d8f631e923",
+    "LICENSE.txt": "a32115015c1eea6186e519fa03ab3b77844170a75cf57ddbeb57f15dae44729a"
+  },
+  "upstream_path": "schemas/2026_1/twb_2026.1.0.xsd",
+  "local_modifications": false,
+  "validation_attempt": "lxml 6.0.2 could not compile the official XSD due to unresolved imported user:UserAttributes-AG; no workbook XSD validation occurred"
+}

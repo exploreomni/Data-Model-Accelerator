@@ -1,0 +1,791 @@
+{
+  "schema_version": 1,
+  "authority": "SYNTHETIC-RENTAL-DECISION-001; fabricated accepted definitions for a local trial, not authenticated human approval",
+  "watermark": "2026-08-16T00:00:00Z",
+  "timezone": "UTC",
+  "currency": "USD",
+  "live_catalogue_claim": false,
+  "live_omni_verified": false,
+  "tenant_security_limit": "Composite keys and joins prevent cross-tenant analytical fanout; tenant_id visibility and query predicates are not authentication or enforced row-level security.",
+  "models": [
+    {
+      "id": "raw_rentals",
+      "dbt_id": "seed.rental_trial.raw_rentals",
+      "layer": "bronze",
+      "grain": "replicated CDC event for (tenant_id, rental_id); multiple versions and exact replay duplicates are allowed",
+      "keys": [
+        "tenant_id",
+        "rental_id"
+      ],
+      "keys_unique": false,
+      "columns": [
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Tenant boundary; required in every key, partition and relationship. Exposing it does not enforce authorization.",
+          "lineage": "immutable seeds/raw_rentals.csv:tenant_id"
+        },
+        {
+          "name": "rental_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Rental identifier local to a tenant.",
+          "lineage": "immutable seeds/raw_rentals.csv:rental_id"
+        },
+        {
+          "name": "location_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Location identifier local to a tenant.",
+          "lineage": "immutable seeds/raw_rentals.csv:location_id"
+        },
+        {
+          "name": "rental_status",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Current source status; completed is required for revenue eligibility.",
+          "lineage": "immutable seeds/raw_rentals.csv:rental_status"
+        },
+        {
+          "name": "rental_date",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "UTC rental date represented as a canonical VARCHAR; used for downstream reporting filters.",
+          "lineage": "immutable seeds/raw_rentals.csv:rental_date"
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Currency code; USD in this fixture. Eligible charge and rental currencies must agree.",
+          "lineage": "immutable seeds/raw_rentals.csv:currency"
+        },
+        {
+          "name": "updated_at",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.",
+          "lineage": "immutable seeds/raw_rentals.csv:updated_at"
+        },
+        {
+          "name": "cdc_sequence",
+          "type": "BIGINT",
+          "nullable": false,
+          "description": "Integer CDC sequence; primary descending CDC ordering field.",
+          "lineage": "immutable seeds/raw_rentals.csv:cdc_sequence"
+        },
+        {
+          "name": "is_deleted",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "description": "Source tombstone flag; evaluate only after selecting the latest entity version.",
+          "lineage": "immutable seeds/raw_rentals.csv:is_deleted"
+        }
+      ],
+      "depends_on": [],
+      "rule_ids": [
+        "R-CDC",
+        "R-TENANT",
+        "R-HISTORY"
+      ],
+      "history": "Immutable replicated CDC history through 2026-08-16T00:00:00Z; multiple versions, tombstones and exact replay duplicates retained. Entity keys are not unique event keys.",
+      "tenant_relationships": [
+        {
+          "to": "raw_locations",
+          "from_columns": [
+            "tenant_id",
+            "location_id"
+          ],
+          "to_columns": [
+            "tenant_id",
+            "location_id"
+          ],
+          "enforcement": "Logical source relationship only; resolve latest live versions before analytical joins. Deleted rental parents may remain referenced by charges."
+        }
+      ],
+      "source_provenance": {
+        "kind": "fabricated_csv",
+        "path": "repo/seeds/raw_rentals.csv",
+        "query_id": null,
+        "row_count": 9,
+        "sha256": "b55e667a24d458f9c0453ba5c29d40f428343ea0c77430106a05cded240358e3"
+      },
+      "recovery": "Restore the original CSV bytes and verify the catalogue SHA-256 before reseeding and rebuilding downstream tables."
+    },
+    {
+      "id": "raw_charges",
+      "dbt_id": "seed.rental_trial.raw_charges",
+      "layer": "bronze",
+      "grain": "replicated CDC event for (tenant_id, charge_id); multiple versions and exact replay duplicates are allowed",
+      "keys": [
+        "tenant_id",
+        "charge_id"
+      ],
+      "keys_unique": false,
+      "columns": [
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Tenant boundary; required in every key, partition and relationship. Exposing it does not enforce authorization.",
+          "lineage": "immutable seeds/raw_charges.csv:tenant_id"
+        },
+        {
+          "name": "charge_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Charge identifier local to a tenant.",
+          "lineage": "immutable seeds/raw_charges.csv:charge_id"
+        },
+        {
+          "name": "rental_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Rental identifier local to a tenant.",
+          "lineage": "immutable seeds/raw_charges.csv:rental_id"
+        },
+        {
+          "name": "charge_type",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Source category: rental_fee, damage_fee, refund or refundable_deposit. Deposits are excluded from eligible revenue.",
+          "lineage": "immutable seeds/raw_charges.csv:charge_type"
+        },
+        {
+          "name": "amount",
+          "type": "DECIMAL(18,2)",
+          "nullable": false,
+          "description": "Nonnegative source magnitude in USD with fixed decimal precision; refunds are not signed at source.",
+          "lineage": "immutable seeds/raw_charges.csv:amount"
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Currency code; USD in this fixture. Eligible charge and rental currencies must agree.",
+          "lineage": "immutable seeds/raw_charges.csv:currency"
+        },
+        {
+          "name": "updated_at",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.",
+          "lineage": "immutable seeds/raw_charges.csv:updated_at"
+        },
+        {
+          "name": "cdc_sequence",
+          "type": "BIGINT",
+          "nullable": false,
+          "description": "Integer CDC sequence; primary descending CDC ordering field.",
+          "lineage": "immutable seeds/raw_charges.csv:cdc_sequence"
+        },
+        {
+          "name": "is_deleted",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "description": "Source tombstone flag; evaluate only after selecting the latest entity version.",
+          "lineage": "immutable seeds/raw_charges.csv:is_deleted"
+        }
+      ],
+      "depends_on": [],
+      "rule_ids": [
+        "R-CDC",
+        "R-TENANT",
+        "R-HISTORY"
+      ],
+      "history": "Immutable replicated CDC history through 2026-08-16T00:00:00Z; multiple versions, tombstones and exact replay duplicates retained. Entity keys are not unique event keys.",
+      "tenant_relationships": [
+        {
+          "to": "raw_rentals",
+          "from_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "to_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "enforcement": "Logical source relationship only; resolve latest live versions before analytical joins. Deleted rental parents may remain referenced by charges."
+        }
+      ],
+      "source_provenance": {
+        "kind": "fabricated_csv",
+        "path": "repo/seeds/raw_charges.csv",
+        "query_id": null,
+        "row_count": 12,
+        "sha256": "6c017a4c989d1fcd6592db6e38764e517b40217a79caf692518868c8a345f4f0"
+      },
+      "recovery": "Restore the original CSV bytes and verify the catalogue SHA-256 before reseeding and rebuilding downstream tables."
+    },
+    {
+      "id": "raw_locations",
+      "dbt_id": "seed.rental_trial.raw_locations",
+      "layer": "bronze",
+      "grain": "replicated CDC event for (tenant_id, location_id); multiple versions and exact replay duplicates are allowed",
+      "keys": [
+        "tenant_id",
+        "location_id"
+      ],
+      "keys_unique": false,
+      "columns": [
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Tenant boundary; required in every key, partition and relationship. Exposing it does not enforce authorization.",
+          "lineage": "immutable seeds/raw_locations.csv:tenant_id"
+        },
+        {
+          "name": "location_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Location identifier local to a tenant.",
+          "lineage": "immutable seeds/raw_locations.csv:location_id"
+        },
+        {
+          "name": "location_name",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Current live location label; not the historical label at rental time.",
+          "lineage": "immutable seeds/raw_locations.csv:location_name"
+        },
+        {
+          "name": "updated_at",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.",
+          "lineage": "immutable seeds/raw_locations.csv:updated_at"
+        },
+        {
+          "name": "cdc_sequence",
+          "type": "BIGINT",
+          "nullable": false,
+          "description": "Integer CDC sequence; primary descending CDC ordering field.",
+          "lineage": "immutable seeds/raw_locations.csv:cdc_sequence"
+        },
+        {
+          "name": "is_deleted",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "description": "Source tombstone flag; evaluate only after selecting the latest entity version.",
+          "lineage": "immutable seeds/raw_locations.csv:is_deleted"
+        }
+      ],
+      "depends_on": [],
+      "rule_ids": [
+        "R-CDC",
+        "R-TENANT",
+        "R-HISTORY"
+      ],
+      "history": "Immutable replicated CDC history through 2026-08-16T00:00:00Z; multiple versions, tombstones and exact replay duplicates retained. Entity keys are not unique event keys.",
+      "tenant_relationships": [],
+      "source_provenance": {
+        "kind": "fabricated_csv",
+        "path": "repo/seeds/raw_locations.csv",
+        "query_id": null,
+        "row_count": 4,
+        "sha256": "16008454e843d42866eee1f5739366aff432f0d95417f5af0ea7a36038939539"
+      },
+      "recovery": "Restore the original CSV bytes and verify the catalogue SHA-256 before reseeding and rebuilding downstream tables."
+    },
+    {
+      "id": "stg_rentals",
+      "dbt_id": "model.rental_trial.stg_rentals",
+      "layer": "silver",
+      "grain": "One latest live row per (tenant_id, rental_id).",
+      "keys": [
+        "tenant_id",
+        "rental_id"
+      ],
+      "keys_unique": true,
+      "columns": [
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Tenant boundary; required in every key, partition and relationship. Exposing it does not enforce authorization.",
+          "lineage": "raw_rentals.tenant_id, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "rental_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Rental identifier local to a tenant.",
+          "lineage": "raw_rentals.rental_id, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "location_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Location identifier local to a tenant.",
+          "lineage": "raw_rentals.location_id, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "rental_status",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Current source status; completed is required for revenue eligibility.",
+          "lineage": "raw_rentals.rental_status, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "rental_date",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "UTC rental date represented as a canonical VARCHAR; used for downstream reporting filters.",
+          "lineage": "raw_rentals.rental_date, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Currency code; USD in this fixture. Eligible charge and rental currencies must agree.",
+          "lineage": "raw_rentals.currency, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "updated_at",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.",
+          "lineage": "raw_rentals.updated_at, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "cdc_sequence",
+          "type": "BIGINT",
+          "nullable": false,
+          "description": "Integer CDC sequence; primary descending CDC ordering field.",
+          "lineage": "raw_rentals.cdc_sequence, latest entity version before tombstone exclusion"
+        }
+      ],
+      "depends_on": [
+        "seed.rental_trial.raw_rentals"
+      ],
+      "rule_ids": [
+        "R-CDC",
+        "R-TENANT",
+        "R-HISTORY"
+      ],
+      "history": "Latest live current-state snapshot at the fixed watermark; rank all versions by cdc_sequence DESC, updated_at DESC, then exclude tombstones. Exact duplicate versions are equivalent. CDC metadata retained; is_deleted removed. No as-of history or SCD.",
+      "tenant_relationships": [
+        {
+          "to": "stg_locations",
+          "from_columns": [
+            "tenant_id",
+            "location_id"
+          ],
+          "to_columns": [
+            "tenant_id",
+            "location_id"
+          ],
+          "cardinality": "many-to-one",
+          "enforcement": "tests/tenant_integrity.sql; live parent location is a fixture guarantee"
+        }
+      ],
+      "recovery": "Rebuild from immutable seeds after correcting the source/logic; rerun schema, grain and tenant integrity tests before consuming results. No incremental state, rollback ledger or production deployment is supplied."
+    },
+    {
+      "id": "stg_charges",
+      "dbt_id": "model.rental_trial.stg_charges",
+      "layer": "silver",
+      "grain": "One latest live row per (tenant_id, charge_id).",
+      "keys": [
+        "tenant_id",
+        "charge_id"
+      ],
+      "keys_unique": true,
+      "columns": [
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Tenant boundary; required in every key, partition and relationship. Exposing it does not enforce authorization.",
+          "lineage": "raw_charges.tenant_id, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "charge_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Charge identifier local to a tenant.",
+          "lineage": "raw_charges.charge_id, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "rental_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Rental identifier local to a tenant.",
+          "lineage": "raw_charges.rental_id, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "charge_type",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Source category: rental_fee, damage_fee, refund or refundable_deposit. Deposits are excluded from eligible revenue.",
+          "lineage": "raw_charges.charge_type, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "amount",
+          "type": "DECIMAL(18,2)",
+          "nullable": false,
+          "description": "Nonnegative source magnitude in USD with fixed decimal precision; refunds are not signed at source.",
+          "lineage": "raw_charges.amount, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Currency code; USD in this fixture. Eligible charge and rental currencies must agree.",
+          "lineage": "raw_charges.currency, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "updated_at",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.",
+          "lineage": "raw_charges.updated_at, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "cdc_sequence",
+          "type": "BIGINT",
+          "nullable": false,
+          "description": "Integer CDC sequence; primary descending CDC ordering field.",
+          "lineage": "raw_charges.cdc_sequence, latest entity version before tombstone exclusion"
+        }
+      ],
+      "depends_on": [
+        "seed.rental_trial.raw_charges"
+      ],
+      "rule_ids": [
+        "R-CDC",
+        "R-TENANT",
+        "R-HISTORY"
+      ],
+      "history": "Latest live current-state snapshot at the fixed watermark; rank all versions by cdc_sequence DESC, updated_at DESC, then exclude tombstones. Exact duplicate versions are equivalent. CDC metadata retained; is_deleted removed. No as-of history or SCD.",
+      "tenant_relationships": [
+        {
+          "to": "stg_rentals",
+          "from_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "to_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "cardinality": "many-to-zero-or-one",
+          "enforcement": "No mandatory live-parent test at staging: deleted rental parents are allowed"
+        }
+      ],
+      "recovery": "Rebuild from immutable seeds after correcting the source/logic; rerun schema, grain and tenant integrity tests before consuming results. No incremental state, rollback ledger or production deployment is supplied."
+    },
+    {
+      "id": "stg_locations",
+      "dbt_id": "model.rental_trial.stg_locations",
+      "layer": "silver",
+      "grain": "One latest live row per (tenant_id, location_id).",
+      "keys": [
+        "tenant_id",
+        "location_id"
+      ],
+      "keys_unique": true,
+      "columns": [
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Tenant boundary; required in every key, partition and relationship. Exposing it does not enforce authorization.",
+          "lineage": "raw_locations.tenant_id, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "location_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Location identifier local to a tenant.",
+          "lineage": "raw_locations.location_id, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "location_name",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Current live location label; not the historical label at rental time.",
+          "lineage": "raw_locations.location_name, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "updated_at",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Canonical sortable UTC timestamp VARCHAR; secondary descending CDC ordering field.",
+          "lineage": "raw_locations.updated_at, latest entity version before tombstone exclusion"
+        },
+        {
+          "name": "cdc_sequence",
+          "type": "BIGINT",
+          "nullable": false,
+          "description": "Integer CDC sequence; primary descending CDC ordering field.",
+          "lineage": "raw_locations.cdc_sequence, latest entity version before tombstone exclusion"
+        }
+      ],
+      "depends_on": [
+        "seed.rental_trial.raw_locations"
+      ],
+      "rule_ids": [
+        "R-CDC",
+        "R-TENANT",
+        "R-HISTORY"
+      ],
+      "history": "Latest live current-state snapshot at the fixed watermark; rank all versions by cdc_sequence DESC, updated_at DESC, then exclude tombstones. Exact duplicate versions are equivalent. CDC metadata retained; is_deleted removed. No as-of history or SCD.",
+      "tenant_relationships": [],
+      "recovery": "Rebuild from immutable seeds after correcting the source/logic; rerun schema, grain and tenant integrity tests before consuming results. No incremental state, rollback ledger or production deployment is supplied."
+    },
+    {
+      "id": "int_eligible_charges",
+      "dbt_id": "model.rental_trial.int_eligible_charges",
+      "layer": "silver",
+      "grain": "One current eligible charge per (tenant_id, charge_id), belonging to a completed live same-tenant rental.",
+      "keys": [
+        "tenant_id",
+        "charge_id"
+      ],
+      "keys_unique": true,
+      "columns": [
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Tenant boundary; required in every key, partition and relationship. Exposing it does not enforce authorization.",
+          "lineage": "stg_charges.tenant_id; same-tenant/currency completed stg_rentals required"
+        },
+        {
+          "name": "charge_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Charge identifier local to a tenant.",
+          "lineage": "stg_charges.charge_id; same-tenant/currency completed stg_rentals required"
+        },
+        {
+          "name": "rental_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Rental identifier local to a tenant.",
+          "lineage": "stg_charges.rental_id; same-tenant/currency completed stg_rentals required"
+        },
+        {
+          "name": "charge_type",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Source category: rental_fee, damage_fee, refund or refundable_deposit. Deposits are excluded from eligible revenue.",
+          "lineage": "stg_charges.charge_type; same-tenant/currency completed stg_rentals required"
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Currency code; USD in this fixture. Eligible charge and rental currencies must agree.",
+          "lineage": "stg_charges.currency; same-tenant/currency completed stg_rentals required"
+        },
+        {
+          "name": "source_amount",
+          "type": "DECIMAL(18,2)",
+          "nullable": false,
+          "description": "Unmodified nonnegative magnitude from the current live source charge.",
+          "lineage": "stg_charges.amount"
+        },
+        {
+          "name": "signed_amount",
+          "type": "DECIMAL(18,2)",
+          "nullable": false,
+          "description": "Source amount for rental/damage fees, negative source amount for refunds; deposits are absent.",
+          "lineage": "stg_charges.amount; refund sign applied"
+        }
+      ],
+      "depends_on": [
+        "stg_rentals",
+        "stg_charges"
+      ],
+      "rule_ids": [
+        "R-ELIGIBLE",
+        "R-SIGN",
+        "R-TENANT"
+      ],
+      "history": "Current live eligible charges only; no independent history or CDC metadata. Refund signs and deposit exclusion reflect synthetic accepted rules.",
+      "tenant_relationships": [
+        {
+          "to": "stg_charges",
+          "from_columns": [
+            "tenant_id",
+            "charge_id"
+          ],
+          "to_columns": [
+            "tenant_id",
+            "charge_id"
+          ],
+          "cardinality": "one-to-one subset",
+          "enforcement": "tests/tenant_integrity.sql"
+        },
+        {
+          "to": "stg_rentals",
+          "from_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "to_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "cardinality": "many-to-one",
+          "additional_predicates": [
+            "currency equality",
+            "rental_status = completed"
+          ],
+          "enforcement": "SQL join and tests/tenant_integrity.sql"
+        }
+      ],
+      "recovery": "Rebuild from immutable seeds after correcting the source/logic; rerun schema, grain and tenant integrity tests before consuming results. No incremental state, rollback ledger or production deployment is supplied."
+    },
+    {
+      "id": "fct_rental_revenue",
+      "dbt_id": "model.rental_trial.fct_rental_revenue",
+      "layer": "gold",
+      "grain": "Exactly one row per completed live rental (tenant_id, rental_id), before downstream report aggregation.",
+      "keys": [
+        "tenant_id",
+        "rental_id"
+      ],
+      "keys_unique": true,
+      "columns": [
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Tenant boundary; required in every key, partition and relationship. Exposing it does not enforce authorization.",
+          "lineage": "stg_rentals.tenant_id; completed live rentals only"
+        },
+        {
+          "name": "rental_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Rental identifier local to a tenant.",
+          "lineage": "stg_rentals.rental_id; completed live rentals only"
+        },
+        {
+          "name": "location_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Location identifier local to a tenant.",
+          "lineage": "stg_rentals.location_id; completed live rentals only"
+        },
+        {
+          "name": "location_name",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Current live location label; not the historical label at rental time.",
+          "lineage": "stg_locations.location_name joined on tenant_id + location_id; current label"
+        },
+        {
+          "name": "rental_status",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Current source status; completed is required for revenue eligibility.",
+          "lineage": "stg_rentals.rental_status; completed live rentals only"
+        },
+        {
+          "name": "rental_date",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "UTC rental date represented as a canonical VARCHAR; used for downstream reporting filters.",
+          "lineage": "stg_rentals.rental_date; completed live rentals only"
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "description": "Currency code; USD in this fixture. Eligible charge and rental currencies must agree.",
+          "lineage": "stg_rentals.currency; completed live rentals only"
+        },
+        {
+          "name": "fee_amount",
+          "type": "DECIMAL(18,2)",
+          "nullable": false,
+          "description": "Sum of eligible rental and damage fees for this rental, decimal zero when none.",
+          "lineage": "sum(int_eligible_charges.signed_amount) for rental_fee/damage_fee per tenant_id + rental_id; zero if none"
+        },
+        {
+          "name": "refund_amount",
+          "type": "DECIMAL(18,2)",
+          "nullable": false,
+          "description": "Sum of signed eligible refunds for this rental; negative or decimal zero.",
+          "lineage": "sum(int_eligible_charges.signed_amount) for refund per tenant_id + rental_id; zero if none"
+        },
+        {
+          "name": "net_revenue",
+          "type": "DECIMAL(18,2)",
+          "nullable": false,
+          "description": "fee_amount + refund_amount, fixed DECIMAL(18,2); downstream revenue metric sums this field.",
+          "lineage": "fee_amount + refund_amount"
+        },
+        {
+          "name": "eligible_charge_count",
+          "type": "BIGINT",
+          "nullable": false,
+          "description": "Count of actual eligible charge IDs at rental grain, integer zero when none; deposits are excluded.",
+          "lineage": "count(int_eligible_charges.charge_id) per tenant_id + rental_id; zero if none"
+        }
+      ],
+      "depends_on": [
+        "stg_rentals",
+        "stg_locations",
+        "int_eligible_charges"
+      ],
+      "rule_ids": [
+        "R-ELIGIBLE",
+        "R-ZERO",
+        "R-GRAIN",
+        "R-TENANT",
+        "R-HISTORY",
+        "R-SEMANTIC"
+      ],
+      "history": "Current-state rental snapshot using current live locations, including for older rental dates. No historical label/status preservation or as-of reconstruction. Completed live rentals without charges remain as zero-valued rows.",
+      "tenant_relationships": [
+        {
+          "to": "stg_rentals",
+          "from_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "to_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "cardinality": "one-to-one completed subset",
+          "enforcement": "tests/tenant_integrity.sql checks source keys and complete coverage"
+        },
+        {
+          "to": "stg_locations",
+          "from_columns": [
+            "tenant_id",
+            "location_id"
+          ],
+          "to_columns": [
+            "tenant_id",
+            "location_id"
+          ],
+          "cardinality": "many-to-one",
+          "enforcement": "SQL join and tests/tenant_integrity.sql"
+        },
+        {
+          "to": "int_eligible_charges",
+          "from_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "to_columns": [
+            "tenant_id",
+            "rental_id"
+          ],
+          "cardinality": "one-to-many before aggregation",
+          "enforcement": "Charges aggregate to this composite rental key before the left join"
+        }
+      ],
+      "recovery": "Rebuild from immutable seeds after correcting the source/logic; rerun schema, grain and tenant integrity tests before consuming results. No incremental state, rollback ledger or production deployment is supplied."
+    }
+  ]
+}

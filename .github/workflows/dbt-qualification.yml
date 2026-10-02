@@ -1,0 +1,37 @@
+name: Initial dbt flow qualification
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  native-local-dbt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python skills/data-model-accelerator/scripts/bootstrap_hex_schema.py
+      - run: python -m pip check
+      - name: Run full regression suite without optional skips
+        run: |
+          python - <<'PY'
+          import sys
+          import unittest
+          suite = unittest.defaultTestLoader.discover('tests')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          if result.skipped:
+              print('Full dependency lane must not skip tests:', result.skipped)
+          sys.exit(0 if result.wasSuccessful() and not result.skipped else 1)
+          PY
+      - run: python -m unittest discover -s skills/data-model-accelerator/examples/dbt-retail-holdout/candidate -p test_evaluator.py -v
+      - run: python skills/data-model-accelerator/scripts/run_dbt_local_qualification.py --cases hex tableau powerbi --output "$RUNNER_TEMP/native-dbt"
+      - run: python skills/data-model-accelerator/scripts/run_dbt_holdout.py --output "$RUNNER_TEMP/retail-dbt"
+        env:
+          PYTHONOPTIMIZE: '1'
+
+      - run: python skills/data-model-accelerator/scripts/run_refactor_qualification.py --output "$RUNNER_TEMP/rental-refactor"
+        env:
+          PYTHONOPTIMIZE: '1'

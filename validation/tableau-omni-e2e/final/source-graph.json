@@ -1,0 +1,3406 @@
+{
+  "schema_version": 1,
+  "kind": "tableau_source_inventory",
+  "repo": "/Users/austinaranda/Desktop/Codex/DataModelAccelerator/skills/data-model-accelerator/examples/tableau-omni-e2e/input/repo",
+  "assets": [
+    {
+      "path": "adjustments.csv",
+      "sha256": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e",
+      "bytes": 138
+    },
+    {
+      "path": "billing.tds",
+      "sha256": "7060aa92b4828169f71c2481868ba7d79613e3b1015d0add9ec28b3c42465ab8",
+      "bytes": 10010
+    },
+    {
+      "path": "billing.twb",
+      "sha256": "3511aa9fc45072153b0af3d1e27ac43f5e82788c7cd059fcc38620f6518d518f",
+      "bytes": 34722
+    }
+  ],
+  "workbooks": [
+    {
+      "id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "native_id": "tableau-billing-synthetic",
+      "attributes": {
+        "original-version": "26.1",
+        "source-build": "0.0.0 (0000.0.0.0)",
+        "source-platform": "mac",
+        "version": "26.1"
+      },
+      "datasource_ids": [
+        "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+        "billing.twb#tableau-billing-synthetic/datasource:federated.billing"
+      ],
+      "worksheet_ids": [
+        "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+        "billing.twb#tableau-billing-synthetic/worksheet:Customer Value",
+        "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share"
+      ],
+      "dashboard_ids": [
+        "billing.twb#tableau-billing-synthetic/dashboard:Billing Overview"
+      ],
+      "official_schema_validation": {
+        "xsd_sha256": "8bb236b72c1c388aca92bcd00164f65c0d4f5efeaf225252ce0619d8f631e923",
+        "native_application_opened": false,
+        "validated": false,
+        "status": "unavailable_publisher_schema_dependency",
+        "reason": "Element '{http://www.w3.org/2001/XMLSchema}attributeGroup', attribute 'ref': The QName value '{http://www.tableausoftware.com/xml/user}UserAttributes-AG' does not resolve to a(n) attribute group definition., line 2774"
+      }
+    }
+  ],
+  "datasources": [
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "name": "federated.billing",
+      "caption": "Billing invoices",
+      "path": "billing.twb",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "is_parameters": false,
+      "fields": [
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant ID]",
+          "name": "[Tenant ID]",
+          "caption": "Tenant ID",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": null,
+          "raw_column": "TENANT_ID",
+          "attributes": {
+            "name": "[Tenant ID]",
+            "caption": "Tenant ID",
+            "datatype": "string",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": null,
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice ID]",
+          "name": "[Invoice ID]",
+          "caption": "Invoice ID",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": null,
+          "raw_column": "INVOICE_ID",
+          "attributes": {
+            "name": "[Invoice ID]",
+            "caption": "Invoice ID",
+            "datatype": "string",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": null,
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Customer ID]",
+          "name": "[Customer ID]",
+          "caption": "Customer ID",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": null,
+          "raw_column": "CUSTOMER_ID",
+          "attributes": {
+            "name": "[Customer ID]",
+            "caption": "Customer ID",
+            "datatype": "string",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": null,
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Date]",
+          "name": "[Invoice Date]",
+          "caption": "Invoice Date",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "date",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": null,
+          "raw_column": "INVOICE_DATE",
+          "attributes": {
+            "name": "[Invoice Date]",
+            "caption": "Invoice Date",
+            "datatype": "date",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": null,
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Amount Cents]",
+          "name": "[Amount Cents]",
+          "caption": "Amount Cents",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": null,
+          "raw_column": "AMOUNT_CENTS",
+          "attributes": {
+            "name": "[Amount Cents]",
+            "caption": "Amount Cents",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": null,
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Adjustment Cents]",
+          "name": "[Adjustment Cents]",
+          "caption": "Adjustment Cents",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": null,
+          "raw_column": "ADJUSTMENT_CENTS",
+          "attributes": {
+            "name": "[Adjustment Cents]",
+            "caption": "Adjustment Cents",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": null,
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid Cents]",
+          "name": "[Paid Cents]",
+          "caption": "Paid Cents",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": null,
+          "raw_column": "PAID_CENTS",
+          "attributes": {
+            "name": "[Paid Cents]",
+            "caption": "Paid Cents",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": null,
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Status]",
+          "name": "[Status]",
+          "caption": "Status",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": null,
+          "raw_column": "STATUS",
+          "attributes": {
+            "name": "[Status]",
+            "caption": "Status",
+            "datatype": "string",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": null,
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+          "name": "[Segment]",
+          "caption": "Segment",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "string",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": null,
+          "raw_column": "SEGMENT",
+          "attributes": {
+            "name": "[Segment]",
+            "caption": "Segment",
+            "datatype": "string",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": null,
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+          "name": "[Net Cents]",
+          "caption": "Net Cents",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "[Amount Cents] + ZN([Adjustment Cents])",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Net Cents]",
+            "caption": "Net Cents",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "[Amount Cents] + ZN([Adjustment Cents])"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding Cents]",
+          "name": "[Outstanding Cents]",
+          "caption": "Outstanding Cents",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "[Net Cents] - [Paid Cents]",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Outstanding Cents]",
+            "caption": "Outstanding Cents",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "[Net Cents] - [Paid Cents]"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Month]",
+          "name": "[Invoice Month]",
+          "caption": "Invoice Month",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "date",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": "DATETRUNC('month', [Invoice Date])",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Invoice Month]",
+            "caption": "Invoice Month",
+            "datatype": "date",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "DATETRUNC('month', [Invoice Date])"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Posted Population]",
+          "name": "[Posted Population]",
+          "caption": "Posted Population",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "boolean",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": "[Status] = 'posted'",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Posted Population]",
+            "caption": "Posted Population",
+            "datatype": "boolean",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "[Status] = 'posted'"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant Population]",
+          "name": "[Tenant Population]",
+          "caption": "Tenant Population",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "boolean",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": "[Tenant ID] = [Parameters].[Tenant]",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Tenant Population]",
+            "caption": "Tenant Population",
+            "datatype": "boolean",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "[Tenant ID] = [Parameters].[Tenant]"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+          "name": "[Date Window]",
+          "caption": "Date Window",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "boolean",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": "[Invoice Date] >= [Parameters].[Start Date] AND [Invoice Date] < [Parameters].[End Date]",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Date Window]",
+            "caption": "Date Window",
+            "datatype": "boolean",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "[Invoice Date] >= [Parameters].[Start Date] AND [Invoice Date] < [Parameters].[End Date]"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+          "name": "[Segment Selection]",
+          "caption": "Segment Selection",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "boolean",
+          "role": "dimension",
+          "type": "nominal",
+          "formula": "[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Segment Selection]",
+            "caption": "Segment Selection",
+            "datatype": "boolean",
+            "role": "dimension",
+            "type": "nominal"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Fixed Customer Net]",
+          "name": "[Fixed Customer Net]",
+          "caption": "Fixed Customer Net",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "{ FIXED [Tenant ID], [Customer ID] : SUM([Net Cents]) }",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Fixed Customer Net]",
+            "caption": "Fixed Customer Net",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "{ FIXED [Tenant ID], [Customer ID] : SUM([Net Cents]) }"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+          "name": "[Revenue]",
+          "caption": "Revenue",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "SUM([Net Cents])",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Revenue]",
+            "caption": "Revenue",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "SUM([Net Cents])"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid]",
+          "name": "[Paid]",
+          "caption": "Paid",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "SUM([Paid Cents])",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Paid]",
+            "caption": "Paid",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "SUM([Paid Cents])"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding]",
+          "name": "[Outstanding]",
+          "caption": "Outstanding",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "SUM([Outstanding Cents])",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Outstanding]",
+            "caption": "Outstanding",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "SUM([Outstanding Cents])"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Payment Rate]",
+          "name": "[Payment Rate]",
+          "caption": "Payment Rate",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Payment Rate]",
+            "caption": "Payment Rate",
+            "datatype": "real",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Scenario Revenue]",
+          "name": "[Scenario Revenue]",
+          "caption": "Scenario Revenue",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "SUM([Net Cents]) * [Parameters].[Multiplier]",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Scenario Revenue]",
+            "caption": "Scenario Revenue",
+            "datatype": "real",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "SUM([Net Cents]) * [Parameters].[Multiplier]"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Displayed Fixed Customer Net]",
+          "name": "[Displayed Fixed Customer Net]",
+          "caption": "Displayed Fixed Customer Net",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "integer",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "MIN([Fixed Customer Net])",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Displayed Fixed Customer Net]",
+            "caption": "Displayed Fixed Customer Net",
+            "datatype": "integer",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "MIN([Fixed Customer Net])"
+          },
+          "table_calc": []
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue Share]",
+          "name": "[Revenue Share]",
+          "caption": "Revenue Share",
+          "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+          "datasource_name": "federated.billing",
+          "workbook_id": "billing.twb#tableau-billing-synthetic",
+          "path": "billing.twb",
+          "datatype": "real",
+          "role": "measure",
+          "type": "quantitative",
+          "formula": "IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END",
+          "raw_column": null,
+          "attributes": {
+            "name": "[Revenue Share]",
+            "caption": "Revenue Share",
+            "datatype": "real",
+            "role": "measure",
+            "type": "quantitative"
+          },
+          "calculation_attributes": {
+            "class": "tableau",
+            "formula": "IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END"
+          },
+          "table_calc": [
+            {
+              "tag": "table-calc",
+              "attributes": {
+                "ordering-type": "Field",
+                "ordering-field": "[federated.billing].[Segment]"
+              },
+              "text": "",
+              "children": []
+            }
+          ]
+        }
+      ],
+      "filters": [
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/filter:0",
+          "column": "[federated.billing].[none:Posted Population:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Posted Population:nk]"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Posted Population:nk]"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Posted Population:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "datasource",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Posted Population]",
+          "field_name": "[Posted Population]",
+          "caption": "Posted Population",
+          "formula": "[Status] = 'posted'",
+          "member": true
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/filter:1",
+          "column": "[federated.billing].[none:Tenant Population:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Tenant Population:nk]"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Tenant Population:nk]"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Tenant Population:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "datasource",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant Population]",
+          "field_name": "[Tenant Population]",
+          "caption": "Tenant Population",
+          "formula": "[Tenant ID] = [Parameters].[Tenant]",
+          "member": true
+        }
+      ],
+      "connections": [
+        {
+          "id": "tableau-billing-snowflake",
+          "name": "tableau-billing-snowflake",
+          "caption": "Synthetic Snowflake billing",
+          "attributes": {
+            "class": "snowflake",
+            "server": "DMA_TABLEAU_SYNTHETIC",
+            "dbname": "DMA_TABLEAU",
+            "schema": "RAW",
+            "warehouse": "SYNTHETIC_LOCAL_ONLY",
+            "authentication": "snowflake",
+            "username": ""
+          },
+          "platform_instance": "DMA_TABLEAU_SYNTHETIC",
+          "catalog": "DMA_TABLEAU",
+          "schema": "RAW",
+          "native_class": "snowflake"
+        }
+      ],
+      "custom_sql": "WITH invoice_versions AS (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, INVOICE_ID ORDER BY SEQUENCE DESC) AS RN\n  FROM DMA_TABLEAU.RAW.INVOICE_CDC\n), payment_versions AS (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, PAYMENT_ID ORDER BY SEQUENCE DESC) AS RN\n  FROM DMA_TABLEAU.RAW.PAYMENT_CDC\n), payments AS (\n  SELECT TENANT_ID, INVOICE_ID, SUM(PAID_CENTS) AS PAID_CENTS\n  FROM payment_versions WHERE RN = 1 AND NOT IS_DELETED\n  GROUP BY TENANT_ID, INVOICE_ID\n), history AS (\n  SELECT DISTINCT TENANT_ID, CUSTOMER_ID, SEGMENT, VALID_FROM, VALID_TO\n  FROM DMA_TABLEAU.RAW.CUSTOMER_HISTORY\n)\nSELECT i.TENANT_ID, i.INVOICE_ID, i.CUSTOMER_ID,\n       CAST(i.INVOICE_DATE AS DATE) AS INVOICE_DATE,\n       i.AMOUNT_CENTS, a.ADJUSTMENT_CENTS,\n       COALESCE(p.PAID_CENTS, 0) AS PAID_CENTS,\n       LOWER(TRIM(i.STATUS)) AS STATUS, h.SEGMENT\nFROM invoice_versions i\nLEFT JOIN payments p ON i.TENANT_ID = p.TENANT_ID AND i.INVOICE_ID = p.INVOICE_ID\nLEFT JOIN history h ON i.TENANT_ID = h.TENANT_ID AND i.CUSTOMER_ID = h.CUSTOMER_ID\n  AND CAST(i.INVOICE_DATE AS DATE) >= CAST(h.VALID_FROM AS DATE)\n  AND (CAST(i.INVOICE_DATE AS DATE) < CAST(h.VALID_TO AS DATE) OR h.VALID_TO IS NULL)\nLEFT JOIN DMA_TABLEAU.RAW.ADJUSTMENTS a ON i.TENANT_ID = a.TENANT_ID AND i.INVOICE_ID = a.INVOICE_ID\nWHERE i.RN = 1 AND NOT i.IS_DELETED",
+      "sql_analysis": {
+        "physical_refs": [
+          "DMA_TABLEAU.RAW.ADJUSTMENTS",
+          "DMA_TABLEAU.RAW.CUSTOMER_HISTORY",
+          "DMA_TABLEAU.RAW.INVOICE_CDC",
+          "DMA_TABLEAU.RAW.PAYMENT_CDC"
+        ],
+        "joins": [
+          "LEFT JOIN payments AS p ON i.TENANT_ID = p.TENANT_ID AND i.INVOICE_ID = p.INVOICE_ID",
+          "LEFT JOIN history AS h ON i.TENANT_ID = h.TENANT_ID AND i.CUSTOMER_ID = h.CUSTOMER_ID AND CAST(i.INVOICE_DATE AS DATE) >= CAST(h.VALID_FROM AS DATE) AND (CAST(i.INVOICE_DATE AS DATE) < CAST(h.VALID_TO AS DATE) OR h.VALID_TO IS NULL)",
+          "LEFT JOIN DMA_TABLEAU.RAW.ADJUSTMENTS AS a ON i.TENANT_ID = a.TENANT_ID AND i.INVOICE_ID = a.INVOICE_ID"
+        ],
+        "filters": [
+          "WHERE i.RN = 1 AND NOT i.IS_DELETED",
+          "WHERE RN = 1 AND NOT IS_DELETED"
+        ],
+        "ctes": [
+          {
+            "name": "invoice_versions",
+            "sql": "invoice_versions AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, INVOICE_ID ORDER BY SEQUENCE DESC NULLS FIRST) AS RN FROM DMA_TABLEAU.RAW.INVOICE_CDC)"
+          },
+          {
+            "name": "payment_versions",
+            "sql": "payment_versions AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, PAYMENT_ID ORDER BY SEQUENCE DESC NULLS FIRST) AS RN FROM DMA_TABLEAU.RAW.PAYMENT_CDC)"
+          },
+          {
+            "name": "payments",
+            "sql": "payments AS (SELECT TENANT_ID, INVOICE_ID, SUM(PAID_CENTS) AS PAID_CENTS FROM payment_versions WHERE RN = 1 AND NOT IS_DELETED GROUP BY TENANT_ID, INVOICE_ID)"
+          },
+          {
+            "name": "history",
+            "sql": "history AS (SELECT DISTINCT TENANT_ID, CUSTOMER_ID, SEGMENT, VALID_FROM, VALID_TO FROM DMA_TABLEAU.RAW.CUSTOMER_HISTORY)"
+          }
+        ],
+        "projections": [
+          {
+            "name": "TENANT_ID",
+            "sql": "i.TENANT_ID"
+          },
+          {
+            "name": "INVOICE_ID",
+            "sql": "i.INVOICE_ID"
+          },
+          {
+            "name": "CUSTOMER_ID",
+            "sql": "i.CUSTOMER_ID"
+          },
+          {
+            "name": "INVOICE_DATE",
+            "sql": "CAST(i.INVOICE_DATE AS DATE) AS INVOICE_DATE"
+          },
+          {
+            "name": "AMOUNT_CENTS",
+            "sql": "i.AMOUNT_CENTS"
+          },
+          {
+            "name": "ADJUSTMENT_CENTS",
+            "sql": "a.ADJUSTMENT_CENTS"
+          },
+          {
+            "name": "PAID_CENTS",
+            "sql": "COALESCE(p.PAID_CENTS, 0) AS PAID_CENTS"
+          },
+          {
+            "name": "STATUS",
+            "sql": "LOWER(TRIM(i.STATUS)) AS STATUS"
+          },
+          {
+            "name": "SEGMENT",
+            "sql": "h.SEGMENT"
+          }
+        ]
+      },
+      "native_attributes": {
+        "name": "federated.billing",
+        "caption": "Billing invoices",
+        "inline": "true",
+        "version": "26.1"
+      },
+      "mirror_paths": [
+        "billing.tds"
+      ],
+      "connection": {
+        "id": "tableau-billing-snowflake",
+        "name": "tableau-billing-snowflake",
+        "caption": "Synthetic Snowflake billing",
+        "attributes": {
+          "class": "snowflake",
+          "server": "DMA_TABLEAU_SYNTHETIC",
+          "dbname": "DMA_TABLEAU",
+          "schema": "RAW",
+          "warehouse": "SYNTHETIC_LOCAL_ONLY",
+          "authentication": "snowflake",
+          "username": ""
+        },
+        "platform_instance": "DMA_TABLEAU_SYNTHETIC",
+        "catalog": "DMA_TABLEAU",
+        "schema": "RAW",
+        "native_class": "snowflake"
+      },
+      "relation_attributes": {
+        "name": "Billing custom SQL",
+        "type": "text",
+        "connection": "tableau-billing-snowflake"
+      }
+    }
+  ],
+  "fields": [
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Tenant]",
+      "name": "[Tenant]",
+      "caption": "Tenant",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "string",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "\"A\"",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Tenant]",
+        "caption": "Tenant",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "param-domain-type": "list",
+        "value": "\"A\""
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "\"A\""
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Start Date]",
+      "name": "[Start Date]",
+      "caption": "Start Date",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "date",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "#2026-01-01#",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Start Date]",
+        "caption": "Start Date",
+        "datatype": "date",
+        "role": "dimension",
+        "type": "nominal",
+        "param-domain-type": "any",
+        "value": "#2026-01-01#"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "#2026-01-01#"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[End Date]",
+      "name": "[End Date]",
+      "caption": "End Date",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "date",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "#2026-03-01#",
+      "raw_column": null,
+      "attributes": {
+        "name": "[End Date]",
+        "caption": "End Date",
+        "datatype": "date",
+        "role": "dimension",
+        "type": "nominal",
+        "param-domain-type": "any",
+        "value": "#2026-03-01#"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "#2026-03-01#"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Segment]",
+      "name": "[Segment]",
+      "caption": "Segment",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "string",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "\"ALL\"",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Segment]",
+        "caption": "Segment",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "param-domain-type": "any",
+        "value": "\"ALL\""
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "\"ALL\""
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Multiplier]",
+      "name": "[Multiplier]",
+      "caption": "Multiplier",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "real",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "1",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Multiplier]",
+        "caption": "Multiplier",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "param-domain-type": "any",
+        "value": "1"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "1"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant ID]",
+      "name": "[Tenant ID]",
+      "caption": "Tenant ID",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "string",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": null,
+      "raw_column": "TENANT_ID",
+      "attributes": {
+        "name": "[Tenant ID]",
+        "caption": "Tenant ID",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": null,
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice ID]",
+      "name": "[Invoice ID]",
+      "caption": "Invoice ID",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "string",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": null,
+      "raw_column": "INVOICE_ID",
+      "attributes": {
+        "name": "[Invoice ID]",
+        "caption": "Invoice ID",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": null,
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Customer ID]",
+      "name": "[Customer ID]",
+      "caption": "Customer ID",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "string",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": null,
+      "raw_column": "CUSTOMER_ID",
+      "attributes": {
+        "name": "[Customer ID]",
+        "caption": "Customer ID",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": null,
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Date]",
+      "name": "[Invoice Date]",
+      "caption": "Invoice Date",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "date",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": null,
+      "raw_column": "INVOICE_DATE",
+      "attributes": {
+        "name": "[Invoice Date]",
+        "caption": "Invoice Date",
+        "datatype": "date",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": null,
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Amount Cents]",
+      "name": "[Amount Cents]",
+      "caption": "Amount Cents",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": null,
+      "raw_column": "AMOUNT_CENTS",
+      "attributes": {
+        "name": "[Amount Cents]",
+        "caption": "Amount Cents",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": null,
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Adjustment Cents]",
+      "name": "[Adjustment Cents]",
+      "caption": "Adjustment Cents",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": null,
+      "raw_column": "ADJUSTMENT_CENTS",
+      "attributes": {
+        "name": "[Adjustment Cents]",
+        "caption": "Adjustment Cents",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": null,
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid Cents]",
+      "name": "[Paid Cents]",
+      "caption": "Paid Cents",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": null,
+      "raw_column": "PAID_CENTS",
+      "attributes": {
+        "name": "[Paid Cents]",
+        "caption": "Paid Cents",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": null,
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Status]",
+      "name": "[Status]",
+      "caption": "Status",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "string",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": null,
+      "raw_column": "STATUS",
+      "attributes": {
+        "name": "[Status]",
+        "caption": "Status",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": null,
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+      "name": "[Segment]",
+      "caption": "Segment",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "string",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": null,
+      "raw_column": "SEGMENT",
+      "attributes": {
+        "name": "[Segment]",
+        "caption": "Segment",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": null,
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "name": "[Net Cents]",
+      "caption": "Net Cents",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "[Amount Cents] + ZN([Adjustment Cents])",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Net Cents]",
+        "caption": "Net Cents",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "[Amount Cents] + ZN([Adjustment Cents])"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding Cents]",
+      "name": "[Outstanding Cents]",
+      "caption": "Outstanding Cents",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "[Net Cents] - [Paid Cents]",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Outstanding Cents]",
+        "caption": "Outstanding Cents",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "[Net Cents] - [Paid Cents]"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Month]",
+      "name": "[Invoice Month]",
+      "caption": "Invoice Month",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "date",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "DATETRUNC('month', [Invoice Date])",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Invoice Month]",
+        "caption": "Invoice Month",
+        "datatype": "date",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "DATETRUNC('month', [Invoice Date])"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Posted Population]",
+      "name": "[Posted Population]",
+      "caption": "Posted Population",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "boolean",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "[Status] = 'posted'",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Posted Population]",
+        "caption": "Posted Population",
+        "datatype": "boolean",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "[Status] = 'posted'"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant Population]",
+      "name": "[Tenant Population]",
+      "caption": "Tenant Population",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "boolean",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "[Tenant ID] = [Parameters].[Tenant]",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Tenant Population]",
+        "caption": "Tenant Population",
+        "datatype": "boolean",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "[Tenant ID] = [Parameters].[Tenant]"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+      "name": "[Date Window]",
+      "caption": "Date Window",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "boolean",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "[Invoice Date] >= [Parameters].[Start Date] AND [Invoice Date] < [Parameters].[End Date]",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Date Window]",
+        "caption": "Date Window",
+        "datatype": "boolean",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "[Invoice Date] >= [Parameters].[Start Date] AND [Invoice Date] < [Parameters].[End Date]"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+      "name": "[Segment Selection]",
+      "caption": "Segment Selection",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "boolean",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Segment Selection]",
+        "caption": "Segment Selection",
+        "datatype": "boolean",
+        "role": "dimension",
+        "type": "nominal"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Fixed Customer Net]",
+      "name": "[Fixed Customer Net]",
+      "caption": "Fixed Customer Net",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "{ FIXED [Tenant ID], [Customer ID] : SUM([Net Cents]) }",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Fixed Customer Net]",
+        "caption": "Fixed Customer Net",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "{ FIXED [Tenant ID], [Customer ID] : SUM([Net Cents]) }"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+      "name": "[Revenue]",
+      "caption": "Revenue",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "SUM([Net Cents])",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Revenue]",
+        "caption": "Revenue",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "SUM([Net Cents])"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid]",
+      "name": "[Paid]",
+      "caption": "Paid",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "SUM([Paid Cents])",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Paid]",
+        "caption": "Paid",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "SUM([Paid Cents])"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding]",
+      "name": "[Outstanding]",
+      "caption": "Outstanding",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "SUM([Outstanding Cents])",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Outstanding]",
+        "caption": "Outstanding",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "SUM([Outstanding Cents])"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Payment Rate]",
+      "name": "[Payment Rate]",
+      "caption": "Payment Rate",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "real",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Payment Rate]",
+        "caption": "Payment Rate",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Scenario Revenue]",
+      "name": "[Scenario Revenue]",
+      "caption": "Scenario Revenue",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "real",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "SUM([Net Cents]) * [Parameters].[Multiplier]",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Scenario Revenue]",
+        "caption": "Scenario Revenue",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "SUM([Net Cents]) * [Parameters].[Multiplier]"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Displayed Fixed Customer Net]",
+      "name": "[Displayed Fixed Customer Net]",
+      "caption": "Displayed Fixed Customer Net",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "integer",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "MIN([Fixed Customer Net])",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Displayed Fixed Customer Net]",
+        "caption": "Displayed Fixed Customer Net",
+        "datatype": "integer",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "MIN([Fixed Customer Net])"
+      },
+      "table_calc": []
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue Share]",
+      "name": "[Revenue Share]",
+      "caption": "Revenue Share",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "datasource_name": "federated.billing",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "real",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Revenue Share]",
+        "caption": "Revenue Share",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END"
+      },
+      "table_calc": [
+        {
+          "tag": "table-calc",
+          "attributes": {
+            "ordering-type": "Field",
+            "ordering-field": "[federated.billing].[Segment]"
+          },
+          "text": "",
+          "children": []
+        }
+      ]
+    }
+  ],
+  "parameters": [
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Tenant]",
+      "name": "[Tenant]",
+      "caption": "Tenant",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "string",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "\"A\"",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Tenant]",
+        "caption": "Tenant",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "param-domain-type": "list",
+        "value": "\"A\""
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "\"A\""
+      },
+      "table_calc": [],
+      "default": "A",
+      "native_value": "\"A\"",
+      "domain_type": "list",
+      "members": [
+        "\"A\"",
+        "\"B\""
+      ],
+      "range": null
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Start Date]",
+      "name": "[Start Date]",
+      "caption": "Start Date",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "date",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "#2026-01-01#",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Start Date]",
+        "caption": "Start Date",
+        "datatype": "date",
+        "role": "dimension",
+        "type": "nominal",
+        "param-domain-type": "any",
+        "value": "#2026-01-01#"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "#2026-01-01#"
+      },
+      "table_calc": [],
+      "default": "2026-01-01",
+      "native_value": "#2026-01-01#",
+      "domain_type": "any",
+      "members": [],
+      "range": null
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[End Date]",
+      "name": "[End Date]",
+      "caption": "End Date",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "date",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "#2026-03-01#",
+      "raw_column": null,
+      "attributes": {
+        "name": "[End Date]",
+        "caption": "End Date",
+        "datatype": "date",
+        "role": "dimension",
+        "type": "nominal",
+        "param-domain-type": "any",
+        "value": "#2026-03-01#"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "#2026-03-01#"
+      },
+      "table_calc": [],
+      "default": "2026-03-01",
+      "native_value": "#2026-03-01#",
+      "domain_type": "any",
+      "members": [],
+      "range": null
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Segment]",
+      "name": "[Segment]",
+      "caption": "Segment",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "string",
+      "role": "dimension",
+      "type": "nominal",
+      "formula": "\"ALL\"",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Segment]",
+        "caption": "Segment",
+        "datatype": "string",
+        "role": "dimension",
+        "type": "nominal",
+        "param-domain-type": "any",
+        "value": "\"ALL\""
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "\"ALL\""
+      },
+      "table_calc": [],
+      "default": "ALL",
+      "native_value": "\"ALL\"",
+      "domain_type": "any",
+      "members": [],
+      "range": null
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Multiplier]",
+      "name": "[Multiplier]",
+      "caption": "Multiplier",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:Parameters",
+      "datasource_name": "Parameters",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "path": "billing.twb",
+      "datatype": "real",
+      "role": "measure",
+      "type": "quantitative",
+      "formula": "1",
+      "raw_column": null,
+      "attributes": {
+        "name": "[Multiplier]",
+        "caption": "Multiplier",
+        "datatype": "real",
+        "role": "measure",
+        "type": "quantitative",
+        "param-domain-type": "any",
+        "value": "1"
+      },
+      "calculation_attributes": {
+        "class": "tableau",
+        "formula": "1"
+      },
+      "table_calc": [],
+      "default": 1.0,
+      "native_value": "1",
+      "domain_type": "any",
+      "members": [],
+      "range": null
+    }
+  ],
+  "worksheets": [
+    {
+      "id": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "name": "Revenue Trend",
+      "path": "billing.twb",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "native_id": "{e4bc658f-b0a2-5247-9bea-27d437ba1663}",
+      "datasource_names": [
+        "federated.billing",
+        "Parameters"
+      ],
+      "datasource_ids": [
+        "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+        "billing.twb#tableau-billing-synthetic/datasource:Parameters"
+      ],
+      "fields": [
+        {
+          "reference": "[federated.billing].[none:Invoice Month:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Month]",
+          "name": "[Invoice Month]",
+          "caption": "Invoice Month",
+          "formula": "DATETRUNC('month', [Invoice Date])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[none:Segment:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+          "name": "[Segment]",
+          "caption": "Segment",
+          "formula": null,
+          "raw_column": "SEGMENT"
+        },
+        {
+          "reference": "[federated.billing].[usr:Revenue:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+          "name": "[Revenue]",
+          "caption": "Revenue",
+          "formula": "SUM([Net Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Paid:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid]",
+          "name": "[Paid]",
+          "caption": "Paid",
+          "formula": "SUM([Paid Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Outstanding:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding]",
+          "name": "[Outstanding]",
+          "caption": "Outstanding",
+          "formula": "SUM([Outstanding Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Payment Rate:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Payment Rate]",
+          "name": "[Payment Rate]",
+          "caption": "Payment Rate",
+          "formula": "IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Scenario Revenue:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Scenario Revenue]",
+          "name": "[Scenario Revenue]",
+          "caption": "Scenario Revenue",
+          "formula": "SUM([Net Cents]) * [Parameters].[Multiplier]",
+          "raw_column": null
+        }
+      ],
+      "instances": [
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Invoice Month]",
+          "name": "[none:Invoice Month:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Segment]",
+          "name": "[none:Segment:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Date Window]",
+          "name": "[none:Date Window:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Segment Selection]",
+          "name": "[none:Segment Selection:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Revenue]",
+          "name": "[usr:Revenue:qk]",
+          "derivation": "User",
+          "pivot": "key",
+          "type": "quantitative",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Paid]",
+          "name": "[usr:Paid:qk]",
+          "derivation": "User",
+          "pivot": "key",
+          "type": "quantitative",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Outstanding]",
+          "name": "[usr:Outstanding:qk]",
+          "derivation": "User",
+          "pivot": "key",
+          "type": "quantitative",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Payment Rate]",
+          "name": "[usr:Payment Rate:qk]",
+          "derivation": "User",
+          "pivot": "key",
+          "type": "quantitative",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Scenario Revenue]",
+          "name": "[usr:Scenario Revenue:qk]",
+          "derivation": "User",
+          "pivot": "key",
+          "type": "quantitative",
+          "table_calc": []
+        }
+      ],
+      "grouping": [
+        {
+          "reference": "[federated.billing].[none:Invoice Month:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Month]",
+          "name": "[Invoice Month]",
+          "caption": "Invoice Month",
+          "formula": "DATETRUNC('month', [Invoice Date])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[none:Segment:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+          "name": "[Segment]",
+          "caption": "Segment",
+          "formula": null,
+          "raw_column": "SEGMENT"
+        }
+      ],
+      "selected_fields": [
+        {
+          "reference": "[federated.billing].[usr:Revenue:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+          "name": "[Revenue]",
+          "caption": "Revenue",
+          "formula": "SUM([Net Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Paid:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid]",
+          "name": "[Paid]",
+          "caption": "Paid",
+          "formula": "SUM([Paid Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Outstanding:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding]",
+          "name": "[Outstanding]",
+          "caption": "Outstanding",
+          "formula": "SUM([Outstanding Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Payment Rate:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Payment Rate]",
+          "name": "[Payment Rate]",
+          "caption": "Payment Rate",
+          "formula": "IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Scenario Revenue:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Scenario Revenue]",
+          "name": "[Scenario Revenue]",
+          "caption": "Scenario Revenue",
+          "formula": "SUM([Net Cents]) * [Parameters].[Multiplier]",
+          "raw_column": null
+        }
+      ],
+      "filters": [
+        {
+          "id": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend/filter:0",
+          "column": "[federated.billing].[none:Date Window:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Date Window:nk]",
+            "context": "true"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Date Window:nk]",
+              "context": "true"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Date Window:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "context",
+          "context": true,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+          "field_name": "[Date Window]",
+          "caption": "Date Window",
+          "formula": "[Invoice Date] >= [Parameters].[Start Date] AND [Invoice Date] < [Parameters].[End Date]",
+          "member": true
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend/filter:1",
+          "column": "[federated.billing].[none:Segment Selection:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Segment Selection:nk]",
+            "context": "false"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Segment Selection:nk]",
+              "context": "false"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Segment Selection:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "dimension",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+          "field_name": "[Segment Selection]",
+          "caption": "Segment Selection",
+          "formula": "[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]",
+          "member": true
+        }
+      ],
+      "datasource_filters": [
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/filter:0",
+          "column": "[federated.billing].[none:Posted Population:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Posted Population:nk]"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Posted Population:nk]"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Posted Population:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "datasource",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Posted Population]",
+          "field_name": "[Posted Population]",
+          "caption": "Posted Population",
+          "formula": "[Status] = 'posted'",
+          "member": true
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/filter:1",
+          "column": "[federated.billing].[none:Tenant Population:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Tenant Population:nk]"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Tenant Population:nk]"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Tenant Population:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "datasource",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant Population]",
+          "field_name": "[Tenant Population]",
+          "caption": "Tenant Population",
+          "formula": "[Tenant ID] = [Parameters].[Tenant]",
+          "member": true
+        }
+      ],
+      "table_calculations": [],
+      "shelves": {
+        "rows": "[federated.billing].[none:Invoice Month:nk] / [federated.billing].[none:Segment:nk]",
+        "cols": ""
+      },
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing"
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value",
+      "name": "Customer Value",
+      "path": "billing.twb",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "native_id": "{9eaeed0e-9833-5859-a553-8969f979321a}",
+      "datasource_names": [
+        "federated.billing",
+        "Parameters"
+      ],
+      "datasource_ids": [
+        "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+        "billing.twb#tableau-billing-synthetic/datasource:Parameters"
+      ],
+      "fields": [
+        {
+          "reference": "[federated.billing].[none:Customer ID:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Customer ID]",
+          "name": "[Customer ID]",
+          "caption": "Customer ID",
+          "formula": null,
+          "raw_column": "CUSTOMER_ID"
+        },
+        {
+          "reference": "[federated.billing].[none:Segment:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+          "name": "[Segment]",
+          "caption": "Segment",
+          "formula": null,
+          "raw_column": "SEGMENT"
+        },
+        {
+          "reference": "[federated.billing].[usr:Revenue:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+          "name": "[Revenue]",
+          "caption": "Revenue",
+          "formula": "SUM([Net Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Displayed Fixed Customer Net:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Displayed Fixed Customer Net]",
+          "name": "[Displayed Fixed Customer Net]",
+          "caption": "Displayed Fixed Customer Net",
+          "formula": "MIN([Fixed Customer Net])",
+          "raw_column": null
+        }
+      ],
+      "instances": [
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Customer ID]",
+          "name": "[none:Customer ID:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Segment]",
+          "name": "[none:Segment:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Date Window]",
+          "name": "[none:Date Window:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Segment Selection]",
+          "name": "[none:Segment Selection:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Revenue]",
+          "name": "[usr:Revenue:qk]",
+          "derivation": "User",
+          "pivot": "key",
+          "type": "quantitative",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Displayed Fixed Customer Net]",
+          "name": "[usr:Displayed Fixed Customer Net:qk]",
+          "derivation": "User",
+          "pivot": "key",
+          "type": "quantitative",
+          "table_calc": []
+        }
+      ],
+      "grouping": [
+        {
+          "reference": "[federated.billing].[none:Customer ID:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Customer ID]",
+          "name": "[Customer ID]",
+          "caption": "Customer ID",
+          "formula": null,
+          "raw_column": "CUSTOMER_ID"
+        },
+        {
+          "reference": "[federated.billing].[none:Segment:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+          "name": "[Segment]",
+          "caption": "Segment",
+          "formula": null,
+          "raw_column": "SEGMENT"
+        }
+      ],
+      "selected_fields": [
+        {
+          "reference": "[federated.billing].[usr:Revenue:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+          "name": "[Revenue]",
+          "caption": "Revenue",
+          "formula": "SUM([Net Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Displayed Fixed Customer Net:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Displayed Fixed Customer Net]",
+          "name": "[Displayed Fixed Customer Net]",
+          "caption": "Displayed Fixed Customer Net",
+          "formula": "MIN([Fixed Customer Net])",
+          "raw_column": null
+        }
+      ],
+      "filters": [
+        {
+          "id": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value/filter:0",
+          "column": "[federated.billing].[none:Date Window:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Date Window:nk]",
+            "context": "true"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Date Window:nk]",
+              "context": "true"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Date Window:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "context",
+          "context": true,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+          "field_name": "[Date Window]",
+          "caption": "Date Window",
+          "formula": "[Invoice Date] >= [Parameters].[Start Date] AND [Invoice Date] < [Parameters].[End Date]",
+          "member": true
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value/filter:1",
+          "column": "[federated.billing].[none:Segment Selection:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Segment Selection:nk]",
+            "context": "false"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Segment Selection:nk]",
+              "context": "false"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Segment Selection:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "dimension",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+          "field_name": "[Segment Selection]",
+          "caption": "Segment Selection",
+          "formula": "[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]",
+          "member": true
+        }
+      ],
+      "datasource_filters": [
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/filter:0",
+          "column": "[federated.billing].[none:Posted Population:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Posted Population:nk]"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Posted Population:nk]"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Posted Population:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "datasource",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Posted Population]",
+          "field_name": "[Posted Population]",
+          "caption": "Posted Population",
+          "formula": "[Status] = 'posted'",
+          "member": true
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/filter:1",
+          "column": "[federated.billing].[none:Tenant Population:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Tenant Population:nk]"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Tenant Population:nk]"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Tenant Population:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "datasource",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant Population]",
+          "field_name": "[Tenant Population]",
+          "caption": "Tenant Population",
+          "formula": "[Tenant ID] = [Parameters].[Tenant]",
+          "member": true
+        }
+      ],
+      "table_calculations": [],
+      "shelves": {
+        "rows": "[federated.billing].[none:Customer ID:nk] / [federated.billing].[none:Segment:nk]",
+        "cols": ""
+      },
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing"
+    },
+    {
+      "id": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share",
+      "name": "Revenue Share",
+      "path": "billing.twb",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "native_id": "{2547e914-84d9-5bf6-b015-bb4459a4f694}",
+      "datasource_names": [
+        "federated.billing",
+        "Parameters"
+      ],
+      "datasource_ids": [
+        "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+        "billing.twb#tableau-billing-synthetic/datasource:Parameters"
+      ],
+      "fields": [
+        {
+          "reference": "[federated.billing].[none:Invoice Month:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Month]",
+          "name": "[Invoice Month]",
+          "caption": "Invoice Month",
+          "formula": "DATETRUNC('month', [Invoice Date])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[none:Segment:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+          "name": "[Segment]",
+          "caption": "Segment",
+          "formula": null,
+          "raw_column": "SEGMENT"
+        },
+        {
+          "reference": "[federated.billing].[usr:Revenue:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+          "name": "[Revenue]",
+          "caption": "Revenue",
+          "formula": "SUM([Net Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Revenue Share:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue Share]",
+          "name": "[Revenue Share]",
+          "caption": "Revenue Share",
+          "formula": "IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END",
+          "raw_column": null
+        }
+      ],
+      "instances": [
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Invoice Month]",
+          "name": "[none:Invoice Month:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Segment]",
+          "name": "[none:Segment:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Date Window]",
+          "name": "[none:Date Window:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Segment Selection]",
+          "name": "[none:Segment Selection:nk]",
+          "derivation": "None",
+          "pivot": "key",
+          "type": "nominal",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Revenue]",
+          "name": "[usr:Revenue:qk]",
+          "derivation": "User",
+          "pivot": "key",
+          "type": "quantitative",
+          "table_calc": []
+        },
+        {
+          "datasource_name": "federated.billing",
+          "column": "[Revenue Share]",
+          "name": "[usr:Revenue Share:qk]",
+          "derivation": "User",
+          "pivot": "key",
+          "type": "quantitative",
+          "table_calc": [
+            {
+              "tag": "table-calc",
+              "attributes": {
+                "ordering-type": "Field"
+              },
+              "text": "",
+              "children": [
+                {
+                  "tag": "order",
+                  "attributes": {
+                    "field": "[federated.billing].[Segment]"
+                  },
+                  "text": "",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "grouping": [
+        {
+          "reference": "[federated.billing].[none:Invoice Month:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Month]",
+          "name": "[Invoice Month]",
+          "caption": "Invoice Month",
+          "formula": "DATETRUNC('month', [Invoice Date])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[none:Segment:nk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+          "name": "[Segment]",
+          "caption": "Segment",
+          "formula": null,
+          "raw_column": "SEGMENT"
+        }
+      ],
+      "selected_fields": [
+        {
+          "reference": "[federated.billing].[usr:Revenue:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+          "name": "[Revenue]",
+          "caption": "Revenue",
+          "formula": "SUM([Net Cents])",
+          "raw_column": null
+        },
+        {
+          "reference": "[federated.billing].[usr:Revenue Share:qk]",
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue Share]",
+          "name": "[Revenue Share]",
+          "caption": "Revenue Share",
+          "formula": "IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END",
+          "raw_column": null
+        }
+      ],
+      "filters": [
+        {
+          "id": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share/filter:0",
+          "column": "[federated.billing].[none:Date Window:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Date Window:nk]",
+            "context": "true"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Date Window:nk]",
+              "context": "true"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Date Window:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "context",
+          "context": true,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+          "field_name": "[Date Window]",
+          "caption": "Date Window",
+          "formula": "[Invoice Date] >= [Parameters].[Start Date] AND [Invoice Date] < [Parameters].[End Date]",
+          "member": true
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share/filter:1",
+          "column": "[federated.billing].[none:Segment Selection:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Segment Selection:nk]",
+            "context": "false"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Segment Selection:nk]",
+              "context": "false"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Segment Selection:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "dimension",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+          "field_name": "[Segment Selection]",
+          "caption": "Segment Selection",
+          "formula": "[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]",
+          "member": true
+        }
+      ],
+      "datasource_filters": [
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/filter:0",
+          "column": "[federated.billing].[none:Posted Population:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Posted Population:nk]"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Posted Population:nk]"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Posted Population:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "datasource",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Posted Population]",
+          "field_name": "[Posted Population]",
+          "caption": "Posted Population",
+          "formula": "[Status] = 'posted'",
+          "member": true
+        },
+        {
+          "id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/filter:1",
+          "column": "[federated.billing].[none:Tenant Population:nk]",
+          "attributes": {
+            "class": "categorical",
+            "column": "[federated.billing].[none:Tenant Population:nk]"
+          },
+          "native": {
+            "tag": "filter",
+            "attributes": {
+              "class": "categorical",
+              "column": "[federated.billing].[none:Tenant Population:nk]"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "groupfilter",
+                "attributes": {
+                  "function": "member",
+                  "level": "[none:Tenant Population:nk]",
+                  "member": "true"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "stage": "datasource",
+          "context": false,
+          "field_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant Population]",
+          "field_name": "[Tenant Population]",
+          "caption": "Tenant Population",
+          "formula": "[Tenant ID] = [Parameters].[Tenant]",
+          "member": true
+        }
+      ],
+      "table_calculations": [
+        {
+          "column": "[Revenue Share]",
+          "native": {
+            "tag": "table-calc",
+            "attributes": {
+              "ordering-type": "Field"
+            },
+            "text": "",
+            "children": [
+              {
+                "tag": "order",
+                "attributes": {
+                  "field": "[federated.billing].[Segment]"
+                },
+                "text": "",
+                "children": []
+              }
+            ]
+          },
+          "addressing": [
+            "[Segment]"
+          ],
+          "partitioning": [
+            "[Invoice Month]"
+          ],
+          "partition_basis": "Remaining selected view dimensions after explicit addressing; inferred, not an authored partition XML field."
+        }
+      ],
+      "shelves": {
+        "rows": "[federated.billing].[none:Invoice Month:nk] / [federated.billing].[none:Segment:nk]",
+        "cols": ""
+      },
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing"
+    }
+  ],
+  "dashboards": [
+    {
+      "id": "billing.twb#tableau-billing-synthetic/dashboard:Billing Overview",
+      "name": "Billing Overview",
+      "path": "billing.twb",
+      "workbook_id": "billing.twb#tableau-billing-synthetic",
+      "worksheets": [
+        "Revenue Trend",
+        "Customer Value",
+        "Revenue Share"
+      ],
+      "zones": [
+        {
+          "name": "Revenue Trend",
+          "id": "1",
+          "type-v2": "viz",
+          "x": "0",
+          "y": "0",
+          "w": "100000",
+          "h": "33333"
+        },
+        {
+          "name": "Customer Value",
+          "id": "2",
+          "type-v2": "viz",
+          "x": "0",
+          "y": "33333",
+          "w": "100000",
+          "h": "33333"
+        },
+        {
+          "name": "Revenue Share",
+          "id": "3",
+          "type-v2": "viz",
+          "x": "0",
+          "y": "66666",
+          "w": "100000",
+          "h": "33333"
+        }
+      ],
+      "attributes": {
+        "name": "Billing Overview"
+      }
+    }
+  ],
+  "mirrors": [
+    {
+      "path": "billing.tds",
+      "datasource_id": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "matches_embedded": true,
+      "authority": "consistency_mirror_only"
+    }
+  ],
+  "edges": [
+    {
+      "from": "warehouse:DMA_TABLEAU.RAW.ADJUSTMENTS",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "kind": "warehouse_read",
+      "evidence": "DMA_TABLEAU.RAW.ADJUSTMENTS",
+      "connection_id": "tableau-billing-snowflake"
+    },
+    {
+      "from": "warehouse:DMA_TABLEAU.RAW.CUSTOMER_HISTORY",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "kind": "warehouse_read",
+      "evidence": "DMA_TABLEAU.RAW.CUSTOMER_HISTORY",
+      "connection_id": "tableau-billing-snowflake"
+    },
+    {
+      "from": "warehouse:DMA_TABLEAU.RAW.INVOICE_CDC",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "kind": "warehouse_read",
+      "evidence": "DMA_TABLEAU.RAW.INVOICE_CDC",
+      "connection_id": "tableau-billing-snowflake"
+    },
+    {
+      "from": "warehouse:DMA_TABLEAU.RAW.PAYMENT_CDC",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "kind": "warehouse_read",
+      "evidence": "DMA_TABLEAU.RAW.PAYMENT_CDC",
+      "connection_id": "tableau-billing-snowflake"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Posted Population]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "kind": "datasource_filter",
+      "evidence": {
+        "tag": "filter",
+        "attributes": {
+          "class": "categorical",
+          "column": "[federated.billing].[none:Posted Population:nk]"
+        },
+        "text": "",
+        "children": [
+          {
+            "tag": "groupfilter",
+            "attributes": {
+              "function": "member",
+              "level": "[none:Posted Population:nk]",
+              "member": "true"
+            },
+            "text": "",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant Population]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing",
+      "kind": "datasource_filter",
+      "evidence": {
+        "tag": "filter",
+        "attributes": {
+          "class": "categorical",
+          "column": "[federated.billing].[none:Tenant Population:nk]"
+        },
+        "text": "",
+        "children": [
+          {
+            "tag": "groupfilter",
+            "attributes": {
+              "function": "member",
+              "level": "[none:Tenant Population:nk]",
+              "member": "true"
+            },
+            "text": "",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Amount Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "kind": "calculation_reference",
+      "evidence": "[Amount Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Adjustment Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "kind": "calculation_reference",
+      "evidence": "[Adjustment Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding Cents]",
+      "kind": "calculation_reference",
+      "evidence": "[Net Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding Cents]",
+      "kind": "calculation_reference",
+      "evidence": "[Paid Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Date]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Month]",
+      "kind": "calculation_reference",
+      "evidence": "[Invoice Date]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Status]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Posted Population]",
+      "kind": "calculation_reference",
+      "evidence": "[Status]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant ID]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant Population]",
+      "kind": "calculation_reference",
+      "evidence": "[Tenant ID]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Tenant]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant Population]",
+      "kind": "calculation_reference",
+      "evidence": "[Parameters].[Tenant]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Date]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+      "kind": "calculation_reference",
+      "evidence": "[Invoice Date]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Start Date]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+      "kind": "calculation_reference",
+      "evidence": "[Parameters].[Start Date]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Date]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+      "kind": "calculation_reference",
+      "evidence": "[Invoice Date]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[End Date]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+      "kind": "calculation_reference",
+      "evidence": "[Parameters].[End Date]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Segment]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+      "kind": "calculation_reference",
+      "evidence": "[Parameters].[Segment]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+      "kind": "calculation_reference",
+      "evidence": "[Segment]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Segment]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+      "kind": "calculation_reference",
+      "evidence": "[Parameters].[Segment]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Tenant ID]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Fixed Customer Net]",
+      "kind": "calculation_reference",
+      "evidence": "[Tenant ID]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Customer ID]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Fixed Customer Net]",
+      "kind": "calculation_reference",
+      "evidence": "[Customer ID]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Fixed Customer Net]",
+      "kind": "calculation_reference",
+      "evidence": "[Net Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+      "kind": "calculation_reference",
+      "evidence": "[Net Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid]",
+      "kind": "calculation_reference",
+      "evidence": "[Paid Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding]",
+      "kind": "calculation_reference",
+      "evidence": "[Outstanding Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Payment Rate]",
+      "kind": "calculation_reference",
+      "evidence": "[Net Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Payment Rate]",
+      "kind": "calculation_reference",
+      "evidence": "[Paid Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Payment Rate]",
+      "kind": "calculation_reference",
+      "evidence": "[Net Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Scenario Revenue]",
+      "kind": "calculation_reference",
+      "evidence": "[Net Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:Parameters/field:[Multiplier]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Scenario Revenue]",
+      "kind": "calculation_reference",
+      "evidence": "[Parameters].[Multiplier]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Fixed Customer Net]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Displayed Fixed Customer Net]",
+      "kind": "calculation_reference",
+      "evidence": "[Fixed Customer Net]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue Share]",
+      "kind": "calculation_reference",
+      "evidence": "[Net Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue Share]",
+      "kind": "calculation_reference",
+      "evidence": "[Net Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Net Cents]",
+      "to": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue Share]",
+      "kind": "calculation_reference",
+      "evidence": "[Net Cents]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Month]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "kind": "view_grouping",
+      "evidence": "[federated.billing].[none:Invoice Month:nk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "kind": "view_grouping",
+      "evidence": "[federated.billing].[none:Segment:nk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "kind": "view_measure",
+      "evidence": "[federated.billing].[usr:Revenue:qk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Paid]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "kind": "view_measure",
+      "evidence": "[federated.billing].[usr:Paid:qk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Outstanding]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "kind": "view_measure",
+      "evidence": "[federated.billing].[usr:Outstanding:qk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Payment Rate]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "kind": "view_measure",
+      "evidence": "[federated.billing].[usr:Payment Rate:qk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Scenario Revenue]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "kind": "view_measure",
+      "evidence": "[federated.billing].[usr:Scenario Revenue:qk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "kind": "context_filter",
+      "evidence": {
+        "tag": "filter",
+        "attributes": {
+          "class": "categorical",
+          "column": "[federated.billing].[none:Date Window:nk]",
+          "context": "true"
+        },
+        "text": "",
+        "children": [
+          {
+            "tag": "groupfilter",
+            "attributes": {
+              "function": "member",
+              "level": "[none:Date Window:nk]",
+              "member": "true"
+            },
+            "text": "",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "kind": "dimension_filter",
+      "evidence": {
+        "tag": "filter",
+        "attributes": {
+          "class": "categorical",
+          "column": "[federated.billing].[none:Segment Selection:nk]",
+          "context": "false"
+        },
+        "text": "",
+        "children": [
+          {
+            "tag": "groupfilter",
+            "attributes": {
+              "function": "member",
+              "level": "[none:Segment Selection:nk]",
+              "member": "true"
+            },
+            "text": "",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Customer ID]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value",
+      "kind": "view_grouping",
+      "evidence": "[federated.billing].[none:Customer ID:nk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value",
+      "kind": "view_grouping",
+      "evidence": "[federated.billing].[none:Segment:nk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value",
+      "kind": "view_measure",
+      "evidence": "[federated.billing].[usr:Revenue:qk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Displayed Fixed Customer Net]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value",
+      "kind": "view_measure",
+      "evidence": "[federated.billing].[usr:Displayed Fixed Customer Net:qk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value",
+      "kind": "context_filter",
+      "evidence": {
+        "tag": "filter",
+        "attributes": {
+          "class": "categorical",
+          "column": "[federated.billing].[none:Date Window:nk]",
+          "context": "true"
+        },
+        "text": "",
+        "children": [
+          {
+            "tag": "groupfilter",
+            "attributes": {
+              "function": "member",
+              "level": "[none:Date Window:nk]",
+              "member": "true"
+            },
+            "text": "",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value",
+      "kind": "dimension_filter",
+      "evidence": {
+        "tag": "filter",
+        "attributes": {
+          "class": "categorical",
+          "column": "[federated.billing].[none:Segment Selection:nk]",
+          "context": "false"
+        },
+        "text": "",
+        "children": [
+          {
+            "tag": "groupfilter",
+            "attributes": {
+              "function": "member",
+              "level": "[none:Segment Selection:nk]",
+              "member": "true"
+            },
+            "text": "",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Invoice Month]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share",
+      "kind": "view_grouping",
+      "evidence": "[federated.billing].[none:Invoice Month:nk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share",
+      "kind": "view_grouping",
+      "evidence": "[federated.billing].[none:Segment:nk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share",
+      "kind": "view_measure",
+      "evidence": "[federated.billing].[usr:Revenue:qk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Revenue Share]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share",
+      "kind": "view_measure",
+      "evidence": "[federated.billing].[usr:Revenue Share:qk]"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Date Window]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share",
+      "kind": "context_filter",
+      "evidence": {
+        "tag": "filter",
+        "attributes": {
+          "class": "categorical",
+          "column": "[federated.billing].[none:Date Window:nk]",
+          "context": "true"
+        },
+        "text": "",
+        "children": [
+          {
+            "tag": "groupfilter",
+            "attributes": {
+              "function": "member",
+              "level": "[none:Date Window:nk]",
+              "member": "true"
+            },
+            "text": "",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/datasource:federated.billing/field:[Segment Selection]",
+      "to": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share",
+      "kind": "dimension_filter",
+      "evidence": {
+        "tag": "filter",
+        "attributes": {
+          "class": "categorical",
+          "column": "[federated.billing].[none:Segment Selection:nk]",
+          "context": "false"
+        },
+        "text": "",
+        "children": [
+          {
+            "tag": "groupfilter",
+            "attributes": {
+              "function": "member",
+              "level": "[none:Segment Selection:nk]",
+              "member": "true"
+            },
+            "text": "",
+            "children": []
+          }
+        ]
+      }
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Trend",
+      "to": "billing.twb#tableau-billing-synthetic/dashboard:Billing Overview",
+      "kind": "dashboard_sheet",
+      "evidence": "Revenue Trend"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/worksheet:Customer Value",
+      "to": "billing.twb#tableau-billing-synthetic/dashboard:Billing Overview",
+      "kind": "dashboard_sheet",
+      "evidence": "Customer Value"
+    },
+    {
+      "from": "billing.twb#tableau-billing-synthetic/worksheet:Revenue Share",
+      "to": "billing.twb#tableau-billing-synthetic/dashboard:Billing Overview",
+      "kind": "dashboard_sheet",
+      "evidence": "Revenue Share"
+    }
+  ],
+  "gaps": [
+    {
+      "kind": "official_schema_unvalidated",
+      "severity": "review",
+      "message": "Element '{http://www.w3.org/2001/XMLSchema}attributeGroup', attribute 'ref': The QName value '{http://www.tableausoftware.com/xml/user}UserAttributes-AG' does not resolve to a(n) attribute group definition., line 2774",
+      "path": "billing.twb",
+      "id": "billing.twb#tableau-billing-synthetic"
+    },
+    {
+      "kind": "native_runtime_unverified",
+      "severity": "review",
+      "message": "No Tableau opening, rendering, connection authentication, server permissions, refresh, densification or dashboard-action validation occurred",
+      "path": "billing.twb",
+      "id": "billing.twb#tableau-billing-synthetic"
+    }
+  ],
+  "counts": {
+    "assets": 3,
+    "workbooks": 1,
+    "datasources": 1,
+    "fields": 29,
+    "calculations": 15,
+    "parameters": 5,
+    "worksheets": 3,
+    "dashboards": 1,
+    "edges": 60,
+    "errors": 0,
+    "review_gaps": 2
+  },
+  "static_coverage_complete": true,
+  "native_runtime_validated": false
+}

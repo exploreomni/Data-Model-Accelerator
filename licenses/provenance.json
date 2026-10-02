@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "package": "dbt-core",
+      "distribution_version": "1.12.4",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/dbt-labs/dbt-core",
+      "source": "LICENSE file shipped with the pinned installed Python distribution",
+      "file": "dbt-core-LICENSE.txt",
+      "sha256": "61df8c320dd014fc99ffce5c4a9920fdf24cbb50cace4bc710a43385b88b0eed",
+      "scope": "License notice for dependency macro source retained inside historical dbt manifest artifacts; not a claim that every historical transitive dependency used this version."
+    },
+    {
+      "package": "dbt-adapters",
+      "distribution_version": "1.24.5",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/dbt-labs/dbt-adapters",
+      "source": "LICENSE file shipped with the pinned installed Python distribution",
+      "file": "dbt-adapters-LICENSE.txt",
+      "sha256": "f728e282226159c099bd08dd6a018a0f0ad1a61e7c4167393f66d5490c17a3ab",
+      "scope": "License notice for dependency macro source retained inside historical dbt manifest artifacts; not a claim that every historical transitive dependency used this version."
+    },
+    {
+      "package": "dbt-duckdb",
+      "distribution_version": "1.11.0",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/duckdb/dbt-duckdb",
+      "source": "LICENSE file shipped with the pinned installed Python distribution",
+      "file": "dbt-duckdb-LICENSE.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "scope": "License notice for dependency macro source retained inside historical dbt manifest artifacts; not a claim that every historical transitive dependency used this version."
+    }
+  ]
+}

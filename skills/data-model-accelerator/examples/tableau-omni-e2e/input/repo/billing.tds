@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='utf-8'?>
+<datasource name="federated.billing" caption="Billing invoices" inline="true" version="26.1">
+  <connection class="federated">
+    <named-connections>
+      <named-connection name="tableau-billing-snowflake" caption="Synthetic Snowflake billing">
+        <connection class="snowflake" server="DMA_TABLEAU_SYNTHETIC" dbname="DMA_TABLEAU" schema="RAW" warehouse="SYNTHETIC_LOCAL_ONLY" authentication="snowflake" username="" />
+      </named-connection>
+    </named-connections>
+    <relation name="Billing custom SQL" type="text" connection="tableau-billing-snowflake">WITH invoice_versions AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, INVOICE_ID ORDER BY SEQUENCE DESC) AS RN
+  FROM DMA_TABLEAU.RAW.INVOICE_CDC
+), payment_versions AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, PAYMENT_ID ORDER BY SEQUENCE DESC) AS RN
+  FROM DMA_TABLEAU.RAW.PAYMENT_CDC
+), payments AS (
+  SELECT TENANT_ID, INVOICE_ID, SUM(PAID_CENTS) AS PAID_CENTS
+  FROM payment_versions WHERE RN = 1 AND NOT IS_DELETED
+  GROUP BY TENANT_ID, INVOICE_ID
+), history AS (
+  SELECT DISTINCT TENANT_ID, CUSTOMER_ID, SEGMENT, VALID_FROM, VALID_TO
+  FROM DMA_TABLEAU.RAW.CUSTOMER_HISTORY
+)
+SELECT i.TENANT_ID, i.INVOICE_ID, i.CUSTOMER_ID,
+       CAST(i.INVOICE_DATE AS DATE) AS INVOICE_DATE,
+       i.AMOUNT_CENTS, a.ADJUSTMENT_CENTS,
+       COALESCE(p.PAID_CENTS, 0) AS PAID_CENTS,
+       LOWER(TRIM(i.STATUS)) AS STATUS, h.SEGMENT
+FROM invoice_versions i
+LEFT JOIN payments p ON i.TENANT_ID = p.TENANT_ID AND i.INVOICE_ID = p.INVOICE_ID
+LEFT JOIN history h ON i.TENANT_ID = h.TENANT_ID AND i.CUSTOMER_ID = h.CUSTOMER_ID
+  AND CAST(i.INVOICE_DATE AS DATE) &gt;= CAST(h.VALID_FROM AS DATE)
+  AND (CAST(i.INVOICE_DATE AS DATE) &lt; CAST(h.VALID_TO AS DATE) OR h.VALID_TO IS NULL)
+LEFT JOIN DMA_TABLEAU.RAW.ADJUSTMENTS a ON i.TENANT_ID = a.TENANT_ID AND i.INVOICE_ID = a.INVOICE_ID
+WHERE i.RN = 1 AND NOT i.IS_DELETED</relation>
+    <metadata-records>
+      <metadata-record class="column">
+        <remote-name>TENANT_ID</remote-name>
+        <local-name>[Tenant ID]</local-name>
+        <parent-name>[Billing custom SQL]</parent-name>
+        <ordinal>1</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+      </metadata-record>
+      <metadata-record class="column">
+        <remote-name>INVOICE_ID</remote-name>
+        <local-name>[Invoice ID]</local-name>
+        <parent-name>[Billing custom SQL]</parent-name>
+        <ordinal>2</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+      </metadata-record>
+      <metadata-record class="column">
+        <remote-name>CUSTOMER_ID</remote-name>
+        <local-name>[Customer ID]</local-name>
+        <parent-name>[Billing custom SQL]</parent-name>
+        <ordinal>3</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+      </metadata-record>
+      <metadata-record class="column">
+        <remote-name>INVOICE_DATE</remote-name>
+        <local-name>[Invoice Date]</local-name>
+        <parent-name>[Billing custom SQL]</parent-name>
+        <ordinal>4</ordinal>
+        <local-type>date</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+      </metadata-record>
+      <metadata-record class="column">
+        <remote-name>AMOUNT_CENTS</remote-name>
+        <local-name>[Amount Cents]</local-name>
+        <parent-name>[Billing custom SQL]</parent-name>
+        <ordinal>5</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+      </metadata-record>
+      <metadata-record class="column">
+        <remote-name>ADJUSTMENT_CENTS</remote-name>
+        <local-name>[Adjustment Cents]</local-name>
+        <parent-name>[Billing custom SQL]</parent-name>
+        <ordinal>6</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+      </metadata-record>
+      <metadata-record class="column">
+        <remote-name>PAID_CENTS</remote-name>
+        <local-name>[Paid Cents]</local-name>
+        <parent-name>[Billing custom SQL]</parent-name>
+        <ordinal>7</ordinal>
+        <local-type>integer</local-type>
+        <aggregation>Sum</aggregation>
+        <contains-null>true</contains-null>
+      </metadata-record>
+      <metadata-record class="column">
+        <remote-name>STATUS</remote-name>
+        <local-name>[Status]</local-name>
+        <parent-name>[Billing custom SQL]</parent-name>
+        <ordinal>8</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+      </metadata-record>
+      <metadata-record class="column">
+        <remote-name>SEGMENT</remote-name>
+        <local-name>[Segment]</local-name>
+        <parent-name>[Billing custom SQL]</parent-name>
+        <ordinal>9</ordinal>
+        <local-type>string</local-type>
+        <aggregation>Count</aggregation>
+        <contains-null>true</contains-null>
+      </metadata-record>
+    </metadata-records>
+  </connection>
+  <column name="[Tenant ID]" caption="Tenant ID" datatype="string" role="dimension" type="nominal" />
+  <column name="[Invoice ID]" caption="Invoice ID" datatype="string" role="dimension" type="nominal" />
+  <column name="[Customer ID]" caption="Customer ID" datatype="string" role="dimension" type="nominal" />
+  <column name="[Invoice Date]" caption="Invoice Date" datatype="date" role="dimension" type="nominal" />
+  <column name="[Amount Cents]" caption="Amount Cents" datatype="integer" role="measure" type="quantitative" />
+  <column name="[Adjustment Cents]" caption="Adjustment Cents" datatype="integer" role="measure" type="quantitative" />
+  <column name="[Paid Cents]" caption="Paid Cents" datatype="integer" role="measure" type="quantitative" />
+  <column name="[Status]" caption="Status" datatype="string" role="dimension" type="nominal" />
+  <column name="[Segment]" caption="Segment" datatype="string" role="dimension" type="nominal" />
+  <column name="[Net Cents]" caption="Net Cents" datatype="integer" role="measure" type="quantitative">
+    <calculation class="tableau" formula="[Amount Cents] + ZN([Adjustment Cents])" />
+  </column>
+  <column name="[Outstanding Cents]" caption="Outstanding Cents" datatype="integer" role="measure" type="quantitative">
+    <calculation class="tableau" formula="[Net Cents] - [Paid Cents]" />
+  </column>
+  <column name="[Invoice Month]" caption="Invoice Month" datatype="date" role="dimension" type="nominal">
+    <calculation class="tableau" formula="DATETRUNC('month', [Invoice Date])" />
+  </column>
+  <column name="[Posted Population]" caption="Posted Population" datatype="boolean" role="dimension" type="nominal">
+    <calculation class="tableau" formula="[Status] = 'posted'" />
+  </column>
+  <column name="[Tenant Population]" caption="Tenant Population" datatype="boolean" role="dimension" type="nominal">
+    <calculation class="tableau" formula="[Tenant ID] = [Parameters].[Tenant]" />
+  </column>
+  <column name="[Date Window]" caption="Date Window" datatype="boolean" role="dimension" type="nominal">
+    <calculation class="tableau" formula="[Invoice Date] &gt;= [Parameters].[Start Date] AND [Invoice Date] &lt; [Parameters].[End Date]" />
+  </column>
+  <column name="[Segment Selection]" caption="Segment Selection" datatype="boolean" role="dimension" type="nominal">
+    <calculation class="tableau" formula="[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]" />
+  </column>
+  <column name="[Fixed Customer Net]" caption="Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+    <calculation class="tableau" formula="{ FIXED [Tenant ID], [Customer ID] : SUM([Net Cents]) }" />
+  </column>
+  <column name="[Revenue]" caption="Revenue" datatype="integer" role="measure" type="quantitative">
+    <calculation class="tableau" formula="SUM([Net Cents])" />
+  </column>
+  <column name="[Paid]" caption="Paid" datatype="integer" role="measure" type="quantitative">
+    <calculation class="tableau" formula="SUM([Paid Cents])" />
+  </column>
+  <column name="[Outstanding]" caption="Outstanding" datatype="integer" role="measure" type="quantitative">
+    <calculation class="tableau" formula="SUM([Outstanding Cents])" />
+  </column>
+  <column name="[Payment Rate]" caption="Payment Rate" datatype="real" role="measure" type="quantitative">
+    <calculation class="tableau" formula="IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END" />
+  </column>
+  <column name="[Scenario Revenue]" caption="Scenario Revenue" datatype="real" role="measure" type="quantitative">
+    <calculation class="tableau" formula="SUM([Net Cents]) * [Parameters].[Multiplier]" />
+  </column>
+  <column name="[Displayed Fixed Customer Net]" caption="Displayed Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+    <calculation class="tableau" formula="MIN([Fixed Customer Net])" />
+  </column>
+  <column name="[Revenue Share]" caption="Revenue Share" datatype="real" role="measure" type="quantitative">
+    <calculation class="tableau" formula="IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END">
+      <table-calc ordering-type="Field" ordering-field="[federated.billing].[Segment]" />
+    </calculation>
+  </column>
+  <filter class="categorical" column="[federated.billing].[none:Posted Population:nk]">
+    <groupfilter function="member" level="[none:Posted Population:nk]" member="true" />
+  </filter>
+  <filter class="categorical" column="[federated.billing].[none:Tenant Population:nk]">
+    <groupfilter function="member" level="[none:Tenant Population:nk]" member="true" />
+  </filter>
+</datasource>
+  

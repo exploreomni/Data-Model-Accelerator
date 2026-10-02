@@ -1,0 +1,294 @@
+{
+  "origin": "synthetic",
+  "snapshot_at": "2026-03-02T00:00:00Z",
+  "INVOICE_CDC": [
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I1",
+      "CUSTOMER_ID": "C1",
+      "INVOICE_DATE": "2026-01-15",
+      "AMOUNT_CENTS": 12000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 2
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I1",
+      "CUSTOMER_ID": "C1",
+      "INVOICE_DATE": "2026-01-15",
+      "AMOUNT_CENTS": 10000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I2",
+      "CUSTOMER_ID": "C2",
+      "INVOICE_DATE": "2026-01-20",
+      "AMOUNT_CENTS": 8000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I3",
+      "CUSTOMER_ID": "C3",
+      "INVOICE_DATE": "2026-01-31",
+      "AMOUNT_CENTS": 5000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I5",
+      "CUSTOMER_ID": "C2",
+      "INVOICE_DATE": "2026-02-12",
+      "AMOUNT_CENTS": 9000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I4",
+      "CUSTOMER_ID": "C1",
+      "INVOICE_DATE": "2026-02-01",
+      "AMOUNT_CENTS": 7000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I6",
+      "CUSTOMER_ID": "C3",
+      "INVOICE_DATE": "2026-02-15",
+      "AMOUNT_CENTS": 6000,
+      "STATUS": "draft",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I7",
+      "CUSTOMER_ID": "C4",
+      "INVOICE_DATE": "2026-02-20",
+      "AMOUNT_CENTS": 0,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I8",
+      "CUSTOMER_ID": "C4",
+      "INVOICE_DATE": "2026-02-28",
+      "AMOUNT_CENTS": 4000,
+      "STATUS": "posted",
+      "IS_DELETED": true,
+      "SEQUENCE": 2
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I8",
+      "CUSTOMER_ID": "C4",
+      "INVOICE_DATE": "2026-02-28",
+      "AMOUNT_CENTS": 4000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I9",
+      "CUSTOMER_ID": "C2",
+      "INVOICE_DATE": "2026-03-01",
+      "AMOUNT_CENTS": 11000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "B",
+      "INVOICE_ID": "I1",
+      "CUSTOMER_ID": "C1",
+      "INVOICE_DATE": "2026-01-15",
+      "AMOUNT_CENTS": 30000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "B",
+      "INVOICE_ID": "I2",
+      "CUSTOMER_ID": "C2",
+      "INVOICE_DATE": "2026-02-15",
+      "AMOUNT_CENTS": 20000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "INVOICE_ID": "I1",
+      "CUSTOMER_ID": "C1",
+      "INVOICE_DATE": "2026-01-15",
+      "AMOUNT_CENTS": 12000,
+      "STATUS": "posted",
+      "IS_DELETED": false,
+      "SEQUENCE": 2
+    }
+  ],
+  "PAYMENT_CDC": [
+    {
+      "TENANT_ID": "A",
+      "PAYMENT_ID": "P1",
+      "INVOICE_ID": "I1",
+      "PAID_CENTS": 6000,
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "PAYMENT_ID": "P1",
+      "INVOICE_ID": "I1",
+      "PAID_CENTS": 7000,
+      "IS_DELETED": false,
+      "SEQUENCE": 2
+    },
+    {
+      "TENANT_ID": "A",
+      "PAYMENT_ID": "P2",
+      "INVOICE_ID": "I1",
+      "PAID_CENTS": 3000,
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "PAYMENT_ID": "P3",
+      "INVOICE_ID": "I2",
+      "PAID_CENTS": 4000,
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "PAYMENT_ID": "P4",
+      "INVOICE_ID": "I4",
+      "PAID_CENTS": 7000,
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "PAYMENT_ID": "P5",
+      "INVOICE_ID": "I5",
+      "PAID_CENTS": 1000,
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "PAYMENT_ID": "P6",
+      "INVOICE_ID": "I5",
+      "PAID_CENTS": 2000,
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "PAYMENT_ID": "P6",
+      "INVOICE_ID": "I5",
+      "PAID_CENTS": 2000,
+      "IS_DELETED": true,
+      "SEQUENCE": 2
+    },
+    {
+      "TENANT_ID": "B",
+      "PAYMENT_ID": "P1",
+      "INVOICE_ID": "I1",
+      "PAID_CENTS": 30000,
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "B",
+      "PAYMENT_ID": "P2",
+      "INVOICE_ID": "I2",
+      "PAID_CENTS": 5000,
+      "IS_DELETED": false,
+      "SEQUENCE": 1
+    },
+    {
+      "TENANT_ID": "A",
+      "PAYMENT_ID": "P1",
+      "INVOICE_ID": "I1",
+      "PAID_CENTS": 7000,
+      "IS_DELETED": false,
+      "SEQUENCE": 2
+    }
+  ],
+  "CUSTOMER_HISTORY": [
+    {
+      "TENANT_ID": "A",
+      "CUSTOMER_ID": "C1",
+      "SEGMENT": "SMB",
+      "VALID_FROM": "2025-01-01",
+      "VALID_TO": "2026-02-01"
+    },
+    {
+      "TENANT_ID": "A",
+      "CUSTOMER_ID": "C1",
+      "SEGMENT": "Enterprise",
+      "VALID_FROM": "2026-02-01",
+      "VALID_TO": null
+    },
+    {
+      "TENANT_ID": "A",
+      "CUSTOMER_ID": "C2",
+      "SEGMENT": "SMB",
+      "VALID_FROM": "2025-01-01",
+      "VALID_TO": null
+    },
+    {
+      "TENANT_ID": "A",
+      "CUSTOMER_ID": "C3",
+      "SEGMENT": "Enterprise",
+      "VALID_FROM": "2025-01-01",
+      "VALID_TO": null
+    },
+    {
+      "TENANT_ID": "A",
+      "CUSTOMER_ID": "C4",
+      "SEGMENT": "SMB",
+      "VALID_FROM": "2025-01-01",
+      "VALID_TO": null
+    },
+    {
+      "TENANT_ID": "B",
+      "CUSTOMER_ID": "C1",
+      "SEGMENT": "Enterprise",
+      "VALID_FROM": "2025-01-01",
+      "VALID_TO": null
+    },
+    {
+      "TENANT_ID": "B",
+      "CUSTOMER_ID": "C2",
+      "SEGMENT": "SMB",
+      "VALID_FROM": "2025-01-01",
+      "VALID_TO": null
+    },
+    {
+      "TENANT_ID": "A",
+      "CUSTOMER_ID": "C1",
+      "SEGMENT": "SMB",
+      "VALID_FROM": "2025-01-01",
+      "VALID_TO": "2026-02-01"
+    }
+  ]
+}

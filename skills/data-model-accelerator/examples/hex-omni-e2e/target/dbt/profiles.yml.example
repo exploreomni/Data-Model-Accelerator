@@ -1,0 +1,14 @@
+# Illustrative only. No credentials, native connection, grants, or deployment is supplied.
+hex_billing_migration:
+  target: fixture
+  outputs:
+    fixture:
+      type: snowflake
+      account: "{{ env_var('DMA_HEX_SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('DMA_HEX_SNOWFLAKE_USER') }}"
+      authenticator: externalbrowser
+      database: DMA_HEX
+      warehouse: "{{ env_var('DMA_HEX_SNOWFLAKE_WAREHOUSE') }}"
+      role: "{{ env_var('DMA_HEX_SNOWFLAKE_ROLE') }}"
+      schema: DMA_HEX_FIXTURE
+      threads: 1

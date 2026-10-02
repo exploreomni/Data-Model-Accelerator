@@ -1,0 +1,139 @@
+schemaVersion: 3
+meta:
+  projectId: 5e760dfd-fdc7-5462-9807-a12f807eebc9
+  sourceVersionId: 872afabf-edf7-5cd8-8777-1c33e45dd370
+  codeLanguage: PYTHON
+  title: Revenue exploration
+  hexType: PROJECT
+  timezone: UTC
+  allowExecutionReordering: true
+  castDecimalsDefault: false
+cells:
+- cellId: fab3e6a7-cd82-503f-97e4-f471a205fcf3
+  cellType: INPUT
+  cellLabel: tenant
+  config:
+    name: tenant
+    outputType: STRING
+    inputType: DROPDOWN
+    defaultValue: A
+    options:
+      valueOptions:
+      - A
+      - B
+      optional: false
+- cellId: 4327be15-f2a6-59f5-8f56-5d64f34bb7a9
+  cellType: INPUT
+  cellLabel: start_date
+  config:
+    name: start_date
+    outputType: STRING
+    inputType: TEXT_INPUT
+    defaultValue: '2026-01-01'
+    options:
+      multiline: false
+- cellId: 267cc62f-0784-5c1e-b6d1-47ce9309acd1
+  cellType: INPUT
+  cellLabel: end_date
+  config:
+    name: end_date
+    outputType: STRING
+    inputType: TEXT_INPUT
+    defaultValue: '2026-03-01'
+    options:
+      multiline: false
+- cellId: 18304817-f4f8-550a-bb6a-dfe47b1ca3fd
+  cellType: INPUT
+  cellLabel: segment
+  config:
+    name: segment
+    outputType: STRING
+    inputType: DROPDOWN
+    defaultValue: ALL
+    options:
+      valueOptions:
+      - ALL
+      - SMB
+      - Enterprise
+      optional: false
+- cellId: 384c83ea-bf87-57bc-bac0-dd8a11c532b0
+  cellType: COMPONENT_IMPORT
+  cellLabel: Revenue definition
+  config:
+    component:
+      id: 8c7958a3-573b-5b81-9a0e-02de54bed99d
+      version: 48181ff3-ae9a-5717-add9-699e64214924
+- cellId: c7db64be-6671-54f8-8714-2d80116373e6
+  cellType: SQL
+  cellLabel: Monthly summary
+  config:
+    source: "SELECT DATE_TRUNC('month', INVOICE_DATE) AS month, SEGMENT AS segment,\n       COUNT(*) AS invoice_count,\n       SUM(NET_CENTS) AS net_cents, SUM(PAID_CENTS) AS paid_cents,\n       SUM(OUTSTANDING_CENTS) AS outstanding_cents,\n       SUM(PAID_CENTS) / NULLIF(SUM(NET_CENTS), 0) AS payment_rate\nFROM enriched WHERE STATUS = 'posted'\n  AND TENANT_ID = {{ tenant }}\n  AND INVOICE_DATE >= CAST({{ start_date }} AS DATE)\n  AND INVOICE_DATE < CAST({{ end_date }} AS DATE)\n  AND ({{ segment }} = 'ALL' OR SEGMENT = {{ segment }})\nGROUP BY MONTH, SEGMENT ORDER BY MONTH, SEGMENT"
+    resultVariableName: revenue_summary
+    dataFrameCell: true
+    dataConnectionId: null
+    castDecimals: false
+    sqlCellOutputType: PANDAS
+- cellId: a95d09a8-d68c-5a5a-ab15-578125b63aa6
+  cellType: INPUT
+  cellLabel: What-if multiplier
+  config:
+    name: what_if_multiplier
+    outputType: NUMBER
+    inputType: NUMERIC_INPUT
+    defaultValue: 1.1
+    options:
+      increment: 0.1
+- cellId: be08e4a3-6cd9-553d-bd90-4f20808feb5c
+  cellType: CODE
+  cellLabel: Exploratory revenue forecast
+  config:
+    source: 'what_if_revenue = revenue_summary["net_cents"] * what_if_multiplier
+
+      '
+appLayout:
+  fullWidth: true
+  tabs:
+  - name: Overview
+    rows:
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: fab3e6a7-cd82-503f-97e4-f471a205fcf3
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: 4327be15-f2a6-59f5-8f56-5d64f34bb7a9
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: 267cc62f-0784-5c1e-b6d1-47ce9309acd1
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: 18304817-f4f8-550a-bb6a-dfe47b1ca3fd
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: c7db64be-6671-54f8-8714-2d80116373e6
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: a95d09a8-d68c-5a5a-ab15-578125b63aa6
+          showSource: false
+          showLabel: true

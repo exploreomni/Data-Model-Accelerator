@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "kind": "logic_placement_and_decision_register",
+  "specification_version": "tableau-billing-1.0.0",
+  "source_behavior_status": "Scenario-specified authored synthetic behavior, with original native field IDs supplied by source author.",
+  "deployment_status": "Candidate files only; runtime evidence belongs to the separate validation report.",
+  "owner": "Unknown; no business or operational approval supplied.",
+  "decisions": [
+    {
+      "id": "raw-contracts",
+      "source_evidence": "input/raw-data.json; input/scenario.md",
+      "target_placement": "bronze",
+      "target_artifacts": [
+        "target/snowflake/00_raw_contract.sql",
+        "target/dbt/models/sources.yml"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Reuse explicit invented raw schemas, dates as VARCHAR and cents as integers.",
+      "failure_if_misplaced": "Implicit source renaming/type changes obscure connection and catalogue binding.",
+      "remaining_review": "Production ingestion, freshness, grants, ownership and schema drift procedures unknown."
+    },
+    {
+      "id": "manual-adjustments",
+      "source_evidence": "input/repo/adjustments.csv; input/scenario.md",
+      "target_placement": "proposed_bronze_then_silver",
+      "target_artifacts": [
+        "target/dbt/models/silver/billing_adjustments.sql"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Land inventoried CSV then require one signed adjustment per tenant/invoice; missing valid row means zero.",
+      "failure_if_misplaced": "Missing file or duplicate/orphan corrections must not silently become zero.",
+      "remaining_review": "Governed loader, receipt/approval workflow and owner not supplied."
+    },
+    {
+      "id": "cdc-current-state",
+      "source_evidence": "input/scenario.md raw contract; federated.billing custom SQL",
+      "target_placement": "silver",
+      "target_artifacts": [
+        "target/dbt/models/silver/billing_invoices.sql",
+        "target/dbt/models/silver/billing_payments.sql"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Latest sequence by tenant/business key before tombstone; identical replay accepted and conflicting same-version payload fails.",
+      "failure_if_misplaced": "Filtering tombstones before ranking resurrects deletions; tenant-free partitions mix customers.",
+      "remaining_review": "Native Snowflake execution and production incremental strategy unverified; candidate full rebuild only."
+    },
+    {
+      "id": "effective-history",
+      "source_evidence": "input/scenario.md history contract; federated.billing custom SQL",
+      "target_placement": "silver_and_gold",
+      "target_artifacts": [
+        "target/dbt/models/silver/billing_customer_history.sql",
+        "target/dbt/models/gold/dim_customers.sql",
+        "target/dbt/models/gold/fct_invoices.sql"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Deduplicate exact history rows; exactly one invoice-date interval match under [start,end).",
+      "failure_if_misplaced": "Current segment or inclusive end changes historical marks; overlap multiplies facts.",
+      "remaining_review": "No operational owner or late-history refresh SLA supplied."
+    },
+    {
+      "id": "payment-aggregation",
+      "source_evidence": "input/scenario.md payments contract; federated.billing custom SQL",
+      "target_placement": "gold_prejoin",
+      "target_artifacts": [
+        "target/dbt/models/gold/fct_invoices.sql"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Sum current payments per tenant/invoice before joining invoices.",
+      "failure_if_misplaced": "Joining raw multi-payment grain fans out amounts and adjustments.",
+      "remaining_review": "Native numeric inference and production reconciliation owner unverified."
+    },
+    {
+      "id": "net-outstanding-month",
+      "source_evidence": "Tableau [Net Cents], [Outstanding Cents], [Invoice Month]",
+      "target_placement": "gold_row",
+      "target_artifacts": [
+        "target/dbt/models/gold/fct_invoices.sql"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Shared deterministic invoice calculations preserve ZN-equivalent missing adjustment zero, signs and calendar month.",
+      "failure_if_misplaced": "Clamping balances or using payment month changes source facts.",
+      "remaining_review": "Business definitions are preserved; authoritative metric approval unknown."
+    },
+    {
+      "id": "report-population",
+      "source_evidence": "Tableau [Tenant Population], [Posted Population]",
+      "target_placement": "semantic_query",
+      "target_artifacts": [
+        "target/omni/billing.topic",
+        "target/omni/invoices.view",
+        "target/omni/report-context.json"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Tenant access boundary and posted report population precede FIXED; gold retains all current statuses.",
+      "failure_if_misplaced": "Tenant-only UI filtering is not security; context-free LOD includes drafts or another tenant.",
+      "remaining_review": "Native user attributes, grants, access-filter behavior and negative personas unverified."
+    },
+    {
+      "id": "date-context",
+      "source_evidence": "Tableau [Date Window]; parameters [Start Date], [End Date]",
+      "target_placement": "semantic_query_context",
+      "target_artifacts": [
+        "target/omni/report-context.json"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Half-open calendar window precedes FIXED and is retained inside LOD.",
+      "failure_if_misplaced": "All-time precomputation or dimension placement produces wrong customer values.",
+      "remaining_review": "Native workbook date controls and time semantics require validation."
+    },
+    {
+      "id": "segment-dimension",
+      "source_evidence": "Tableau [Segment Selection]; parameter [Segment]",
+      "target_placement": "semantic_query_dimension",
+      "target_artifacts": [
+        "target/omni/report-context.json",
+        "target/omni/invoices.view"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Apply ALL/exact segment after FIXED; ignore only this predicate inside LOD.",
+      "failure_if_misplaced": "Applying it before FIXED reduces customer denominator; blanket cancellation removes required security/date/status context.",
+      "remaining_review": "Native selective LOD cancellation and joins require qualification."
+    },
+    {
+      "id": "fixed-customer-net",
+      "source_evidence": "Tableau [Fixed Customer Net]",
+      "target_placement": "semantic_query_time_lod",
+      "target_artifacts": [
+        "target/omni/invoices.view"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Native candidate fixed tenant/customer SUM net; mark MIN preserves repeated nonadditive values.",
+      "failure_if_misplaced": "Permanent all-time customer total or summed repeated values changes source semantics.",
+      "remaining_review": "No additive grand total claimed; business owner must approve intended authoritative definition."
+    },
+    {
+      "id": "weighted-payment-rate",
+      "source_evidence": "Revenue Trend ratio of paid/net sums in scenario",
+      "target_placement": "semantic_compound_measure",
+      "target_artifacts": [
+        "target/omni/invoices.view"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Divide aggregate paid by NULLIF aggregate net, not per-row ratios; zero denominator null.",
+      "failure_if_misplaced": "Average invoice ratios gives different weighting.",
+      "remaining_review": "Native aggregate execution unverified; grouped empty windows must remain zero marks."
+    },
+    {
+      "id": "share-of-month",
+      "source_evidence": "Tableau [Revenue Share]; partition Invoice Month, address Segment",
+      "target_placement": "presentation_after_filtered_marks",
+      "target_artifacts": [
+        "target/omni/report-context.json",
+        "documentation/semantic-mapping.md"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Retain selected-month denominator after segment filter, null at zero; documented native pivot row-total expression proposed.",
+      "failure_if_misplaced": "All-month totals or pre-filter materialization change the interactive share.",
+      "remaining_review": "Native pivot shape, limits, sorting, densification and rendering unqualified; no workbook exported."
+    },
+    {
+      "id": "scenario-multiplier",
+      "source_evidence": "Tableau [Scenario Revenue]; parameter [Multiplier]",
+      "target_placement": "presentation_after_marks",
+      "target_artifacts": [
+        "target/omni/report-context.json"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Exploratory finite scalar multiplies selected revenue without changing shared facts or FIXED.",
+      "failure_if_misplaced": "Materializing it changes governed data when a viewer changes an exploratory input.",
+      "remaining_review": "Native dynamic control mapping unverified; only documented numeric-literal spreadsheet example supplied."
+    },
+    {
+      "id": "empty-zero-behavior",
+      "source_evidence": "input/scenario.md selected worksheet contract",
+      "target_placement": "query_and_presentation",
+      "target_artifacts": [
+        "target/omni/report-context.json",
+        "target/omni/invoices.view"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Equal date endpoints yield zero marks; zero monetary denominator yields null, not an exception or fabricated mark.",
+      "failure_if_misplaced": "Invented totals/rows or zero ratio alter output contract.",
+      "remaining_review": "Native render behavior needs testing even when local comparison passes."
+    },
+    {
+      "id": "physical-identities",
+      "source_evidence": "input/scenario.md composite key contract",
+      "target_placement": "gold_and_assertions",
+      "target_artifacts": [
+        "target/dbt/models/gold/dim_customers.sql",
+        "target/dbt/models/gold/fct_invoices.sql",
+        "target/dbt/tests/source_identity_and_required_values.sql"
+      ],
+      "decision_status": "candidate_preserving_stated_behavior",
+      "reason": "Synthetic keys include tenant and reject delimiter-bearing source components; relationships include tenant.",
+      "failure_if_misplaced": "Ambiguous encoding or missing tenant creates collisions.",
+      "remaining_review": "Production collision-safe encoding and enforced constraints remain decisions, not claims."
+    }
+  ]
+}

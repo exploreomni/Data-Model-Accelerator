@@ -1,0 +1,84 @@
+{
+  "rows": [
+    {
+      "amount": "120.00",
+      "cdc_sequence": 2,
+      "charge_id": "C1",
+      "charge_type": "rental_fee",
+      "currency": "USD",
+      "rental_id": "R1",
+      "tenant_id": "A",
+      "updated_at": "2026-08-15 18:10:00"
+    },
+    {
+      "amount": "20.00",
+      "cdc_sequence": 1,
+      "charge_id": "C2",
+      "charge_type": "refund",
+      "currency": "USD",
+      "rental_id": "R1",
+      "tenant_id": "A",
+      "updated_at": "2026-08-15 18:15:00"
+    },
+    {
+      "amount": "50.00",
+      "cdc_sequence": 1,
+      "charge_id": "C3",
+      "charge_type": "refundable_deposit",
+      "currency": "USD",
+      "rental_id": "R1",
+      "tenant_id": "A",
+      "updated_at": "2026-08-14 09:00:00"
+    },
+    {
+      "amount": "30.00",
+      "cdc_sequence": 1,
+      "charge_id": "C5",
+      "charge_type": "rental_fee",
+      "currency": "USD",
+      "rental_id": "R3",
+      "tenant_id": "A",
+      "updated_at": "2026-08-15 19:05:00"
+    },
+    {
+      "amount": "40.00",
+      "cdc_sequence": 1,
+      "charge_id": "C6",
+      "charge_type": "rental_fee",
+      "currency": "USD",
+      "rental_id": "R4",
+      "tenant_id": "A",
+      "updated_at": "2026-08-14 19:05:00"
+    },
+    {
+      "amount": "70.00",
+      "cdc_sequence": 1,
+      "charge_id": "C1",
+      "charge_type": "rental_fee",
+      "currency": "USD",
+      "rental_id": "R1",
+      "tenant_id": "B",
+      "updated_at": "2026-08-15 16:05:00"
+    },
+    {
+      "amount": "5.00",
+      "cdc_sequence": 1,
+      "charge_id": "C2",
+      "charge_type": "refund",
+      "currency": "USD",
+      "rental_id": "R1",
+      "tenant_id": "B",
+      "updated_at": "2026-08-15 16:10:00"
+    },
+    {
+      "amount": "42.00",
+      "cdc_sequence": 1,
+      "charge_id": "C9",
+      "charge_type": "rental_fee",
+      "currency": "USD",
+      "rental_id": "R9",
+      "tenant_id": "C",
+      "updated_at": "2026-08-15 15:05:00"
+    }
+  ]
+}

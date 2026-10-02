@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "scope": "Local synthetic author validation only; all five enabled warehouse models and downstream analysis",
+  "source": "Frozen supplied input; private oracle/previous targets not read",
+  "required_categories": {
+    "source_contract": [
+      "test_full_capture_types_keys_and_discount_validation",
+      "test_later_correction_and_older_conflict",
+      "test_orphan_lines_and_children_fail_with_no_accepted_output"
+    ],
+    "grain": [
+      "test_hand_derived_fact_no_fanout_discount_once",
+      "test_gold_retains_tenants_and_statuses_independent_of_report"
+    ],
+    "fanout": [
+      "test_hand_derived_fact_no_fanout_discount_once",
+      "test_negative_control_removed_tenant_join_is_detected"
+    ],
+    "logic": [
+      "test_invalid_quantities_and_refund_policy",
+      "test_weighted_ratio_recomputed_not_average_line_rates",
+      "test_half_open_dates_empty_and_product_literal_safety",
+      "test_original_staging_bytes_reused"
+    ],
+    "reconciliation": [
+      "test_hand_derived_fact_no_fanout_discount_once",
+      "test_weighted_ratio_recomputed_not_average_line_rates"
+    ],
+    "security": [
+      "test_missing_defaults_distinct_from_explicit_null_or_unauthorized",
+      "test_gold_retains_tenants_and_statuses_independent_of_report",
+      "test_negative_control_removed_tenant_join_is_detected"
+    ],
+    "history": [
+      "test_later_correction_and_older_conflict",
+      "test_tombstone_applied_after_latest_for_each_event_and_line"
+    ],
+    "replay": [
+      "test_duplicate_and_reordered_capture_is_idempotent"
+    ],
+    "negative_controls": [
+      "test_negative_control_removed_tenant_join_is_detected",
+      "test_negative_control_double_discount_changes_independent_assertion"
+    ]
+  },
+  "native": {
+    "preflight": "Separate native parse with no partial parse",
+    "full_build": "Complete unselected dbt build; five models, 52 tests; all 57 nodes must pass/succeed",
+    "denominator": "evidence/native-build/receipt.json expected_node_ids frozen from preflight",
+    "report": "Compile downstream analysis, execute as SELECT, compare exact gold/report interfaces and assert no REPORTS relation"
+  },
+  "expectation_basis": {
+    "hand_derived": "One line: quantity3 * price1000 - discount600 = net2400; fulfillment2+1=3; refunds800+700=1500; retained900. A second quantity1 line without fulfillment produces weighted rate3/4.",
+    "metamorphic": "Replay/reorder invariance, later version replacement, tombstone removal, tenant collision separation and invalid-capture rejection",
+    "native_parity": "Two execution paths of candidate SQL; cross-runtime agreement is not an independent business oracle",
+    "independent_holdout": "Withheld from author; parent owns separate evaluation and evidence"
+  },
+  "comparison": {
+    "gold_sort": [
+      "TENANT_ID",
+      "ORDER_ID",
+      "LINE_ID"
+    ],
+    "report_sort": [
+      "ORDER_MONTH",
+      "PRODUCT_ID"
+    ],
+    "money_quantities": "exact integers; no sampling",
+    "dates": "exact ISO calendar dates",
+    "rate_tolerance": 1e-12,
+    "empty": "[] for grouped report",
+    "invalid": "clear exception before accepted outputs"
+  },
+  "production_gates": [
+    "Snowflake native build/performance",
+    "Omni-native fields/totals/filter semantics",
+    "principal binding/grants",
+    "business and operational approval",
+    "relocation portability replay"
+  ],
+  "history_replay_applicability": "Applicable: current-state from versioned complete capture; no fabricated not-applicable waiver"
+}

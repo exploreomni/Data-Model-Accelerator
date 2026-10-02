@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "kind": "semantic_placement_and_conflict_register",
+  "specification_version": "hex-billing-1.0.0",
+  "canonical_active_customers_approved": false,
+  "items": [
+    {
+      "id": "place-current-state",
+      "source": "shared-revenue.hex.yaml#fb1b0798-bd91-5b31-873c-2736038d7153",
+      "disposition": "move_shared_to_silver",
+      "target": [
+        "billing_invoices",
+        "billing_payments",
+        "billing_customer_history"
+      ],
+      "rule": "Current sequence-before-delete, tenant identity, strict casts and historical intervals are reusable source semantics.",
+      "status": "proposed_local_candidate"
+    },
+    {
+      "id": "govern-adjustments",
+      "source": "adjustments.csv and shared-revenue.hex.yaml#019ca33f-6110-5123-8c28-0b8fbb312f3f",
+      "disposition": "explicit_external_source_then_silver",
+      "target": [
+        "DMA_HEX.RAW.ADJUSTMENTS",
+        "billing_adjustments"
+      ],
+      "rule": "Inventory and receipt manual CSV before landing. Missing file, duplicate keys and unknown invoice references fail; absent row on valid invoice is zero.",
+      "status": "production_governance_and_owner_unresolved"
+    },
+    {
+      "id": "place-invoice-balances",
+      "source": "shared-revenue.hex.yaml#019ca33f-6110-5123-8c28-0b8fbb312f3f",
+      "disposition": "move_shared_to_gold",
+      "target": [
+        "fct_invoices"
+      ],
+      "rule": "Tenant-safe preaggregated payments; amount plus signed adjustment; net minus paid; effective history; no report filters.",
+      "status": "proposed_local_candidate"
+    },
+    {
+      "id": "retain-runtime-context",
+      "source": "revenue.hex.yaml, retention.hex.yaml, executive.hex.yaml inputs/report cells",
+      "disposition": "semantic_report_context",
+      "target": [
+        "target/omni/report-context.json"
+      ],
+      "rule": "Retain date/segment defaults and exact source report field aliases separately from warehouse models.",
+      "status": "nonnative_local_report_companion"
+    },
+    {
+      "id": "retain-what-if",
+      "source": "revenue.hex.yaml parameter-dependent what-if cell",
+      "disposition": "retain_exploration",
+      "target": [],
+      "rule": "What-if multiplier remains source exploration and is excluded from shared revenue and target model SQL.",
+      "status": "retained_source_behavior"
+    },
+    {
+      "id": "active-customer-conflict",
+      "source_definitions": [
+        {
+          "project_id": "3b237687-7ceb-5f7d-bec6-047158cb60ef",
+          "cell_id": "8473ffd1-e376-5d15-b81f-689c9fa7a4b1",
+          "original_name": "active_customers",
+          "definition": "distinct customer with posted invoice NET_CENTS>0",
+          "proposed_name": "invoiced_active_customers"
+        },
+        {
+          "project_id": "8a6acc93-05da-50b1-91a3-c09584f72f7c",
+          "cell_id": "29a72b7c-da5a-5c86-a258-b20fd59e0ef1",
+          "original_name": "active_customers",
+          "definition": "distinct customer with posted invoice PAID_CENTS>0",
+          "proposed_name": "paying_active_customers"
+        }
+      ],
+      "disposition": "preserve_both_no_canonical_choice",
+      "target": [
+        "invoices.invoiced_active_customers",
+        "invoices.paying_active_customers"
+      ],
+      "status": "requires_human_business_definition_choice",
+      "owner": "unknown; not provided",
+      "decision": "Unresolved; no canonical active_customers field emitted."
+    },
+    {
+      "id": "cohort-proxy",
+      "source": "retention.hex.yaml#06a5206d-c15a-5f3d-b2ad-9116c2f34f33 and input/scenario.md",
+      "disposition": "explicit_invoice_based_snapshot_proxy",
+      "target": [
+        "fct_customer_month.FIRST_PAID_MONTH"
+      ],
+      "rule": "MIN invoice month for posted positive current paid amount over full capture, before report filters. No payment-event timestamp or historical as-of balance exists.",
+      "status": "interpretation_declared_not_payment_event_retention"
+    },
+    {
+      "id": "customer-month-segment",
+      "source": "input/scenario.md",
+      "disposition": "do_not_invent_allocation",
+      "target": [
+        "fct_customer_month"
+      ],
+      "rule": "No segment column; retain invoice historical segment in reports. A single customer-month segment requires an approved within-month allocation rule.",
+      "status": "requires_human_choice_for_any_future_single_segment_extension"
+    },
+    {
+      "id": "source-component-version",
+      "source": "shared-revenue.hex.yaml",
+      "component_id": "8c7958a3-573b-5b81-9a0e-02de54bed99d",
+      "component_version": "48181ff3-ae9a-5717-add9-699e64214924",
+      "disposition": "preserve_import_identity_and_require_complete_coverage",
+      "target": [
+        "all shared transforms"
+      ],
+      "rule": "Missing component, changed version or inconsistent imported content is a coverage gap; source parser must fail/flag it.",
+      "status": "source_verification_separate_from_target_authoring"
+    },
+    {
+      "id": "tenant-authorization",
+      "source": "input/scenario.md",
+      "disposition": "topic_access_filters_plus_explicit_persona_boundary",
+      "target": [
+        "billing.topic",
+        "retention.topic"
+      ],
+      "rule": "Authorized A/B persona required; missing/unknown/unauthorized denied in local simulation. UI inputs are not production row security.",
+      "status": "native_attribute_assignment_permissions_and_persona_tests_unverified"
+    },
+    {
+      "id": "native-runtime-gate",
+      "disposition": "separate_native_validation",
+      "target": [
+        "dbt",
+        "Snowflake",
+        "Hex",
+        "Omni"
+      ],
+      "rule": "Native parsing/compilation/execution, generated schema names, types, roles, component runtime and report behavior remain unverified by local SQL translation.",
+      "status": "unavailable_until_independently_established"
+    },
+    {
+      "id": "operating-model",
+      "disposition": "full_rebuild_candidate_only",
+      "target": [
+        "all layers"
+      ],
+      "rule": "No incremental ingestion, production schedule, SLA, grants, retention period, named operational owner or recovery automation supplied.",
+      "status": "requires_operating_owner_and_approval",
+      "owner": "unknown; not provided"
+    }
+  ]
+}

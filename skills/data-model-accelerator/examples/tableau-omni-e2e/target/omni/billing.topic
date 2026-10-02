@@ -1,0 +1,7 @@
+base_view: invoices
+label: Tableau billing worksheets
+joins:
+  customers: {}
+access_filters:
+- field: invoices.tenant_id
+  user_attribute: tenant_id

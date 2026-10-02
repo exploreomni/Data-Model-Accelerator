@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "kind": "data_model_inventory",
+  "models": [
+    {
+      "model_id": "DMA_SIM.BRONZE.BILLING_INVOICE_CDC",
+      "layer": "bronze",
+      "physical_name": "DMA_SIM.BRONZE.BILLING_INVOICE_CDC",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "ISSUED_AT",
+        "GROSS_CENTS",
+        "DISCOUNT_CENTS",
+        "STATUS",
+        "CURRENCY",
+        "SOURCE_SEQ",
+        "OP",
+        "ARRIVAL_SEQ"
+      ]
+    },
+    {
+      "model_id": "DMA_SIM.BRONZE.BILLING_PAYMENT_CDC",
+      "layer": "bronze",
+      "physical_name": "DMA_SIM.BRONZE.BILLING_PAYMENT_CDC",
+      "columns": [
+        "TENANT_ID",
+        "ENTRY_ID",
+        "INVOICE_ID",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "CURRENCY",
+        "SOURCE_SEQ",
+        "OP",
+        "ARRIVAL_SEQ"
+      ]
+    },
+    {
+      "model_id": "DMA_SIM.BRONZE.BILLING_CREDIT_CDC",
+      "layer": "bronze",
+      "physical_name": "DMA_SIM.BRONZE.BILLING_CREDIT_CDC",
+      "columns": [
+        "TENANT_ID",
+        "ENTRY_ID",
+        "INVOICE_ID",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "CURRENCY",
+        "SOURCE_SEQ",
+        "OP",
+        "ARRIVAL_SEQ"
+      ]
+    },
+    {
+      "model_id": "DMA_SIM.BRONZE.BILLING_CUSTOMER_HISTORY",
+      "layer": "bronze",
+      "physical_name": "DMA_SIM.BRONZE.BILLING_CUSTOMER_HISTORY",
+      "columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "VALID_FROM",
+        "VALID_TO",
+        "SEGMENT"
+      ]
+    },
+    {
+      "model_id": "DMA_SIM.SILVER.BILLING_INVOICES",
+      "layer": "silver",
+      "physical_name": "DMA_SIM.SILVER.BILLING_INVOICES",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "ISSUED_AT",
+        "GROSS_CENTS",
+        "DISCOUNT_CENTS",
+        "STATUS",
+        "CURRENCY"
+      ]
+    },
+    {
+      "model_id": "DMA_SIM.SILVER.BILLING_PAYMENTS",
+      "layer": "silver",
+      "physical_name": "DMA_SIM.SILVER.BILLING_PAYMENTS",
+      "columns": [
+        "TENANT_ID",
+        "ENTRY_ID",
+        "INVOICE_ID",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "CURRENCY"
+      ]
+    },
+    {
+      "model_id": "DMA_SIM.SILVER.BILLING_CREDITS",
+      "layer": "silver",
+      "physical_name": "DMA_SIM.SILVER.BILLING_CREDITS",
+      "columns": [
+        "TENANT_ID",
+        "ENTRY_ID",
+        "INVOICE_ID",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "CURRENCY"
+      ]
+    },
+    {
+      "model_id": "DMA_SIM.SILVER.BILLING_CUSTOMER_HISTORY",
+      "layer": "silver",
+      "physical_name": "DMA_SIM.SILVER.BILLING_CUSTOMER_HISTORY",
+      "columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "VALID_FROM",
+        "VALID_TO",
+        "SEGMENT"
+      ]
+    },
+    {
+      "model_id": "DMA_SIM.GOLD.DIM_CUSTOMERS",
+      "layer": "gold",
+      "physical_name": "DMA_SIM.GOLD.DIM_CUSTOMERS",
+      "columns": [
+        "CUSTOMER_KEY",
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "VALID_FROM",
+        "VALID_TO",
+        "SEGMENT"
+      ]
+    },
+    {
+      "model_id": "DMA_SIM.GOLD.FCT_INVOICES",
+      "layer": "gold",
+      "physical_name": "DMA_SIM.GOLD.FCT_INVOICES",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "ISSUED_AT",
+        "INVOICE_DATE",
+        "CURRENCY",
+        "STATUS",
+        "GROSS_CENTS",
+        "DISCOUNT_CENTS",
+        "CREDIT_CENTS",
+        "NET_CENTS",
+        "PAID_CENTS",
+        "INVOICE_KEY",
+        "CUSTOMER_KEY"
+      ]
+    }
+  ]
+}

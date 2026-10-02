@@ -1,0 +1,516 @@
+<?xml version='1.0' encoding='utf-8'?>
+<workbook original-version="26.1" source-build="0.0.0 (0000.0.0.0)" source-platform="mac" version="26.1">
+  <document-format-change-manifest>
+    <ManifestByVersion />
+  </document-format-change-manifest>
+  <repository-location id="tableau-billing-synthetic" path="/workbooks" revision="1.0" />
+  <datasources>
+    <datasource name="Parameters" inline="true" version="26.1">
+      <column name="[Tenant]" caption="Tenant" datatype="string" role="dimension" type="nominal" param-domain-type="list" value="&quot;A&quot;">
+        <calculation class="tableau" formula="&quot;A&quot;" />
+        <members>
+          <member value="&quot;A&quot;" />
+          <member value="&quot;B&quot;" />
+        </members>
+      </column>
+      <column name="[Start Date]" caption="Start Date" datatype="date" role="dimension" type="nominal" param-domain-type="any" value="#2026-01-01#">
+        <calculation class="tableau" formula="#2026-01-01#" />
+      </column>
+      <column name="[End Date]" caption="End Date" datatype="date" role="dimension" type="nominal" param-domain-type="any" value="#2026-03-01#">
+        <calculation class="tableau" formula="#2026-03-01#" />
+      </column>
+      <column name="[Segment]" caption="Segment" datatype="string" role="dimension" type="nominal" param-domain-type="list" value="&quot;ALL&quot;">
+        <calculation class="tableau" formula="&quot;ALL&quot;" />
+        <members>
+          <member value="&quot;ALL&quot;" />
+          <member value="&quot;SMB&quot;" />
+          <member value="&quot;Enterprise&quot;" />
+        </members>
+      </column>
+      <column name="[Multiplier]" caption="Multiplier" datatype="real" role="measure" type="quantitative" param-domain-type="any" value="1">
+        <calculation class="tableau" formula="1" />
+      </column>
+    </datasource>
+    <datasource name="federated.billing" caption="Billing invoices" inline="true" version="26.1">
+      <connection class="federated">
+        <named-connections>
+          <named-connection name="tableau-billing-snowflake" caption="Synthetic Snowflake billing">
+            <connection class="snowflake" server="DMA_TABLEAU_SYNTHETIC" dbname="DMA_TABLEAU" schema="RAW" warehouse="SYNTHETIC_LOCAL_ONLY" authentication="snowflake" username="" />
+          </named-connection>
+        </named-connections>
+        <relation name="Billing custom SQL" type="text" connection="tableau-billing-snowflake">WITH invoice_versions AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, INVOICE_ID ORDER BY SEQUENCE DESC) AS RN
+  FROM DMA_TABLEAU.RAW.INVOICE_CDC
+), payment_versions AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, PAYMENT_ID ORDER BY SEQUENCE DESC) AS RN
+  FROM DMA_TABLEAU.RAW.PAYMENT_CDC
+), payments AS (
+  SELECT TENANT_ID, INVOICE_ID, SUM(PAID_CENTS) AS PAID_CENTS
+  FROM payment_versions WHERE RN = 1 AND NOT IS_DELETED
+  GROUP BY TENANT_ID, INVOICE_ID
+), history AS (
+  SELECT DISTINCT TENANT_ID, CUSTOMER_ID, SEGMENT, VALID_FROM, VALID_TO
+  FROM DMA_TABLEAU.RAW.CUSTOMER_HISTORY
+)
+SELECT i.TENANT_ID, i.INVOICE_ID, i.CUSTOMER_ID,
+       CAST(i.INVOICE_DATE AS DATE) AS INVOICE_DATE,
+       i.AMOUNT_CENTS, a.ADJUSTMENT_CENTS,
+       COALESCE(p.PAID_CENTS, 0) AS PAID_CENTS,
+       LOWER(TRIM(i.STATUS)) AS STATUS, h.SEGMENT
+FROM invoice_versions i
+LEFT JOIN payments p ON i.TENANT_ID = p.TENANT_ID AND i.INVOICE_ID = p.INVOICE_ID
+LEFT JOIN history h ON i.TENANT_ID = h.TENANT_ID AND i.CUSTOMER_ID = h.CUSTOMER_ID
+  AND CAST(i.INVOICE_DATE AS DATE) &gt;= CAST(h.VALID_FROM AS DATE)
+  AND (CAST(i.INVOICE_DATE AS DATE) &lt; CAST(h.VALID_TO AS DATE) OR h.VALID_TO IS NULL)
+LEFT JOIN DMA_TABLEAU.RAW.ADJUSTMENTS a ON i.TENANT_ID = a.TENANT_ID AND i.INVOICE_ID = a.INVOICE_ID
+WHERE i.RN = 1 AND NOT i.IS_DELETED</relation>
+        <metadata-records>
+          <metadata-record class="column">
+            <remote-name>TENANT_ID</remote-name>
+            <local-name>[Tenant ID]</local-name>
+            <parent-name>[Billing custom SQL]</parent-name>
+            <ordinal>1</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class="column">
+            <remote-name>INVOICE_ID</remote-name>
+            <local-name>[Invoice ID]</local-name>
+            <parent-name>[Billing custom SQL]</parent-name>
+            <ordinal>2</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class="column">
+            <remote-name>CUSTOMER_ID</remote-name>
+            <local-name>[Customer ID]</local-name>
+            <parent-name>[Billing custom SQL]</parent-name>
+            <ordinal>3</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class="column">
+            <remote-name>INVOICE_DATE</remote-name>
+            <local-name>[Invoice Date]</local-name>
+            <parent-name>[Billing custom SQL]</parent-name>
+            <ordinal>4</ordinal>
+            <local-type>date</local-type>
+            <aggregation>Count</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class="column">
+            <remote-name>AMOUNT_CENTS</remote-name>
+            <local-name>[Amount Cents]</local-name>
+            <parent-name>[Billing custom SQL]</parent-name>
+            <ordinal>5</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class="column">
+            <remote-name>ADJUSTMENT_CENTS</remote-name>
+            <local-name>[Adjustment Cents]</local-name>
+            <parent-name>[Billing custom SQL]</parent-name>
+            <ordinal>6</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class="column">
+            <remote-name>PAID_CENTS</remote-name>
+            <local-name>[Paid Cents]</local-name>
+            <parent-name>[Billing custom SQL]</parent-name>
+            <ordinal>7</ordinal>
+            <local-type>integer</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class="column">
+            <remote-name>STATUS</remote-name>
+            <local-name>[Status]</local-name>
+            <parent-name>[Billing custom SQL]</parent-name>
+            <ordinal>8</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class="column">
+            <remote-name>SEGMENT</remote-name>
+            <local-name>[Segment]</local-name>
+            <parent-name>[Billing custom SQL]</parent-name>
+            <ordinal>9</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+        </metadata-records>
+      </connection>
+      <column name="[Tenant ID]" caption="Tenant ID" datatype="string" role="dimension" type="nominal" />
+      <column name="[Invoice ID]" caption="Invoice ID" datatype="string" role="dimension" type="nominal" />
+      <column name="[Customer ID]" caption="Customer ID" datatype="string" role="dimension" type="nominal" />
+      <column name="[Invoice Date]" caption="Invoice Date" datatype="date" role="dimension" type="nominal" />
+      <column name="[Amount Cents]" caption="Amount Cents" datatype="integer" role="measure" type="quantitative" />
+      <column name="[Adjustment Cents]" caption="Adjustment Cents" datatype="integer" role="measure" type="quantitative" />
+      <column name="[Paid Cents]" caption="Paid Cents" datatype="integer" role="measure" type="quantitative" />
+      <column name="[Status]" caption="Status" datatype="string" role="dimension" type="nominal" />
+      <column name="[Segment]" caption="Segment" datatype="string" role="dimension" type="nominal" />
+      <column name="[Net Cents]" caption="Net Cents" datatype="integer" role="measure" type="quantitative">
+        <calculation class="tableau" formula="[Amount Cents] + ZN([Adjustment Cents])" />
+      </column>
+      <column name="[Outstanding Cents]" caption="Outstanding Cents" datatype="integer" role="measure" type="quantitative">
+        <calculation class="tableau" formula="[Net Cents] - [Paid Cents]" />
+      </column>
+      <column name="[Invoice Month]" caption="Invoice Month" datatype="date" role="dimension" type="nominal">
+        <calculation class="tableau" formula="DATETRUNC('month', [Invoice Date])" />
+      </column>
+      <column name="[Posted Population]" caption="Posted Population" datatype="boolean" role="dimension" type="nominal">
+        <calculation class="tableau" formula="[Status] = 'posted'" />
+      </column>
+      <column name="[Tenant Population]" caption="Tenant Population" datatype="boolean" role="dimension" type="nominal">
+        <calculation class="tableau" formula="[Tenant ID] = [Parameters].[Tenant]" />
+      </column>
+      <column name="[Date Window]" caption="Date Window" datatype="boolean" role="dimension" type="nominal">
+        <calculation class="tableau" formula="[Invoice Date] &gt;= [Parameters].[Start Date] AND [Invoice Date] &lt; [Parameters].[End Date]" />
+      </column>
+      <column name="[Segment Selection]" caption="Segment Selection" datatype="boolean" role="dimension" type="nominal">
+        <calculation class="tableau" formula="[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]" />
+      </column>
+      <column name="[Fixed Customer Net]" caption="Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+        <calculation class="tableau" formula="{ FIXED [Tenant ID], [Customer ID] : SUM([Net Cents]) }" />
+      </column>
+      <column name="[Revenue]" caption="Revenue" datatype="integer" role="measure" type="quantitative">
+        <calculation class="tableau" formula="SUM([Net Cents])" />
+      </column>
+      <column name="[Paid]" caption="Paid" datatype="integer" role="measure" type="quantitative">
+        <calculation class="tableau" formula="SUM([Paid Cents])" />
+      </column>
+      <column name="[Outstanding]" caption="Outstanding" datatype="integer" role="measure" type="quantitative">
+        <calculation class="tableau" formula="SUM([Outstanding Cents])" />
+      </column>
+      <column name="[Payment Rate]" caption="Payment Rate" datatype="real" role="measure" type="quantitative">
+        <calculation class="tableau" formula="IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END" />
+      </column>
+      <column name="[Scenario Revenue]" caption="Scenario Revenue" datatype="real" role="measure" type="quantitative">
+        <calculation class="tableau" formula="SUM([Net Cents]) * [Parameters].[Multiplier]" />
+      </column>
+      <column name="[Displayed Fixed Customer Net]" caption="Displayed Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+        <calculation class="tableau" formula="MIN([Fixed Customer Net])" />
+      </column>
+      <column name="[Revenue Share]" caption="Revenue Share" datatype="real" role="measure" type="quantitative">
+        <calculation class="tableau" formula="IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END">
+          <table-calc ordering-type="Field" ordering-field="[federated.billing].[Segment]" />
+        </calculation>
+      </column>
+      <filter class="categorical" column="[federated.billing].[none:Posted Population:nk]">
+        <groupfilter function="member" level="[none:Posted Population:nk]" member="true" />
+      </filter>
+      <filter class="categorical" column="[federated.billing].[none:Tenant Population:nk]">
+        <groupfilter function="member" level="[none:Tenant Population:nk]" member="true" />
+      </filter>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name="Revenue Trend">
+      <table>
+        <view>
+          <datasources>
+            <datasource name="federated.billing" caption="Billing invoices" />
+            <datasource name="Parameters" caption="Parameters" />
+          </datasources>
+          <datasource-dependencies datasource="federated.billing">
+            <column name="[Tenant ID]" caption="Tenant ID" datatype="string" role="dimension" type="nominal" />
+            <column name="[Invoice ID]" caption="Invoice ID" datatype="string" role="dimension" type="nominal" />
+            <column name="[Customer ID]" caption="Customer ID" datatype="string" role="dimension" type="nominal" />
+            <column name="[Invoice Date]" caption="Invoice Date" datatype="date" role="dimension" type="nominal" />
+            <column name="[Amount Cents]" caption="Amount Cents" datatype="integer" role="measure" type="quantitative" />
+            <column name="[Adjustment Cents]" caption="Adjustment Cents" datatype="integer" role="measure" type="quantitative" />
+            <column name="[Paid Cents]" caption="Paid Cents" datatype="integer" role="measure" type="quantitative" />
+            <column name="[Status]" caption="Status" datatype="string" role="dimension" type="nominal" />
+            <column name="[Segment]" caption="Segment" datatype="string" role="dimension" type="nominal" />
+            <column name="[Net Cents]" caption="Net Cents" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="[Amount Cents] + ZN([Adjustment Cents])" />
+            </column>
+            <column name="[Outstanding Cents]" caption="Outstanding Cents" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="[Net Cents] - [Paid Cents]" />
+            </column>
+            <column name="[Invoice Month]" caption="Invoice Month" datatype="date" role="dimension" type="nominal">
+              <calculation class="tableau" formula="DATETRUNC('month', [Invoice Date])" />
+            </column>
+            <column name="[Posted Population]" caption="Posted Population" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Status] = 'posted'" />
+            </column>
+            <column name="[Tenant Population]" caption="Tenant Population" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Tenant ID] = [Parameters].[Tenant]" />
+            </column>
+            <column name="[Date Window]" caption="Date Window" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Invoice Date] &gt;= [Parameters].[Start Date] AND [Invoice Date] &lt; [Parameters].[End Date]" />
+            </column>
+            <column name="[Segment Selection]" caption="Segment Selection" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]" />
+            </column>
+            <column name="[Fixed Customer Net]" caption="Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="{ FIXED [Tenant ID], [Customer ID] : SUM([Net Cents]) }" />
+            </column>
+            <column name="[Revenue]" caption="Revenue" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Net Cents])" />
+            </column>
+            <column name="[Paid]" caption="Paid" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Paid Cents])" />
+            </column>
+            <column name="[Outstanding]" caption="Outstanding" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Outstanding Cents])" />
+            </column>
+            <column name="[Payment Rate]" caption="Payment Rate" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END" />
+            </column>
+            <column name="[Scenario Revenue]" caption="Scenario Revenue" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Net Cents]) * [Parameters].[Multiplier]" />
+            </column>
+            <column name="[Displayed Fixed Customer Net]" caption="Displayed Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="MIN([Fixed Customer Net])" />
+            </column>
+            <column name="[Revenue Share]" caption="Revenue Share" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END">
+                <table-calc ordering-type="Field" ordering-field="[federated.billing].[Segment]" />
+              </calculation>
+            </column>
+            <column-instance column="[Invoice Month]" name="[none:Invoice Month:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Segment]" name="[none:Segment:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Date Window]" name="[none:Date Window:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Segment Selection]" name="[none:Segment Selection:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Revenue]" name="[usr:Revenue:qk]" derivation="User" pivot="key" type="quantitative" />
+            <column-instance column="[Paid]" name="[usr:Paid:qk]" derivation="User" pivot="key" type="quantitative" />
+            <column-instance column="[Outstanding]" name="[usr:Outstanding:qk]" derivation="User" pivot="key" type="quantitative" />
+            <column-instance column="[Payment Rate]" name="[usr:Payment Rate:qk]" derivation="User" pivot="key" type="quantitative" />
+            <column-instance column="[Scenario Revenue]" name="[usr:Scenario Revenue:qk]" derivation="User" pivot="key" type="quantitative" />
+          </datasource-dependencies>
+          <filter class="categorical" column="[federated.billing].[none:Date Window:nk]" context="true">
+            <groupfilter function="member" level="[none:Date Window:nk]" member="true" />
+          </filter>
+          <filter class="categorical" column="[federated.billing].[none:Segment Selection:nk]" context="false">
+            <groupfilter function="member" level="[none:Segment Selection:nk]" member="true" />
+          </filter>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane>
+            <mark class="Text" />
+            <encodings>
+              <text column="[federated.billing].[usr:Revenue:qk]" />
+              <text column="[federated.billing].[usr:Paid:qk]" />
+              <text column="[federated.billing].[usr:Outstanding:qk]" />
+              <text column="[federated.billing].[usr:Payment Rate:qk]" />
+              <text column="[federated.billing].[usr:Scenario Revenue:qk]" />
+            </encodings>
+          </pane>
+        </panes>
+        <rows>[federated.billing].[none:Invoice Month:nk] / [federated.billing].[none:Segment:nk]</rows>
+        <cols />
+      </table>
+      <simple-id uuid="{e4bc658f-b0a2-5247-9bea-27d437ba1663}" />
+    </worksheet>
+    <worksheet name="Customer Value">
+      <table>
+        <view>
+          <datasources>
+            <datasource name="federated.billing" caption="Billing invoices" />
+            <datasource name="Parameters" caption="Parameters" />
+          </datasources>
+          <datasource-dependencies datasource="federated.billing">
+            <column name="[Tenant ID]" caption="Tenant ID" datatype="string" role="dimension" type="nominal" />
+            <column name="[Invoice ID]" caption="Invoice ID" datatype="string" role="dimension" type="nominal" />
+            <column name="[Customer ID]" caption="Customer ID" datatype="string" role="dimension" type="nominal" />
+            <column name="[Invoice Date]" caption="Invoice Date" datatype="date" role="dimension" type="nominal" />
+            <column name="[Amount Cents]" caption="Amount Cents" datatype="integer" role="measure" type="quantitative" />
+            <column name="[Adjustment Cents]" caption="Adjustment Cents" datatype="integer" role="measure" type="quantitative" />
+            <column name="[Paid Cents]" caption="Paid Cents" datatype="integer" role="measure" type="quantitative" />
+            <column name="[Status]" caption="Status" datatype="string" role="dimension" type="nominal" />
+            <column name="[Segment]" caption="Segment" datatype="string" role="dimension" type="nominal" />
+            <column name="[Net Cents]" caption="Net Cents" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="[Amount Cents] + ZN([Adjustment Cents])" />
+            </column>
+            <column name="[Outstanding Cents]" caption="Outstanding Cents" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="[Net Cents] - [Paid Cents]" />
+            </column>
+            <column name="[Invoice Month]" caption="Invoice Month" datatype="date" role="dimension" type="nominal">
+              <calculation class="tableau" formula="DATETRUNC('month', [Invoice Date])" />
+            </column>
+            <column name="[Posted Population]" caption="Posted Population" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Status] = 'posted'" />
+            </column>
+            <column name="[Tenant Population]" caption="Tenant Population" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Tenant ID] = [Parameters].[Tenant]" />
+            </column>
+            <column name="[Date Window]" caption="Date Window" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Invoice Date] &gt;= [Parameters].[Start Date] AND [Invoice Date] &lt; [Parameters].[End Date]" />
+            </column>
+            <column name="[Segment Selection]" caption="Segment Selection" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]" />
+            </column>
+            <column name="[Fixed Customer Net]" caption="Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="{ FIXED [Tenant ID], [Customer ID] : SUM([Net Cents]) }" />
+            </column>
+            <column name="[Revenue]" caption="Revenue" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Net Cents])" />
+            </column>
+            <column name="[Paid]" caption="Paid" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Paid Cents])" />
+            </column>
+            <column name="[Outstanding]" caption="Outstanding" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Outstanding Cents])" />
+            </column>
+            <column name="[Payment Rate]" caption="Payment Rate" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END" />
+            </column>
+            <column name="[Scenario Revenue]" caption="Scenario Revenue" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Net Cents]) * [Parameters].[Multiplier]" />
+            </column>
+            <column name="[Displayed Fixed Customer Net]" caption="Displayed Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="MIN([Fixed Customer Net])" />
+            </column>
+            <column name="[Revenue Share]" caption="Revenue Share" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END">
+                <table-calc ordering-type="Field" ordering-field="[federated.billing].[Segment]" />
+              </calculation>
+            </column>
+            <column-instance column="[Customer ID]" name="[none:Customer ID:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Segment]" name="[none:Segment:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Date Window]" name="[none:Date Window:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Segment Selection]" name="[none:Segment Selection:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Revenue]" name="[usr:Revenue:qk]" derivation="User" pivot="key" type="quantitative" />
+            <column-instance column="[Displayed Fixed Customer Net]" name="[usr:Displayed Fixed Customer Net:qk]" derivation="User" pivot="key" type="quantitative" />
+          </datasource-dependencies>
+          <filter class="categorical" column="[federated.billing].[none:Date Window:nk]" context="true">
+            <groupfilter function="member" level="[none:Date Window:nk]" member="true" />
+          </filter>
+          <filter class="categorical" column="[federated.billing].[none:Segment Selection:nk]" context="false">
+            <groupfilter function="member" level="[none:Segment Selection:nk]" member="true" />
+          </filter>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane>
+            <mark class="Text" />
+            <encodings>
+              <text column="[federated.billing].[usr:Revenue:qk]" />
+              <text column="[federated.billing].[usr:Displayed Fixed Customer Net:qk]" />
+            </encodings>
+          </pane>
+        </panes>
+        <rows>[federated.billing].[none:Customer ID:nk] / [federated.billing].[none:Segment:nk]</rows>
+        <cols />
+      </table>
+      <simple-id uuid="{9eaeed0e-9833-5859-a553-8969f979321a}" />
+    </worksheet>
+    <worksheet name="Revenue Share">
+      <table>
+        <view>
+          <datasources>
+            <datasource name="federated.billing" caption="Billing invoices" />
+            <datasource name="Parameters" caption="Parameters" />
+          </datasources>
+          <datasource-dependencies datasource="federated.billing">
+            <column name="[Tenant ID]" caption="Tenant ID" datatype="string" role="dimension" type="nominal" />
+            <column name="[Invoice ID]" caption="Invoice ID" datatype="string" role="dimension" type="nominal" />
+            <column name="[Customer ID]" caption="Customer ID" datatype="string" role="dimension" type="nominal" />
+            <column name="[Invoice Date]" caption="Invoice Date" datatype="date" role="dimension" type="nominal" />
+            <column name="[Amount Cents]" caption="Amount Cents" datatype="integer" role="measure" type="quantitative" />
+            <column name="[Adjustment Cents]" caption="Adjustment Cents" datatype="integer" role="measure" type="quantitative" />
+            <column name="[Paid Cents]" caption="Paid Cents" datatype="integer" role="measure" type="quantitative" />
+            <column name="[Status]" caption="Status" datatype="string" role="dimension" type="nominal" />
+            <column name="[Segment]" caption="Segment" datatype="string" role="dimension" type="nominal" />
+            <column name="[Net Cents]" caption="Net Cents" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="[Amount Cents] + ZN([Adjustment Cents])" />
+            </column>
+            <column name="[Outstanding Cents]" caption="Outstanding Cents" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="[Net Cents] - [Paid Cents]" />
+            </column>
+            <column name="[Invoice Month]" caption="Invoice Month" datatype="date" role="dimension" type="nominal">
+              <calculation class="tableau" formula="DATETRUNC('month', [Invoice Date])" />
+            </column>
+            <column name="[Posted Population]" caption="Posted Population" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Status] = 'posted'" />
+            </column>
+            <column name="[Tenant Population]" caption="Tenant Population" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Tenant ID] = [Parameters].[Tenant]" />
+            </column>
+            <column name="[Date Window]" caption="Date Window" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Invoice Date] &gt;= [Parameters].[Start Date] AND [Invoice Date] &lt; [Parameters].[End Date]" />
+            </column>
+            <column name="[Segment Selection]" caption="Segment Selection" datatype="boolean" role="dimension" type="nominal">
+              <calculation class="tableau" formula="[Parameters].[Segment] = 'ALL' OR [Segment] = [Parameters].[Segment]" />
+            </column>
+            <column name="[Fixed Customer Net]" caption="Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="{ FIXED [Tenant ID], [Customer ID] : SUM([Net Cents]) }" />
+            </column>
+            <column name="[Revenue]" caption="Revenue" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Net Cents])" />
+            </column>
+            <column name="[Paid]" caption="Paid" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Paid Cents])" />
+            </column>
+            <column name="[Outstanding]" caption="Outstanding" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Outstanding Cents])" />
+            </column>
+            <column name="[Payment Rate]" caption="Payment Rate" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="IF SUM([Net Cents]) = 0 THEN NULL ELSE SUM([Paid Cents]) / SUM([Net Cents]) END" />
+            </column>
+            <column name="[Scenario Revenue]" caption="Scenario Revenue" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="SUM([Net Cents]) * [Parameters].[Multiplier]" />
+            </column>
+            <column name="[Displayed Fixed Customer Net]" caption="Displayed Fixed Customer Net" datatype="integer" role="measure" type="quantitative">
+              <calculation class="tableau" formula="MIN([Fixed Customer Net])" />
+            </column>
+            <column name="[Revenue Share]" caption="Revenue Share" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="IF WINDOW_SUM(SUM([Net Cents])) = 0 THEN NULL ELSE SUM([Net Cents]) / WINDOW_SUM(SUM([Net Cents])) END">
+                <table-calc ordering-type="Field" ordering-field="[federated.billing].[Segment]" />
+              </calculation>
+            </column>
+            <column-instance column="[Invoice Month]" name="[none:Invoice Month:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Segment]" name="[none:Segment:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Date Window]" name="[none:Date Window:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Segment Selection]" name="[none:Segment Selection:nk]" derivation="None" pivot="key" type="nominal" />
+            <column-instance column="[Revenue]" name="[usr:Revenue:qk]" derivation="User" pivot="key" type="quantitative" />
+            <column-instance column="[Revenue Share]" name="[usr:Revenue Share:qk]" derivation="User" pivot="key" type="quantitative">
+              <table-calc ordering-type="Field">
+                <order field="[federated.billing].[Segment]" />
+              </table-calc>
+            </column-instance>
+          </datasource-dependencies>
+          <filter class="categorical" column="[federated.billing].[none:Date Window:nk]" context="true">
+            <groupfilter function="member" level="[none:Date Window:nk]" member="true" />
+          </filter>
+          <filter class="categorical" column="[federated.billing].[none:Segment Selection:nk]" context="false">
+            <groupfilter function="member" level="[none:Segment Selection:nk]" member="true" />
+          </filter>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane>
+            <mark class="Text" />
+            <encodings>
+              <text column="[federated.billing].[usr:Revenue:qk]" />
+              <text column="[federated.billing].[usr:Revenue Share:qk]" />
+            </encodings>
+          </pane>
+        </panes>
+        <rows>[federated.billing].[none:Invoice Month:nk] / [federated.billing].[none:Segment:nk]</rows>
+        <cols />
+      </table>
+      <simple-id uuid="{2547e914-84d9-5bf6-b015-bb4459a4f694}" />
+    </worksheet>
+  </worksheets>
+  <dashboards>
+    <dashboard name="Billing Overview">
+      <size maxheight="1200" maxwidth="1200" minheight="1200" minwidth="1200" sizing-mode="fixed" />
+      <zones>
+        <zone name="Revenue Trend" id="1" type-v2="viz" x="0" y="0" w="100000" h="33333" />
+        <zone name="Customer Value" id="2" type-v2="viz" x="0" y="33333" w="100000" h="33333" />
+        <zone name="Revenue Share" id="3" type-v2="viz" x="0" y="66666" w="100000" h="33333" />
+      </zones>
+    </dashboard>
+  </dashboards>
+</workbook>

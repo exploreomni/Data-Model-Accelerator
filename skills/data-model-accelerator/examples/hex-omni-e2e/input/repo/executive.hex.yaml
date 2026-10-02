@@ -1,0 +1,167 @@
+schemaVersion: 3
+meta:
+  projectId: 8a6acc93-05da-50b1-91a3-c09584f72f7c
+  sourceVersionId: 9dc0b7e4-aa89-5451-bb80-e5817ca15cf6
+  codeLanguage: PYTHON
+  title: Executive performance
+  hexType: PROJECT
+  timezone: UTC
+  allowExecutionReordering: true
+  castDecimalsDefault: false
+cells:
+- cellId: f8af1a7b-7304-5003-ba64-57ab51963dc5
+  cellType: INPUT
+  cellLabel: tenant
+  config:
+    name: tenant
+    outputType: STRING
+    inputType: DROPDOWN
+    defaultValue: A
+    options:
+      valueOptions:
+      - A
+      - B
+      optional: false
+- cellId: c97c3149-bbb2-5b9b-81b4-c61c2f65d6f0
+  cellType: INPUT
+  cellLabel: start_date
+  config:
+    name: start_date
+    outputType: STRING
+    inputType: TEXT_INPUT
+    defaultValue: '2026-01-01'
+    options:
+      multiline: false
+- cellId: 6c3c85c9-4514-5757-92e6-8c6c40927482
+  cellType: INPUT
+  cellLabel: end_date
+  config:
+    name: end_date
+    outputType: STRING
+    inputType: TEXT_INPUT
+    defaultValue: '2026-03-01'
+    options:
+      multiline: false
+- cellId: 394b53c6-d229-5f2d-8452-5d6944675202
+  cellType: INPUT
+  cellLabel: segment
+  config:
+    name: segment
+    outputType: STRING
+    inputType: DROPDOWN
+    defaultValue: ALL
+    options:
+      valueOptions:
+      - ALL
+      - SMB
+      - Enterprise
+      optional: false
+- cellId: 45dc42ac-c88b-5044-8def-b99050368443
+  cellType: COMPONENT_IMPORT
+  cellLabel: Revenue definition
+  config:
+    component:
+      id: 8c7958a3-573b-5b81-9a0e-02de54bed99d
+      version: 48181ff3-ae9a-5717-add9-699e64214924
+- cellId: 29a72b7c-da5a-5c86-a258-b20fd59e0ef1
+  cellType: SQL
+  cellLabel: Monthly summary
+  config:
+    source: "SELECT DATE_TRUNC('month', INVOICE_DATE) AS month, SEGMENT AS segment,\n       SUM(NET_CENTS) AS net_cents, SUM(PAID_CENTS) AS paid_cents,\n       SUM(PAID_CENTS) / NULLIF(SUM(NET_CENTS), 0) AS payment_rate,\n       COUNT(DISTINCT CASE WHEN NET_CENTS > 0 THEN CUSTOMER_ID END) AS invoiced_active_customers,\n       COUNT(DISTINCT CASE WHEN PAID_CENTS > 0 THEN CUSTOMER_ID END) AS active_customers\nFROM enriched WHERE STATUS = 'posted'\n  AND TENANT_ID = {{ tenant }}\n  AND INVOICE_DATE >= CAST({{ start_date }} AS DATE)\n  AND INVOICE_DATE < CAST({{ end_date }} AS DATE)\n  AND ({{ segment }} = 'ALL' OR SEGMENT = {{ segment }})\nGROUP BY MONTH, SEGMENT ORDER BY MONTH, SEGMENT"
+    resultVariableName: executive_summary
+    dataFrameCell: true
+    dataConnectionId: null
+    castDecimals: false
+    sqlCellOutputType: PANDAS
+- cellId: c6af3404-a645-57e7-819f-29af7f1ae8cc
+  cellType: CHARTV2
+  cellLabel: Revenue by historical segment
+  config:
+    height: 360
+    displayType: CHART
+    outputResult: false
+    chartSpec:
+      type: layered
+      settings:
+        legend:
+          position: right
+        tooltip: true
+        timezone: UTC
+        selectionEnabled: false
+      layers:
+      - id: revenue-layer
+        dataFrame: executive_summary
+        xAxis:
+          type: string
+          style: {}
+          dataFrameColumn: segment
+          sort: ascending
+        series:
+        - id: net-revenue
+          name: Net revenue (USD cents)
+          type: bar
+          axis:
+            type: number
+            style:
+              zero: true
+            aggregate: sum
+            title: Net revenue (USD cents)
+          dataFrameColumns:
+          - net_cents
+          colorOrder: ascending
+          color:
+            type: static
+            color: '#2563eb'
+          opacity:
+            type: static
+            value: 1
+          orientation: vertical
+          barWidth: 0.8
+          layout: grouped
+appLayout:
+  fullWidth: true
+  tabs:
+  - name: Overview
+    rows:
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: f8af1a7b-7304-5003-ba64-57ab51963dc5
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: c97c3149-bbb2-5b9b-81b4-c61c2f65d6f0
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: 6c3c85c9-4514-5757-92e6-8c6c40927482
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: 394b53c6-d229-5f2d-8452-5d6944675202
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: 29a72b7c-da5a-5c86-a258-b20fd59e0ef1
+          showSource: false
+          showLabel: true
+    - columns:
+      - start: 0
+        end: 120
+        elements:
+        - cellId: c6af3404-a645-57e7-819f-29af7f1ae8cc
+          showSource: false
+          showLabel: true

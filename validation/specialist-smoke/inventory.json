@@ -1,0 +1,153 @@
+{
+  "assets": [
+    {
+      "asset_id": "asset-68b682179efd03176a2f79b9",
+      "classification_evidence": [
+        {
+          "kind": "native_marker",
+          "path": "bi/manifest.lkml",
+          "signature": "Looker native LookML filename"
+        }
+      ],
+      "path": "bi/manifest.lkml",
+      "project_roots": [
+        "bi"
+      ],
+      "sha256": "0bd8833e6eec30276f24adf24c68ca91e1ebb9d05c242a49e2db76593baac846",
+      "shared": false,
+      "size_bytes": 44,
+      "source_types": [
+        "looker"
+      ],
+      "status": "readable"
+    },
+    {
+      "asset_id": "asset-fdb3549a779704bb6cd1b563",
+      "classification_evidence": [
+        {
+          "kind": "native_marker",
+          "path": "bi/models/billing.model.lkml",
+          "signature": "Looker native LookML filename"
+        }
+      ],
+      "path": "bi/models/billing.model.lkml",
+      "project_roots": [
+        "bi"
+      ],
+      "sha256": "f7a74ffd9f19ffa105c88554aa895e89f46c2bbeb123ab79830bce9202f3c630",
+      "shared": false,
+      "size_bytes": 172,
+      "source_types": [
+        "looker"
+      ],
+      "status": "readable"
+    },
+    {
+      "asset_id": "asset-9b41a63a5843e0456d17daf4",
+      "classification_evidence": [
+        {
+          "kind": "native_marker",
+          "path": "bi/views/invoices.view.lkml",
+          "signature": "Looker native LookML filename"
+        }
+      ],
+      "path": "bi/views/invoices.view.lkml",
+      "project_roots": [
+        "bi"
+      ],
+      "sha256": "02d63b0be342221ed9ebe0c986c30242f89168839615fa770f3d19334e96aef5",
+      "shared": false,
+      "size_bytes": 639,
+      "source_types": [
+        "looker"
+      ],
+      "status": "readable"
+    },
+    {
+      "asset_id": "asset-c474e23c9d327d444116e4e6",
+      "classification_evidence": [
+        {
+          "kind": "native_marker",
+          "path": "warehouse/dbt_project.yml",
+          "signature": "dbt_project.yml project marker"
+        }
+      ],
+      "path": "warehouse/dbt_project.yml",
+      "project_roots": [
+        "warehouse"
+      ],
+      "sha256": "1aec3e3a76979f22080adadb6775a586887c99f6b979a484e523481de87f1eb3",
+      "shared": false,
+      "size_bytes": 113,
+      "source_types": [
+        "dbt"
+      ],
+      "status": "readable"
+    },
+    {
+      "asset_id": "asset-00b9dd6068347a961e10228e",
+      "classification_evidence": [
+        {
+          "kind": "project_context",
+          "marker_paths": [
+            "warehouse/dbt_project.yml"
+          ]
+        }
+      ],
+      "path": "warehouse/models/invoice_reporting.sql",
+      "project_roots": [
+        "warehouse"
+      ],
+      "sha256": "4ecf04795f0d14c222ac108bd1f86cdd18da72fe82dfb0b6acc904e964c63f57",
+      "shared": false,
+      "size_bytes": 267,
+      "source_types": [
+        "dbt"
+      ],
+      "status": "readable"
+    },
+    {
+      "asset_id": "asset-8c5af100076c30ca288f42ea",
+      "classification_evidence": [
+        {
+          "kind": "project_context",
+          "marker_paths": [
+            "warehouse/dbt_project.yml"
+          ]
+        }
+      ],
+      "path": "warehouse/models/sources.yml",
+      "project_roots": [
+        "warehouse"
+      ],
+      "sha256": "e31a4fb53f15442c8b0b2a4da916af6cd4eb42b9e52e875fab04be92f4667dc3",
+      "shared": false,
+      "size_bytes": 418,
+      "source_types": [
+        "dbt"
+      ],
+      "status": "readable"
+    }
+  ],
+  "classification_scope": "Conservative routing only; no complete native parse, repository execution, archive extraction, or network access.",
+  "exclusions": [],
+  "explicit_include_paths": [],
+  "gaps": [],
+  "hard_errors": 0,
+  "limits": {
+    "max_file_bytes": 1048576,
+    "max_files": 2000,
+    "max_total_bytes": 33554432
+  },
+  "read_bytes": 1653,
+  "repository": {
+    "commit": null,
+    "dirty": null,
+    "reason": "Git inspection explicitly disabled",
+    "root": "/Users/austinaranda/Desktop/Codex/DataModelAccelerator/skills/data-model-accelerator/examples/mixed-projects",
+    "selected_root": "/Users/austinaranda/Desktop/Codex/DataModelAccelerator/skills/data-model-accelerator/examples/mixed-projects",
+    "status": "unverified"
+  },
+  "schema_version": 1,
+  "source_profiles": []
+}

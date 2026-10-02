@@ -1,0 +1,215 @@
+{
+  "models": 9,
+  "columns": 68,
+  "passed": true,
+  "checks": [
+    {
+      "model_id": "DMA_RETAIL.RAW.ORDER_CDC",
+      "expected": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "ORDER_DATE",
+        "STATUS",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "actual": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "ORDER_DATE",
+        "STATUS",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "passed": true
+    },
+    {
+      "model_id": "DMA_RETAIL.RAW.ORDER_LINE_CDC",
+      "expected": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "PRODUCT_ID",
+        "QUANTITY",
+        "UNIT_PRICE_CENTS",
+        "DISCOUNT_CENTS",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "actual": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "PRODUCT_ID",
+        "QUANTITY",
+        "UNIT_PRICE_CENTS",
+        "DISCOUNT_CENTS",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "passed": true
+    },
+    {
+      "model_id": "DMA_RETAIL.RAW.FULFILLMENT_CDC",
+      "expected": [
+        "TENANT_ID",
+        "FULFILLMENT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "actual": [
+        "TENANT_ID",
+        "FULFILLMENT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "passed": true
+    },
+    {
+      "model_id": "DMA_RETAIL.RAW.RETURN_CDC",
+      "expected": [
+        "TENANT_ID",
+        "RETURN_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY",
+        "REFUND_CENTS",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "actual": [
+        "TENANT_ID",
+        "RETURN_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY",
+        "REFUND_CENTS",
+        "SEQUENCE",
+        "IS_DELETED"
+      ],
+      "passed": true
+    },
+    {
+      "model_id": "DMA_RETAIL.SILVER.STG_ORDERS",
+      "expected": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "ORDER_DATE",
+        "ORDER_STATUS",
+        "ORDER_KEY"
+      ],
+      "actual": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "ORDER_DATE",
+        "ORDER_STATUS",
+        "ORDER_KEY"
+      ],
+      "passed": true
+    },
+    {
+      "model_id": "DMA_RETAIL.SILVER.STG_ORDER_LINES",
+      "expected": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "PRODUCT_ID",
+        "QUANTITY",
+        "UNIT_PRICE_CENTS",
+        "DISCOUNT_CENTS",
+        "LINE_NET_CENTS",
+        "LINE_KEY"
+      ],
+      "actual": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "PRODUCT_ID",
+        "QUANTITY",
+        "UNIT_PRICE_CENTS",
+        "DISCOUNT_CENTS",
+        "LINE_NET_CENTS",
+        "LINE_KEY"
+      ],
+      "passed": true
+    },
+    {
+      "model_id": "DMA_RETAIL.SILVER.STG_FULFILLMENTS",
+      "expected": [
+        "TENANT_ID",
+        "FULFILLMENT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY"
+      ],
+      "actual": [
+        "TENANT_ID",
+        "FULFILLMENT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY"
+      ],
+      "passed": true
+    },
+    {
+      "model_id": "DMA_RETAIL.SILVER.STG_RETURNS",
+      "expected": [
+        "TENANT_ID",
+        "RETURN_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY",
+        "REFUND_CENTS"
+      ],
+      "actual": [
+        "TENANT_ID",
+        "RETURN_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "QUANTITY",
+        "REFUND_CENTS"
+      ],
+      "passed": true
+    },
+    {
+      "model_id": "DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT",
+      "expected": [
+        "LINE_KEY",
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "PRODUCT_ID",
+        "ORDER_DATE",
+        "ORDER_STATUS",
+        "ORDERED_QUANTITY",
+        "FULFILLED_QUANTITY",
+        "RETURNED_QUANTITY",
+        "LINE_NET_CENTS",
+        "REFUND_CENTS",
+        "RETAINED_REVENUE_CENTS"
+      ],
+      "actual": [
+        "LINE_KEY",
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID",
+        "PRODUCT_ID",
+        "ORDER_DATE",
+        "ORDER_STATUS",
+        "ORDERED_QUANTITY",
+        "FULFILLED_QUANTITY",
+        "RETURNED_QUANTITY",
+        "LINE_NET_CENTS",
+        "REFUND_CENTS",
+        "RETAINED_REVENUE_CENTS"
+      ],
+      "passed": true
+    }
+  ]
+}

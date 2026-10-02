@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_hex_report_contract",
+  "native_hex_export": false,
+  "purpose": "Local replay selection and intended contracts; no native runtime, identity or permission evidence",
+  "projects": [
+    {
+      "role": "revenue",
+      "project_id": "5e760dfd-fdc7-5462-9807-a12f807eebc9",
+      "source_path": "revenue.hex.yaml",
+      "output_variable": "revenue_summary",
+      "inputs": {
+        "tenant": "A",
+        "start_date": "2026-01-01",
+        "end_date": "2026-03-01",
+        "segment": "ALL",
+        "what_if_multiplier": 1.1
+      },
+      "metric_contracts": {
+        "payment_rate": "SUM(PAID_CENTS)/NULLIF(SUM(NET_CENTS),0)"
+      }
+    },
+    {
+      "role": "retention",
+      "project_id": "3b237687-7ceb-5f7d-bec6-047158cb60ef",
+      "source_path": "retention.hex.yaml",
+      "output_variable": "active_customer_detail",
+      "inputs": {
+        "tenant": "A",
+        "start_date": "2026-01-01",
+        "end_date": "2026-03-01",
+        "segment": "ALL"
+      },
+      "metric_contracts": {
+        "active_customers": "posted invoices with net_cents > 0; distinct tenant/customer/month/segment; proposed name invoiced_active_customers"
+      }
+    },
+    {
+      "role": "executive",
+      "project_id": "8a6acc93-05da-50b1-91a3-c09584f72f7c",
+      "source_path": "executive.hex.yaml",
+      "output_variable": "executive_summary",
+      "inputs": {
+        "tenant": "A",
+        "start_date": "2026-01-01",
+        "end_date": "2026-03-01",
+        "segment": "ALL"
+      },
+      "metric_contracts": {
+        "active_customers": "posted invoices with paid_cents > 0; distinct customer within selected tenant/month/segment; proposed name paying_active_customers",
+        "payment_rate": "SUM(PAID_CENTS)/NULLIF(SUM(NET_CENTS),0)"
+      }
+    }
+  ]
+}

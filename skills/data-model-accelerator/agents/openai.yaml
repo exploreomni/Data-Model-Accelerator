@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Model Accelerator"
+  short_description: "Refactor legacy BI logic into tested warehouse models"
+  default_prompt: "Use $data-model-accelerator to assess this repository and produce an evidence-backed model, ERD, candidate code, and validation package."

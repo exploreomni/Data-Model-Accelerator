@@ -1,0 +1,2227 @@
+{
+  "errors": [],
+  "generated_at": "2026-10-02T20:58:24Z",
+  "metrics": {
+    "_totals": {
+      "CONFIDENCE.HIGH": 22,
+      "CONFIDENCE.LOW": 24,
+      "CONFIDENCE.MEDIUM": 19,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 25,
+      "SEVERITY.MEDIUM": 40,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 17443,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/ae_common.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 92,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/benchmark_results.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 115,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/bootstrap_hex_schema.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 40,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/capture_duckdb_schema.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 47,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/data_dictionary_v2.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 329,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/delivery_portal.py": {
+      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 1,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 964,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/deployment_adapters.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 1,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 1,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 752,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/deployment_authority.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 134,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/deployment_review.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 198,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/deployment_workflow.py": {
+      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 2,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 873,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/e2e_semantics.py": {
+      "CONFIDENCE.HIGH": 1,
+      "CONFIDENCE.LOW": 1,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 2,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 526,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/e2e_warehouse.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 1,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 2,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 365,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/export_results.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 88,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/freeze_benchmark.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 189,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/generate_dbt_docs_yml.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 519,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/guided_workflow.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 563,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/hex_catalogue.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 188,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/hex_execution.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 423,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/hex_source.py": {
+      "CONFIDENCE.HIGH": 1,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 295,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/lint_delivery.py": {
+      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 2,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 629,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/metadata_contract.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 207,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/metadata_descriptions.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 13,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/metadata_handoff.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 56,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/metadata_naming.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 131,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/metadata_observation.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 170,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/metadata_options.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 41,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/metadata_platforms.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 48,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/metadata_release.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 223,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/metadata_sql.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 14,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 14,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 235,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/migrate_data_dictionary.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 76,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/plan_refactor.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 186,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/plan_specialists.py": {
+      "CONFIDENCE.HIGH": 4,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 4,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 492,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/plan_warehouse_metadata.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 199,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/platform_matrix.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 246,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/platform_readiness.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 392,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/powerbi_catalogue.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 201,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/powerbi_execution.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 391,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/powerbi_languages.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 7,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 7,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 250,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/powerbi_source.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 357,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/raw_csv_source.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 82,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/release_quality.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 74,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/repair_events.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 149,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/run_dbt_holdout.py": {
+      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 2,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 115,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/run_dbt_local_qualification.py": {
+      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 2,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 2,
+      "SEVERITY.MEDIUM": 2,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 356,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/run_dbt_project.py": {
+      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 1,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 257,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/run_guided_delivery_demo.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 110,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/run_hex_omni_e2e.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 1,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 2,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 251,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/run_looker_omni_e2e.py": {
+      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.LOW": 1,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 2,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 390,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/run_powerbi_omni_e2e.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 1,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 2,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 180,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/run_refactor_qualification.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 295,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/run_tableau_omni_e2e.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 1,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 2,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 238,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/tableau_catalogue.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 199,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/tableau_execution.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 483,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/tableau_source.py": {
+      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 1,
+      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 341,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/validate_example.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 3,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 4,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 392,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_catalogue.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 332,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_catalogue_provenance.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 134,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_dbt_evidence.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 290,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_engagement.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 192,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_engagement_authority.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 46,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_engagement_scope.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 153,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_model_documentation.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 141,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_physical_schema.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 85,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_refactor_run.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 166,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_review_package.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 290,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_specialist_results.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 256,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_value_coverage.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 53,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "skills/data-model-accelerator/scripts/verify_warehouse_metadata.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 150,
+      "nosec": 0,
+      "skipped_tests": 0
+    }
+  },
+  "results": [
+    {
+      "code": "520     # Only generated inert diagrams; no scripts, foreign HTML, events, links or remote resources.\n521     import xml.etree.ElementTree as ET\n522     decoded=content.decode('utf-8')\n",
+      "col_offset": 4,
+      "end_col_offset": 38,
+      "filename": "skills/data-model-accelerator/scripts/delivery_portal.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 20,
+        "link": "https://cwe.mitre.org/data/definitions/20.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Using xml.etree.ElementTree to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree with the equivalent defusedxml package, or make sure defusedxml.defuse_stdlib() is called.",
+      "line_number": 521,
+      "line_range": [
+        521
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b405-import-xml-etree",
+      "test_id": "B405",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "526     try:\n527         root = ET.fromstring(decoded)\n528     except ET.ParseError as exc:\n",
+      "col_offset": 15,
+      "end_col_offset": 37,
+      "filename": "skills/data-model-accelerator/scripts/delivery_portal.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 20,
+        "link": "https://cwe.mitre.org/data/definitions/20.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Using xml.etree.ElementTree.fromstring to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.fromstring with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called",
+      "line_number": 527,
+      "line_range": [
+        527
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree",
+      "test_id": "B314",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "154     if adapter == 'motherduck_sql':\n155         _require(auth == {'token': 'motherduck_token'}, 'MotherDuck uses the motherduck_token environment variable')\n156     if adapter in SQL_ADAPTERS:\n",
+      "col_offset": 26,
+      "end_col_offset": 33,
+      "filename": "skills/data-model-accelerator/scripts/deployment_adapters.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'motherduck_token'",
+      "line_number": 155,
+      "line_range": [
+        155
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "460         else:\n461             statement = (\"SELECT query_id, type, exception_code FROM system.query_log WHERE query_id = '%s' \"\n462                          \"AND type IN ('QueryFinish', 'ExceptionBeforeStart', 'ExceptionWhileProcessing') ORDER BY event_time_microseconds DESC LIMIT 1 FORMAT JSON\") % native\n463             follow['contract'] = 'clickhouse_log'\n",
+      "col_offset": 25,
+      "end_col_offset": 164,
+      "filename": "skills/data-model-accelerator/scripts/deployment_adapters.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 461,
+      "line_range": [
+        461,
+        462
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "20 import stat\n21 import subprocess\n22 import sys\n",
+      "col_offset": 0,
+      "end_col_offset": 17,
+      "filename": "skills/data-model-accelerator/scripts/deployment_workflow.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Consider possible security implications associated with the subprocess module.",
+      "line_number": 21,
+      "line_range": [
+        21
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess",
+      "test_id": "B404",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "592         with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:\n593             process = subprocess.Popen([str(executable), *argv[1:]], cwd=str(cwd), env=env,\n594                                        stdin=subprocess.DEVNULL, stdout=out, stderr=err, start_new_session=True)\n595             try:\n",
+      "col_offset": 22,
+      "end_col_offset": 112,
+      "filename": "skills/data-model-accelerator/scripts/deployment_workflow.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "subprocess call - check for execution of untrusted input.",
+      "line_number": 593,
+      "line_range": [
+        593,
+        594
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
+      "test_id": "B603",
+      "test_name": "subprocess_without_shell_equals_true"
+    },
+    {
+      "code": "126         UniqueSafeLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, unique_mapping)\n127         return yaml.load(Path(path).read_text(), Loader=UniqueSafeLoader)\n128     except (OSError, yaml.YAMLError) as error:\n",
+      "col_offset": 15,
+      "end_col_offset": 73,
+      "filename": "skills/data-model-accelerator/scripts/e2e_semantics.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 20,
+        "link": "https://cwe.mitre.org/data/definitions/20.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Use of unsafe yaml load. Allows instantiation of arbitrary objects. Consider yaml.safe_load().",
+      "line_number": 127,
+      "line_range": [
+        127
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b506_yaml_load.html",
+      "test_id": "B506",
+      "test_name": "yaml_load"
+    },
+    {
+      "code": "415             where.append(f'({self.resolve(f\"{self.base}.net_cents\")}) = 0')\n416         query = \"SELECT\\n  \" + \",\\n  \".join(columns) + \"\\nFROM \" + self.from_sql() + \"\\nWHERE \" + \"\\n  AND \".join(where)\n417         if groups:\n",
+      "col_offset": 16,
+      "end_col_offset": 28,
+      "filename": "skills/data-model-accelerator/scripts/e2e_semantics.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 416,
+      "line_range": [
+        416
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "361         fields = RAW_COLUMNS[stream]\n362         connection.executemany('INSERT INTO DMA_SIM.BRONZE.' + table + ' (' + ','.join(fields) + ') VALUES ('\n363                                + ','.join('?' for _ in fields) + ')', [[r[k] for k in fields] for r in rows])\n",
+      "col_offset": 31,
+      "end_col_offset": 60,
+      "filename": "skills/data-model-accelerator/scripts/e2e_warehouse.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 362,
+      "line_range": [
+        362
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "401     fields = ','.join('i.' + c for c in FACT_COLUMNS)\n402     return query_rows(connection, 'SELECT ' + fields + ', c.segment FROM DMA_SIM.GOLD.FCT_INVOICES i '\n403                       'LEFT JOIN DMA_SIM.GOLD.DIM_CUSTOMERS c ON i.customer_key = c.customer_key '\n",
+      "col_offset": 34,
+      "end_col_offset": 43,
+      "filename": "skills/data-model-accelerator/scripts/e2e_warehouse.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 402,
+      "line_range": [
+        402
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "146         data=adjustments if name=='ADJUSTMENTS' else raw[name]\n147         if data: con.executemany('INSERT INTO DMA_HEX.RAW.'+name+' VALUES ('+','.join('?' for k in columns)+')',[[r[k] for k in columns] for r in data])\n148     return con\n",
+      "col_offset": 33,
+      "end_col_offset": 59,
+      "filename": "skills/data-model-accelerator/scripts/hex_execution.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 147,
+      "line_range": [
+        147
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "30     Loader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)\n31     return yaml.load(text, Loader=Loader)\n32 \n",
+      "col_offset": 11,
+      "end_col_offset": 41,
+      "filename": "skills/data-model-accelerator/scripts/hex_source.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 20,
+        "link": "https://cwe.mitre.org/data/definitions/20.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Use of unsafe yaml load. Allows instantiation of arbitrary objects. Consider yaml.safe_load().",
+      "line_number": 31,
+      "line_range": [
+        31
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b506_yaml_load.html",
+      "test_id": "B506",
+      "test_name": "yaml_load"
+    },
+    {
+      "code": "18 import stat\n19 import subprocess\n20 import sys\n",
+      "col_offset": 0,
+      "end_col_offset": 17,
+      "filename": "skills/data-model-accelerator/scripts/lint_delivery.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Consider possible security implications associated with the subprocess module.",
+      "line_number": 19,
+      "line_range": [
+        19
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess",
+      "test_id": "B404",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "191     with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:\n192         child = subprocess.Popen([str(executable), '-I', *arguments], cwd=str(cwd), env=env,\n193                                  stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr, start_new_session=True)\n194         deadline = time.monotonic() + timeout\n",
+      "col_offset": 16,
+      "end_col_offset": 112,
+      "filename": "skills/data-model-accelerator/scripts/lint_delivery.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "subprocess call - check for execution of untrusted input.",
+      "line_number": 192,
+      "line_range": [
+        192,
+        193
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
+      "test_id": "B603",
+      "test_name": "subprocess_without_shell_equals_true"
+    },
+    {
+      "code": "194         where = 'TABLE_CATALOG = ' + lit(database) + ' AND TABLE_SCHEMA = ' + lit(schema) + ' AND TABLE_NAME = ' + lit(table)\n195         add('relation', 'SELECT TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, CREATED, LAST_DDL, COMMENT FROM ' + info + '\"TABLES\" WHERE ' + where,\n196             'Observe relation identity/type/comment and creation/DDL timestamps. These are incarnation candidates, not a qualified immutable object ID; visibility is permission-filtered.')\n",
+      "col_offset": 24,
+      "end_col_offset": 118,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 195,
+      "line_range": [
+        195
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "196             'Observe relation identity/type/comment and creation/DDL timestamps. These are incarnation candidates, not a qualified immutable object ID; visibility is permission-filtered.')\n197         add('columns', 'SELECT TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, ORDINAL_POSITION, DATA_TYPE, COMMENT FROM '\n198             + info + '\"COLUMNS\" WHERE ' + where + ' ORDER BY ORDINAL_POSITION', 'Independently enumerate every visible physical column and comment.')\n199         add('relation_tags', 'SELECT * FROM TABLE(' + info + 'TAG_REFERENCES(' + lit(name) + \", 'TABLE'))\",\n",
+      "col_offset": 23,
+      "end_col_offset": 128,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 197,
+      "line_range": [
+        197,
+        198
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "198             + info + '\"COLUMNS\" WHERE ' + where + ' ORDER BY ORDINAL_POSITION', 'Independently enumerate every visible physical column and comment.')\n199         add('relation_tags', 'SELECT * FROM TABLE(' + info + 'TAG_REFERENCES(' + lit(name) + \", 'TABLE'))\",\n200             'Observe object tags including inherited/apply-method state; TABLE domain also applies to views; empty is not visibility proof.')\n",
+      "col_offset": 29,
+      "end_col_offset": 51,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 199,
+      "line_range": [
+        199
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "200             'Observe object tags including inherited/apply-method state; TABLE domain also applies to views; empty is not visibility proof.')\n201         add('column_tags', 'SELECT * FROM TABLE(' + info + 'TAG_REFERENCES_ALL_COLUMNS(' + lit(name) + \", 'TABLE'))\",\n202             'Observe all visible column tags including inherited/apply-method state; TABLE domain also applies to views.')\n",
+      "col_offset": 27,
+      "end_col_offset": 49,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 201,
+      "line_range": [
+        201
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "205         where = 'table_catalog = ' + lit(catalog) + ' AND table_schema = ' + lit(schema) + ' AND table_name = ' + lit(table)\n206         add('relation', 'SELECT table_catalog, table_schema, table_name, table_type, created, last_altered, comment FROM system.information_schema.tables WHERE ' + where,\n207             'Observe Unity Catalog relation/comment and creation/change timestamps. Reliable incarnation must be qualified separately; a collector timestamp cannot replace it.')\n",
+      "col_offset": 24,
+      "end_col_offset": 161,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 206,
+      "line_range": [
+        206
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "207             'Observe Unity Catalog relation/comment and creation/change timestamps. Reliable incarnation must be qualified separately; a collector timestamp cannot replace it.')\n208         add('columns', 'SELECT table_catalog, table_schema, table_name, column_name, ordinal_position, full_data_type, comment FROM '\n209             + 'system.information_schema.columns WHERE ' + where + ' ORDER BY ordinal_position', 'Independently enumerate every visible top-level column and comment.')\n210         tags_where = 'catalog_name = ' + lit(catalog) + ' AND schema_name = ' + lit(schema) + ' AND table_name = ' + lit(table)\n",
+      "col_offset": 23,
+      "end_col_offset": 133,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 208,
+      "line_range": [
+        208,
+        209
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "210         tags_where = 'catalog_name = ' + lit(catalog) + ' AND schema_name = ' + lit(schema) + ' AND table_name = ' + lit(table)\n211         add('relation_tags', 'SELECT catalog_name, schema_name, table_name, tag_name, tag_value FROM system.information_schema.table_tags WHERE ' + tags_where,\n212             'Observe explicit relation tag assignments; this is not an ABAC inheritance or policy evaluation.')\n",
+      "col_offset": 29,
+      "end_col_offset": 145,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 211,
+      "line_range": [
+        211
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "212             'Observe explicit relation tag assignments; this is not an ABAC inheritance or policy evaluation.')\n213         add('column_tags', 'SELECT catalog_name, schema_name, table_name, column_name, tag_name, tag_value FROM system.information_schema.column_tags WHERE ' + tags_where,\n214             'Observe explicit tags on all visible columns; object tags do not imply column assignments.')\n",
+      "col_offset": 27,
+      "end_col_offset": 157,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 213,
+      "line_range": [
+        213
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "218         where = 'table_catalog = ' + lit(project) + ' AND table_schema = ' + lit(dataset) + ' AND table_name = ' + lit(table)\n219         add('relation', 'SELECT t.table_catalog, t.table_schema, t.table_name, t.table_type, t.creation_time, o.option_value AS description FROM '\n220             + info + 'TABLES AS t LEFT JOIN ' + info + 'TABLE_OPTIONS AS o ON t.table_catalog = o.table_catalog '\n221             + \"AND t.table_schema = o.table_schema AND t.table_name = o.table_name AND o.option_name = 'description'\"\n",
+      "col_offset": 24,
+      "end_col_offset": 146,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 219,
+      "line_range": [
+        219,
+        220
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "229             'Enumerate all physical columns independently; a missing description path is unknown, not an absent comment.')\n230         add('nested_fields', 'SELECT table_catalog, table_schema, table_name, column_name, field_path, data_type, description, policy_tags FROM '\n231             + info + 'COLUMN_FIELD_PATHS WHERE ' + where + ' AND field_path != column_name ORDER BY field_path',\n232             'Observe nested-field coverage gaps and security policy tags; neither is automatically emitted by this renderer.')\n",
+      "col_offset": 29,
+      "end_col_offset": 145,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 230,
+      "line_range": [
+        230,
+        231
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "249         database = namespace[0]\n250         add('relation', 'SELECT database, name AS table_name, uuid, engine, metadata_modification_time, comment FROM system.tables WHERE database = ' + lit(database) + ' AND name = ' + lit(table),\n251             'Observe local-replica UUID/comment/engine; zero or unsupported UUID is unknown incarnation, and local visibility is not cluster-wide parity.')\n",
+      "col_offset": 24,
+      "end_col_offset": 149,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 250,
+      "line_range": [
+        250
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "251             'Observe local-replica UUID/comment/engine; zero or unsupported UUID is unknown incarnation, and local visibility is not cluster-wide parity.')\n252         add('columns', 'SELECT database, table AS table_name, name AS column_name, position AS ordinal_position, type AS data_type, comment FROM '\n253             + 'system.columns WHERE database = ' + lit(database) + ' AND table = ' + lit(table) + ' ORDER BY position',\n254             'Independently enumerate every local-replica physical column and comment.')\n",
+      "col_offset": 23,
+      "end_col_offset": 146,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 252,
+      "line_range": [
+        252,
+        253
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "260         oid = 'table_oid' if relation['kind'] == 'table' else 'view_oid'\n261         add('relation', 'SELECT database_name, schema_name, ' + field + ', ' + oid + ', comment FROM ' + function + ' WHERE ' + where + ' AND ' + field + ' = ' + lit(table),\n262             'Observe attached database/schema/relation and internal OID; OID stability across sessions/restarts and remote MotherDuck identity require independent qualification.')\n",
+      "col_offset": 24,
+      "end_col_offset": 61,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 261,
+      "line_range": [
+        261
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "262             'Observe attached database/schema/relation and internal OID; OID stability across sessions/restarts and remote MotherDuck identity require independent qualification.')\n263         add('columns', 'SELECT database_name, schema_name, table_name, column_name, column_index AS ordinal_position, data_type, comment FROM duckdb_columns() WHERE '\n264             + where + ' AND table_name = ' + lit(table) + ' ORDER BY column_index', 'Independently enumerate all visible columns; view-column writes remain unsupported.')\n265     return queries\n",
+      "col_offset": 23,
+      "end_col_offset": 166,
+      "filename": "skills/data-model-accelerator/scripts/metadata_sql.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 263,
+      "line_range": [
+        263,
+        264
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "16 import stat\n17 import subprocess\n18 import sys\n",
+      "col_offset": 0,
+      "end_col_offset": 17,
+      "filename": "skills/data-model-accelerator/scripts/plan_specialists.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Consider possible security implications associated with the subprocess module.",
+      "line_number": 17,
+      "line_range": [
+        17
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess",
+      "test_id": "B404",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "103     try:\n104         found = subprocess.run(prefix + [\"rev-parse\", \"--is-inside-work-tree\"],\n105                                env=env, capture_output=True, text=True, timeout=10, check=False)\n106         if found.returncode != 0 or found.stdout.strip() != \"true\":\n",
+      "col_offset": 16,
+      "end_col_offset": 96,
+      "filename": "skills/data-model-accelerator/scripts/plan_specialists.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "subprocess call - check for execution of untrusted input.",
+      "line_number": 104,
+      "line_range": [
+        104,
+        105
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
+      "test_id": "B603",
+      "test_name": "subprocess_without_shell_equals_true"
+    },
+    {
+      "code": "108             return identity\n109         commit = subprocess.run(prefix + [\"rev-parse\", \"--verify\", \"HEAD\"],\n110                                 env=env, capture_output=True, text=True, timeout=10, check=False)\n111         state = subprocess.run(prefix + [\"status\", \"--porcelain=v1\", \"--untracked-files=normal\", \"--ignore-submodules=all\", \"--no-renames\"],\n",
+      "col_offset": 17,
+      "end_col_offset": 97,
+      "filename": "skills/data-model-accelerator/scripts/plan_specialists.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "subprocess call - check for execution of untrusted input.",
+      "line_number": 109,
+      "line_range": [
+        109,
+        110
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
+      "test_id": "B603",
+      "test_name": "subprocess_without_shell_equals_true"
+    },
+    {
+      "code": "110                                 env=env, capture_output=True, text=True, timeout=10, check=False)\n111         state = subprocess.run(prefix + [\"status\", \"--porcelain=v1\", \"--untracked-files=normal\", \"--ignore-submodules=all\", \"--no-renames\"],\n112                                env=env, capture_output=True, text=True, timeout=10, check=False)\n113         identity[\"status\"] = \"git\"\n",
+      "col_offset": 16,
+      "end_col_offset": 96,
+      "filename": "skills/data-model-accelerator/scripts/plan_specialists.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "subprocess call - check for execution of untrusted input.",
+      "line_number": 111,
+      "line_range": [
+        111,
+        112
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
+      "test_id": "B603",
+      "test_name": "subprocess_without_shell_equals_true"
+    },
+    {
+      "code": "119         data=adjustments if name=='ADJUSTMENTS' else raw[name]\n120         if data: con.executemany('INSERT INTO DMA_POWERBI.RAW.'+name+' VALUES ('+','.join('?' for k in columns)+')',[[r[k] for k in columns] for r in data])\n121     return con\n",
+      "col_offset": 33,
+      "end_col_offset": 63,
+      "filename": "skills/data-model-accelerator/scripts/powerbi_execution.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 120,
+      "line_range": [
+        120
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "54         token=self.peek()\n55         if token=='if':\n56             self.take();condition=self.expr();self.take('then');yes=self.expr();self.take('else');node=('if',condition,yes,self.expr())\n",
+      "col_offset": 18,
+      "end_col_offset": 22,
+      "filename": "skills/data-model-accelerator/scripts/powerbi_languages.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'if'",
+      "line_number": 55,
+      "line_range": [
+        55
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "56             self.take();condition=self.expr();self.take('then');yes=self.expr();self.take('else');node=('if',condition,yes,self.expr())\n57         elif token=='each': self.take();node=('each',self.expr())\n58         elif token=='(':\n",
+      "col_offset": 20,
+      "end_col_offset": 26,
+      "filename": "skills/data-model-accelerator/scripts/powerbi_languages.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'each'",
+      "line_number": 57,
+      "line_range": [
+        57
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "57         elif token=='each': self.take();node=('each',self.expr())\n58         elif token=='(':\n59             self.take();node=self.expr();self.take(')')\n",
+      "col_offset": 20,
+      "end_col_offset": 23,
+      "filename": "skills/data-model-accelerator/scripts/powerbi_languages.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: '('",
+      "line_number": 58,
+      "line_range": [
+        58
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "59             self.take();node=self.expr();self.take(')')\n60         elif token=='[':\n61             self.take();name=self.name()\n",
+      "col_offset": 20,
+      "end_col_offset": 23,
+      "filename": "skills/data-model-accelerator/scripts/powerbi_languages.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: '['",
+      "line_number": 60,
+      "line_range": [
+        60
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "69             self.take(']')\n70         elif token=='{':\n71             self.take();items=[]\n",
+      "col_offset": 20,
+      "end_col_offset": 23,
+      "filename": "skills/data-model-accelerator/scripts/powerbi_languages.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: '{'",
+      "line_number": 70,
+      "line_range": [
+        70
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "75             self.take('}');node=('list',items)\n76         elif token=='type':\n77             self.take();kind=self.name()\n",
+      "col_offset": 20,
+      "end_col_offset": 26,
+      "filename": "skills/data-model-accelerator/scripts/powerbi_languages.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'type'",
+      "line_number": 76,
+      "line_range": [
+        76
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "184         token=self.take()\n185         if token=='(':\n186             node=self.expr();self.take(')')\n",
+      "col_offset": 18,
+      "end_col_offset": 21,
+      "filename": "skills/data-model-accelerator/scripts/powerbi_languages.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: '('",
+      "line_number": 185,
+      "line_range": [
+        185
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "14 import shutil\n15 import subprocess\n16 import sys\n",
+      "col_offset": 0,
+      "end_col_offset": 17,
+      "filename": "skills/data-model-accelerator/scripts/run_dbt_holdout.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Consider possible security implications associated with the subprocess module.",
+      "line_number": 15,
+      "line_range": [
+        15
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess",
+      "test_id": "B404",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "88     try:\n89         native = subprocess.run(command, capture_output=True, text=True, timeout=180)\n90         code, stdout, stderr = native.returncode, native.stdout, native.stderr\n",
+      "col_offset": 17,
+      "end_col_offset": 85,
+      "filename": "skills/data-model-accelerator/scripts/run_dbt_holdout.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "subprocess call - check for execution of untrusted input.",
+      "line_number": 89,
+      "line_range": [
+        89
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
+      "test_id": "B603",
+      "test_name": "subprocess_without_shell_equals_true"
+    },
+    {
+      "code": "19 import shutil\n20 import subprocess\n21 import sys\n",
+      "col_offset": 0,
+      "end_col_offset": 17,
+      "filename": "skills/data-model-accelerator/scripts/run_dbt_local_qualification.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Consider possible security implications associated with the subprocess module.",
+      "line_number": 20,
+      "line_range": [
+        20
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess",
+      "test_id": "B404",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "138                 if data:\n139                     con.executemany('INSERT INTO RAW.' + name + ' VALUES (' + ','.join('?' for _ in columns) + ')', [[row[k] for k, _ in columns] for row in data])\n140     finally:\n",
+      "col_offset": 36,
+      "end_col_offset": 54,
+      "filename": "skills/data-model-accelerator/scripts/run_dbt_local_qualification.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 139,
+      "line_range": [
+        139
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "155         for table in source['tables']:\n156             cur = con.execute('SELECT * FROM RAW.' + table['identifier'])\n157             raw_snapshot[table['identifier']] = {'columns': [c[0] for c in cur.description], 'rows': normalize(cur.fetchall())}\n",
+      "col_offset": 30,
+      "end_col_offset": 50,
+      "filename": "skills/data-model-accelerator/scripts/run_dbt_local_qualification.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 156,
+      "line_range": [
+        156
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "162     try:\n163         result = subprocess.run(args, env=env, capture_output=True, text=True, timeout=120)\n164         code, stdout, stderr = result.returncode, result.stdout, result.stderr\n",
+      "col_offset": 17,
+      "end_col_offset": 91,
+      "filename": "skills/data-model-accelerator/scripts/run_dbt_local_qualification.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "subprocess call - check for execution of untrusted input.",
+      "line_number": 163,
+      "line_range": [
+        163
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
+      "test_id": "B603",
+      "test_name": "subprocess_without_shell_equals_true"
+    },
+    {
+      "code": "13 import shutil\n14 import subprocess\n15 import sys\n",
+      "col_offset": 0,
+      "end_col_offset": 17,
+      "filename": "skills/data-model-accelerator/scripts/run_dbt_project.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Consider possible security implications associated with the subprocess module.",
+      "line_number": 14,
+      "line_range": [
+        14
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess",
+      "test_id": "B404",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "113     try:\n114         return yaml.load(path.read_text(encoding='utf-8'), Loader=Loader)\n115     except yaml.YAMLError as error:\n",
+      "col_offset": 15,
+      "end_col_offset": 73,
+      "filename": "skills/data-model-accelerator/scripts/run_dbt_project.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 20,
+        "link": "https://cwe.mitre.org/data/definitions/20.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Use of unsafe yaml load. Allows instantiation of arbitrary objects. Consider yaml.safe_load().",
+      "line_number": 114,
+      "line_range": [
+        114
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b506_yaml_load.html",
+      "test_id": "B506",
+      "test_name": "yaml_load"
+    },
+    {
+      "code": "43         order='TENANT_ID,INVOICE_ID' if name=='invoices' else 'TENANT_ID,CUSTOMER_ID,INVOICE_MONTH'\n44         frame,_=h.sql_frame(con,'SELECT '+projection+' FROM DMA_HEX.GOLD.'+table+' ORDER BY '+order)\n45         result[name]=h.rows(frame)\n",
+      "col_offset": 32,
+      "end_col_offset": 41,
+      "filename": "skills/data-model-accelerator/scripts/run_hex_omni_e2e.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 44,
+      "line_range": [
+        44
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "68     for model in inventory['models']:\n69         cursor=con.execute('SELECT * FROM '+model['physical_name']+' LIMIT 0')\n70         actual=[c[0].upper() for c in cursor.description]\n",
+      "col_offset": 27,
+      "end_col_offset": 43,
+      "filename": "skills/data-model-accelerator/scripts/run_hex_omni_e2e.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 69,
+      "line_range": [
+        69
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "15 import shutil\n16 import subprocess\n17 import sys\n",
+      "col_offset": 0,
+      "end_col_offset": 17,
+      "filename": "skills/data-model-accelerator/scripts/run_looker_omni_e2e.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Consider possible security implications associated with the subprocess module.",
+      "line_number": 16,
+      "line_range": [
+        16
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess",
+      "test_id": "B404",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "150         planner = Path(__file__).with_name('plan_specialists.py')\n151         dispatched = subprocess.run([sys.executable, str(planner), str(case / 'input/repo'),\n152             '--output', str(output / 'source-plan'), '--no-git'], capture_output=True, text=True)\n153         if dispatched.returncode != 0:\n",
+      "col_offset": 21,
+      "end_col_offset": 97,
+      "filename": "skills/data-model-accelerator/scripts/run_looker_omni_e2e.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "subprocess call - check for execution of untrusted input.",
+      "line_number": 151,
+      "line_range": [
+        151,
+        152
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html",
+      "test_id": "B603",
+      "test_name": "subprocess_without_shell_equals_true"
+    },
+    {
+      "code": "168         check('gold-rows-independent-oracle', 'logic', lambda: assert_rows(fact_rows(connection), expected_rows))\n169         source_rows = query_rows(connection, 'SELECT ' + ','.join(expected_rows[0])\n170                                  + ' FROM (' + source_sql + ') source_rows ORDER BY tenant_id,invoice_id')\n",
+      "col_offset": 45,
+      "end_col_offset": 54,
+      "filename": "skills/data-model-accelerator/scripts/run_looker_omni_e2e.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 169,
+      "line_range": [
+        169
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "43     for model in inventory['models']:\n44         cursor=con.execute('SELECT * FROM '+model['physical_name']+' LIMIT 0')\n45         require([c[0].upper() for c in cursor.description]==model['columns'],'Documented column inventory differs')\n",
+      "col_offset": 27,
+      "end_col_offset": 43,
+      "filename": "skills/data-model-accelerator/scripts/run_powerbi_omni_e2e.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 44,
+      "line_range": [
+        44
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "48 def gold(con,expected):\n49     return p.query(con,'SELECT '+','.join(k.upper() for k in expected[0])+' FROM DMA_POWERBI.GOLD.FCT_INVOICES ORDER BY TENANT_ID,INVOICE_ID')[0]\n50 def load_plan(case):\n",
+      "col_offset": 23,
+      "end_col_offset": 32,
+      "filename": "skills/data-model-accelerator/scripts/run_powerbi_omni_e2e.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 49,
+      "line_range": [
+        49
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "227                     quote = lambda value: '\"' + value.replace('\"', '\"\"') + '\"'\n228                     nulls = connection.execute('select count(*) from ' + quote(name) + ' where ' + quote(column['name']) + ' is null').fetchone()[0]\n229                     require(nulls == 0, 'Observed null violates dictionary contract')\n",
+      "col_offset": 47,
+      "end_col_offset": 70,
+      "filename": "skills/data-model-accelerator/scripts/run_refactor_qualification.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 228,
+      "line_range": [
+        228
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "55     for model in inventory['models']:\n56         cursor=con.execute('SELECT * FROM '+model['physical_name']+' LIMIT 0')\n57         require([c[0].upper() for c in cursor.description]==model['columns'],'Documented columns differ: '+model['model_id'])\n",
+      "col_offset": 27,
+      "end_col_offset": 43,
+      "filename": "skills/data-model-accelerator/scripts/run_tableau_omni_e2e.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 56,
+      "line_range": [
+        56
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "61 def gold(con,expected):\n62     keys=list(expected[0]);rows,_=t.query(con,'SELECT '+','.join(k.upper() for k in keys)+' FROM DMA_TABLEAU.GOLD.FCT_INVOICES ORDER BY TENANT_ID,INVOICE_ID')\n63     return rows\n",
+      "col_offset": 46,
+      "end_col_offset": 55,
+      "filename": "skills/data-model-accelerator/scripts/run_tableau_omni_e2e.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 62,
+      "line_range": [
+        62
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "74         data=adjustments if name=='ADJUSTMENTS' else raw[name]\n75         if data: con.executemany('INSERT INTO DMA_TABLEAU.RAW.'+name+' VALUES ('+','.join('?' for k in columns)+')',[[r[k] for k in columns] for r in data])\n76     return con\n",
+      "col_offset": 33,
+      "end_col_offset": 63,
+      "filename": "skills/data-model-accelerator/scripts/tableau_execution.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 75,
+      "line_range": [
+        75
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "8 import unicodedata\n9 import xml.etree.ElementTree as ET\n10 import zipfile\n",
+      "col_offset": 0,
+      "end_col_offset": 34,
+      "filename": "skills/data-model-accelerator/scripts/tableau_source.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 20,
+        "link": "https://cwe.mitre.org/data/definitions/20.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Using xml.etree.ElementTree to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree with the equivalent defusedxml package, or make sure defusedxml.defuse_stdlib() is called.",
+      "line_number": 9,
+      "line_range": [
+        9
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b405-import-xml-etree",
+      "test_id": "B405",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "58     if b'<!DOCTYPE' in upper or b'<!ENTITY' in upper:raise ValueError('DTD/entity declarations are forbidden')\n59     root=ET.fromstring(data)\n60     _reject_credentials(root)\n",
+      "col_offset": 9,
+      "end_col_offset": 28,
+      "filename": "skills/data-model-accelerator/scripts/tableau_source.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 20,
+        "link": "https://cwe.mitre.org/data/definitions/20.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Using xml.etree.ElementTree.fromstring to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree.fromstring with its defusedxml equivalent function or make sure defusedxml.defuse_stdlib() is called",
+      "line_number": 59,
+      "line_range": [
+        59
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b313-b320-xml-bad-elementtree",
+      "test_id": "B314",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "102 def group_sql(row_sql: str) -> str:\n103     return f\"\"\"WITH filtered AS ({row_sql})\n104     SELECT tenant_id, month, segment, COUNT(*) AS invoice_count,\n105            SUM(gross_cents) AS gross_cents, SUM(paid_cents) AS paid_cents,\n106            1.0 * SUM(paid_cents) / NULLIF(SUM(gross_cents), 0) AS payment_rate\n107     FROM filtered GROUP BY tenant_id, month, segment ORDER BY tenant_id, month, segment\"\"\"\n108 \n",
+      "col_offset": 15,
+      "end_col_offset": 33,
+      "filename": "skills/data-model-accelerator/scripts/validate_example.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 103,
+      "line_range": [
+        103,
+        104,
+        105,
+        106,
+        107
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "110 def total_sql(row_sql: str) -> str:\n111     return f\"\"\"WITH filtered AS ({row_sql})\n112     SELECT COUNT(*) AS invoice_count, COALESCE(SUM(gross_cents), 0) AS gross_cents,\n113            COALESCE(SUM(paid_cents), 0) AS paid_cents,\n114            1.0 * SUM(paid_cents) / NULLIF(SUM(gross_cents), 0) AS payment_rate\n115     FROM filtered\"\"\"\n116 \n",
+      "col_offset": 15,
+      "end_col_offset": 33,
+      "filename": "skills/data-model-accelerator/scripts/validate_example.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 111,
+      "line_range": [
+        111,
+        112,
+        113,
+        114,
+        115
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "119     db.executemany(\n120         f\"INSERT INTO bronze_invoice_cdc ({', '.join(SOURCE_COLUMNS)}) \"\n121         f\"VALUES ({', '.join('?' for _ in SOURCE_COLUMNS)})\", deliveries)\n122 \n",
+      "col_offset": 10,
+      "end_col_offset": 42,
+      "filename": "skills/data-model-accelerator/scripts/validate_example.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 120,
+      "line_range": [
+        120,
+        121
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "298             rate = fetch(db, total_sql(row_sql), filters)[0][-1]\n299             wrong = fetch(db, f\"WITH filtered AS ({row_sql}) SELECT AVG(payment_rate) FROM filtered\", filters)[0][0]\n300             assert_equal(rate, 0.32, \"weighted filtered ratio\")\n",
+      "col_offset": 32,
+      "end_col_offset": 50,
+      "filename": "skills/data-model-accelerator/scripts/validate_example.py",
+      "issue_confidence": "LOW",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 299,
+      "line_range": [
+        299
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    }
+  ]
+}

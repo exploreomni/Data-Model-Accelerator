@@ -1,0 +1,2 @@
+# Power BI adds no runtime package beyond the existing optional engines.
+-r requirements-tableau-e2e.txt

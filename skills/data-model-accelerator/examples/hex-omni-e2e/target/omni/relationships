@@ -1,0 +1,12 @@
+- join_from_view: invoices
+  join_to_view: customers
+  join_type: always_left
+  on_sql: ${invoices.customer_key} = ${customers.customer_key} AND ${invoices.tenant_id}
+    = ${customers.tenant_id}
+  relationship_type: many_to_one
+- join_from_view: invoices
+  join_to_view: customer_month
+  join_type: always_left
+  on_sql: ${invoices.tenant_id} = ${customer_month.tenant_id} AND ${invoices.customer_id}
+    = ${customer_month.customer_id} AND ${invoices.invoice_month} = ${customer_month.invoice_month}
+  relationship_type: many_to_one

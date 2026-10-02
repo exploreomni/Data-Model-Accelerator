@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "catalogue_context_complete": true,
+  "errors": [],
+  "gaps": [],
+  "limitations": [
+    "Checks only declared visible scope, export integrity, and declared source-reference bindings; not parser completeness or evidence authenticity.",
+    "Metadata enrichment does not prove keys, constraints, access enforcement, replication ordering, replay, business correctness, or deployment readiness.",
+    "source_snapshot_sha256 is syntax-checked here; its alignment with the selected repository snapshot must be checked by the caller.",
+    "Synthetic catalogue fixture; it is not live warehouse evidence.",
+    "Enrichment is not fully observed for snowflake:synthetic:DMA_SIM:BRONZE:BILLING_INVOICE_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+    "Enrichment is not fully observed for snowflake:synthetic:DMA_SIM:BRONZE:BILLING_PAYMENT_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+    "Enrichment is not fully observed for snowflake:synthetic:DMA_SIM:BRONZE:BILLING_CREDIT_CDC: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown",
+    "Enrichment is not fully observed for snowflake:synthetic:DMA_SIM:BRONZE:BILLING_CUSTOMER_HISTORY: comments=unknown, relationships=unknown, ownership=unknown, security=unknown, replication=unknown, statistics=unknown"
+  ],
+  "catalogue_sha256": "4d2c213015e62c96a824e96f45aeb965bc1e6721372e8ea23bb7d072a918c699",
+  "source_snapshot_sha256": "51817151dc36bb7bd5b9fb8d24cf2196a06d9a8b60502405935e89ddcbd3f9c3",
+  "origin": "synthetic",
+  "counts": {
+    "scopes": 1,
+    "extractions": 2,
+    "objects": 4,
+    "columns": 34,
+    "expected_references": 4,
+    "references": 4,
+    "resolved_references": 4
+  }
+}

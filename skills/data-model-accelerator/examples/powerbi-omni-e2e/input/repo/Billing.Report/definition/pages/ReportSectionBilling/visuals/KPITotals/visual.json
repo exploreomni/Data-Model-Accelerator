@@ -1,0 +1,163 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "KPITotals",
+  "position": {
+    "x": 0,
+    "y": 680,
+    "z": 2,
+    "height": 320,
+    "width": 1920,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Revenue Cents"
+                }
+              },
+              "queryRef": "Scenario.Revenue Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Paid Cents"
+                }
+              },
+              "queryRef": "Scenario.Paid Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Outstanding Cents"
+                }
+              },
+              "queryRef": "Scenario.Outstanding Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Payment Rate"
+                }
+              },
+              "queryRef": "Scenario.Payment Rate"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "All Segment Revenue Cents"
+                }
+              },
+              "queryRef": "Scenario.All Segment Revenue Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Share All Segments"
+                }
+              },
+              "queryRef": "Scenario.Share All Segments"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Posted Revenue Cents"
+                }
+              },
+              "queryRef": "Scenario.Posted Revenue Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Posted Intersection Cents"
+                }
+              },
+              "queryRef": "Scenario.Posted Intersection Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Scenario Revenue Cents"
+                }
+              },
+              "queryRef": "Scenario.Scenario Revenue Cents"
+            }
+          ],
+          "showAll": false
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'KPI Totals'"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

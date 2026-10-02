@@ -1,0 +1,57 @@
+{
+  "coverage": {
+    "assigned_unique_assets": 6,
+    "excluded_paths": 0,
+    "exclusions_are_subtree_level": true,
+    "gap_count": 0,
+    "hard_errors": 0,
+    "hashed_assets": 6,
+    "inventory_complete_within_selected_scope": true,
+    "limits_hit": false,
+    "native_semantics_parsed": false,
+    "read_bytes": 1653,
+    "selected_assets": 6,
+    "shared_assets": 0,
+    "specialists_executed": 0,
+    "status_counts": {
+      "readable": 6
+    },
+    "task_asset_assignments": 6,
+    "unassigned_assets": []
+  },
+  "inventory_path": "inventory.json",
+  "review_roles": [
+    "warehouse_architect",
+    "semantic_architect",
+    "independent_qa"
+  ],
+  "schema_version": 1,
+  "source_snapshot_sha256": "a26b08504fbfb39a6ad335cd485332338f6d23354938b9170e34474055b4b91b",
+  "status": "planned",
+  "tasks": [
+    {
+      "asset_ids": [
+        "asset-00b9dd6068347a961e10228e",
+        "asset-8c5af100076c30ca288f42ea",
+        "asset-c474e23c9d327d444116e4e6"
+      ],
+      "project_root": "warehouse",
+      "prompt_path": "tasks/dbt-ae1fd358c761.md",
+      "result_path": "results/dbt-ae1fd358c761.json",
+      "source_type": "dbt",
+      "task_id": "dbt-ae1fd358c761"
+    },
+    {
+      "asset_ids": [
+        "asset-68b682179efd03176a2f79b9",
+        "asset-9b41a63a5843e0456d17daf4",
+        "asset-fdb3549a779704bb6cd1b563"
+      ],
+      "project_root": "bi",
+      "prompt_path": "tasks/looker-d9065d6da185.md",
+      "result_path": "results/looker-d9065d6da185.json",
+      "source_type": "looker",
+      "task_id": "looker-d9065d6da185"
+    }
+  ]
+}

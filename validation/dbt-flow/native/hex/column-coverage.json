@@ -1,0 +1,247 @@
+{
+  "column_count": 74,
+  "complete_relation_inventory": true,
+  "dictionary_inventory_bound": true,
+  "dictionary_sha256": "a8cf5e4ba011668f66b5b61d427a8788735d9547728ff9b178768ce538a1d6ba",
+  "inventory_sha256": "0f3b48b74d79c104075818f8a65eee7f60961a685b71e3c28361c65ac03089a2",
+  "model_count": 11,
+  "models": [
+    {
+      "actual_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "ADJUSTMENT_CENTS",
+        "REASON"
+      ],
+      "expected_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "ADJUSTMENT_CENTS",
+        "REASON"
+      ],
+      "model_id": "DMA_HEX.RAW.ADJUSTMENTS",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ],
+      "expected_columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ],
+      "model_id": "DMA_HEX.RAW.CUSTOMER_HISTORY",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "IS_DELETED",
+        "SEQUENCE"
+      ],
+      "expected_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "IS_DELETED",
+        "SEQUENCE"
+      ],
+      "model_id": "DMA_HEX.RAW.INVOICE_CDC",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "TENANT_ID",
+        "PAYMENT_ID",
+        "INVOICE_ID",
+        "PAID_CENTS",
+        "IS_DELETED",
+        "SEQUENCE"
+      ],
+      "expected_columns": [
+        "TENANT_ID",
+        "PAYMENT_ID",
+        "INVOICE_ID",
+        "PAID_CENTS",
+        "IS_DELETED",
+        "SEQUENCE"
+      ],
+      "model_id": "DMA_HEX.RAW.PAYMENT_CDC",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "ADJUSTMENT_CENTS",
+        "REASON"
+      ],
+      "expected_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "ADJUSTMENT_CENTS",
+        "REASON"
+      ],
+      "model_id": "DMA_HEX.SILVER.BILLING_ADJUSTMENTS",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ],
+      "expected_columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ],
+      "model_id": "DMA_HEX.SILVER.BILLING_CUSTOMER_HISTORY",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "SOURCE_SEQUENCE"
+      ],
+      "expected_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "SOURCE_SEQUENCE"
+      ],
+      "model_id": "DMA_HEX.SILVER.BILLING_INVOICES",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "TENANT_ID",
+        "PAYMENT_ID",
+        "INVOICE_ID",
+        "PAID_CENTS",
+        "SOURCE_SEQUENCE"
+      ],
+      "expected_columns": [
+        "TENANT_ID",
+        "PAYMENT_ID",
+        "INVOICE_ID",
+        "PAID_CENTS",
+        "SOURCE_SEQUENCE"
+      ],
+      "model_id": "DMA_HEX.SILVER.BILLING_PAYMENTS",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "CUSTOMER_KEY",
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ],
+      "expected_columns": [
+        "CUSTOMER_KEY",
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ],
+      "model_id": "DMA_HEX.GOLD.DIM_CUSTOMERS",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "CUSTOMER_MONTH_KEY",
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "INVOICE_MONTH",
+        "NET_CENTS",
+        "PAID_CENTS",
+        "OUTSTANDING_CENTS",
+        "HAS_INVOICE",
+        "HAS_PAID_INVOICE",
+        "FIRST_PAID_MONTH"
+      ],
+      "expected_columns": [
+        "CUSTOMER_MONTH_KEY",
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "INVOICE_MONTH",
+        "NET_CENTS",
+        "PAID_CENTS",
+        "OUTSTANDING_CENTS",
+        "HAS_INVOICE",
+        "HAS_PAID_INVOICE",
+        "FIRST_PAID_MONTH"
+      ],
+      "model_id": "DMA_HEX.GOLD.FCT_CUSTOMER_MONTH",
+      "passed": true
+    },
+    {
+      "actual_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "INVOICE_MONTH",
+        "STATUS",
+        "AMOUNT_CENTS",
+        "ADJUSTMENT_CENTS",
+        "NET_CENTS",
+        "PAID_CENTS",
+        "OUTSTANDING_CENTS",
+        "INVOICE_KEY",
+        "CUSTOMER_KEY",
+        "SEGMENT"
+      ],
+      "expected_columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "INVOICE_MONTH",
+        "STATUS",
+        "AMOUNT_CENTS",
+        "ADJUSTMENT_CENTS",
+        "NET_CENTS",
+        "PAID_CENTS",
+        "OUTSTANDING_CENTS",
+        "INVOICE_KEY",
+        "CUSTOMER_KEY",
+        "SEGMENT"
+      ],
+      "model_id": "DMA_HEX.GOLD.FCT_INVOICES",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

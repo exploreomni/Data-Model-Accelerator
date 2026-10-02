@@ -1,0 +1,14 @@
+{
+  "rows": [
+    {
+      "currency": "USD",
+      "location_id": "L9",
+      "location_name": "Harbor Yard",
+      "net_revenue": "42.00",
+      "rental_date": "2026-08-15",
+      "rental_id": "R9",
+      "rental_status": "completed",
+      "tenant_id": "C"
+    }
+  ]
+}

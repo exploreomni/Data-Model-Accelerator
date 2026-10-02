@@ -1,0 +1,114 @@
+{
+  "gold": [
+    {
+      "LINE_KEY": "A|O1|L1",
+      "TENANT_ID": "A",
+      "ORDER_ID": "O1",
+      "LINE_ID": "L1",
+      "PRODUCT_ID": "P1",
+      "ORDER_DATE": "2026-04-01",
+      "ORDER_STATUS": "completed",
+      "ORDERED_QUANTITY": 3,
+      "FULFILLED_QUANTITY": 3,
+      "RETURNED_QUANTITY": 2,
+      "LINE_NET_CENTS": 2400,
+      "REFUND_CENTS": 1500,
+      "RETAINED_REVENUE_CENTS": 900
+    },
+    {
+      "LINE_KEY": "A|O1|L2",
+      "TENANT_ID": "A",
+      "ORDER_ID": "O1",
+      "LINE_ID": "L2",
+      "PRODUCT_ID": "P2",
+      "ORDER_DATE": "2026-04-01",
+      "ORDER_STATUS": "completed",
+      "ORDERED_QUANTITY": 2,
+      "FULFILLED_QUANTITY": 1,
+      "RETURNED_QUANTITY": 1,
+      "LINE_NET_CENTS": 4500,
+      "REFUND_CENTS": 2250,
+      "RETAINED_REVENUE_CENTS": 2250
+    },
+    {
+      "LINE_KEY": "A|O2|L1",
+      "TENANT_ID": "A",
+      "ORDER_ID": "O2",
+      "LINE_ID": "L1",
+      "PRODUCT_ID": "P1",
+      "ORDER_DATE": "2026-04-02",
+      "ORDER_STATUS": "pending",
+      "ORDERED_QUANTITY": 1,
+      "FULFILLED_QUANTITY": 0,
+      "RETURNED_QUANTITY": 0,
+      "LINE_NET_CENTS": 1000,
+      "REFUND_CENTS": 0,
+      "RETAINED_REVENUE_CENTS": 1000
+    },
+    {
+      "LINE_KEY": "A|O3|L1",
+      "TENANT_ID": "A",
+      "ORDER_ID": "O3",
+      "LINE_ID": "L1",
+      "PRODUCT_ID": "P3",
+      "ORDER_DATE": "2026-04-03",
+      "ORDER_STATUS": "completed",
+      "ORDERED_QUANTITY": 1,
+      "FULFILLED_QUANTITY": 1,
+      "RETURNED_QUANTITY": 0,
+      "LINE_NET_CENTS": 2000,
+      "REFUND_CENTS": 0,
+      "RETAINED_REVENUE_CENTS": 2000
+    },
+    {
+      "LINE_KEY": "B|O1|L1",
+      "TENANT_ID": "B",
+      "ORDER_ID": "O1",
+      "LINE_ID": "L1",
+      "PRODUCT_ID": "P1",
+      "ORDER_DATE": "2026-04-01",
+      "ORDER_STATUS": "completed",
+      "ORDERED_QUANTITY": 2,
+      "FULFILLED_QUANTITY": 1,
+      "RETURNED_QUANTITY": 1,
+      "LINE_NET_CENTS": 3000,
+      "REFUND_CENTS": 1500,
+      "RETAINED_REVENUE_CENTS": 1500
+    }
+  ],
+  "report": [
+    {
+      "ORDER_MONTH": "2026-04-01",
+      "PRODUCT_ID": "P1",
+      "ORDERED_QUANTITY": 3,
+      "FULFILLED_QUANTITY": 3,
+      "RETURNED_QUANTITY": 2,
+      "LINE_NET_CENTS": 2400,
+      "REFUND_CENTS": 1500,
+      "RETAINED_REVENUE_CENTS": 900,
+      "FULFILLMENT_RATE": 1.0
+    },
+    {
+      "ORDER_MONTH": "2026-04-01",
+      "PRODUCT_ID": "P2",
+      "ORDERED_QUANTITY": 2,
+      "FULFILLED_QUANTITY": 1,
+      "RETURNED_QUANTITY": 1,
+      "LINE_NET_CENTS": 4500,
+      "REFUND_CENTS": 2250,
+      "RETAINED_REVENUE_CENTS": 2250,
+      "FULFILLMENT_RATE": 0.5
+    },
+    {
+      "ORDER_MONTH": "2026-04-01",
+      "PRODUCT_ID": "P3",
+      "ORDERED_QUANTITY": 1,
+      "FULFILLED_QUANTITY": 1,
+      "RETURNED_QUANTITY": 0,
+      "LINE_NET_CENTS": 2000,
+      "REFUND_CENTS": 0,
+      "RETAINED_REVENUE_CENTS": 2000,
+      "FULFILLMENT_RATE": 1.0
+    }
+  ]
+}

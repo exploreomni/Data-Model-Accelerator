@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "scope": "Fixed synthetic regression contract; changes require explicit fixture review, never runtime self-registration.",
+  "required_test_ids": [
+    "catalogue-physical-input-coverage",
+    "raw-cdc-types-currency-history-contract",
+    "gold-rows-independent-oracle",
+    "legacy-derived-rows-independent-oracle",
+    "fact-grain-and-key",
+    "dimension-key-unique",
+    "fact-dimension-exactly-one-match",
+    "tenant-dimension-isolation",
+    "effective-customer-history",
+    "retain-nonreport-populations",
+    "omni-a_usd_september_total",
+    "legacy-a_usd_september_total",
+    "omni-a_usd_september_by_segment",
+    "legacy-a_usd_september_by_segment",
+    "omni-a_usd_september_daily",
+    "legacy-a_usd_september_daily",
+    "omni-a_usd_september_smb",
+    "legacy-a_usd_september_smb",
+    "omni-a_eur_september_total",
+    "legacy-a_eur_september_total",
+    "omni-b_usd_september_total",
+    "legacy-b_usd_september_total",
+    "omni-a_usd_august_total",
+    "legacy-a_usd_august_total",
+    "omni-a_usd_september_zero_net",
+    "legacy-a_usd_september_zero_net",
+    "omni-a_usd_empty_interval",
+    "source-empty-sql-boundary-recorded",
+    "omni-measure-filters-without-dashboard",
+    "looker-measure-filters-without-dashboard",
+    "omni-deny-persona-None",
+    "looker-deny-persona-None",
+    "omni-deny-persona-''",
+    "looker-deny-persona-''",
+    "omni-deny-persona-'unknown'",
+    "looker-deny-persona-'unknown'",
+    "replay-preserves-gold",
+    "arrival-order-does-not-select-source-version",
+    "reject-conflicting-version",
+    "reject-currency-mismatch",
+    "reject-overlapping-history",
+    "reject-invalid-amount",
+    "kill-missing-tenant-join",
+    "kill-missing-temporal-join",
+    "kill-double-credit",
+    "kill-arrival-order-cdc",
+    "kill-early-delete-filter",
+    "kill-sum-of-row-ratios",
+    "kill-lost-measure-filter",
+    "kill-omitted-access-policy",
+    "kill-quoted-lowercase-physical-column",
+    "kill-catalogue-normalization-omission",
+    "report-fields-controls-and-defaults-preserved",
+    "omni-dashboard-defaults-executed",
+    "looker-dashboard-defaults-executed",
+    "kill-dashboard-default-currency",
+    "kill-dashboard-default-dates",
+    "kill-dashboard-missing-measure",
+    "kill-connection-binding"
+  ],
+  "scenario_ids": [
+    "a_usd_september_total",
+    "a_usd_september_by_segment",
+    "a_usd_september_daily",
+    "a_usd_september_smb",
+    "a_eur_september_total",
+    "b_usd_september_total",
+    "a_usd_august_total",
+    "a_usd_september_zero_net",
+    "a_usd_empty_interval"
+  ],
+  "frozen_input_hashes": {
+    "expected/expected_rows.json": "b5ecab7ce84733fa6e0758ea7e31c18d62c640b36c079b5615771075822c9601",
+    "expected/expected_reports.json": "856f7c9050c7c5554043193ccbc6b05d80e140db8b4749edfb8a886513a4bd42",
+    "expected/oracle.py": "1bb111c4f28d059dbbb82ff87c8a9ed693d9a90a484a9a7b00b8031e7b6c16a8",
+    "input/scenario.md": "cef44718d15b689c7a6c6ec15492e3de72503c2eecfc9181fd80fe76bf5602c7",
+    "input/raw-data.json": "f345f387c7df7c65d480878dd92c7cab4cfc8454a58843621271c9c9e8388d48"
+  },
+  "report_contract": {
+    "defaults": {
+      "start_date": "2026-09-01",
+      "end_date": "2026-10-01",
+      "currency": "USD"
+    },
+    "fields": [
+      "customers.segment",
+      "invoices.invoice_count",
+      "invoices.net_cents_sum",
+      "invoices.paid_cents_sum",
+      "invoices.payment_rate"
+    ],
+    "filters": {
+      "invoices.status": "posted"
+    },
+    "controls": {
+      "Reporting Date": "invoices.invoice_date",
+      "Currency": "invoices.currency"
+    },
+    "listen": {
+      "Reporting Date": "invoices.invoice_date",
+      "Currency": "invoices.currency"
+    },
+    "sorts": [
+      "customers.segment"
+    ],
+    "limit": 500
+  }
+}

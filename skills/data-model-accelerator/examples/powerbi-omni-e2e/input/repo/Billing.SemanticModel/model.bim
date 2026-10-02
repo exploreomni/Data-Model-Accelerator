@@ -1,0 +1,305 @@
+{
+  "name": "DMA Power BI Billing",
+  "compatibilityLevel": 1600,
+  "model": {
+    "name": "Model",
+    "culture": "en-US",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "tables": [
+      {
+        "name": "Invoices",
+        "lineageTag": "0f7e4e05-e6df-53cb-9926-fb722bc65c9c",
+        "columns": [
+          {
+            "name": "Tenant ID",
+            "dataType": "string",
+            "lineageTag": "9d7f1187-5df1-56a7-a06c-1df990424670",
+            "summarizeBy": "none",
+            "sourceColumn": "TENANT_ID"
+          },
+          {
+            "name": "Invoice ID",
+            "dataType": "string",
+            "lineageTag": "bb8be7ac-0636-50dc-9f11-19630378603b",
+            "summarizeBy": "none",
+            "sourceColumn": "INVOICE_ID"
+          },
+          {
+            "name": "Customer ID",
+            "dataType": "string",
+            "lineageTag": "efbda197-f561-5a5f-b657-d62848a8abc7",
+            "summarizeBy": "none",
+            "sourceColumn": "CUSTOMER_ID"
+          },
+          {
+            "name": "Invoice Date",
+            "dataType": "dateTime",
+            "lineageTag": "132829f2-536b-587f-9e78-3ba7a8f1cf09",
+            "summarizeBy": "none",
+            "sourceColumn": "INVOICE_DATE",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "Invoice Month",
+            "dataType": "dateTime",
+            "lineageTag": "f6655c01-f269-5ef2-a2ef-c17e7421b92d",
+            "summarizeBy": "none",
+            "sourceColumn": "INVOICE_MONTH",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "Status",
+            "dataType": "string",
+            "lineageTag": "5ec3e9ba-c009-546d-a4d2-535fe4d50dd1",
+            "summarizeBy": "none",
+            "sourceColumn": "STATUS"
+          },
+          {
+            "name": "Amount Cents",
+            "dataType": "int64",
+            "lineageTag": "76e9fc36-399f-5a5c-9c71-e325d5f1bc6e",
+            "summarizeBy": "none",
+            "sourceColumn": "AMOUNT_CENTS"
+          },
+          {
+            "name": "Adjustment Cents",
+            "dataType": "int64",
+            "lineageTag": "7b7fd52e-7e23-5f87-96cb-a1caf40a2af0",
+            "summarizeBy": "none",
+            "sourceColumn": "ADJUSTMENT_CENTS"
+          },
+          {
+            "name": "Paid Cents",
+            "dataType": "int64",
+            "lineageTag": "30746a63-ab30-5c1e-9129-5d506f88dc9d",
+            "summarizeBy": "none",
+            "sourceColumn": "PAID_CENTS"
+          },
+          {
+            "name": "Net Cents",
+            "dataType": "int64",
+            "lineageTag": "69b70e2f-1b33-5750-860a-6298be3a342b",
+            "summarizeBy": "none",
+            "sourceColumn": "NET_CENTS"
+          },
+          {
+            "name": "Outstanding Cents",
+            "dataType": "int64",
+            "lineageTag": "84afe179-0cc4-520b-8aaa-780de4171e11",
+            "summarizeBy": "none",
+            "type": "calculated",
+            "expression": "Invoices[Net Cents] - Invoices[Paid Cents]"
+          },
+          {
+            "name": "Customer History Key",
+            "dataType": "string",
+            "lineageTag": "3a0f2ee0-cb8b-5e3c-b565-2845d3b6ea77",
+            "summarizeBy": "none",
+            "sourceColumn": "CUSTOMER_HISTORY_KEY"
+          },
+          {
+            "name": "Invoice Key",
+            "dataType": "string",
+            "lineageTag": "7a81004e-7d93-52aa-b91f-016a67fb4cc3",
+            "summarizeBy": "none",
+            "sourceColumn": "INVOICE_KEY"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Invoices Import",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Value.NativeQuery(Snowflake.Databases(\"DMA_POWERBI_SYNTHETIC\", \"SYNTHETIC_LOCAL_ONLY\"){[Name=\"DMA_POWERBI\",Kind=\"Database\"]}[Data], \"WITH invoice_versions AS (#(lf)  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, INVOICE_ID ORDER BY SEQUENCE DESC) AS RN#(lf)  FROM DMA_POWERBI.RAW.INVOICE_CDC#(lf)), payment_versions AS (#(lf)  SELECT *, ROW_NUMBER() OVER (PARTITION BY TENANT_ID, PAYMENT_ID ORDER BY SEQUENCE DESC) AS RN#(lf)  FROM DMA_POWERBI.RAW.PAYMENT_CDC#(lf)), invoices AS (#(lf)  SELECT * FROM invoice_versions WHERE RN = 1 AND NOT IS_DELETED#(lf)), payments AS (#(lf)  SELECT TENANT_ID, INVOICE_ID, SUM(PAID_CENTS) AS PAID_CENTS#(lf)  FROM payment_versions WHERE RN = 1 AND NOT IS_DELETED#(lf)  GROUP BY TENANT_ID, INVOICE_ID#(lf)), history AS (#(lf)  SELECT DISTINCT TENANT_ID, CUSTOMER_ID, SEGMENT,#(lf)    CAST(VALID_FROM AS DATE) AS VALID_FROM, CAST(VALID_TO AS DATE) AS VALID_TO#(lf)  FROM DMA_POWERBI.RAW.CUSTOMER_HISTORY#(lf))#(lf)SELECT i.TENANT_ID, i.INVOICE_ID, i.CUSTOMER_ID,#(lf)  CAST(i.INVOICE_DATE AS DATE) AS INVOICE_DATE, i.STATUS, i.AMOUNT_CENTS,#(lf)  a.ADJUSTMENT_CENTS, COALESCE(p.PAID_CENTS, 0) AS PAID_CENTS,#(lf)  i.TENANT_ID || '|' || i.CUSTOMER_ID || '|' || TO_CHAR(h.VALID_FROM, 'YYYY-MM-DD') AS CUSTOMER_HISTORY_KEY,#(lf)  i.TENANT_ID || '|' || i.INVOICE_ID AS INVOICE_KEY#(lf)FROM invoices i#(lf)JOIN history h ON i.TENANT_ID = h.TENANT_ID AND i.CUSTOMER_ID = h.CUSTOMER_ID#(lf)  AND CAST(i.INVOICE_DATE AS DATE) >= h.VALID_FROM#(lf)  AND (h.VALID_TO IS NULL OR CAST(i.INVOICE_DATE AS DATE) < h.VALID_TO)#(lf)LEFT JOIN payments p ON i.TENANT_ID = p.TENANT_ID AND i.INVOICE_ID = p.INVOICE_ID#(lf)LEFT JOIN DMA_POWERBI.RAW.ADJUSTMENTS a ON i.TENANT_ID = a.TENANT_ID AND i.INVOICE_ID = a.INVOICE_ID\", null, [EnableFolding=true]),\n    AddedNet = Table.AddColumn(Source, \"NET_CENTS\", each [AMOUNT_CENTS] + (if [ADJUSTMENT_CENTS] = null then 0 else [ADJUSTMENT_CENTS]), Int64.Type),\n    AddedMonth = Table.AddColumn(AddedNet, \"INVOICE_MONTH\", each Date.StartOfMonth([INVOICE_DATE]), type date)\nin\n    AddedMonth"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Customers",
+        "lineageTag": "a8a988e6-0bab-5367-9091-a573454ebfe6",
+        "columns": [
+          {
+            "name": "Tenant ID",
+            "dataType": "string",
+            "lineageTag": "7aaa3c3e-a24e-5a09-b377-2471d5bcdd47",
+            "summarizeBy": "none",
+            "sourceColumn": "TENANT_ID"
+          },
+          {
+            "name": "Customer ID",
+            "dataType": "string",
+            "lineageTag": "88ae46ce-bbac-5238-9b63-d494bf3f6e21",
+            "summarizeBy": "none",
+            "sourceColumn": "CUSTOMER_ID"
+          },
+          {
+            "name": "Segment",
+            "dataType": "string",
+            "lineageTag": "4437b44f-7ca6-5e8a-b8e1-f5dc851cad1f",
+            "summarizeBy": "none",
+            "sourceColumn": "SEGMENT"
+          },
+          {
+            "name": "Valid From",
+            "dataType": "dateTime",
+            "lineageTag": "5834155e-5c50-5cc5-aff7-0495c86dbdd9",
+            "summarizeBy": "none",
+            "sourceColumn": "VALID_FROM",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "Valid To",
+            "dataType": "dateTime",
+            "lineageTag": "bba95669-ee07-5ba1-a0f3-98150d14826e",
+            "summarizeBy": "none",
+            "sourceColumn": "VALID_TO",
+            "formatString": "yyyy-MM-dd"
+          },
+          {
+            "name": "Customer History Key",
+            "dataType": "string",
+            "lineageTag": "448a7be1-9c9f-58f5-a005-884453a046a6",
+            "summarizeBy": "none",
+            "sourceColumn": "CUSTOMER_HISTORY_KEY"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Customers Import",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Value.NativeQuery(Snowflake.Databases(\"DMA_POWERBI_SYNTHETIC\", \"SYNTHETIC_LOCAL_ONLY\"){[Name=\"DMA_POWERBI\",Kind=\"Database\"]}[Data], \"SELECT DISTINCT TENANT_ID, CUSTOMER_ID, SEGMENT,#(lf)  CAST(VALID_FROM AS DATE) AS VALID_FROM, CAST(VALID_TO AS DATE) AS VALID_TO,#(lf)  TENANT_ID || '|' || CUSTOMER_ID || '|' || TO_CHAR(CAST(VALID_FROM AS DATE), 'YYYY-MM-DD') AS CUSTOMER_HISTORY_KEY#(lf)FROM DMA_POWERBI.RAW.CUSTOMER_HISTORY\", null, [EnableFolding=true])\nin\n    Source"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Scenario",
+        "lineageTag": "fa57bbcb-b535-52b7-9e76-81cbf1ab335f",
+        "columns": [
+          {
+            "name": "Multiplier",
+            "dataType": "int64",
+            "lineageTag": "939bf52f-6c37-5044-9413-4c902af7560f",
+            "summarizeBy": "none",
+            "sourceColumn": "MULTIPLIER"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Scenario Import",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "#table(type table [MULTIPLIER=Int64.Type], {{1},{2}})"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Revenue Cents",
+            "expression": "SUM(Invoices[Net Cents])",
+            "lineageTag": "d91e5d93-56a3-5626-9866-a47aac5cce98",
+            "formatString": "0"
+          },
+          {
+            "name": "Paid Cents",
+            "expression": "SUM(Invoices[Paid Cents])",
+            "lineageTag": "79f82cdb-5918-5eec-90b4-f8a763a92ae7",
+            "formatString": "0"
+          },
+          {
+            "name": "Outstanding Cents",
+            "expression": "SUM(Invoices[Outstanding Cents])",
+            "lineageTag": "f2fc3b26-e4e6-57bb-970c-2b7cbdb7c9c3",
+            "formatString": "0"
+          },
+          {
+            "name": "Payment Rate",
+            "expression": "DIVIDE([Paid Cents],[Revenue Cents])",
+            "lineageTag": "d9e3386b-0f04-570e-9e37-b10af0221e35",
+            "formatString": "0.000000"
+          },
+          {
+            "name": "All Segment Revenue Cents",
+            "expression": "CALCULATE([Revenue Cents],REMOVEFILTERS(Customers[Segment]))",
+            "lineageTag": "09957226-ba26-5573-b810-fe844bc0f5a3",
+            "formatString": "0"
+          },
+          {
+            "name": "Share All Segments",
+            "expression": "DIVIDE([Revenue Cents],[All Segment Revenue Cents])",
+            "lineageTag": "e900cea6-85d0-5433-a90f-a38f942dd531",
+            "formatString": "0.000000"
+          },
+          {
+            "name": "Posted Revenue Cents",
+            "expression": "CALCULATE([Revenue Cents],Invoices[Status]=\"posted\")",
+            "lineageTag": "257b85cf-5308-59b3-ab5d-0d8dbf1cd057",
+            "formatString": "0"
+          },
+          {
+            "name": "Posted Intersection Cents",
+            "expression": "CALCULATE([Revenue Cents],KEEPFILTERS(Invoices[Status]=\"posted\"))",
+            "lineageTag": "cc190d50-7963-5e9a-8eac-aabe99812ff0",
+            "formatString": "0"
+          },
+          {
+            "name": "Scenario Revenue Cents",
+            "expression": "[Revenue Cents]*SELECTEDVALUE(Scenario[Multiplier],1)",
+            "lineageTag": "e25fac60-cc44-5658-b2bf-f3b761184a64",
+            "formatString": "0"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "Invoices_Customers_History",
+        "type": "singleColumn",
+        "fromTable": "Invoices",
+        "fromColumn": "Customer History Key",
+        "fromCardinality": "many",
+        "toTable": "Customers",
+        "toColumn": "Customer History Key",
+        "toCardinality": "one",
+        "isActive": true,
+        "crossFilteringBehavior": "oneDirection",
+        "securityFilteringBehavior": "oneDirection"
+      }
+    ],
+    "roles": [
+      {
+        "name": "TenantA",
+        "modelPermission": "read",
+        "tablePermissions": [
+          {
+            "name": "Invoices",
+            "filterExpression": "Invoices[Tenant ID] = \"A\""
+          },
+          {
+            "name": "Customers",
+            "filterExpression": "Customers[Tenant ID] = \"A\""
+          }
+        ]
+      },
+      {
+        "name": "TenantB",
+        "modelPermission": "read",
+        "tablePermissions": [
+          {
+            "name": "Invoices",
+            "filterExpression": "Invoices[Tenant ID] = \"B\""
+          },
+          {
+            "name": "Customers",
+            "filterExpression": "Customers[Tenant ID] = \"B\""
+          }
+        ]
+      }
+    ]
+  }
+}

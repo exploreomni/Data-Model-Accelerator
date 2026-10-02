@@ -1,0 +1,14 @@
+version: 2
+models:
+  - name: stg_orders
+    description: Current nondeleted order headers. Preserve reusable transformation.
+    columns:
+      - name: ORDER_KEY
+        tests: [not_null, unique]
+  - name: stg_order_lines
+    description: Current nondeleted lines; line discount already applied exactly once.
+    columns:
+      - name: LINE_KEY
+        tests: [not_null, unique]
+      - name: LINE_NET_CENTS
+        tests: [not_null]

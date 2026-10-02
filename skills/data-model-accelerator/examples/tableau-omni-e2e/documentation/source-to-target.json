@@ -1,0 +1,313 @@
+{
+  "schema_version": 1,
+  "kind": "source_to_target_crosswalk",
+  "specification_version": "tableau-billing-1.0.0",
+  "evidence_basis": "Native identifiers supplied by the independent source-format author; scenario supplies the behavioral contract. This artifact author did not inspect oracle/expected files.",
+  "source": {
+    "workbook_path": "input/repo/billing.twb",
+    "datasource_mirror_path": "input/repo/billing.tds",
+    "datasource_id": "federated.billing",
+    "named_connection": "tableau-billing-snowflake",
+    "connection_type": "snowflake",
+    "platform_instance": "DMA_TABLEAU_SYNTHETIC",
+    "database": "DMA_TABLEAU",
+    "schema": "RAW",
+    "dashboard_name": "Billing Overview",
+    "worksheet_names": [
+      "Revenue Trend",
+      "Customer Value",
+      "Revenue Share"
+    ],
+    "archive_semantics": "TWBX packages the same workbook/mirror/CSV; archive membership is not an additional workbook.",
+    "workbook_name_or_caption": null,
+    "workbook_scope": "billing.twb#tableau-billing-synthetic",
+    "repository_location": {
+      "id": "tableau-billing-synthetic",
+      "path": "/workbooks",
+      "revision": "1.0",
+      "evidence_status": "Synthetic fixture identifier, not actual Tableau server identity."
+    },
+    "datasource_caption": "Billing invoices",
+    "artifact_sha256": {
+      "input/repo/billing.twb": "3511aa9fc45072153b0af3d1e27ac43f5e82788c7cd059fcc38620f6518d518f",
+      "input/repo/billing.tds": "7060aa92b4828169f71c2481868ba7d79613e3b1015d0add9ec28b3c42465ab8"
+    },
+    "artifact_hash_basis": "Stable byte hashes supplied by independent source-format author; source-graph run independently re-reads and verifies native artifacts."
+  },
+  "field_mappings": [
+    {
+      "native_field_id": "[Net Cents]",
+      "native_field_name": "Net Cents",
+      "native_scope": "federated.billing",
+      "target": "DMA_TABLEAU.GOLD.FCT_INVOICES.NET_CENTS",
+      "placement": "gold_row",
+      "preservation_rule": "AMOUNT_CENTS + COALESCE(ADJUSTMENT_CENTS,0); preserve integer cents and signs.",
+      "source_paths": [
+        "input/repo/billing.twb",
+        "input/repo/billing.tds"
+      ],
+      "target_artifacts": [
+        "target/dbt/models/gold/fct_invoices.sql"
+      ]
+    },
+    {
+      "native_field_id": "[Outstanding Cents]",
+      "native_field_name": "Outstanding Cents",
+      "native_scope": "federated.billing",
+      "target": "DMA_TABLEAU.GOLD.FCT_INVOICES.OUTSTANDING_CENTS",
+      "placement": "gold_row",
+      "preservation_rule": "NET_CENTS - PAID_CENTS, including negative overpayments.",
+      "source_paths": [
+        "input/repo/billing.twb",
+        "input/repo/billing.tds"
+      ],
+      "target_artifacts": [
+        "target/dbt/models/gold/fct_invoices.sql"
+      ]
+    },
+    {
+      "native_field_id": "[Invoice Month]",
+      "native_field_name": "Invoice Month",
+      "native_scope": "federated.billing",
+      "target": "DMA_TABLEAU.GOLD.FCT_INVOICES.INVOICE_MONTH",
+      "placement": "gold_row",
+      "preservation_rule": "First calendar day of invoice date month; no timezone conversion.",
+      "source_paths": [
+        "input/repo/billing.twb",
+        "input/repo/billing.tds"
+      ],
+      "target_artifacts": [
+        "target/dbt/models/gold/fct_invoices.sql"
+      ]
+    },
+    {
+      "native_field_id": "[Fixed Customer Net]",
+      "native_field_name": "Fixed Customer Net",
+      "native_scope": "federated.billing",
+      "target": "invoices.fixed_customer_revenue_cents; invoices.fixed_customer_revenue_cents_min",
+      "placement": "semantic_query_time",
+      "preservation_rule": "SUM net fixed by tenant/customer after tenant/status/date context; ignore only ordinary segment filter. MIN within each mark; not additive across marks.",
+      "source_paths": [
+        "input/repo/billing.twb",
+        "input/repo/billing.tds"
+      ],
+      "target_artifacts": [
+        "target/omni/invoices.view",
+        "target/omni/report-context.json"
+      ]
+    },
+    {
+      "native_field_id": "[Revenue Share]",
+      "native_field_name": "Revenue Share",
+      "native_scope": "federated.billing",
+      "target": "report-context.json reports.revenue_share.presentation[0]",
+      "placement": "presentation_after_marks",
+      "preservation_rule": "Selected mark net divided by sum of selected marks within month; address segment. Zero denominator null.",
+      "source_paths": [
+        "input/repo/billing.twb",
+        "input/repo/billing.tds"
+      ],
+      "target_artifacts": [
+        "target/omni/invoices.view",
+        "target/omni/report-context.json"
+      ]
+    },
+    {
+      "native_field_id": "[Scenario Revenue]",
+      "native_field_name": "Scenario Revenue",
+      "native_scope": "federated.billing",
+      "target": "report-context.json reports.revenue_trend.presentation[0]",
+      "placement": "presentation_after_marks",
+      "preservation_rule": "Selected mark net multiplied by finite runtime multiplier; does not modify gold or FIXED.",
+      "source_paths": [
+        "input/repo/billing.twb",
+        "input/repo/billing.tds"
+      ],
+      "target_artifacts": [
+        "target/omni/invoices.view",
+        "target/omni/report-context.json"
+      ]
+    }
+  ],
+  "filter_mappings": [
+    {
+      "native_field_id": "[Tenant Population]",
+      "native_parameter_ids": [
+        "[Tenant]"
+      ],
+      "target_field": "invoices.tenant_id",
+      "native_filter_role": "datasource_population",
+      "scope": "all three selected worksheets",
+      "preservation_rule": "Authorized synthetic persona and known tenant must match; target topic access_filters bind user attribute tenant_id."
+    },
+    {
+      "native_field_id": "[Posted Population]",
+      "native_parameter_ids": [],
+      "target_field": "invoices.status",
+      "native_filter_role": "datasource_population",
+      "scope": "all three selected worksheets",
+      "preservation_rule": "posted population applies before FIXED; shared warehouse models retain other current statuses."
+    },
+    {
+      "native_field_id": "[Date Window]",
+      "native_parameter_ids": [
+        "[Start Date]",
+        "[End Date]"
+      ],
+      "target_field": "invoices.invoice_date",
+      "native_filter_role": "context",
+      "scope": "all three selected worksheets",
+      "preservation_rule": "Inclusive start/exclusive end before FIXED; equal endpoints no marks; reversed or malformed fail."
+    },
+    {
+      "native_field_id": "[Segment Selection]",
+      "native_parameter_ids": [
+        "[Segment]"
+      ],
+      "target_field": "invoices.segment",
+      "native_filter_role": "dimension",
+      "scope": "all three selected worksheets",
+      "preservation_rule": "ALL or exact segment after FIXED and before mark aggregation; selectively canceled only inside LOD."
+    }
+  ],
+  "worksheet_mappings": [
+    {
+      "native_worksheet_name": "Revenue Trend",
+      "native_dashboard_name": "Billing Overview",
+      "target_report_key": "revenue_trend",
+      "target_topic": "billing",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "invoices.segment"
+      },
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents",
+        "paid_cents": "invoices.paid_cents_total",
+        "outstanding_cents": "invoices.outstanding_cents_total",
+        "payment_rate": "invoices.payment_rate"
+      },
+      "presentation_outputs": [
+        "scenario_revenue_cents"
+      ],
+      "target_context": "target/omni/report-context.json#/reports/revenue_trend"
+    },
+    {
+      "native_worksheet_name": "Customer Value",
+      "native_dashboard_name": "Billing Overview",
+      "target_report_key": "customer_value",
+      "target_topic": "billing",
+      "dimensions": {
+        "customer_id": "invoices.customer_id",
+        "segment": "invoices.segment"
+      },
+      "measures": {
+        "selected_revenue_cents": "invoices.revenue_cents",
+        "fixed_customer_revenue_cents": "invoices.fixed_customer_revenue_cents_min"
+      },
+      "presentation_outputs": [],
+      "target_context": "target/omni/report-context.json#/reports/customer_value"
+    },
+    {
+      "native_worksheet_name": "Revenue Share",
+      "native_dashboard_name": "Billing Overview",
+      "target_report_key": "revenue_share",
+      "target_topic": "billing",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "invoices.segment"
+      },
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents"
+      },
+      "presentation_outputs": [
+        "share_of_month"
+      ],
+      "target_context": "target/omni/report-context.json#/reports/revenue_share"
+    }
+  ],
+  "unresolved": [
+    "Native Tableau opening/rendering, dashboard actions, sorting ties, densification and permissions remain unqualified.",
+    "Native Omni LOD generation, pivot presentation, dynamic multiplier control and personas require validation.",
+    "Business owner approval of authoritative metric definitions is not supplied."
+  ],
+  "presentation_parameter": {
+    "native_parameter_id": "[Multiplier]",
+    "local_parameter": "multiplier",
+    "scope": "Revenue Trend post-aggregation expression only",
+    "native_omni_dynamic_control": "Unverified; companion example substitutes a validated finite numeric literal."
+  },
+  "physical_field_mappings": [
+    {
+      "native_field_id": "[Tenant ID]",
+      "native_datasource_id": "federated.billing",
+      "source_custom_sql_alias": "TENANT_ID",
+      "target_dimension": "invoices.tenant_id",
+      "target_physical_column": "DMA_TABLEAU.GOLD.FCT_INVOICES.TENANT_ID",
+      "rule": "Preserve declared row meaning after current-state normalization and invoice-date history binding."
+    },
+    {
+      "native_field_id": "[Invoice ID]",
+      "native_datasource_id": "federated.billing",
+      "source_custom_sql_alias": "INVOICE_ID",
+      "target_dimension": "invoices.invoice_id",
+      "target_physical_column": "DMA_TABLEAU.GOLD.FCT_INVOICES.INVOICE_ID",
+      "rule": "Preserve declared row meaning after current-state normalization and invoice-date history binding."
+    },
+    {
+      "native_field_id": "[Customer ID]",
+      "native_datasource_id": "federated.billing",
+      "source_custom_sql_alias": "CUSTOMER_ID",
+      "target_dimension": "invoices.customer_id",
+      "target_physical_column": "DMA_TABLEAU.GOLD.FCT_INVOICES.CUSTOMER_ID",
+      "rule": "Preserve declared row meaning after current-state normalization and invoice-date history binding."
+    },
+    {
+      "native_field_id": "[Invoice Date]",
+      "native_datasource_id": "federated.billing",
+      "source_custom_sql_alias": "INVOICE_DATE",
+      "target_dimension": "invoices.invoice_date",
+      "target_physical_column": "DMA_TABLEAU.GOLD.FCT_INVOICES.INVOICE_DATE",
+      "rule": "Preserve declared row meaning after current-state normalization and invoice-date history binding."
+    },
+    {
+      "native_field_id": "[Amount Cents]",
+      "native_datasource_id": "federated.billing",
+      "source_custom_sql_alias": "AMOUNT_CENTS",
+      "target_dimension": "invoices.amount_cents",
+      "target_physical_column": "DMA_TABLEAU.GOLD.FCT_INVOICES.AMOUNT_CENTS",
+      "rule": "Preserve declared row meaning after current-state normalization and invoice-date history binding."
+    },
+    {
+      "native_field_id": "[Adjustment Cents]",
+      "native_datasource_id": "federated.billing",
+      "source_custom_sql_alias": "ADJUSTMENT_CENTS",
+      "target_dimension": "invoices.adjustment_cents",
+      "target_physical_column": "DMA_TABLEAU.GOLD.FCT_INVOICES.ADJUSTMENT_CENTS",
+      "rule": "Missing source ADJUSTMENT_CENTS row becomes zero through native [Net Cents] ZN and target gold COALESCE; source physical field itself is nullable."
+    },
+    {
+      "native_field_id": "[Paid Cents]",
+      "native_datasource_id": "federated.billing",
+      "source_custom_sql_alias": "PAID_CENTS",
+      "target_dimension": "invoices.paid_cents",
+      "target_physical_column": "DMA_TABLEAU.GOLD.FCT_INVOICES.PAID_CENTS",
+      "rule": "Preserve declared row meaning after current-state normalization and invoice-date history binding."
+    },
+    {
+      "native_field_id": "[Status]",
+      "native_datasource_id": "federated.billing",
+      "source_custom_sql_alias": "STATUS",
+      "target_dimension": "invoices.status",
+      "target_physical_column": "DMA_TABLEAU.GOLD.FCT_INVOICES.STATUS",
+      "rule": "Preserve declared row meaning after current-state normalization and invoice-date history binding."
+    },
+    {
+      "native_field_id": "[Segment]",
+      "native_datasource_id": "federated.billing",
+      "source_custom_sql_alias": "SEGMENT",
+      "target_dimension": "invoices.segment",
+      "target_physical_column": "DMA_TABLEAU.GOLD.FCT_INVOICES.SEGMENT",
+      "rule": "Preserve declared row meaning after current-state normalization and invoice-date history binding."
+    }
+  ]
+}

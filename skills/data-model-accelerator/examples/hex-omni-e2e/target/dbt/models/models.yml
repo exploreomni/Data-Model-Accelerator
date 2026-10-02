@@ -1,0 +1,294 @@
+version: 2
+models:
+- name: billing_adjustments
+  description: 'Typed signed manual correction rows; duplicates and orphan references
+    block review. Grain: One signed manual correction per TENANT_ID,INVOICE_ID; no
+    deduplication or aggregation.'
+  columns:
+  - name: TENANT_ID
+    description: Tenant scope carried through every business identity, join, and topic
+      access filter.
+    data_tests:
+    - not_null
+  - name: INVOICE_ID
+    description: Invoice business identifier, unique only with tenant in current-state
+      models.
+    data_tests:
+    - not_null
+  - name: ADJUSTMENT_CENTS
+    description: Signed manual invoice correction in USD cents; negative is credit
+      and positive is correction.
+    data_tests:
+    - not_null
+  - name: REASON
+    description: Manual adjustment explanation from the inventoried CSV; no production
+      approval is implied.
+    data_tests:
+    - not_null
+- name: billing_customer_history
+  description: 'Typed exact-deduplicated customer history retaining supplied validity
+    intervals. Grain: One distinct effective row per TENANT_ID,CUSTOMER_ID,VALID_FROM;
+    nonoverlapping intervals required.'
+  columns:
+  - name: TENANT_ID
+    description: Tenant scope carried through every business identity, join, and topic
+      access filter.
+    data_tests:
+    - not_null
+  - name: CUSTOMER_ID
+    description: Customer business identifier, scoped by tenant; can have several
+      effective history rows.
+    data_tests:
+    - not_null
+  - name: SEGMENT
+    description: Customer history classification. Invoice report segment is the row
+      effective on INVOICE_DATE.
+    data_tests:
+    - not_null
+  - name: VALID_FROM
+    description: Inclusive effective-history start calendar date.
+    data_tests:
+    - not_null
+  - name: VALID_TO
+    description: Exclusive effective-history end calendar date; null means open-ended.
+- name: billing_invoices
+  description: 'Current typed invoice after-images chosen by source sequence before
+    tombstone filtering. Grain: One current nondeleted invoice per TENANT_ID,INVOICE_ID;
+    all statuses retained.'
+  columns:
+  - name: TENANT_ID
+    description: Tenant scope carried through every business identity, join, and topic
+      access filter.
+    data_tests:
+    - not_null
+  - name: INVOICE_ID
+    description: Invoice business identifier, unique only with tenant in current-state
+      models.
+    data_tests:
+    - not_null
+  - name: CUSTOMER_ID
+    description: Customer business identifier, scoped by tenant; can have several
+      effective history rows.
+    data_tests:
+    - not_null
+  - name: INVOICE_DATE
+    description: Supplied invoice calendar date used for effective history and report
+      windows; no payment timestamp is present.
+    data_tests:
+    - not_null
+  - name: AMOUNT_CENTS
+    description: Invoice amount before manual signed adjustment, in integer USD cents.
+    data_tests:
+    - not_null
+  - name: STATUS
+    description: Invoice status; normalized by trimming/lowercasing in silver. Shared
+      models retain drafts.
+    data_tests:
+    - not_null
+  - name: SOURCE_SEQUENCE
+    description: Selected maximum source sequence retained as current-state lineage.
+    data_tests:
+    - not_null
+- name: billing_payments
+  description: 'Current typed payment after-images, preserving tenant scope and tombstone
+    order. Grain: One current nondeleted payment per TENANT_ID,PAYMENT_ID.'
+  columns:
+  - name: TENANT_ID
+    description: Tenant scope carried through every business identity, join, and topic
+      access filter.
+    data_tests:
+    - not_null
+  - name: PAYMENT_ID
+    description: Payment business identifier, scoped by tenant and versioned before
+      tombstone handling.
+    data_tests:
+    - not_null
+  - name: INVOICE_ID
+    description: Invoice business identifier, unique only with tenant in current-state
+      models.
+    data_tests:
+    - not_null
+  - name: PAID_CENTS
+    description: Current payment amount; invoice facts sum current nondeleted payments
+      per tenant/invoice.
+    data_tests:
+    - not_null
+  - name: SOURCE_SEQUENCE
+    description: Selected maximum source sequence retained as current-state lineage.
+    data_tests:
+    - not_null
+- name: dim_customers
+  description: 'Customer effective-history dimension with tenant/date-qualified natural
+    surrogate. Grain: One effective customer history row per CUSTOMER_KEY = TENANT_ID,CUSTOMER_ID,VALID_FROM.'
+  columns:
+  - name: CUSTOMER_KEY
+    description: Deterministic tenant|customer|YYYY-MM-DD validity-start key; each
+      fact references its effective row.
+    data_tests:
+    - not_null
+    - unique
+  - name: TENANT_ID
+    description: Tenant scope carried through every business identity, join, and topic
+      access filter.
+    data_tests:
+    - not_null
+  - name: CUSTOMER_ID
+    description: Customer business identifier, scoped by tenant; can have several
+      effective history rows.
+    data_tests:
+    - not_null
+  - name: SEGMENT
+    description: Customer history classification. Invoice report segment is the row
+      effective on INVOICE_DATE.
+    data_tests:
+    - not_null
+  - name: VALID_FROM
+    description: Inclusive effective-history start calendar date.
+    data_tests:
+    - not_null
+  - name: VALID_TO
+    description: Exclusive effective-history end calendar date; null means open-ended.
+- name: fct_customer_month
+  description: 'Current capture customer-month balances and separate posted activity
+    flags with invoice-based first-paid-month proxy. Grain: One TENANT_ID,CUSTOMER_ID,INVOICE_MONTH
+    with at least one current invoice; not a dense calendar spine.'
+  columns:
+  - name: CUSTOMER_MONTH_KEY
+    description: Deterministic tenant|customer|YYYY-MM-DD invoice-month key.
+    data_tests:
+    - not_null
+    - unique
+  - name: TENANT_ID
+    description: Tenant scope carried through every business identity, join, and topic
+      access filter.
+    data_tests:
+    - not_null
+  - name: CUSTOMER_ID
+    description: Customer business identifier, scoped by tenant; can have several
+      effective history rows.
+    data_tests:
+    - not_null
+  - name: INVOICE_MONTH
+    description: First calendar day of the invoice month; preserves supplied calendar-date
+      semantics.
+    data_tests:
+    - not_null
+  - name: NET_CENTS
+    description: Invoice amount plus signed adjustment; customer-month stores the
+      sum across all current statuses.
+    data_tests:
+    - not_null
+  - name: PAID_CENTS
+    description: Current payment amount; invoice facts sum current nondeleted payments
+      per tenant/invoice.
+    data_tests:
+    - not_null
+  - name: OUTSTANDING_CENTS
+    description: Net cents minus paid cents; negative overpayment balances remain
+      negative.
+    data_tests:
+    - not_null
+  - name: HAS_INVOICE
+    description: One when at least one posted invoice in this tenant/customer/month
+      has positive net cents; otherwise zero.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - 0
+          - 1
+          quote: false
+  - name: HAS_PAID_INVOICE
+    description: One when at least one posted invoice in this tenant/customer/month
+      has positive current paid cents; otherwise zero.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - 0
+          - 1
+          quote: false
+  - name: FIRST_PAID_MONTH
+    description: Earliest invoice month of a posted invoice with positive current
+      paid cents over the full capture, not the selected report window; null if none.
+- name: fct_invoices
+  description: 'Reusable invoices joining payment totals, signed adjustments and effective
+    segment without report filters. Grain: One current nondeleted invoice per TENANT_ID,INVOICE_ID,
+    including every current status/date.'
+  columns:
+  - name: TENANT_ID
+    description: Tenant scope carried through every business identity, join, and topic
+      access filter.
+    data_tests:
+    - not_null
+  - name: INVOICE_ID
+    description: Invoice business identifier, unique only with tenant in current-state
+      models.
+    data_tests:
+    - not_null
+  - name: CUSTOMER_ID
+    description: Customer business identifier, scoped by tenant; can have several
+      effective history rows.
+    data_tests:
+    - not_null
+  - name: INVOICE_DATE
+    description: Supplied invoice calendar date used for effective history and report
+      windows; no payment timestamp is present.
+    data_tests:
+    - not_null
+  - name: INVOICE_MONTH
+    description: First calendar day of the invoice month; preserves supplied calendar-date
+      semantics.
+    data_tests:
+    - not_null
+  - name: STATUS
+    description: Invoice status; normalized by trimming/lowercasing in silver. Shared
+      models retain drafts.
+    data_tests:
+    - not_null
+  - name: AMOUNT_CENTS
+    description: Invoice amount before manual signed adjustment, in integer USD cents.
+    data_tests:
+    - not_null
+  - name: ADJUSTMENT_CENTS
+    description: Signed manual invoice correction in USD cents; negative is credit
+      and positive is correction.
+    data_tests:
+    - not_null
+  - name: NET_CENTS
+    description: Invoice amount plus signed adjustment; customer-month stores the
+      sum across all current statuses.
+    data_tests:
+    - not_null
+  - name: PAID_CENTS
+    description: Current payment amount; invoice facts sum current nondeleted payments
+      per tenant/invoice.
+    data_tests:
+    - not_null
+  - name: OUTSTANDING_CENTS
+    description: Net cents minus paid cents; negative overpayment balances remain
+      negative.
+    data_tests:
+    - not_null
+  - name: INVOICE_KEY
+    description: Deterministic tenant|invoice key; source IDs containing the delimiter
+      are rejected.
+    data_tests:
+    - not_null
+    - unique
+  - name: CUSTOMER_KEY
+    description: Deterministic tenant|customer|YYYY-MM-DD validity-start key; each
+      fact references its effective row.
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_customers')
+          field: CUSTOMER_KEY
+  - name: SEGMENT
+    description: Customer history classification. Invoice report segment is the row
+      effective on INVOICE_DATE.
+    data_tests:
+    - not_null

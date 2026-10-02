@@ -1,0 +1,267 @@
+{
+  "origin": "synthetic",
+  "evidence_kind": "authored_information_schema_shape_not_query_result",
+  "captured_at": "2026-09-10T19:57:31.104516+00:00",
+  "context": {
+    "platform_instance": "DMA_HEX_SYNTHETIC",
+    "connection_id": "11111111-1111-4111-8111-111111111111",
+    "catalog": "DMA_HEX",
+    "schema": "RAW",
+    "location": "synthetic-location-not-a-real-region"
+  },
+  "rows": [
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "INVOICE_CDC",
+      "COLUMN_NAME": "TENANT_ID",
+      "ORDINAL_POSITION": 1,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "INVOICE_CDC",
+      "COLUMN_NAME": "INVOICE_ID",
+      "ORDINAL_POSITION": 2,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "INVOICE_CDC",
+      "COLUMN_NAME": "CUSTOMER_ID",
+      "ORDINAL_POSITION": 3,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "INVOICE_CDC",
+      "COLUMN_NAME": "INVOICE_DATE",
+      "ORDINAL_POSITION": 4,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "INVOICE_CDC",
+      "COLUMN_NAME": "AMOUNT_CENTS",
+      "ORDINAL_POSITION": 5,
+      "DATA_TYPE": "NUMBER",
+      "NUMERIC_PRECISION": 38,
+      "NUMERIC_SCALE": 0,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "INVOICE_CDC",
+      "COLUMN_NAME": "STATUS",
+      "ORDINAL_POSITION": 6,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "INVOICE_CDC",
+      "COLUMN_NAME": "IS_DELETED",
+      "ORDINAL_POSITION": 7,
+      "DATA_TYPE": "BOOLEAN",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "INVOICE_CDC",
+      "COLUMN_NAME": "SEQUENCE",
+      "ORDINAL_POSITION": 8,
+      "DATA_TYPE": "NUMBER",
+      "NUMERIC_PRECISION": 38,
+      "NUMERIC_SCALE": 0,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "PAYMENT_CDC",
+      "COLUMN_NAME": "TENANT_ID",
+      "ORDINAL_POSITION": 1,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "PAYMENT_CDC",
+      "COLUMN_NAME": "PAYMENT_ID",
+      "ORDINAL_POSITION": 2,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "PAYMENT_CDC",
+      "COLUMN_NAME": "INVOICE_ID",
+      "ORDINAL_POSITION": 3,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "PAYMENT_CDC",
+      "COLUMN_NAME": "PAID_CENTS",
+      "ORDINAL_POSITION": 4,
+      "DATA_TYPE": "NUMBER",
+      "NUMERIC_PRECISION": 38,
+      "NUMERIC_SCALE": 0,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "PAYMENT_CDC",
+      "COLUMN_NAME": "IS_DELETED",
+      "ORDINAL_POSITION": 5,
+      "DATA_TYPE": "BOOLEAN",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "PAYMENT_CDC",
+      "COLUMN_NAME": "SEQUENCE",
+      "ORDINAL_POSITION": 6,
+      "DATA_TYPE": "NUMBER",
+      "NUMERIC_PRECISION": 38,
+      "NUMERIC_SCALE": 0,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "CUSTOMER_HISTORY",
+      "COLUMN_NAME": "TENANT_ID",
+      "ORDINAL_POSITION": 1,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "CUSTOMER_HISTORY",
+      "COLUMN_NAME": "CUSTOMER_ID",
+      "ORDINAL_POSITION": 2,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "CUSTOMER_HISTORY",
+      "COLUMN_NAME": "SEGMENT",
+      "ORDINAL_POSITION": 3,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "CUSTOMER_HISTORY",
+      "COLUMN_NAME": "VALID_FROM",
+      "ORDINAL_POSITION": 4,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "CUSTOMER_HISTORY",
+      "COLUMN_NAME": "VALID_TO",
+      "ORDINAL_POSITION": 5,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "ADJUSTMENTS",
+      "COLUMN_NAME": "TENANT_ID",
+      "ORDINAL_POSITION": 1,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "ADJUSTMENTS",
+      "COLUMN_NAME": "INVOICE_ID",
+      "ORDINAL_POSITION": 2,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "ADJUSTMENTS",
+      "COLUMN_NAME": "ADJUSTMENT_CENTS",
+      "ORDINAL_POSITION": 3,
+      "DATA_TYPE": "NUMBER",
+      "NUMERIC_PRECISION": 38,
+      "NUMERIC_SCALE": 0,
+      "IS_NULLABLE": "YES"
+    },
+    {
+      "TABLE_CATALOG": "DMA_HEX",
+      "TABLE_SCHEMA": "RAW",
+      "TABLE_NAME": "ADJUSTMENTS",
+      "COLUMN_NAME": "REASON",
+      "ORDINAL_POSITION": 4,
+      "DATA_TYPE": "TEXT",
+      "NUMERIC_PRECISION": null,
+      "NUMERIC_SCALE": null,
+      "IS_NULLABLE": "YES"
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "RevenueTrend",
+  "position": {
+    "x": 0,
+    "y": 0,
+    "z": 0,
+    "height": 320,
+    "width": 1920,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Invoices"
+                    }
+                  },
+                  "Property": "Invoice Month"
+                }
+              },
+              "queryRef": "Invoices.Invoice Month"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Segment"
+                }
+              },
+              "queryRef": "Customers.Segment"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Revenue Cents"
+                }
+              },
+              "queryRef": "Scenario.Revenue Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Paid Cents"
+                }
+              },
+              "queryRef": "Scenario.Paid Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Outstanding Cents"
+                }
+              },
+              "queryRef": "Scenario.Outstanding Cents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Payment Rate"
+                }
+              },
+              "queryRef": "Scenario.Payment Rate"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Scenario"
+                    }
+                  },
+                  "Property": "Scenario Revenue Cents"
+                }
+              },
+              "queryRef": "Scenario.Scenario Revenue Cents"
+            }
+          ],
+          "showAll": false
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Revenue Trend'"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

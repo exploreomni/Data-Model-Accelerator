@@ -1,0 +1,132 @@
+{
+  "captured_at": "2026-09-11T14:30:30.721218+00:00",
+  "checks": [
+    {
+      "detail": null,
+      "id": "hex:native_build_all_nodes",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "hex:independent_fact_rows",
+      "passed": false
+    },
+    {
+      "detail": null,
+      "id": "hex:development_schema_isolation",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "hex:documented_column_coverage",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "hex:source_candidate_unchanged",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "tableau:native_build_all_nodes",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "tableau:independent_fact_rows",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "tableau:development_schema_isolation",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "tableau:documented_column_coverage",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "tableau:source_candidate_unchanged",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:native_build_all_nodes",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:independent_fact_rows",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:development_schema_isolation",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:documented_column_coverage",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:source_candidate_unchanged",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:repeat_build",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:identical_replay",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:late_correction",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:tombstone",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:conflicting_version_rejected",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:raw_schema_drift_rejected",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "powerbi:recovery_from_failed_build",
+      "passed": true
+    },
+    {
+      "detail": null,
+      "id": "hex:independent_customer_month_rows",
+      "passed": true
+    }
+  ],
+  "origin": "synthetic",
+  "passed": 22,
+  "schema_version": 1,
+  "scope": "Native local dbt/DuckDB build qualification; explicit dialect overlay. No Snowflake, Omni, source-native or production approval claim.",
+  "status": "fail",
+  "total": 23,
+  "versions": {
+    "PyYAML": "6.0.3",
+    "dbt-core": "1.12.4",
+    "dbt-duckdb": "1.11.0",
+    "duckdb": "1.5.5"
+  }
+}

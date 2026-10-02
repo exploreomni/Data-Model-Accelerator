@@ -1,0 +1,2 @@
+# Optional external-approval verification; core assessment remains stdlib-only.
+cryptography==50.0.1

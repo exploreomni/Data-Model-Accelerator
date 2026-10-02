@@ -1,0 +1,44 @@
+{
+  "origin": "synthetic local exercise",
+  "simulation_passed": true,
+  "human_approved": false,
+  "deployed": false,
+  "review_manifest_sha256": "4428270cffd0c0c9706b3dcb2be8ce8f270bf8f35e9c6892cadc57003e9777e5",
+  "results": {
+    "local": {
+      "evidence_complete_for_review": false,
+      "errors": [
+        "Test is not passed: native-snowflake-compile",
+        "Test is not passed: native-warehouse-and-omni-execution",
+        "Test is not passed: native-operations-and-cutover",
+        "Unresolved blockers remain: 4",
+        "Specialist extraction is incomplete: 0 error(s), 2 gap(s)"
+      ]
+    },
+    "target": {
+      "evidence_complete_for_review": false,
+      "errors": [
+        "Unqualified target.versions",
+        "Unqualified target.environment",
+        "Synthetic catalogue cannot establish target validation",
+        "Test is not passed: native-snowflake-compile",
+        "Test is not passed: native-warehouse-and-omni-execution",
+        "Test is not passed: native-operations-and-cutover",
+        "Missing target passing category: fanout",
+        "Missing target passing category: grain",
+        "Missing target passing category: history",
+        "Missing target passing category: logic",
+        "Missing target passing category: negative_controls",
+        "Missing target passing category: operations",
+        "Missing target passing category: reconciliation",
+        "Missing target passing category: replay",
+        "Missing target passing category: security",
+        "Missing target passing category: source_contract",
+        "Missing target passing category: target_compile",
+        "Missing target passing category: target_execution",
+        "Unresolved blockers remain: 4",
+        "Specialist extraction is incomplete: 0 error(s), 2 gap(s)"
+      ]
+    }
+  }
+}

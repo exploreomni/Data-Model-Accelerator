@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "evidence_class": "local_synthetic_development_validation",
+  "checks_expected": 23,
+  "checks_executed": 23,
+  "all_checks_executed": true,
+  "missing_checks": [],
+  "checks": [
+    {
+      "id": "fixture_contract",
+      "status": "passed",
+      "evidence": "Required schemas, explicit contract, and independent expected fixtures are present."
+    },
+    {
+      "id": "source_event_consistency",
+      "status": "passed",
+      "evidence": "13 unique tenant/invoice/source-sequence events; no conflicting equal-sequence payloads."
+    },
+    {
+      "id": "source_duplicate_deliveries",
+      "status": "passed",
+      "evidence": "Three redundant deliveries intentionally preserve source event identity."
+    },
+    {
+      "id": "source_history_nonoverlap",
+      "status": "passed",
+      "evidence": "Tenant/customer effective intervals do not overlap."
+    },
+    {
+      "id": "initial_rows_match_export",
+      "status": "passed",
+      "evidence": "6 rows match independent expected values in every column."
+    },
+    {
+      "id": "source_composite_grain",
+      "status": "passed",
+      "evidence": "Eight current rows at tenant/invoice grain; shared IDs remain separate."
+    },
+    {
+      "id": "source_to_gold_relationship",
+      "status": "passed",
+      "evidence": "Every current invoice has exactly one gold row; orphan histories and join fanout fail this relationship gate."
+    },
+    {
+      "id": "final_rows_match_export",
+      "status": "passed",
+      "evidence": "8 rows match independent expected values in every column."
+    },
+    {
+      "id": "final_groups_match_export",
+      "status": "passed",
+      "evidence": "Five tenant/month/segment groups match count, integer cents, and recomputed ratio."
+    },
+    {
+      "id": "filter_context_matches_contract",
+      "status": "passed",
+      "evidence": "Seven interaction scenarios match explicit row populations and totals, including zero and empty selections."
+    },
+    {
+      "id": "ratio_recomputed_after_filter",
+      "status": "passed",
+      "evidence": "Filtered ratio is 0.32; incorrect average-of-ratios would be 0.425."
+    },
+    {
+      "id": "tenant_functional_isolation",
+      "status": "passed",
+      "evidence": "Both tenant-filtered outputs and dimension tenant identity match; functional probe only, not RLS."
+    },
+    {
+      "id": "historical_boundaries",
+      "status": "passed",
+      "evidence": "January 31 and late January 30 remain Startup; February 1 uses Enterprise."
+    },
+    {
+      "id": "late_arrival_and_delete",
+      "status": "passed",
+      "evidence": "Late older events do not overwrite corrections; late historical insert appears; deleted I102 stays absent."
+    },
+    {
+      "id": "replay_idempotence",
+      "status": "passed",
+      "evidence": "Replaying the entire second batch preserves exact rows and grouped outputs."
+    },
+    {
+      "id": "full_rebuild_equivalence",
+      "status": "passed",
+      "evidence": "One-shot normal and reverse delivery-order rebuilds equal append-only batch ingestion and the independent export."
+    },
+    {
+      "id": "mutation_fanout_caught",
+      "status": "passed",
+      "evidence": "Rejected duplicate fact keys: 12 report rows versus 8 expected."
+    },
+    {
+      "id": "mutation_cross_tenant_caught",
+      "status": "passed",
+      "evidence": "Rejected 5 cross-tenant dimension joins, despite filtering on the fact tenant."
+    },
+    {
+      "id": "mutation_filter_caught",
+      "status": "passed",
+      "evidence": "Unfiltered rows still match, but filtered totals differ: [6, 100000, 54500, 0.545] versus [2, 50000, 16000, 0.32]."
+    },
+    {
+      "id": "mutation_last_arrival_caught",
+      "status": "passed",
+      "evidence": "Rejected a late old delivery regressing A/I100 paid amount from 6000 to 2000 cents."
+    },
+    {
+      "id": "mutation_delete_resurrection_caught",
+      "status": "passed",
+      "evidence": "Rejected resurrected deleted invoice A/I102."
+    },
+    {
+      "id": "legacy_superficial_match",
+      "status": "passed",
+      "evidence": "Legacy B/January gross and paid totals match the narrow smoke report."
+    },
+    {
+      "id": "legacy_hidden_defects_caught",
+      "status": "passed",
+      "evidence": "Wider evidence rejects legacy history rewrite, lost correction, and deleted invoice resurrection."
+    }
+  ],
+  "error": null,
+  "limitations": [
+    "Synthetic local SQLite demonstrator; no real SaaS export or customer data.",
+    "No input-repository SQL is accepted or executed by this CLI.",
+    "Append-only ingestion plus recomputed views; not a production incremental materialization test.",
+    "Tenant query filtering is only a functional isolation probe, not warehouse authorization or RLS.",
+    "Real platform compilation, execution, CDC integration, RLS, performance, and production acceptance remain unverified."
+  ]
+}

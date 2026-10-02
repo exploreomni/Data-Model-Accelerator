@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_tableau_report_context",
+  "native_omni_artifact": false,
+  "purpose": "Explicit local selection, worksheet context and post-query presentation companion; not an Omni workbook/dashboard export.",
+  "defaults": {
+    "tenant": "A",
+    "start_date": "2026-01-01",
+    "end_date": "2026-03-01",
+    "segment": "ALL",
+    "multiplier": 1
+  },
+  "parameter_contract": {
+    "tenant": "Required known tenant must equal the supplied authorized synthetic persona. UI input alone is not row security.",
+    "date_window": "ISO calendar dates, inclusive start and exclusive end; equal endpoints yield no marks, reversed endpoints fail.",
+    "segment": "ALL or an exact historical segment; applied after FIXED.",
+    "multiplier": "Finite numeric scalar used only after mark aggregation."
+  },
+  "reports": {
+    "revenue_trend": {
+      "source_worksheet": "Revenue Trend",
+      "topic": "billing",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "invoices.segment"
+      },
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents",
+        "paid_cents": "invoices.paid_cents_total",
+        "outstanding_cents": "invoices.outstanding_cents_total",
+        "payment_rate": "invoices.payment_rate"
+      },
+      "filters": {
+        "invoices.status": {
+          "is": "posted"
+        }
+      },
+      "runtime_field_bindings": {
+        "tenant": "invoices.tenant_id",
+        "date": "invoices.invoice_date",
+        "segment": "invoices.segment"
+      },
+      "filter_roles": {
+        "population": [
+          "tenant",
+          "status"
+        ],
+        "context": [
+          "date"
+        ],
+        "dimension": [
+          "segment"
+        ]
+      },
+      "context_order": [
+        "datasource_population",
+        "date_context",
+        "fixed_lod",
+        "segment_dimension",
+        "mark_aggregation",
+        "presentation"
+      ],
+      "sorts": [
+        "month",
+        "segment"
+      ],
+      "empty_population": "zero_marks",
+      "presentation": [
+        {
+          "alias": "scenario_revenue_cents",
+          "kind": "scalar_multiply",
+          "input": "revenue_cents",
+          "parameter": "multiplier",
+          "expression": "revenue_cents * multiplier",
+          "native_candidate": {
+            "surface": "Omni workbook spreadsheet calculation",
+            "expression_template": "=${invoices.revenue_cents} * <validated_multiplier_numeric_literal>",
+            "template_is_native": false,
+            "example_multiplier_2": "=${invoices.revenue_cents} * 2",
+            "notes": "The angle-bracket placeholder is local authoring metadata; substitute the validated finite number when authoring a workbook, not native parameter interpolation.",
+            "documentation": "https://docs.omni.co/analyze-explore/calculations/math-number"
+          }
+        }
+      ]
+    },
+    "customer_value": {
+      "source_worksheet": "Customer Value",
+      "topic": "billing",
+      "dimensions": {
+        "customer_id": "invoices.customer_id",
+        "segment": "invoices.segment"
+      },
+      "measures": {
+        "selected_revenue_cents": "invoices.revenue_cents",
+        "fixed_customer_revenue_cents": "invoices.fixed_customer_revenue_cents_min"
+      },
+      "filters": {
+        "invoices.status": {
+          "is": "posted"
+        }
+      },
+      "runtime_field_bindings": {
+        "tenant": "invoices.tenant_id",
+        "date": "invoices.invoice_date",
+        "segment": "invoices.segment"
+      },
+      "filter_roles": {
+        "population": [
+          "tenant",
+          "status"
+        ],
+        "context": [
+          "date"
+        ],
+        "dimension": [
+          "segment"
+        ]
+      },
+      "context_order": [
+        "datasource_population",
+        "date_context",
+        "fixed_lod",
+        "segment_dimension",
+        "mark_aggregation",
+        "presentation"
+      ],
+      "sorts": [
+        "customer_id",
+        "segment"
+      ],
+      "empty_population": "zero_marks",
+      "presentation": [],
+      "repeated_lod_contract": {
+        "dimension": "invoices.fixed_customer_revenue_cents",
+        "mark_aggregate": "min",
+        "fixed_fields": [
+          "invoices.tenant_id",
+          "invoices.customer_id"
+        ],
+        "ignored_query_filters": [
+          "invoices.segment"
+        ],
+        "preserved_query_filters": [
+          "invoices.tenant_id",
+          "invoices.invoice_date",
+          "invoices.status"
+        ],
+        "grand_total": "not_claimed"
+      }
+    },
+    "revenue_share": {
+      "source_worksheet": "Revenue Share",
+      "topic": "billing",
+      "dimensions": {
+        "month": "invoices.invoice_month",
+        "segment": "invoices.segment"
+      },
+      "measures": {
+        "revenue_cents": "invoices.revenue_cents"
+      },
+      "filters": {
+        "invoices.status": {
+          "is": "posted"
+        }
+      },
+      "runtime_field_bindings": {
+        "tenant": "invoices.tenant_id",
+        "date": "invoices.invoice_date",
+        "segment": "invoices.segment"
+      },
+      "filter_roles": {
+        "population": [
+          "tenant",
+          "status"
+        ],
+        "context": [
+          "date"
+        ],
+        "dimension": [
+          "segment"
+        ]
+      },
+      "context_order": [
+        "datasource_population",
+        "date_context",
+        "fixed_lod",
+        "segment_dimension",
+        "mark_aggregation",
+        "presentation"
+      ],
+      "sorts": [
+        "month",
+        "segment"
+      ],
+      "empty_population": "zero_marks",
+      "presentation": [
+        {
+          "alias": "share_of_month",
+          "kind": "partition_share",
+          "input": "revenue_cents",
+          "partition_by": [
+            "month"
+          ],
+          "address_by": [
+            "segment"
+          ],
+          "expression": "revenue_cents / partition_sum(revenue_cents)",
+          "zero_denominator": null,
+          "stage": "after_dimension_filters_and_mark_aggregation",
+          "native_candidate": {
+            "surface": "Omni workbook spreadsheet calculation on a pivot",
+            "rows": [
+              "invoices.invoice_month"
+            ],
+            "pivots": [
+              "invoices.segment"
+            ],
+            "measure": "invoices.revenue_cents",
+            "row_totals_enabled": true,
+            "expression": "=IF(${invoices.revenue_cents:row_total} = 0, 1/0, ${invoices.revenue_cents} / ${invoices.revenue_cents:row_total})",
+            "notes": "Proposed documented row-total expression for month rows and segment pivots. Native pivot/render behavior not validated; no all-query/all-month denominator.",
+            "documentation": "https://docs.omni.co/analyze-explore/calculations"
+          }
+        }
+      ]
+    }
+  }
+}

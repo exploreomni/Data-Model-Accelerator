@@ -1,0 +1,161 @@
+version: 2
+sources:
+- name: raw
+  database: DMA_TABLEAU
+  schema: RAW
+  description: Explicit synthetic source contract; CSV ADJUSTMENTS is separately inventoried
+    and landed. No real source freshness or loader is asserted.
+  tables:
+  - name: adjustments
+    identifier: ADJUSTMENTS
+    description: Proposed governed landing of input/repo/adjustments.csv with explicit
+      source-file receipt.
+    columns:
+    - name: TENANT_ID
+      description: Tenant scope carried through every business identity, join, and
+        topic access filter.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: INVOICE_ID
+      description: Invoice business identifier, unique only with tenant in current-state
+        models.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: ADJUSTMENT_CENTS
+      description: Signed manual invoice correction in USD cents; negative is credit
+        and positive is correction.
+      data_type: DECIMAL(38, 0)
+      data_tests:
+      - not_null
+    - name: REASON
+      description: Manual adjustment explanation from the inventoried CSV; no production
+        approval is implied.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+  - name: customer_history
+    identifier: CUSTOMER_HISTORY
+    description: Reused effective customer history snapshots; no current-segment replacement.
+    columns:
+    - name: TENANT_ID
+      description: Tenant scope carried through every business identity, join, and
+        topic access filter.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: CUSTOMER_ID
+      description: Customer business identifier, scoped by tenant; can have several
+        effective history rows.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: SEGMENT
+      description: Customer history classification. Invoice report segment is the
+        row effective on INVOICE_DATE.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: VALID_FROM
+      description: Inclusive effective-history start calendar date.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: VALID_TO
+      description: Exclusive effective-history end calendar date; null means open-ended.
+      data_type: VARCHAR
+  - name: invoice_cdc
+    identifier: INVOICE_CDC
+    description: Reused synthetic invoice CDC landing contract; no production connector
+      is asserted.
+    columns:
+    - name: TENANT_ID
+      description: Tenant scope carried through every business identity, join, and
+        topic access filter.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: INVOICE_ID
+      description: Invoice business identifier, unique only with tenant in current-state
+        models.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: CUSTOMER_ID
+      description: Customer business identifier, scoped by tenant; can have several
+        effective history rows.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: INVOICE_DATE
+      description: Supplied invoice calendar date used for effective history and report
+        windows; no payment timestamp is present.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: AMOUNT_CENTS
+      description: Invoice amount before manual signed adjustment, in integer USD
+        cents.
+      data_type: DECIMAL(38, 0)
+      data_tests:
+      - not_null
+    - name: STATUS
+      description: Invoice status; normalized by trimming/lowercasing in silver. Shared
+        models retain drafts.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: IS_DELETED
+      description: Source tombstone flag; the highest source sequence is selected
+        before deletion filtering.
+      data_type: BOOLEAN
+      data_tests:
+      - not_null
+    - name: SEQUENCE
+      description: Complete source ordering per tenant/business entity under the synthetic
+        contract.
+      data_type: DECIMAL(38, 0)
+      data_tests:
+      - not_null
+  - name: payment_cdc
+    identifier: PAYMENT_CDC
+    description: Reused synthetic payment CDC landing contract; payment-event time
+      is absent.
+    columns:
+    - name: TENANT_ID
+      description: Tenant scope carried through every business identity, join, and
+        topic access filter.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: PAYMENT_ID
+      description: Payment business identifier, scoped by tenant and versioned before
+        tombstone handling.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: INVOICE_ID
+      description: Invoice business identifier, unique only with tenant in current-state
+        models.
+      data_type: VARCHAR
+      data_tests:
+      - not_null
+    - name: PAID_CENTS
+      description: Current payment amount; invoice facts sum current nondeleted payments
+        per tenant/invoice.
+      data_type: DECIMAL(38, 0)
+      data_tests:
+      - not_null
+    - name: IS_DELETED
+      description: Source tombstone flag; the highest source sequence is selected
+        before deletion filtering.
+      data_type: BOOLEAN
+      data_tests:
+      - not_null
+    - name: SEQUENCE
+      description: Complete source ordering per tenant/business entity under the synthetic
+        contract.
+      data_type: DECIMAL(38, 0)
+      data_tests:
+      - not_null

@@ -1,0 +1,1258 @@
+{
+  "schema_version": 1,
+  "kind": "hex_synthetic_e2e",
+  "simulation_passed": true,
+  "started_at": "2026-09-10T20:20:05.356803+00:00",
+  "checks": [
+    {
+      "id": "frozen-oracle",
+      "category": "source_contract",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "hashes_verified": 6
+      }
+    },
+    {
+      "id": "native-cell-coverage",
+      "category": "source_contract",
+      "status": "pass",
+      "negative_control": false,
+      "detail": true
+    },
+    {
+      "id": "raw-contract",
+      "category": "source_contract",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "raw_counts": {
+          "INVOICE_CDC": 14,
+          "PAYMENT_CDC": 11,
+          "CUSTOMER_HISTORY": 8,
+          "ADJUSTMENTS": 4
+        },
+        "current_invoice_count": 10
+      }
+    },
+    {
+      "id": "catalogue-bindings",
+      "category": "source_contract",
+      "status": "pass",
+      "negative_control": false,
+      "detail": true
+    },
+    {
+      "id": "report-context",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": true
+    },
+    {
+      "id": "gold-invoices",
+      "category": "grain",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 10
+      }
+    },
+    {
+      "id": "gold-customer_months",
+      "category": "grain",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 10
+      }
+    },
+    {
+      "id": "model-documentation",
+      "category": "source_contract",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "models": 11,
+        "columns": 74
+      }
+    },
+    {
+      "id": "default_a-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 4
+      }
+    },
+    {
+      "id": "default_a-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 4
+      }
+    },
+    {
+      "id": "default_a-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 5
+      }
+    },
+    {
+      "id": "default_a-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 5
+      }
+    },
+    {
+      "id": "default_a-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 4
+      }
+    },
+    {
+      "id": "default_a-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 4
+      }
+    },
+    {
+      "id": "intermediate-revenue",
+      "category": "fanout",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 10
+      }
+    },
+    {
+      "id": "intermediate-retention",
+      "category": "fanout",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 10
+      }
+    },
+    {
+      "id": "intermediate-executive",
+      "category": "fanout",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 10
+      }
+    },
+    {
+      "id": "metric-conflict-preserved",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": true
+    },
+    {
+      "id": "tenant_b-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "tenant_b-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "tenant_b-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "tenant_b-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "tenant_b-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "tenant_b-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "january_a-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "january_a-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "january_a-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 3
+      }
+    },
+    {
+      "id": "january_a-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 3
+      }
+    },
+    {
+      "id": "january_a-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "january_a-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "february_a-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "february_a-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "february_a-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "february_a-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "february_a-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "february_a-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "february_boundary_a-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "february_boundary_a-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "february_boundary_a-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "february_boundary_a-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "february_boundary_a-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "february_boundary_a-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_smb_a-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_smb_a-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_smb_a-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 3
+      }
+    },
+    {
+      "id": "segment_smb_a-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 3
+      }
+    },
+    {
+      "id": "segment_smb_a-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_smb_a-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_enterprise_a-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_enterprise_a-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_enterprise_a-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_enterprise_a-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_enterprise_a-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_enterprise_a-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 2
+      }
+    },
+    {
+      "id": "segment_smb_b-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_smb_b-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_smb_b-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_smb_b-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_smb_b-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_smb_b-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_enterprise_b-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_enterprise_b-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_enterprise_b-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_enterprise_b-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_enterprise_b-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "segment_enterprise_b-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "empty_equal_bounds-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_equal_bounds-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_equal_bounds-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_equal_bounds-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_equal_bounds-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_equal_bounds-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_after_snapshot-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_after_snapshot-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_after_snapshot-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_after_snapshot-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_after_snapshot-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "empty_after_snapshot-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "zero_revenue_a-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "zero_revenue_a-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "zero_revenue_a-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "zero_revenue_a-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 0
+      }
+    },
+    {
+      "id": "zero_revenue_a-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "zero_revenue_a-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 1
+      }
+    },
+    {
+      "id": "retained_what_if_double-source-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 4
+      }
+    },
+    {
+      "id": "retained_what_if_double-target-revenue",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 4
+      }
+    },
+    {
+      "id": "retained_what_if_double-source-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 5
+      }
+    },
+    {
+      "id": "retained_what_if_double-target-retention",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 5
+      }
+    },
+    {
+      "id": "retained_what_if_double-source-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 4
+      }
+    },
+    {
+      "id": "retained_what_if_double-target-executive",
+      "category": "reconciliation",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "row_count": 4
+      }
+    },
+    {
+      "id": "unknown_tenant-source",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Tenant/persona denied by synthetic execution boundary"
+      }
+    },
+    {
+      "id": "unknown_tenant-target",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Tenant/persona denied by synthetic execution boundary"
+      }
+    },
+    {
+      "id": "null_tenant-source",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Tenant/persona denied by synthetic execution boundary"
+      }
+    },
+    {
+      "id": "null_tenant-target",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Tenant/persona denied by synthetic execution boundary"
+      }
+    },
+    {
+      "id": "unauthorized_persona-source",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Tenant/persona denied by synthetic execution boundary"
+      }
+    },
+    {
+      "id": "unauthorized_persona-target",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Tenant/persona denied by synthetic execution boundary"
+      }
+    },
+    {
+      "id": "reversed_window-source",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Reversed date window"
+      }
+    },
+    {
+      "id": "reversed_window-target",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Reversed date window"
+      }
+    },
+    {
+      "id": "invalid_calendar_date-source",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Date must be ISO text"
+      }
+    },
+    {
+      "id": "invalid_calendar_date-target",
+      "category": "security",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Date must be ISO text"
+      }
+    },
+    {
+      "id": "dbt-assertion-adjustment_key_unique",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "rows": 0
+      }
+    },
+    {
+      "id": "dbt-assertion-current_orphan_references",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "rows": 0
+      }
+    },
+    {
+      "id": "dbt-assertion-declared_grains",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "rows": 0
+      }
+    },
+    {
+      "id": "dbt-assertion-fact_balance_and_customer_binding",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "rows": 0
+      }
+    },
+    {
+      "id": "dbt-assertion-invoice_history_exactly_one",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "rows": 0
+      }
+    },
+    {
+      "id": "dbt-assertion-payment_reconciliation",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "rows": 0
+      }
+    },
+    {
+      "id": "dbt-assertion-source_history_overlap",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "rows": 0
+      }
+    },
+    {
+      "id": "dbt-assertion-source_identity_and_required_values",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "rows": 0
+      }
+    },
+    {
+      "id": "dbt-assertion-source_version_conflicts",
+      "category": "logic",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "rows": 0
+      }
+    },
+    {
+      "id": "replay-rebuild",
+      "category": "replay",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "same_gold_rows": true,
+        "mode": "full rebuild after duplicate/out-of-order input replay"
+      }
+    },
+    {
+      "id": "late-correction-delete",
+      "category": "history",
+      "status": "pass",
+      "negative_control": false,
+      "detail": {
+        "net_cents": 12000,
+        "paid_cents": 7000,
+        "outstanding_cents": 5000
+      }
+    },
+    {
+      "id": "negative-cancelling-adjustments",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "AssertionError",
+        "reason": "Value mismatch row 0, net_cents: 4000 vs 5000"
+      }
+    },
+    {
+      "id": "negative-cdc-conflict",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Conflicting CDC version"
+      }
+    },
+    {
+      "id": "negative-history-overlap",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Overlapping customer history"
+      }
+    },
+    {
+      "id": "negative-orphan-customer",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Invoice has no unique temporal customer"
+      }
+    },
+    {
+      "id": "negative-duplicate-adjustment",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Duplicate manual adjustment key"
+      }
+    },
+    {
+      "id": "negative-missing-adjustments",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Missing raw table ADJUSTMENTS"
+      }
+    },
+    {
+      "id": "negative-python-network",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Unsupported Python statement Import"
+      }
+    },
+    {
+      "id": "negative-python-file",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "External file read denied"
+      }
+    },
+    {
+      "id": "negative-python-tenant-merge",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Merge must preserve tenant/invoice grain"
+      }
+    },
+    {
+      "id": "negative-sql-external",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Unsupported SQL construct ReadCSV"
+      }
+    },
+    {
+      "id": "negative-target-formula",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "AssertionError",
+        "reason": "Value mismatch row 0, net_cents: 5001 vs 5000"
+      }
+    },
+    {
+      "id": "negative-source-formula",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "AssertionError",
+        "reason": "Value mismatch row 3, net_cents: 11000 vs 7000"
+      }
+    },
+    {
+      "id": "negative-source-tenant-join",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "AssertionError",
+        "reason": "Value mismatch row 1, invoice_count: 4 vs 2"
+      }
+    },
+    {
+      "id": "negative-target-access",
+      "category": "negative_controls",
+      "status": "pass",
+      "negative_control": true,
+      "detail": {
+        "caught": "HexExecutionError",
+        "reason": "Omni tenant access contract changed"
+      }
+    }
+  ],
+  "native_hex_execution": "unavailable",
+  "native_snowflake_execution": "unavailable",
+  "native_omni_execution": "unavailable",
+  "native_dbt_compile_execution": "unavailable",
+  "production_approved": false,
+  "limitations": [
+    "Bounded reviewed fixture replay, not a universal Hex/Python/dbt/Omni compiler or arbitrary-code sandbox.",
+    "Synthetic warehouse catalogue and input records; no live source outputs or warehouse metadata collected.",
+    "Local persona predicate checks do not prove real Hex/warehouse/Omni authorization.",
+    "Native chart, app interactions, deployment, incremental ingestion, security and business approval remain unqualified."
+  ],
+  "failures": [],
+  "counts": {
+    "checks": 125,
+    "passed": 125,
+    "negative_controls": 24,
+    "projects": 3,
+    "cells": 24,
+    "report_scenarios": 13
+  },
+  "finished_at": "2026-09-10T20:20:06.765090+00:00",
+  "case_hashes": {
+    "documentation/README.md": "e42c2f01360176d721e41b01c77e22a3266469624c14a0953fb29fea7a1f343e",
+    "documentation/bronze.md": "4bf7a56704d7f260705e6c5a04b0aac01d853aaed4509badf24861f91b30f4dc",
+    "documentation/data-dictionary.json": "a8cf5e4ba011668f66b5b61d427a8788735d9547728ff9b178768ce538a1d6ba",
+    "documentation/data-dictionary.md": "ca7c19a536a43950f24fad08e339e20426c24fd645f2c2dc7b8a8c82f0ec47f7",
+    "documentation/documentation-index.json": "21957c38e3571f47ce2eba48ed8950ef25f4c873ecf87aef5112c4c502e609e0",
+    "documentation/gold.md": "55566bb48408a8723199b9cd5670b444144428c8ba2a37fbad621300ab966c72",
+    "documentation/model-erd.md": "e8e5f5b1d4cfcf861baf859961696686c257cea0bf6cc3b1c2b14ce895eb6fa0",
+    "documentation/model-inventory.json": "0f3b48b74d79c104075818f8a65eee7f60961a685b71e3c28361c65ac03089a2",
+    "documentation/placement-and-conflicts.json": "382d9f0d0789d4d29eb6d5217643f34b9e888f5ef963a53921f96d1bed034d66",
+    "documentation/semantic-mapping.md": "056de32afe3d47fcdd7cf68e1ea76a8d993c4c06a11abbe94538f195f49a222e",
+    "documentation/silver.md": "eb6b0099c207bb774e59e16ab98dd68e7bbb130d32feb707d46678f0b27779f4",
+    "expected/expected_reports.json": "7ad6c05417c809b8daa955fadcdb561965fc61cede3b7b77a48b7005fdca3cb6",
+    "expected/expected_rows.json": "b49d8b2f1584b75155df3103979ff4d15fcba54214910faea345ceac7469f363",
+    "expected/oracle-notes.md": "699e99bf105e6fcaa0aa7a5958a9dcc5d884b3ce153241536a45c313dbf22ef5",
+    "expected/oracle.py": "b23efe5ecb5f1a1580471aec1e208e1dd1aada34f07d8984b23a77bccd217d13",
+    "input/catalogue/exports/columns.json": "c4d59c343cf8eec97bfcaa06e6c2fa1d221f6aaa05d063a09581080a970363bf",
+    "input/catalogue/exports/objects.json": "47a0e3435721442bcf9b294092b25f5764cea94644d96b0db4ab4b05b4a2d4e2",
+    "input/catalogue/provenance.json": "d07f677ee7d35b11a892885efa11ac7a34463d6532ab628cff4f3d7a498d9241",
+    "input/raw-data.json": "d28ffee6457c1d8ebcde1d5e756f10771ec42b4d76c844e582cd1c981ce94d9c",
+    "input/repo/adjustments.csv": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e",
+    "input/repo/executive.hex.yaml": "554122025dd9fdf2d2e7c0f33435116fe214f4c7ab6fc534c7a7ed0f842eb700",
+    "input/repo/report-contract.json": "f2b1f4bba87b4890d93d695774eabb1eb0cb853e71add890b1f0abcf1582512c",
+    "input/repo/retention.hex.yaml": "97cb269e4810b20f24941e8c7a63dd695db9000067d6dffdf82395a8f96a45aa",
+    "input/repo/revenue.hex.yaml": "9133d871bf82fe4a43bc5d66f6fc85a27b8586a0d22f509e98f41b0ca2439c9d",
+    "input/repo/shared-revenue.hex.yaml": "0acf7ebdd944fe1358a486e8655883674390174f4e4d480219ad0daec13f7387",
+    "input/scenario.md": "747540943b00d1c8ddfb4fcabc90c609c494522c25d8d5a6a2c816b2e465873e",
+    "target/dbt/README.md": "ddad31003a13ff053a027fe65fedc03c1aef976aeb72179404358ed0e1949ac1",
+    "target/dbt/dbt_project.yml": "bbe77304641f67cb8018f655ae0e7a530158d6d6ecd11752603c7516be52879c",
+    "target/dbt/macros/generate_schema_name.sql": "604ee8571751392c28618d17a0e7d0f091e0a88505c52ef87541dd788779c653",
+    "target/dbt/models/gold/dim_customers.sql": "e2b514e66c04c99e7c0c06fb4f2ca0dd829c6dde376ad247b22d2df41f251f54",
+    "target/dbt/models/gold/fct_customer_month.sql": "797ea6a10566d598c9456daefb04ee5fcc71bbe2fc7da5fef36450dcec7a8d23",
+    "target/dbt/models/gold/fct_invoices.sql": "31d9351915bd0013cadc075613492b7fea777e1407c79cb57fdcbdd9acd725a7",
+    "target/dbt/models/models.yml": "d570ed609da0a19ee1cf74d785955fcb636089b65654d77edb478a842333640b",
+    "target/dbt/models/silver/billing_adjustments.sql": "254c5bb8264bccc99965ea6d1e5da046031cb5a83f5a78fc9b639a7dec9abffc",
+    "target/dbt/models/silver/billing_customer_history.sql": "d33106d046df01395d6557bdf79c6c400f12e020cd532fc62133d1751a9d5ade",
+    "target/dbt/models/silver/billing_invoices.sql": "362049667a6d9206926bc36462169565153eb1a9b29f4204f41c3abd657d5d83",
+    "target/dbt/models/silver/billing_payments.sql": "8c2ad9b2c3370fbe95f7eb241ac37badfa14ddb4dd1df322dcf46bd27be872a5",
+    "target/dbt/models/sources.yml": "6ddb391972457b403c1cc5488d7b4a7c2b23734251ce1cda4b1af0f306aa43c6",
+    "target/dbt/profiles.yml.example": "679a89a36e345c63845de46f8630c1d0009ed678292d4a814b7827e666f59813",
+    "target/dbt/tests/adjustment_key_unique.sql": "8acc551d6f36f57efa14238054ab2b70096bbf42c5b1c96bd635a92462134937",
+    "target/dbt/tests/current_orphan_references.sql": "9c0f1611aafc2e479cd0d81a2e372d074441db06b0ec8120d63b5f4992778ce9",
+    "target/dbt/tests/declared_grains.sql": "5a9d7f04e3cb435ab86b6fb45460376c02c2d5c99ed4de2045ab26e4eb23cc93",
+    "target/dbt/tests/fact_balance_and_customer_binding.sql": "b01f463efeddd2923a397c0d5566be15d474e5e25b5b93e8cf99fcfac82eb5d9",
+    "target/dbt/tests/invoice_history_exactly_one.sql": "e3e36bfa0a7ea0240ad10909e2c9813bd6e9d189472bc60f7b1febc2132b8727",
+    "target/dbt/tests/payment_reconciliation.sql": "b69dd3782a5affa700dc1b76faae0e4a9ea47fb7c09c7394fbd355b6a63c7197",
+    "target/dbt/tests/source_history_overlap.sql": "720382abea31c3c35b214b2dc3f5a26fec1a6ad9334cc6d697ade305c41faa68",
+    "target/dbt/tests/source_identity_and_required_values.sql": "d6187eb8b4f57aaf0752d7793567f30623af47978c927c92a03825a50bef13a5",
+    "target/dbt/tests/source_version_conflicts.sql": "793881c185dfa02f4453a618a8f64e625ed9fc534f1fc2792c71ec78394455cb",
+    "target/model-map.json": "7b165fb0a27e2cdf4b124d53bbe911d450aef294db7f77193e697708bb1a0080",
+    "target/omni/billing.topic": "ea60d7350627cbe31d3cf685afc06ae618d2d9a8f04a4d5b1f87a065757e3479",
+    "target/omni/customer_month.view": "690fbee863dac61070a2368c730ed45b494bd2796b5ad3120a097914a411cd91",
+    "target/omni/customers.view": "3275c1eb781f69bda3f44f533b05b68ac49c0af286e2661c55507f3626867ebd",
+    "target/omni/invoices.view": "0f8fb8b7c5f765221ee11e31d78865ef9eac6ad38750eca4a1ea40680c187cbb",
+    "target/omni/relationships": "9d1c7bc7c5d23a0fc803528dd99f004505cd4345d1cd35b45452a1566c00c294",
+    "target/omni/report-context.json": "7d7623002f69466fb5e276b615d091d2055b17837cdd94ebda7dc06d1d4726eb",
+    "target/omni/retention.topic": "7fb0c5667f2830120b021412de451e8ae24251946bf752ca844ecdee5f3bc1ae",
+    "target/snowflake/00_raw_contract.sql": "59ac64ed4ba4a0e45964d68c0798edebba34c1b6459a25141749224c5bffebd5",
+    "test-plan.json": "dc83d99175db8ff3cd11b57d4130c773c5bd52448707fd5f1bea49d7bde4ff30"
+  },
+  "implementation_hashes": {
+    "hex_source.py": "632212848767da120d554d42e6092ae4c7212bfba09ef8f80884e464e9bf4999",
+    "hex_execution.py": "044d4a5b3078377abfc107f295625be05dc6fa20fe9dfd2345ed868f734cfbae",
+    "hex_catalogue.py": "844b6abb46cb0412e7fb2b688d5db4803bdb7b6bdb2c575fbb3429b7eabc8fea",
+    "run_hex_omni_e2e.py": "0aa0c95d3a74d457acc6757bf76c244d1e85ff71a3704edd0cb434587d9b6942",
+    "requirements-hex-e2e.txt": "fd82a5b8f3ef3c86ba3849dd312da294b1548422c08f880d4c85eda96b81ea1d",
+    "requirements-e2e.txt": "8a1f7ef698b19ae1fd60cef99d1e389413d2761184ba1b90c16724904da51372",
+    "verify_catalogue.py": "3dba7c255c88ddc253818724d74e836aa11b49974d4f19ffebc4adb383746cf2",
+    "verify_model_documentation.py": "11dd298cde5e8e0300970288542cd399d33d58fd4384ec978aa04a4b088d2020"
+  },
+  "dependencies": {
+    "duckdb": "1.5.5",
+    "sqlglot": "30.18.0",
+    "pandas": "2.3.3",
+    "numpy": "2.5.3",
+    "PyYAML": "6.0.3",
+    "jsonschema": "4.26.0"
+  }
+}

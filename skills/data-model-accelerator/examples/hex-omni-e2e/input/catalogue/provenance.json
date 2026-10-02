@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_hex_catalogue_provenance",
+  "origin": "synthetic",
+  "context": {
+    "platform_instance": "DMA_HEX_SYNTHETIC",
+    "connection_id": "11111111-1111-4111-8111-111111111111",
+    "catalog": "DMA_HEX",
+    "schema": "RAW",
+    "location": "synthetic-location-not-a-real-region"
+  },
+  "captured_at": "2026-09-10T19:57:31.104516+00:00",
+  "exports": {
+    "exports/objects.json": "47a0e3435721442bcf9b294092b25f5764cea94644d96b0db4ab4b05b4a2d4e2",
+    "exports/columns.json": "c4d59c343cf8eec97bfcaa06e6c2fa1d221f6aaa05d063a09581080a970363bf"
+  },
+  "generation_basis": "Authored from target/snowflake/00_raw_contract.sql, independently rechecked at build; no warehouse connection/query",
+  "proposed_objects": [
+    "DMA_HEX.RAW.ADJUSTMENTS"
+  ],
+  "logical_required_values": "All raw fields except CUSTOMER_HISTORY.VALID_TO are required by scenario; bootstrap declares no NOT NULL constraints"
+}

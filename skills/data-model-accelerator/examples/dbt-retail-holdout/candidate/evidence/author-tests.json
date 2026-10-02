@@ -1,0 +1,12 @@
+{
+  "tests": 14,
+  "failures": 0,
+  "errors": 0,
+  "successful": true,
+  "basis": "Hand-derived microfixtures and metamorphic assertions; not root hidden oracle or business acceptance",
+  "negative_controls": [
+    "removed tenant join",
+    "double discount"
+  ],
+  "diagnostics": []
+}

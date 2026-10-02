@@ -1,0 +1,43 @@
+name: rental_trial
+version: '1.0.0'
+config-version: 2
+profile: rental_trial
+model-paths: [models]
+analysis-paths: [analyses]
+seed-paths: [seeds]
+test-paths: [tests]
+models:
+  rental_trial:
+    +materialized: table
+seeds:
+  rental_trial:
+    raw_rentals:
+      +column_types:
+        tenant_id: varchar
+        rental_id: varchar
+        location_id: varchar
+        rental_status: varchar
+        rental_date: varchar
+        currency: varchar
+        updated_at: varchar
+        cdc_sequence: bigint
+        is_deleted: boolean
+    raw_charges:
+      +column_types:
+        tenant_id: varchar
+        charge_id: varchar
+        rental_id: varchar
+        charge_type: varchar
+        amount: decimal(18,2)
+        currency: varchar
+        updated_at: varchar
+        cdc_sequence: bigint
+        is_deleted: boolean
+    raw_locations:
+      +column_types:
+        tenant_id: varchar
+        location_id: varchar
+        location_name: varchar
+        updated_at: varchar
+        cdc_sequence: bigint
+        is_deleted: boolean

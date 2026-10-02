@@ -1,0 +1,533 @@
+{
+  "analyst_id": "/root/rental_analyst",
+  "cases": [
+    {
+      "category": "correctness",
+      "columns": {
+        "currency": {
+          "nullable": false,
+          "type": "string"
+        },
+        "eligible_charge_count": {
+          "nullable": false,
+          "type": "integer"
+        },
+        "fee_amount": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "location_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "location_name": {
+          "nullable": false,
+          "type": "string"
+        },
+        "net_revenue": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "refund_amount": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "rental_date": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_status": {
+          "nullable": false,
+          "type": "string"
+        },
+        "tenant_id": {
+          "nullable": false,
+          "type": "string"
+        }
+      },
+      "context": {
+        "currency": "USD",
+        "filters": {
+          "rental_status": "completed",
+          "tenant_id": [
+            "A",
+            "B",
+            "C"
+          ]
+        },
+        "principal": "synthetic:finance_all",
+        "timezone": "UTC",
+        "watermark": "2026-08-16T00:00:00Z"
+      },
+      "decision": {
+        "approved_by": "synthetic-exercise-authority:/root/rental_analyst",
+        "id": "SYNTHETIC-RENTAL-DECISION-001",
+        "reason": "Fabricated accepted definitions in input/requirements.md; synthetic test authority only, not human or production approval."
+      },
+      "expected": {
+        "path": "exports/gold_all.json",
+        "query_id": "synthetic-oracle:gold_all",
+        "sha256": "b8349b11f1fbc5fc70138d2cc0c54745d136eca13f79d348c52b010a3c65299e"
+      },
+      "id": "gold_all",
+      "keys": [
+        "tenant_id",
+        "rental_id"
+      ]
+    },
+    {
+      "category": "correctness",
+      "columns": {
+        "currency": {
+          "nullable": false,
+          "type": "string"
+        },
+        "eligible_charge_count": {
+          "nullable": false,
+          "type": "integer"
+        },
+        "fee_amount": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "location_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "location_name": {
+          "nullable": false,
+          "type": "string"
+        },
+        "net_revenue": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "refund_amount": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "rental_date": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_status": {
+          "nullable": false,
+          "type": "string"
+        },
+        "tenant_id": {
+          "nullable": false,
+          "type": "string"
+        }
+      },
+      "context": {
+        "currency": "USD",
+        "filters": {
+          "rental_status": "completed",
+          "tenant_id": "A"
+        },
+        "principal": "synthetic:rental_viewer_A",
+        "timezone": "UTC",
+        "watermark": "2026-08-16T00:00:00Z"
+      },
+      "decision": {
+        "approved_by": "synthetic-exercise-authority:/root/rental_analyst",
+        "id": "SYNTHETIC-RENTAL-DECISION-001",
+        "reason": "Fabricated accepted definitions in input/requirements.md; synthetic test authority only, not human or production approval."
+      },
+      "expected": {
+        "path": "exports/tenant_A.json",
+        "query_id": "synthetic-oracle:tenant_A",
+        "sha256": "24cbcfe209bdc8509a649a448026baa759e5646d1439c629f90f9426b1a842c8"
+      },
+      "id": "tenant_A",
+      "keys": [
+        "tenant_id",
+        "rental_id"
+      ]
+    },
+    {
+      "category": "correctness",
+      "columns": {
+        "charge_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "charge_type": {
+          "nullable": false,
+          "type": "string"
+        },
+        "currency": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "signed_amount": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "source_amount": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "tenant_id": {
+          "nullable": false,
+          "type": "string"
+        }
+      },
+      "context": {
+        "currency": "USD",
+        "filters": {
+          "charge_type": [
+            "rental_fee",
+            "damage_fee",
+            "refund"
+          ],
+          "rental_status": "completed",
+          "tenant_id": [
+            "A",
+            "B",
+            "C"
+          ]
+        },
+        "principal": "synthetic:validation_analyst",
+        "timezone": "UTC",
+        "watermark": "2026-08-16T00:00:00Z"
+      },
+      "decision": {
+        "approved_by": "synthetic-exercise-authority:/root/rental_analyst",
+        "id": "SYNTHETIC-RENTAL-DECISION-001",
+        "reason": "Fabricated accepted definitions in input/requirements.md; synthetic test authority only, not human or production approval."
+      },
+      "expected": {
+        "path": "exports/eligible_charges.json",
+        "query_id": "synthetic-oracle:eligible_charges",
+        "sha256": "5d33b0eef004ac364d15d443b51881070595811017494ab838329f22a74ff863"
+      },
+      "id": "eligible_charges",
+      "keys": [
+        "tenant_id",
+        "charge_id"
+      ]
+    },
+    {
+      "category": "correctness",
+      "columns": {
+        "cdc_sequence": {
+          "nullable": false,
+          "type": "integer"
+        },
+        "currency": {
+          "nullable": false,
+          "type": "string"
+        },
+        "location_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_date": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_status": {
+          "nullable": false,
+          "type": "string"
+        },
+        "tenant_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "updated_at": {
+          "nullable": false,
+          "type": "string"
+        }
+      },
+      "context": {
+        "currency": "USD",
+        "filters": {
+          "is_deleted": false,
+          "latest_version": true
+        },
+        "principal": "synthetic:validation_analyst",
+        "timezone": "UTC",
+        "watermark": "2026-08-16T00:00:00Z"
+      },
+      "decision": {
+        "approved_by": "synthetic-exercise-authority:/root/rental_analyst",
+        "id": "SYNTHETIC-RENTAL-DECISION-001",
+        "reason": "Fabricated accepted definitions in input/requirements.md; synthetic test authority only, not human or production approval."
+      },
+      "expected": {
+        "path": "exports/staging_rentals.json",
+        "query_id": "synthetic-oracle:staging_rentals",
+        "sha256": "b79568f41bb80ad1dd193d8f82a7d54d3833e0e42113290645f1f1caae6d1922"
+      },
+      "id": "staging_rentals",
+      "keys": [
+        "tenant_id",
+        "rental_id"
+      ]
+    },
+    {
+      "category": "correctness",
+      "columns": {
+        "amount": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "cdc_sequence": {
+          "nullable": false,
+          "type": "integer"
+        },
+        "charge_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "charge_type": {
+          "nullable": false,
+          "type": "string"
+        },
+        "currency": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "tenant_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "updated_at": {
+          "nullable": false,
+          "type": "string"
+        }
+      },
+      "context": {
+        "currency": "USD",
+        "filters": {
+          "is_deleted": false,
+          "latest_version": true
+        },
+        "principal": "synthetic:validation_analyst",
+        "timezone": "UTC",
+        "watermark": "2026-08-16T00:00:00Z"
+      },
+      "decision": {
+        "approved_by": "synthetic-exercise-authority:/root/rental_analyst",
+        "id": "SYNTHETIC-RENTAL-DECISION-001",
+        "reason": "Fabricated accepted definitions in input/requirements.md; synthetic test authority only, not human or production approval."
+      },
+      "expected": {
+        "path": "exports/staging_charges.json",
+        "query_id": "synthetic-oracle:staging_charges",
+        "sha256": "54a61e0852247bd839d07065d0d328eb84babf4b1a02c088511a3576d5d3b8b3"
+      },
+      "id": "staging_charges",
+      "keys": [
+        "tenant_id",
+        "charge_id"
+      ]
+    },
+    {
+      "category": "correctness",
+      "columns": {
+        "cdc_sequence": {
+          "nullable": false,
+          "type": "integer"
+        },
+        "location_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "location_name": {
+          "nullable": false,
+          "type": "string"
+        },
+        "tenant_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "updated_at": {
+          "nullable": false,
+          "type": "string"
+        }
+      },
+      "context": {
+        "currency": "USD",
+        "filters": {
+          "is_deleted": false,
+          "latest_version": true
+        },
+        "principal": "synthetic:validation_analyst",
+        "timezone": "UTC",
+        "watermark": "2026-08-16T00:00:00Z"
+      },
+      "decision": {
+        "approved_by": "synthetic-exercise-authority:/root/rental_analyst",
+        "id": "SYNTHETIC-RENTAL-DECISION-001",
+        "reason": "Fabricated accepted definitions in input/requirements.md; synthetic test authority only, not human or production approval."
+      },
+      "expected": {
+        "path": "exports/staging_locations.json",
+        "query_id": "synthetic-oracle:staging_locations",
+        "sha256": "c06598275fdd5a99885ea172ad0c4f2ddee40ec8e41021fd32b81b97b73fec60"
+      },
+      "id": "staging_locations",
+      "keys": [
+        "tenant_id",
+        "location_id"
+      ]
+    },
+    {
+      "category": "compatibility",
+      "columns": {
+        "currency": {
+          "nullable": false,
+          "type": "string"
+        },
+        "location_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "location_name": {
+          "nullable": false,
+          "type": "string"
+        },
+        "net_revenue": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "rental_date": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_status": {
+          "nullable": false,
+          "type": "string"
+        },
+        "tenant_id": {
+          "nullable": false,
+          "type": "string"
+        }
+      },
+      "context": {
+        "currency": "USD",
+        "filters": {
+          "rental_id": "R9",
+          "rental_status": "completed",
+          "tenant_id": "C"
+        },
+        "principal": "synthetic:rental_viewer_C",
+        "timezone": "UTC",
+        "watermark": "2026-08-16T00:00:00Z"
+      },
+      "expected": {
+        "path": "exports/clean_compatibility.json",
+        "query_id": "synthetic-oracle:clean_compatibility",
+        "sha256": "4d3aaf27c751fc271f037dbac06bd230b73f6e32a907ef6c5dd8257ff231b2e9"
+      },
+      "id": "clean_compatibility",
+      "keys": [
+        "tenant_id",
+        "rental_id"
+      ]
+    },
+    {
+      "category": "correctness",
+      "columns": {
+        "currency": {
+          "nullable": false,
+          "type": "string"
+        },
+        "eligible_charge_count": {
+          "nullable": false,
+          "type": "integer"
+        },
+        "fee_amount": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "location_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "location_name": {
+          "nullable": false,
+          "type": "string"
+        },
+        "net_revenue": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "refund_amount": {
+          "nullable": false,
+          "type": "decimal"
+        },
+        "rental_date": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_id": {
+          "nullable": false,
+          "type": "string"
+        },
+        "rental_status": {
+          "nullable": false,
+          "type": "string"
+        },
+        "tenant_id": {
+          "nullable": false,
+          "type": "string"
+        }
+      },
+      "context": {
+        "currency": "USD",
+        "filters": {
+          "effective_tenant_filter": "__DENIED__",
+          "tenant_id": []
+        },
+        "principal": "synthetic:denied_no_tenant_grants",
+        "timezone": "UTC",
+        "watermark": "2026-08-16T00:00:00Z"
+      },
+      "decision": {
+        "approved_by": "synthetic-exercise-authority:/root/rental_analyst",
+        "id": "SYNTHETIC-RENTAL-DECISION-001",
+        "reason": "Fabricated accepted definitions in input/requirements.md; synthetic test authority only, not human or production approval."
+      },
+      "expected": {
+        "path": "exports/denied_persona.json",
+        "query_id": "synthetic-oracle:denied_persona",
+        "sha256": "fb2989323b717f2e869a06272d8ee4b35b4e516d6a555f4ce3d19f9ee3606ff0"
+      },
+      "id": "denied_persona",
+      "keys": [
+        "tenant_id",
+        "rental_id"
+      ]
+    }
+  ],
+  "catalogue_sha256": "2eed8fcb8d3b6b67f512e6a3fb5460692c729a36e075766bdd5a15ae5b126356",
+  "schema_version": 1,
+  "source_revision": "REPLACE_WITH_PLAN_SOURCE_SNAPSHOT_SHA256"
+}

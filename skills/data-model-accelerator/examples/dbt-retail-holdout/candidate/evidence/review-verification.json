@@ -1,0 +1,25 @@
+{
+  "stage": "local",
+  "errors": [],
+  "review_complete": true,
+  "target_errors": [
+    "Unqualified target.warehouse",
+    "Unqualified target.environment",
+    "Synthetic catalogue cannot establish target validation",
+    "Missing target passing category: fanout",
+    "Missing target passing category: grain",
+    "Missing target passing category: history",
+    "Missing target passing category: logic",
+    "Missing target passing category: negative_controls",
+    "Missing target passing category: operations",
+    "Missing target passing category: reconciliation",
+    "Missing target passing category: replay",
+    "Missing target passing category: security",
+    "Missing target passing category: source_contract",
+    "Missing target passing category: target_compile",
+    "Missing target passing category: target_execution"
+  ],
+  "target_complete": false,
+  "human_approved": false,
+  "scope": "Structural evidence completeness; actual supplied local runs separately recorded."
+}

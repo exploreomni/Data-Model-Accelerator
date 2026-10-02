@@ -1,0 +1,15 @@
+version: 2
+sources:
+  - name: retail_raw
+    database: DMA_RETAIL
+    schema: RAW
+    description: Synthetic ERP/fulfillment replication; behavior is specified in input README.
+    tables:
+      - name: orders
+        identifier: ORDER_CDC
+      - name: order_lines
+        identifier: ORDER_LINE_CDC
+      - name: fulfillments
+        identifier: FULFILLMENT_CDC
+      - name: returns
+        identifier: RETURN_CDC

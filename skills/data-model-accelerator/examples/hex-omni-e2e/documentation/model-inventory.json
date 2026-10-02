@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "kind": "data_model_inventory",
+  "specification_version": "hex-billing-1.0.0",
+  "evidence_status": "Synthetic source and candidate code, no native warehouse validation",
+  "models": [
+    {
+      "model_id": "DMA_HEX.RAW.ADJUSTMENTS",
+      "layer": "bronze",
+      "physical_name": "DMA_HEX.RAW.ADJUSTMENTS",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "ADJUSTMENT_CENTS",
+        "REASON"
+      ],
+      "logical_name": "adjustments",
+      "code": "target/snowflake/00_raw_contract.sql"
+    },
+    {
+      "model_id": "DMA_HEX.RAW.CUSTOMER_HISTORY",
+      "layer": "bronze",
+      "physical_name": "DMA_HEX.RAW.CUSTOMER_HISTORY",
+      "columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ],
+      "logical_name": "customer_history",
+      "code": "target/snowflake/00_raw_contract.sql"
+    },
+    {
+      "model_id": "DMA_HEX.RAW.INVOICE_CDC",
+      "layer": "bronze",
+      "physical_name": "DMA_HEX.RAW.INVOICE_CDC",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "IS_DELETED",
+        "SEQUENCE"
+      ],
+      "logical_name": "invoice_cdc",
+      "code": "target/snowflake/00_raw_contract.sql"
+    },
+    {
+      "model_id": "DMA_HEX.RAW.PAYMENT_CDC",
+      "layer": "bronze",
+      "physical_name": "DMA_HEX.RAW.PAYMENT_CDC",
+      "columns": [
+        "TENANT_ID",
+        "PAYMENT_ID",
+        "INVOICE_ID",
+        "PAID_CENTS",
+        "IS_DELETED",
+        "SEQUENCE"
+      ],
+      "logical_name": "payment_cdc",
+      "code": "target/snowflake/00_raw_contract.sql"
+    },
+    {
+      "model_id": "DMA_HEX.SILVER.BILLING_ADJUSTMENTS",
+      "layer": "silver",
+      "physical_name": "DMA_HEX.SILVER.BILLING_ADJUSTMENTS",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "ADJUSTMENT_CENTS",
+        "REASON"
+      ],
+      "logical_name": "billing_adjustments",
+      "code": "target/dbt/models/silver/billing_adjustments.sql"
+    },
+    {
+      "model_id": "DMA_HEX.SILVER.BILLING_CUSTOMER_HISTORY",
+      "layer": "silver",
+      "physical_name": "DMA_HEX.SILVER.BILLING_CUSTOMER_HISTORY",
+      "columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ],
+      "logical_name": "billing_customer_history",
+      "code": "target/dbt/models/silver/billing_customer_history.sql"
+    },
+    {
+      "model_id": "DMA_HEX.SILVER.BILLING_INVOICES",
+      "layer": "silver",
+      "physical_name": "DMA_HEX.SILVER.BILLING_INVOICES",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "SOURCE_SEQUENCE"
+      ],
+      "logical_name": "billing_invoices",
+      "code": "target/dbt/models/silver/billing_invoices.sql"
+    },
+    {
+      "model_id": "DMA_HEX.SILVER.BILLING_PAYMENTS",
+      "layer": "silver",
+      "physical_name": "DMA_HEX.SILVER.BILLING_PAYMENTS",
+      "columns": [
+        "TENANT_ID",
+        "PAYMENT_ID",
+        "INVOICE_ID",
+        "PAID_CENTS",
+        "SOURCE_SEQUENCE"
+      ],
+      "logical_name": "billing_payments",
+      "code": "target/dbt/models/silver/billing_payments.sql"
+    },
+    {
+      "model_id": "DMA_HEX.GOLD.DIM_CUSTOMERS",
+      "layer": "gold",
+      "physical_name": "DMA_HEX.GOLD.DIM_CUSTOMERS",
+      "columns": [
+        "CUSTOMER_KEY",
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ],
+      "logical_name": "dim_customers",
+      "code": "target/dbt/models/gold/dim_customers.sql"
+    },
+    {
+      "model_id": "DMA_HEX.GOLD.FCT_CUSTOMER_MONTH",
+      "layer": "gold",
+      "physical_name": "DMA_HEX.GOLD.FCT_CUSTOMER_MONTH",
+      "columns": [
+        "CUSTOMER_MONTH_KEY",
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "INVOICE_MONTH",
+        "NET_CENTS",
+        "PAID_CENTS",
+        "OUTSTANDING_CENTS",
+        "HAS_INVOICE",
+        "HAS_PAID_INVOICE",
+        "FIRST_PAID_MONTH"
+      ],
+      "logical_name": "fct_customer_month",
+      "code": "target/dbt/models/gold/fct_customer_month.sql"
+    },
+    {
+      "model_id": "DMA_HEX.GOLD.FCT_INVOICES",
+      "layer": "gold",
+      "physical_name": "DMA_HEX.GOLD.FCT_INVOICES",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "INVOICE_MONTH",
+        "STATUS",
+        "AMOUNT_CENTS",
+        "ADJUSTMENT_CENTS",
+        "NET_CENTS",
+        "PAID_CENTS",
+        "OUTSTANDING_CENTS",
+        "INVOICE_KEY",
+        "CUSTOMER_KEY",
+        "SEGMENT"
+      ],
+      "logical_name": "fct_invoices",
+      "code": "target/dbt/models/gold/fct_invoices.sql"
+    }
+  ]
+}

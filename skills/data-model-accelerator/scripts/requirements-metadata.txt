@@ -1,0 +1,2 @@
+# Round-trip YAML is a generation dependency, not a dbt execution dependency.
+ruamel.yaml==0.18.16

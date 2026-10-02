@@ -1,0 +1,44 @@
+{
+  "candidate_read": false,
+  "evidence_class": "independent_synthetic_source_calculation",
+  "files": [
+    {
+      "path": "catalogue.json",
+      "sha256": "2eed8fcb8d3b6b67f512e6a3fb5460692c729a36e075766bdd5a15ae5b126356"
+    },
+    {
+      "path": "model-spec.json",
+      "sha256": "7b9cfee2ca8cf92e63c6a1d682d37fa262f4e4cffedbc304f25b8d794142cc7f"
+    },
+    {
+      "path": "repo/README.md",
+      "sha256": "ab0f0d44cff06801d1e6140a912ded0e0f6dfc9b7ca71b6ee7046a699a35bbf2"
+    },
+    {
+      "path": "repo/dbt_project.yml",
+      "sha256": "4738960286d364de5e0b314a37326ac484651822dcdc1f5e9c4b82e66f5bc243"
+    },
+    {
+      "path": "repo/models/legacy_report.sql",
+      "sha256": "68e1c25bf681e34be8208c9ec9ef0760dc0d012a131c2e49b5e1431e25605c46"
+    },
+    {
+      "path": "repo/seeds/raw_charges.csv",
+      "sha256": "6c017a4c989d1fcd6592db6e38764e517b40217a79caf692518868c8a345f4f0"
+    },
+    {
+      "path": "repo/seeds/raw_locations.csv",
+      "sha256": "16008454e843d42866eee1f5739366aff432f0d95417f5af0ea7a36038939539"
+    },
+    {
+      "path": "repo/seeds/raw_rentals.csv",
+      "sha256": "b55e667a24d458f9c0453ba5c29d40f428343ea0c77430106a05cded240358e3"
+    },
+    {
+      "path": "requirements.md",
+      "sha256": "669a328c8dd1a18fa10d0e0a5bd61cf5c374becc3425e7d04278586990fcef31"
+    }
+  ],
+  "method": "Standard-library CSV latest-version selection plus exact Decimal arithmetic and manual total checks.",
+  "native_source_query_executed": false
+}

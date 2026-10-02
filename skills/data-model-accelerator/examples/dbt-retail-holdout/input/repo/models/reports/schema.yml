@@ -1,0 +1,9 @@
+version: 2
+models:
+  - name: retail_fulfillment_summary
+    description: Legacy executive report; child-event fanout is a known correctness defect, not business truth.
+    columns:
+      - name: ORDER_MONTH
+        tests: [not_null]
+      - name: PRODUCT_ID
+        tests: [not_null]

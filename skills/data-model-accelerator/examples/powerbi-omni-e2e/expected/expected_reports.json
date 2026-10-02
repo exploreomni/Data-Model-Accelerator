@@ -1,0 +1,1219 @@
+{
+  "schema_version": 1,
+  "origin": "synthetic_independent_oracle",
+  "platform_instance": "DMA_POWERBI_SYNTHETIC",
+  "catalogue": "DMA_POWERBI",
+  "input_sha256": {
+    "input/scenario.md": "22bf742a262cca14cdab43e8c0b4bd87f89a24139f5834583289869a04e5b291",
+    "input/raw-data.json": "d28ffee6457c1d8ebcde1d5e756f10771ec42b4d76c844e582cd1c981ce94d9c",
+    "input/repo/adjustments.csv": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e"
+  },
+  "ratio_absolute_tolerance": "1e-12",
+  "scenarios": [
+    {
+      "name": "default_a",
+      "parameters": {},
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 5000
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.142857142857142857142857142857142857142857142857142857142857",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.2"
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.8"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 39000,
+            "paid_cents": 22000,
+            "outstanding_cents": 17000,
+            "payment_rate": "0.564102564102564102564102564102564102564102564102564102564103",
+            "all_segment_revenue_cents": 39000,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 39000,
+            "posted_intersection_cents": 39000,
+            "scenario_revenue_cents": 39000
+          }
+        ]
+      }
+    },
+    {
+      "name": "tenant_b",
+      "parameters": {
+        "tenant": "B"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 30500,
+            "paid_cents": 30000,
+            "outstanding_cents": 500,
+            "payment_rate": "0.983606557377049180327868852459016393442622950819672131147541",
+            "scenario_revenue_cents": 30500
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 5000,
+            "outstanding_cents": 15000,
+            "payment_rate": "0.25",
+            "scenario_revenue_cents": 20000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 30500,
+            "all_segment_revenue_cents": 30500,
+            "share_all_segments": "1"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "all_segment_revenue_cents": 20000,
+            "share_all_segments": "1"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 50500,
+            "paid_cents": 35000,
+            "outstanding_cents": 15500,
+            "payment_rate": "0.693069306930693069306930693069306930693069306930693069306931",
+            "all_segment_revenue_cents": 50500,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 50500,
+            "posted_intersection_cents": 50500,
+            "scenario_revenue_cents": 50500
+          }
+        ]
+      }
+    },
+    {
+      "name": "january_a",
+      "parameters": {
+        "end_date": "2026-02-01"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 5000
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.2"
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.8"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 25000,
+            "paid_cents": 14000,
+            "outstanding_cents": 11000,
+            "payment_rate": "0.56",
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 25000,
+            "posted_intersection_cents": 25000,
+            "scenario_revenue_cents": 25000
+          }
+        ]
+      }
+    },
+    {
+      "name": "february_a",
+      "parameters": {
+        "start_date": "2026-02-01"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.142857142857142857142857142857142857142857142857142857142857",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 14000,
+            "paid_cents": 8000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.571428571428571428571428571428571428571428571428571428571429",
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 14000,
+            "posted_intersection_cents": 14000,
+            "scenario_revenue_cents": 14000
+          }
+        ]
+      }
+    },
+    {
+      "name": "february_boundary_a",
+      "parameters": {
+        "start_date": "2026-02-01",
+        "end_date": "2026-02-02"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 7000,
+            "share_all_segments": "1"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "all_segment_revenue_cents": 7000,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 7000,
+            "posted_intersection_cents": 7000,
+            "scenario_revenue_cents": 7000
+          }
+        ]
+      }
+    },
+    {
+      "name": "segment_smb_a",
+      "parameters": {
+        "segment": "SMB"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.142857142857142857142857142857142857142857142857142857142857",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.8"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 27000,
+            "paid_cents": 15000,
+            "outstanding_cents": 12000,
+            "payment_rate": "0.555555555555555555555555555555555555555555555555555555555556",
+            "all_segment_revenue_cents": 39000,
+            "share_all_segments": "0.692307692307692307692307692307692307692307692307692307692308",
+            "posted_revenue_cents": 27000,
+            "posted_intersection_cents": 27000,
+            "scenario_revenue_cents": 27000
+          }
+        ]
+      }
+    },
+    {
+      "name": "segment_enterprise_a",
+      "parameters": {
+        "segment": "Enterprise"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 5000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.2"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 12000,
+            "paid_cents": 7000,
+            "outstanding_cents": 5000,
+            "payment_rate": "0.583333333333333333333333333333333333333333333333333333333333",
+            "all_segment_revenue_cents": 39000,
+            "share_all_segments": "0.307692307692307692307692307692307692307692307692307692307692",
+            "posted_revenue_cents": 12000,
+            "posted_intersection_cents": 12000,
+            "scenario_revenue_cents": 12000
+          }
+        ]
+      }
+    },
+    {
+      "name": "segment_smb_b",
+      "parameters": {
+        "tenant": "B",
+        "segment": "SMB"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 5000,
+            "outstanding_cents": 15000,
+            "payment_rate": "0.25",
+            "scenario_revenue_cents": 20000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "all_segment_revenue_cents": 20000,
+            "share_all_segments": "1"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 20000,
+            "paid_cents": 5000,
+            "outstanding_cents": 15000,
+            "payment_rate": "0.25",
+            "all_segment_revenue_cents": 50500,
+            "share_all_segments": "0.396039603960396039603960396039603960396039603960396039603960",
+            "posted_revenue_cents": 20000,
+            "posted_intersection_cents": 20000,
+            "scenario_revenue_cents": 20000
+          }
+        ]
+      }
+    },
+    {
+      "name": "segment_enterprise_b",
+      "parameters": {
+        "tenant": "B",
+        "segment": "Enterprise"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 30500,
+            "paid_cents": 30000,
+            "outstanding_cents": 500,
+            "payment_rate": "0.983606557377049180327868852459016393442622950819672131147541",
+            "scenario_revenue_cents": 30500
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 30500,
+            "all_segment_revenue_cents": 30500,
+            "share_all_segments": "1"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 30500,
+            "paid_cents": 30000,
+            "outstanding_cents": 500,
+            "payment_rate": "0.983606557377049180327868852459016393442622950819672131147541",
+            "all_segment_revenue_cents": 50500,
+            "share_all_segments": "0.603960396039603960396039603960396039603960396039603960396040",
+            "posted_revenue_cents": 30500,
+            "posted_intersection_cents": 30500,
+            "scenario_revenue_cents": 30500
+          }
+        ]
+      }
+    },
+    {
+      "name": "empty_equal_bounds",
+      "parameters": {
+        "end_date": "2026-01-01"
+      },
+      "outputs": {
+        "revenue_trend": [],
+        "segment_share": [],
+        "kpi_totals": [
+          {
+            "revenue_cents": null,
+            "paid_cents": null,
+            "outstanding_cents": null,
+            "payment_rate": null,
+            "all_segment_revenue_cents": null,
+            "share_all_segments": null,
+            "posted_revenue_cents": null,
+            "posted_intersection_cents": null,
+            "scenario_revenue_cents": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "empty_after_snapshot",
+      "parameters": {
+        "start_date": "2026-04-01",
+        "end_date": "2026-05-01"
+      },
+      "outputs": {
+        "revenue_trend": [],
+        "segment_share": [],
+        "kpi_totals": [
+          {
+            "revenue_cents": null,
+            "paid_cents": null,
+            "outstanding_cents": null,
+            "payment_rate": null,
+            "all_segment_revenue_cents": null,
+            "share_all_segments": null,
+            "posted_revenue_cents": null,
+            "posted_intersection_cents": null,
+            "scenario_revenue_cents": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "zero_revenue_a",
+      "parameters": {
+        "start_date": "2026-02-20",
+        "end_date": "2026-02-21"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 0,
+            "paid_cents": 0,
+            "outstanding_cents": 0,
+            "payment_rate": null,
+            "scenario_revenue_cents": 0
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 0,
+            "all_segment_revenue_cents": 0,
+            "share_all_segments": null
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 0,
+            "paid_cents": 0,
+            "outstanding_cents": 0,
+            "payment_rate": null,
+            "all_segment_revenue_cents": 0,
+            "share_all_segments": null,
+            "posted_revenue_cents": 0,
+            "posted_intersection_cents": 0,
+            "scenario_revenue_cents": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "multiplier_two",
+      "parameters": {
+        "multipliers": [
+          2
+        ]
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 10000
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 40000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 14000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.142857142857142857142857142857142857142857142857142857142857",
+            "scenario_revenue_cents": 14000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.2"
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.8"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 39000,
+            "paid_cents": 22000,
+            "outstanding_cents": 17000,
+            "payment_rate": "0.564102564102564102564102564102564102564102564102564102564103",
+            "all_segment_revenue_cents": 39000,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 39000,
+            "posted_intersection_cents": 39000,
+            "scenario_revenue_cents": 78000
+          }
+        ]
+      }
+    },
+    {
+      "name": "multipliers_multiple",
+      "parameters": {
+        "multipliers": [
+          1,
+          2
+        ]
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 5000
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.142857142857142857142857142857142857142857142857142857142857",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.2"
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.8"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 39000,
+            "paid_cents": 22000,
+            "outstanding_cents": 17000,
+            "payment_rate": "0.564102564102564102564102564102564102564102564102564102564103",
+            "all_segment_revenue_cents": 39000,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 39000,
+            "posted_intersection_cents": 39000,
+            "scenario_revenue_cents": 39000
+          }
+        ]
+      }
+    },
+    {
+      "name": "multipliers_none",
+      "parameters": {
+        "multipliers": []
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "paid_cents": 0,
+            "outstanding_cents": 5000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 5000
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "paid_cents": 7000,
+            "outstanding_cents": 0,
+            "payment_rate": "1",
+            "scenario_revenue_cents": 7000
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "paid_cents": 1000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.142857142857142857142857142857142857142857142857142857142857",
+            "scenario_revenue_cents": 7000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "Enterprise",
+            "revenue_cents": 5000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.2"
+          },
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.8"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          },
+          {
+            "month": "2026-02-01",
+            "segment": "SMB",
+            "revenue_cents": 7000,
+            "all_segment_revenue_cents": 14000,
+            "share_all_segments": "0.5"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 39000,
+            "paid_cents": 22000,
+            "outstanding_cents": 17000,
+            "payment_rate": "0.564102564102564102564102564102564102564102564102564102564103",
+            "all_segment_revenue_cents": 39000,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 39000,
+            "posted_intersection_cents": 39000,
+            "scenario_revenue_cents": 39000
+          }
+        ]
+      }
+    },
+    {
+      "name": "draft_a",
+      "parameters": {
+        "status": "draft"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 6000,
+            "paid_cents": 0,
+            "outstanding_cents": 6000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 6000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 6000,
+            "all_segment_revenue_cents": 6000,
+            "share_all_segments": "1"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 6000,
+            "paid_cents": 0,
+            "outstanding_cents": 6000,
+            "payment_rate": "0",
+            "all_segment_revenue_cents": 6000,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 39000,
+            "posted_intersection_cents": null,
+            "scenario_revenue_cents": 6000
+          }
+        ]
+      }
+    },
+    {
+      "name": "draft_smb_a",
+      "parameters": {
+        "status": "draft",
+        "segment": "SMB"
+      },
+      "outputs": {
+        "revenue_trend": [],
+        "segment_share": [],
+        "kpi_totals": [
+          {
+            "revenue_cents": null,
+            "paid_cents": null,
+            "outstanding_cents": null,
+            "payment_rate": null,
+            "all_segment_revenue_cents": 6000,
+            "share_all_segments": null,
+            "posted_revenue_cents": 27000,
+            "posted_intersection_cents": null,
+            "scenario_revenue_cents": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "draft_b",
+      "parameters": {
+        "status": "draft",
+        "tenant": "B"
+      },
+      "outputs": {
+        "revenue_trend": [],
+        "segment_share": [],
+        "kpi_totals": [
+          {
+            "revenue_cents": null,
+            "paid_cents": null,
+            "outstanding_cents": null,
+            "payment_rate": null,
+            "all_segment_revenue_cents": null,
+            "share_all_segments": null,
+            "posted_revenue_cents": 50500,
+            "posted_intersection_cents": null,
+            "scenario_revenue_cents": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown_segment_empty",
+      "parameters": {
+        "segment": "Unrepresented"
+      },
+      "outputs": {
+        "revenue_trend": [],
+        "segment_share": [],
+        "kpi_totals": [
+          {
+            "revenue_cents": null,
+            "paid_cents": null,
+            "outstanding_cents": null,
+            "payment_rate": null,
+            "all_segment_revenue_cents": 39000,
+            "share_all_segments": null,
+            "posted_revenue_cents": null,
+            "posted_intersection_cents": null,
+            "scenario_revenue_cents": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "january_smb_a",
+      "parameters": {
+        "end_date": "2026-02-01",
+        "segment": "SMB"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "scenario_revenue_cents": 20000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-01-01",
+            "segment": "SMB",
+            "revenue_cents": 20000,
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.8"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 20000,
+            "paid_cents": 14000,
+            "outstanding_cents": 6000,
+            "payment_rate": "0.7",
+            "all_segment_revenue_cents": 25000,
+            "share_all_segments": "0.8",
+            "posted_revenue_cents": 20000,
+            "posted_intersection_cents": 20000,
+            "scenario_revenue_cents": 20000
+          }
+        ]
+      }
+    },
+    {
+      "name": "draft_january_a",
+      "parameters": {
+        "status": "draft",
+        "end_date": "2026-02-01"
+      },
+      "outputs": {
+        "revenue_trend": [],
+        "segment_share": [],
+        "kpi_totals": [
+          {
+            "revenue_cents": null,
+            "paid_cents": null,
+            "outstanding_cents": null,
+            "payment_rate": null,
+            "all_segment_revenue_cents": null,
+            "share_all_segments": null,
+            "posted_revenue_cents": 25000,
+            "posted_intersection_cents": null,
+            "scenario_revenue_cents": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "draft_enterprise_february_a",
+      "parameters": {
+        "status": "draft",
+        "segment": "Enterprise",
+        "start_date": "2026-02-01"
+      },
+      "outputs": {
+        "revenue_trend": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 6000,
+            "paid_cents": 0,
+            "outstanding_cents": 6000,
+            "payment_rate": "0",
+            "scenario_revenue_cents": 6000
+          }
+        ],
+        "segment_share": [
+          {
+            "month": "2026-02-01",
+            "segment": "Enterprise",
+            "revenue_cents": 6000,
+            "all_segment_revenue_cents": 6000,
+            "share_all_segments": "1"
+          }
+        ],
+        "kpi_totals": [
+          {
+            "revenue_cents": 6000,
+            "paid_cents": 0,
+            "outstanding_cents": 6000,
+            "payment_rate": "0",
+            "all_segment_revenue_cents": 6000,
+            "share_all_segments": "1",
+            "posted_revenue_cents": 7000,
+            "posted_intersection_cents": null,
+            "scenario_revenue_cents": 6000
+          }
+        ]
+      }
+    }
+  ],
+  "invalid_scenarios": [
+    {
+      "name": "unknown_tenant",
+      "parameters": {
+        "tenant": "C"
+      },
+      "expected_error_code": "unknown_tenant"
+    },
+    {
+      "name": "missing_tenant",
+      "parameters": {
+        "tenant": null
+      },
+      "expected_error_code": "unknown_tenant"
+    },
+    {
+      "name": "unknown_role",
+      "parameters": {
+        "role": "Administrator"
+      },
+      "expected_error_code": "unknown_role"
+    },
+    {
+      "name": "missing_role",
+      "parameters": {
+        "role": null
+      },
+      "expected_error_code": "unknown_role"
+    },
+    {
+      "name": "role_mismatch",
+      "parameters": {
+        "tenant": "B",
+        "role": "TenantA"
+      },
+      "expected_error_code": "role_mismatch"
+    },
+    {
+      "name": "persona_mismatch",
+      "parameters": {
+        "persona_tenant": "B"
+      },
+      "expected_error_code": "persona_mismatch"
+    },
+    {
+      "name": "missing_persona",
+      "parameters": {
+        "persona_tenant": null
+      },
+      "expected_error_code": "persona_mismatch"
+    },
+    {
+      "name": "unauthorized",
+      "parameters": {
+        "authorized": false
+      },
+      "expected_error_code": "unauthorized"
+    },
+    {
+      "name": "invalid_date",
+      "parameters": {
+        "start_date": "2026-02-30"
+      },
+      "expected_error_code": "invalid_date"
+    },
+    {
+      "name": "reversed_dates",
+      "parameters": {
+        "start_date": "2026-03-01",
+        "end_date": "2026-01-01"
+      },
+      "expected_error_code": "reversed_dates"
+    },
+    {
+      "name": "unknown_status",
+      "parameters": {
+        "status": "void"
+      },
+      "expected_error_code": "unknown_status"
+    },
+    {
+      "name": "duplicate_multipliers",
+      "parameters": {
+        "multipliers": [
+          1,
+          1
+        ]
+      },
+      "expected_error_code": "invalid_multipliers"
+    },
+    {
+      "name": "unknown_multiplier",
+      "parameters": {
+        "multipliers": [
+          3
+        ]
+      },
+      "expected_error_code": "invalid_multipliers"
+    },
+    {
+      "name": "noninteger_multiplier",
+      "parameters": {
+        "multipliers": [
+          1.0
+        ]
+      },
+      "expected_error_code": "invalid_multipliers"
+    },
+    {
+      "name": "boolean_multiplier",
+      "parameters": {
+        "multipliers": [
+          true
+        ]
+      },
+      "expected_error_code": "invalid_multipliers"
+    },
+    {
+      "name": "missing_multiplier_selection",
+      "parameters": {
+        "multipliers": null
+      },
+      "expected_error_code": "invalid_multipliers"
+    }
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "specification_version": "tableau-billing-1.0.0",
+  "warehouse": "snowflake",
+  "database": "DMA_TABLEAU",
+  "source_namespace": "DMA_TABLEAU.RAW",
+  "source_platform_instance": "DMA_TABLEAU_SYNTHETIC",
+  "source_snapshot_at": "2026-03-02T00:00:00Z",
+  "models": {
+    "adjustments": {
+      "physical_name": "DMA_TABLEAU.RAW.ADJUSTMENTS",
+      "layer": "bronze",
+      "path": "target/snowflake/00_raw_contract.sql",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "ADJUSTMENT_CENTS",
+        "REASON"
+      ]
+    },
+    "customer_history": {
+      "physical_name": "DMA_TABLEAU.RAW.CUSTOMER_HISTORY",
+      "layer": "bronze",
+      "path": "target/snowflake/00_raw_contract.sql",
+      "columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ]
+    },
+    "invoice_cdc": {
+      "physical_name": "DMA_TABLEAU.RAW.INVOICE_CDC",
+      "layer": "bronze",
+      "path": "target/snowflake/00_raw_contract.sql",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "IS_DELETED",
+        "SEQUENCE"
+      ]
+    },
+    "payment_cdc": {
+      "physical_name": "DMA_TABLEAU.RAW.PAYMENT_CDC",
+      "layer": "bronze",
+      "path": "target/snowflake/00_raw_contract.sql",
+      "columns": [
+        "TENANT_ID",
+        "PAYMENT_ID",
+        "INVOICE_ID",
+        "PAID_CENTS",
+        "IS_DELETED",
+        "SEQUENCE"
+      ]
+    },
+    "billing_adjustments": {
+      "physical_name": "DMA_TABLEAU.SILVER.BILLING_ADJUSTMENTS",
+      "layer": "silver",
+      "path": "target/dbt/models/silver/billing_adjustments.sql",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "ADJUSTMENT_CENTS",
+        "REASON"
+      ]
+    },
+    "billing_customer_history": {
+      "physical_name": "DMA_TABLEAU.SILVER.BILLING_CUSTOMER_HISTORY",
+      "layer": "silver",
+      "path": "target/dbt/models/silver/billing_customer_history.sql",
+      "columns": [
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ]
+    },
+    "billing_invoices": {
+      "physical_name": "DMA_TABLEAU.SILVER.BILLING_INVOICES",
+      "layer": "silver",
+      "path": "target/dbt/models/silver/billing_invoices.sql",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "AMOUNT_CENTS",
+        "STATUS",
+        "SOURCE_SEQUENCE"
+      ]
+    },
+    "billing_payments": {
+      "physical_name": "DMA_TABLEAU.SILVER.BILLING_PAYMENTS",
+      "layer": "silver",
+      "path": "target/dbt/models/silver/billing_payments.sql",
+      "columns": [
+        "TENANT_ID",
+        "PAYMENT_ID",
+        "INVOICE_ID",
+        "PAID_CENTS",
+        "SOURCE_SEQUENCE"
+      ]
+    },
+    "dim_customers": {
+      "physical_name": "DMA_TABLEAU.GOLD.DIM_CUSTOMERS",
+      "layer": "gold",
+      "path": "target/dbt/models/gold/dim_customers.sql",
+      "columns": [
+        "CUSTOMER_KEY",
+        "TENANT_ID",
+        "CUSTOMER_ID",
+        "SEGMENT",
+        "VALID_FROM",
+        "VALID_TO"
+      ]
+    },
+    "fct_invoices": {
+      "physical_name": "DMA_TABLEAU.GOLD.FCT_INVOICES",
+      "layer": "gold",
+      "path": "target/dbt/models/gold/fct_invoices.sql",
+      "columns": [
+        "TENANT_ID",
+        "INVOICE_ID",
+        "CUSTOMER_ID",
+        "INVOICE_DATE",
+        "INVOICE_MONTH",
+        "STATUS",
+        "AMOUNT_CENTS",
+        "ADJUSTMENT_CENTS",
+        "NET_CENTS",
+        "PAID_CENTS",
+        "OUTSTANDING_CENTS",
+        "INVOICE_KEY",
+        "CUSTOMER_KEY",
+        "SEGMENT"
+      ]
+    }
+  },
+  "execution_order": [
+    "billing_invoices",
+    "billing_payments",
+    "billing_customer_history",
+    "billing_adjustments",
+    "dim_customers",
+    "fct_invoices"
+  ],
+  "source_tests_before_build": [
+    "source_identity_and_required_values",
+    "source_version_conflicts",
+    "source_history_overlap",
+    "adjustment_key_unique"
+  ],
+  "remaining_tests_after_models": [
+    "current_orphan_references",
+    "invoice_history_exactly_one",
+    "declared_grains",
+    "fact_balance_and_customer_binding",
+    "payment_reconciliation"
+  ],
+  "limitations": [
+    "Local bounded rendering of ref/source/config is not dbt compilation.",
+    "dbt/Snowflake/Omni native runtimes not exercised by this author.",
+    "No source loading, production ingestion service, grants or owner approval supplied."
+  ],
+  "source_connection_type": "snowflake"
+}

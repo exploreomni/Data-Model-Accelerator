@@ -1,0 +1,55 @@
+# Synthetic candidate. Native Omni validation remains outstanding.
+catalog: DMA_HEX
+schema: GOLD
+table_name: FCT_CUSTOMER_MONTH
+label: Customer-month snapshot
+description: One tenant/customer/invoice-month. Amounts include all current statuses;
+  activity flags require posted. No segment allocation is asserted.
+dimensions:
+  customer_month_key:
+    sql: '"CUSTOMER_MONTH_KEY"'
+    primary_key: true
+  tenant_id:
+    sql: '"TENANT_ID"'
+  customer_id:
+    sql: '"CUSTOMER_ID"'
+  invoice_month:
+    sql: '"INVOICE_MONTH"'
+  net_cents:
+    sql: '"NET_CENTS"'
+  paid_cents:
+    sql: '"PAID_CENTS"'
+  outstanding_cents:
+    sql: '"OUTSTANDING_CENTS"'
+  has_invoice:
+    sql: '"HAS_INVOICE"'
+  has_paid_invoice:
+    sql: '"HAS_PAID_INVOICE"'
+  first_paid_month:
+    sql: '"FIRST_PAID_MONTH"'
+measures:
+  all_status_net_cents:
+    sql: ${customer_month.net_cents}
+    aggregate_type: sum
+    description: All-current-status customer-month cents, not the posted-only invoice
+      report metric.
+  all_status_paid_cents:
+    sql: ${customer_month.paid_cents}
+    aggregate_type: sum
+    description: All-current-status customer-month cents, not the posted-only invoice
+      report metric.
+  all_status_outstanding_cents:
+    sql: ${customer_month.outstanding_cents}
+    aggregate_type: sum
+    description: All-current-status customer-month cents, not the posted-only invoice
+      report metric.
+  invoiced_customer_months:
+    sql: ${customer_month.has_invoice}
+    aggregate_type: sum
+    description: Sum of one-per-customer-month flags. Across months this counts customer-months,
+      not distinct customers.
+  paying_customer_months:
+    sql: ${customer_month.has_paid_invoice}
+    aggregate_type: sum
+    description: Sum of one-per-customer-month flags. Across months this counts customer-months,
+      not distinct customers.

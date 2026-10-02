@@ -1,0 +1,146 @@
+{
+  "archive_members_verified": 186,
+  "receipts": [
+    {
+      "receipt": "hex/baseline/receipt.json",
+      "expected_complete": true,
+      "evidence_complete": true,
+      "errors": [],
+      "counts": {
+        "model": 7,
+        "seed": 0,
+        "snapshot": 0,
+        "test": 85,
+        "runnable_nodes": 92,
+        "project_files": 22
+      },
+      "passed": true
+    },
+    {
+      "receipt": "powerbi/baseline/receipt.json",
+      "expected_complete": true,
+      "evidence_complete": true,
+      "errors": [],
+      "counts": {
+        "model": 6,
+        "seed": 0,
+        "snapshot": 0,
+        "test": 73,
+        "runnable_nodes": 79,
+        "project_files": 21
+      },
+      "passed": true
+    },
+    {
+      "receipt": "powerbi/conflicting_version/receipt.json",
+      "expected_complete": false,
+      "evidence_complete": false,
+      "errors": [
+        "Native process did not exit successfully"
+      ],
+      "counts": {},
+      "passed": true
+    },
+    {
+      "receipt": "powerbi/duplicate_replay/receipt.json",
+      "expected_complete": true,
+      "evidence_complete": true,
+      "errors": [],
+      "counts": {
+        "model": 6,
+        "seed": 0,
+        "snapshot": 0,
+        "test": 73,
+        "runnable_nodes": 79,
+        "project_files": 21
+      },
+      "passed": true
+    },
+    {
+      "receipt": "powerbi/late_correction/receipt.json",
+      "expected_complete": true,
+      "evidence_complete": true,
+      "errors": [],
+      "counts": {
+        "model": 6,
+        "seed": 0,
+        "snapshot": 0,
+        "test": 73,
+        "runnable_nodes": 79,
+        "project_files": 21
+      },
+      "passed": true
+    },
+    {
+      "receipt": "powerbi/raw_schema_drift/receipt.json",
+      "expected_complete": false,
+      "evidence_complete": false,
+      "errors": [
+        "Native process did not exit successfully"
+      ],
+      "counts": {},
+      "passed": true
+    },
+    {
+      "receipt": "powerbi/recovery/receipt.json",
+      "expected_complete": true,
+      "evidence_complete": true,
+      "errors": [],
+      "counts": {
+        "model": 6,
+        "seed": 0,
+        "snapshot": 0,
+        "test": 73,
+        "runnable_nodes": 79,
+        "project_files": 21
+      },
+      "passed": true
+    },
+    {
+      "receipt": "powerbi/repeat/receipt.json",
+      "expected_complete": true,
+      "evidence_complete": true,
+      "errors": [],
+      "counts": {
+        "model": 6,
+        "seed": 0,
+        "snapshot": 0,
+        "test": 73,
+        "runnable_nodes": 79,
+        "project_files": 21
+      },
+      "passed": true
+    },
+    {
+      "receipt": "powerbi/tombstone/receipt.json",
+      "expected_complete": true,
+      "evidence_complete": true,
+      "errors": [],
+      "counts": {
+        "model": 6,
+        "seed": 0,
+        "snapshot": 0,
+        "test": 73,
+        "runnable_nodes": 79,
+        "project_files": 21
+      },
+      "passed": true
+    },
+    {
+      "receipt": "tableau/baseline/receipt.json",
+      "expected_complete": true,
+      "evidence_complete": true,
+      "errors": [],
+      "counts": {
+        "model": 6,
+        "seed": 0,
+        "snapshot": 0,
+        "test": 73,
+        "runnable_nodes": 79,
+        "project_files": 21
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "scope": "Initial dbt flow: reviewed full-build candidates, local dbt/DuckDB execution, model documentation and independent synthetic reconciliation",
+  "engineering_recommendation": "Ready for supervised Snowflake development validation",
+  "local_validated": true,
+  "target_validated": false,
+  "human_approved": false,
+  "production_deployed": false,
+  "gates": [
+    {
+      "id": "local_dbt_execution",
+      "status": "passed",
+      "evidence": ["native/report.json", "retail/report.json"]
+    },
+    {
+      "id": "model_documentation",
+      "status": "local_checks_passed",
+      "evidence": ["native/hex/column-coverage.json", "native/tableau/column-coverage.json", "native/powerbi/column-coverage.json", "retail/native-column-coverage.json"]
+    },
+    {
+      "id": "native_snowflake",
+      "status": "pending_environment_selection_and_execution",
+      "required": "Approved development connection/profile, role, warehouse and dedicated database/schema; scoped catalogue, full native build, independent reconciliation and operating evidence"
+    },
+    {
+      "id": "business_and_operations_acceptance",
+      "status": "not_supplied",
+      "required": "Human acceptance of the exact candidate version, definitions, documentation, deployment diff, operating ownership and rollback procedure"
+    },
+    {
+      "id": "native_bi_and_semantic_behavior",
+      "status": "unqualified_if_in_release_scope",
+      "required": "Native source/Omni results, security identities and consumer behavior for the selected migration"
+    }
+  ],
+  "limits": [
+    "Synthetic metadata does not establish live warehouse catalogue completeness or permissions.",
+    "One internally authored retail trial does not establish generalization across customer repositories or repeated fresh-agent reliability.",
+    "Incremental models, production scheduling, workload scale/cost and native recovery remain unqualified.",
+    "Passing artifact verification is not authenticated execution or human authorization."
+  ]
+}

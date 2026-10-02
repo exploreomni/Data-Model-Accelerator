@@ -1,0 +1,18 @@
+{
+  "fixture_kind": "synthetic-local-sqlite-demonstrator",
+  "contract_version": 1,
+  "source_grain": ["tenant_id", "invoice_id", "source_sequence"],
+  "fact_grain": ["tenant_id", "invoice_id"],
+  "amount_unit": "integer USD cents; synthetic single currency",
+  "cdc_policy": "Full after images; largest source_sequence wins per tenant and invoice; exact replay allowed; conflicting equal-sequence payloads rejected; apply deletes after selecting latest version.",
+  "history_policy": "Customer segment as of invoice_date, valid_from inclusive and valid_to exclusive; date-only synthetic UTC business dates.",
+  "report_population": "Current posted invoices only; exclude deleted invoices and draft invoices.",
+  "ratio_policy": "Payment rate is sum(paid_cents) / sum(gross_cents) after all user filters; zero denominator yields null, including empty selections.",
+  "security_scope": "Tenant query filters and tenant-key joins are functional isolation probes only, never warehouse access enforcement.",
+  "source_columns": ["batch", "source_event_id", "tenant_id", "invoice_id", "source_sequence", "operation", "customer_id", "invoice_date", "status", "gross_cents", "paid_cents"],
+  "customer_columns": ["tenant_id", "customer_id", "customer_name", "segment", "valid_from", "valid_to"],
+  "row_columns": ["tenant_id", "invoice_id", "invoice_date", "month", "customer_name", "segment", "gross_cents", "paid_cents", "payment_rate"],
+  "group_columns": ["tenant_id", "month", "segment", "invoice_count", "gross_cents", "paid_cents", "payment_rate"],
+  "total_columns": ["invoice_count", "gross_cents", "paid_cents", "payment_rate"],
+  "legacy_smoke_test": {"tenant_id": "B", "month": "2026-01", "gross_cents": 50000, "paid_cents": 25000}
+}

@@ -1,0 +1,107 @@
+{
+  "catalogue_sha256": "2eed8fcb8d3b6b67f512e6a3fb5460692c729a36e075766bdd5a15ae5b126356",
+  "external_dependencies": [
+    "seed.rental_trial.raw_rentals",
+    "seed.rental_trial.raw_charges",
+    "seed.rental_trial.raw_locations"
+  ],
+  "models": [
+    {
+      "decision_status": "accepted",
+      "depends_on": [
+        "seed.rental_trial.raw_rentals"
+      ],
+      "domain": "rentals",
+      "id": "stg_rentals",
+      "layer": "staging",
+      "path": "models/staging/stg_rentals.sql",
+      "rule_ids": [
+        "R-CDC",
+        "R-TENANT",
+        "R-HISTORY"
+      ]
+    },
+    {
+      "decision_status": "accepted",
+      "depends_on": [
+        "seed.rental_trial.raw_charges"
+      ],
+      "domain": "rentals",
+      "id": "stg_charges",
+      "layer": "staging",
+      "path": "models/staging/stg_charges.sql",
+      "rule_ids": [
+        "R-CDC",
+        "R-TENANT",
+        "R-HISTORY"
+      ]
+    },
+    {
+      "decision_status": "accepted",
+      "depends_on": [
+        "seed.rental_trial.raw_locations"
+      ],
+      "domain": "rentals",
+      "id": "stg_locations",
+      "layer": "staging",
+      "path": "models/staging/stg_locations.sql",
+      "rule_ids": [
+        "R-CDC",
+        "R-TENANT",
+        "R-HISTORY"
+      ]
+    },
+    {
+      "decision_status": "accepted",
+      "depends_on": [
+        "stg_rentals",
+        "stg_charges"
+      ],
+      "domain": "rentals",
+      "id": "int_eligible_charges",
+      "layer": "intermediate",
+      "path": "models/intermediate/int_eligible_charges.sql",
+      "rule_ids": [
+        "R-ELIGIBLE",
+        "R-SIGN",
+        "R-TENANT"
+      ]
+    },
+    {
+      "decision_status": "accepted",
+      "depends_on": [
+        "stg_rentals",
+        "stg_locations",
+        "int_eligible_charges"
+      ],
+      "domain": "rentals",
+      "id": "fct_rental_revenue",
+      "layer": "marts",
+      "path": "models/marts/fct_rental_revenue.sql",
+      "rule_ids": [
+        "R-ELIGIBLE",
+        "R-ZERO",
+        "R-GRAIN",
+        "R-TENANT",
+        "R-HISTORY",
+        "R-SEMANTIC"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "shared_paths": {
+    "analyses/legacy_report.sql": "rentals",
+    "dbt_project.yml": "rentals",
+    "docs/bronze.md": "rentals",
+    "docs/data-dictionary.json": "rentals",
+    "docs/data-dictionary.md": "rentals",
+    "docs/gold.md": "rentals",
+    "docs/model-erd.md": "rentals",
+    "docs/silver.md": "rentals",
+    "models/legacy_report.sql": "rentals",
+    "models/schema.yml": "rentals",
+    "semantic/omni-contract.md": "rentals",
+    "tests/grain.sql": "rentals",
+    "tests/tenant_integrity.sql": "rentals"
+  }
+}

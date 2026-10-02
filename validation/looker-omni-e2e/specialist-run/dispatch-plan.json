@@ -1,0 +1,46 @@
+{
+  "coverage": {
+    "assigned_unique_assets": 4,
+    "excluded_paths": 0,
+    "exclusions_are_subtree_level": true,
+    "gap_count": 0,
+    "hard_errors": 0,
+    "hashed_assets": 4,
+    "inventory_complete_within_selected_scope": true,
+    "limits_hit": false,
+    "native_semantics_parsed": false,
+    "read_bytes": 5527,
+    "selected_assets": 4,
+    "shared_assets": 0,
+    "specialists_executed": 0,
+    "status_counts": {
+      "readable": 4
+    },
+    "task_asset_assignments": 4,
+    "unassigned_assets": []
+  },
+  "inventory_path": "inventory.json",
+  "review_roles": [
+    "warehouse_architect",
+    "semantic_architect",
+    "independent_qa"
+  ],
+  "schema_version": 1,
+  "source_snapshot_sha256": "6bc16edf65649fc696cf5055a8b2e7ab09dcdc35f75459dcebce64644b79332b",
+  "status": "planned",
+  "tasks": [
+    {
+      "asset_ids": [
+        "asset-299de3a9de0c6ef90a1d10ec",
+        "asset-6385233e4d2495b571b687c9",
+        "asset-648914427195584d99586999",
+        "asset-a7dc7d3502100ca109593825"
+      ],
+      "project_root": ".",
+      "prompt_path": "tasks/looker-cdb4ee2aea69.md",
+      "result_path": "results/looker-cdb4ee2aea69.json",
+      "source_type": "looker",
+      "task_id": "looker-cdb4ee2aea69"
+    }
+  ]
+}

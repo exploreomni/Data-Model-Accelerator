@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "extraction_complete": false,
+  "tasks_expected": 2,
+  "tasks_returned": 2,
+  "assets_expected": 6,
+  "objects_returned": 14,
+  "rules_returned": 16,
+  "errors": [],
+  "gaps": [
+    "dbt-ae1fd358c761: unresolved source references",
+    "dbt-ae1fd358c761: specialist declared 5 gap(s)",
+    "looker-d9065d6da185: unresolved source references",
+    "looker-d9065d6da185: specialist declared 8 gap(s)"
+  ],
+  "limitation": "Checks declared extraction/provenance only; does not establish business equivalence, independent execution, placement approval or deployment readiness.",
+  "source_snapshot_sha256": "a26b08504fbfb39a6ad335cd485332338f6d23354938b9170e34474055b4b91b"
+}

@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_retail_holdout_pins",
+  "files": [
+    {
+      "path": "candidate/contract.json",
+      "sha256": "5ffc5f1cf0e6b159db256a9a582bc17be4b45f45cfbf85865a89aa4d8096830b"
+    },
+    {
+      "path": "candidate/dbt/analyses/retail_fulfillment_summary.sql",
+      "sha256": "1c3d455fe22067de72212cc3f9da7e5597b2e9458659d2a54f54155778d267d0"
+    },
+    {
+      "path": "candidate/dbt/dbt_project.yml",
+      "sha256": "c13d61cd32be5667f784411d2674188f82e30e9499ad32ba937f58c867ec91e7"
+    },
+    {
+      "path": "candidate/dbt/macros/context.sql",
+      "sha256": "fc0f982e889d98956e25a79c1070824bc8bcf4fcbfd29c5669ec0eaacf35662e"
+    },
+    {
+      "path": "candidate/dbt/models/gold/fct_order_line_fulfillment.sql",
+      "sha256": "8c0d121cac1963a0b85a9348a8c97cf29cce1817ab5b2df26dcbc0b515c14b4c"
+    },
+    {
+      "path": "candidate/dbt/models/schema.yml",
+      "sha256": "2aaa072b3514fb2e304580ff81d074aa8227c3002e60544465eff0a1f18a22ab"
+    },
+    {
+      "path": "candidate/dbt/models/sources.yml",
+      "sha256": "8988c4f905bedee56d9c497d62e9f0ac8d8c4a3514e68d4dcb59fff698a77d03"
+    },
+    {
+      "path": "candidate/dbt/models/staging/stg_fulfillments.sql",
+      "sha256": "478357cadb8708439f7e21c2b96f8477d34e31cf6a0cd792c94078d2f677884c"
+    },
+    {
+      "path": "candidate/dbt/models/staging/stg_order_lines.sql",
+      "sha256": "7f52d3c4f60624af997794e034137d33e20d3ad2a132a5582dca6f0aa637d4de"
+    },
+    {
+      "path": "candidate/dbt/models/staging/stg_orders.sql",
+      "sha256": "123bf463c2e6dcb558654ab536299aa1f961e50e4c2f314076a7a94a408e0099"
+    },
+    {
+      "path": "candidate/dbt/models/staging/stg_returns.sql",
+      "sha256": "0ebb11ce03f31b125043f0d629e40d2a9ea45163a74e28c06fbb0c48eedffa51"
+    },
+    {
+      "path": "candidate/dbt/tests/current_references.sql",
+      "sha256": "b16b688d331354d6a84d8efe7ee16b00dc624c4cc9a66b6eb71cef6f4c025d2c"
+    },
+    {
+      "path": "candidate/dbt/tests/fact_coverage.sql",
+      "sha256": "fdf32ac12c8b1ef339dc63b19f3adfbf45882e76e5612ed8a2e0e5a51175307e"
+    },
+    {
+      "path": "candidate/dbt/tests/quantity_and_money_contract.sql",
+      "sha256": "160600d7fc7ef26375f2972b423dbdb50f991bfd58f06025bd228cf0fb1dc523"
+    },
+    {
+      "path": "candidate/dbt/tests/source_fulfillment_cdc_conflicts.sql",
+      "sha256": "a52edc180be241c3dc204e93fbd54476b027e527c0aa6cec2df7fa4cc8d2ef4a"
+    },
+    {
+      "path": "candidate/dbt/tests/source_fulfillment_cdc_values.sql",
+      "sha256": "17cb4539fd75e8f6c1256e8d800645311dfc73a8e325d969de85c697a9d1a607"
+    },
+    {
+      "path": "candidate/dbt/tests/source_order_cdc_conflicts.sql",
+      "sha256": "07c806efd4e331e1a6fa665d9942e0eea3a97d13c15dceeb8c87d65eeddc9359"
+    },
+    {
+      "path": "candidate/dbt/tests/source_order_cdc_values.sql",
+      "sha256": "50cf77d2864e3b9ccd4c3b0e77b8b612542164a2a711acad99d0c6560afae5a5"
+    },
+    {
+      "path": "candidate/dbt/tests/source_order_line_cdc_conflicts.sql",
+      "sha256": "7be1a1a25e12a5e643904fdc90e4a0226af5fcd5aed8bda60620faa862624f87"
+    },
+    {
+      "path": "candidate/dbt/tests/source_order_line_cdc_values.sql",
+      "sha256": "696cb93a9c2fd6267f24a0edc5f3580754fa596111f7fdfcfcc9cd656e4fd1fd"
+    },
+    {
+      "path": "candidate/dbt/tests/source_return_cdc_conflicts.sql",
+      "sha256": "ec9fd5ca1b3807e8af9137d1ccad8b05ce40ca7e2598ffa6ec01594026697f5c"
+    },
+    {
+      "path": "candidate/dbt/tests/source_return_cdc_values.sql",
+      "sha256": "813d0b7bd9ddfa4ef9547ae4a089abc664c755961ea4c7f4e2f0c499f374e58f"
+    },
+    {
+      "path": "candidate/evaluator.py",
+      "sha256": "bf2e596c90ca1212e1e3da1e6b7f82edd362837bfd8b18aa164b2e2c6b4ecab5"
+    },
+    {
+      "path": "candidate/model-map.json",
+      "sha256": "3c7be30680d804a5e7787c6567f2b842d9c0024cacb9d2fecfca52cb85bd6689"
+    },
+    {
+      "path": "candidate/profiles/profiles.yml",
+      "sha256": "b95b699df5c47f467eccd1814e48743e72faa879052b1b45cfd2f18a8bfd8368"
+    },
+    {
+      "path": "candidate/profiles/snowflake.yml.example",
+      "sha256": "3ed2f9e8dea2825d5344be272513ac819a899b84ce3a35d5efab513338c0fc1d"
+    },
+    {
+      "path": "candidate/semantic/omni-handoff.json",
+      "sha256": "faaf1ae59605ba655c29a32be97f9a6d74e0eefbef0426b2e8d6e02ce9107756"
+    },
+    {
+      "path": "candidate/semantic/report-map.json",
+      "sha256": "b4bec6654221ca61f7ffcdb13f8f2d8b436e174a8d172e2f1e043153b58b7fcb"
+    },
+    {
+      "path": "candidate/test_evaluator.py",
+      "sha256": "2b26715e86dc3dd64a4d9ec762b8bed45c6e0127142af35a2298c4bf52323d0a"
+    },
+    {
+      "path": "candidate/validate_local.py",
+      "sha256": "52a3e8a034cad572bef200602c5c074329d45e4ebe3ef533fea0421b9027be67"
+    },
+    {
+      "path": "expected/README.md",
+      "sha256": "0ad52c20ba09b9a7db38a72f8e3089a5d942fd7371a629b4a8e6f4b021d3464c"
+    },
+    {
+      "path": "expected/build_expected.py",
+      "sha256": "b492615803357535ce734b5a67dfa69f75c751dcb71eb091208cd6b776d25242"
+    },
+    {
+      "path": "expected/build_input.py",
+      "sha256": "557f321a036a775607825ef8efeb924a5c55c587c93ca45464296705d266a7bd"
+    },
+    {
+      "path": "expected/evaluate.py",
+      "sha256": "4aecb2f1d0e881cedbd4470352f213c8ba95ba81d34225da6ece53ef595dceb5"
+    },
+    {
+      "path": "expected/expected.json",
+      "sha256": "0cc8cfc1a3ff10e96d1bc60d4d66c86d145d31b9ecfced1dd9b88f053c4f20fc"
+    },
+    {
+      "path": "expected/oracle-manifest.json",
+      "sha256": "7e332aeda6cbb3297e5874d28c7023f191676fa9c9d6538f701c9a5913ab7124"
+    },
+    {
+      "path": "input/README.md",
+      "sha256": "2e94905328e98413e624a3912d850dd02fc51dd4fd6e2526b804e86eeb926219"
+    },
+    {
+      "path": "input/catalogue/exports/columns.json",
+      "sha256": "677819d1aa60cfa1862bc6faa06a4b5f78e536dcf5048bce2ac3a27e5465972c"
+    },
+    {
+      "path": "input/catalogue/exports/objects.json",
+      "sha256": "203b098bd54ef1df4da2324b0bab7873cc9fd63edd281ad7d963ef4173c678a6"
+    },
+    {
+      "path": "input/catalogue/provenance.json",
+      "sha256": "8e7c72333000cb6a309d34d0ada9075b0172f097c1db59e9acc7da22c2fb5ddc"
+    },
+    {
+      "path": "input/catalogue/warehouse-catalogue.json",
+      "sha256": "7c3c9fd13b4df18bd527392d892efc786216223a9b527bf9fe779e877e85959e"
+    },
+    {
+      "path": "input/contract.json",
+      "sha256": "5ffc5f1cf0e6b159db256a9a582bc17be4b45f45cfbf85865a89aa4d8096830b"
+    },
+    {
+      "path": "input/input-manifest.json",
+      "sha256": "b463464049ad2313b4b24459f7c2cdaf6c70fd96848f2af2df70300a99ab4496"
+    },
+    {
+      "path": "input/raw-data.json",
+      "sha256": "dab5b4505fe0660af2044f50994820d39382329f01fce1c898a88e4dc962fbe0"
+    },
+    {
+      "path": "input/repo/README.md",
+      "sha256": "9db0bc35ab89b4df24386af0d9cf3e4b2266f5a38c9a9c954a24d06268dbc921"
+    },
+    {
+      "path": "input/repo/dbt_project.yml",
+      "sha256": "4adab8eaedc18e963346f3906a62ae92b4f6f5dfc0ad45a840fcdf61df072fc5"
+    },
+    {
+      "path": "input/repo/models/reports/retail_fulfillment_summary.sql",
+      "sha256": "a32a3881e4abd34ef05bae99c9e224299892541578ac45c2b0147a93dea8a3e3"
+    },
+    {
+      "path": "input/repo/models/reports/schema.yml",
+      "sha256": "49ade92cf5c71215c6633df0c4ac5fa22cd857a8516d6d58437d367e8baf20c3"
+    },
+    {
+      "path": "input/repo/models/sources.yml",
+      "sha256": "8988c4f905bedee56d9c497d62e9f0ac8d8c4a3514e68d4dcb59fff698a77d03"
+    },
+    {
+      "path": "input/repo/models/staging/schema.yml",
+      "sha256": "b208059bb4361d29b819fe369be9ba9f4d1e06b4c7a6645b4f234ccf1e54943e"
+    },
+    {
+      "path": "input/repo/models/staging/stg_order_lines.sql",
+      "sha256": "7f52d3c4f60624af997794e034137d33e20d3ad2a132a5582dca6f0aa637d4de"
+    },
+    {
+      "path": "input/repo/models/staging/stg_orders.sql",
+      "sha256": "123bf463c2e6dcb558654ab536299aa1f961e50e4c2f314076a7a94a408e0099"
+    }
+  ]
+}

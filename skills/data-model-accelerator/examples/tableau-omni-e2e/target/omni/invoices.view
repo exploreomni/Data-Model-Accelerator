@@ -1,0 +1,125 @@
+# Native YAML candidate; native Omni validation remains outstanding.
+catalog: DMA_TABLEAU
+schema: GOLD
+table_name: FCT_INVOICES
+label: Tableau billing migration
+description: All current invoice statuses at tenant/invoice grain; selected worksheet
+  context is retained in semantic queries.
+dimensions:
+  tenant_id:
+    sql: '"TENANT_ID"'
+    hidden: true
+  invoice_id:
+    sql: '"INVOICE_ID"'
+  customer_id:
+    sql: '"CUSTOMER_ID"'
+  invoice_date:
+    sql: '"INVOICE_DATE"'
+  invoice_month:
+    sql: '"INVOICE_MONTH"'
+  status:
+    sql: '"STATUS"'
+  amount_cents:
+    sql: '"AMOUNT_CENTS"'
+    hidden: true
+  adjustment_cents:
+    sql: '"ADJUSTMENT_CENTS"'
+    hidden: true
+  net_cents:
+    sql: '"NET_CENTS"'
+    hidden: true
+  paid_cents:
+    sql: '"PAID_CENTS"'
+    hidden: true
+  outstanding_cents:
+    sql: '"OUTSTANDING_CENTS"'
+    hidden: true
+  invoice_key:
+    sql: '"INVOICE_KEY"'
+    primary_key: true
+    hidden: true
+  customer_key:
+    sql: '"CUSTOMER_KEY"'
+    hidden: true
+  segment:
+    sql: '"SEGMENT"'
+    description: Invoice-date historical segment from the effective customer history row.
+  fixed_customer_revenue_cents:
+    sql: ${invoices.net_cents}
+    label: Context customer net (USD cents)
+    description: 'Tableau FIXED tenant/customer SUM(net): respects date context, tenant
+      access and posted population; ignores only ordinary invoice-segment query filter.
+      Repeats across marks and is not additive.'
+    level_of_detail:
+      aggregate_type: sum
+      fixed:
+      - tenant_id
+      - customer_id
+      filters:
+        segment:
+          is: ''
+          cancel_query_filter: true
+measures:
+  invoice_count:
+    sql: ${invoices.invoice_key}
+    aggregate_type: count
+    filters:
+      status:
+        is: posted
+  raw_net_cents_sum:
+    sql: ${invoices.net_cents}
+    aggregate_type: sum
+    filters:
+      status:
+        is: posted
+    hidden: true
+  revenue_cents:
+    sql: COALESCE(${raw_net_cents_sum}, 0)
+    label: Revenue (USD cents)
+    description: Posted invoice total after query filters; explicit empty-set zero.
+      Negative values preserved.
+    format: '#,##0'
+  raw_paid_cents_sum:
+    sql: ${invoices.paid_cents}
+    aggregate_type: sum
+    filters:
+      status:
+        is: posted
+    hidden: true
+  paid_cents_total:
+    sql: COALESCE(${raw_paid_cents_sum}, 0)
+    label: Paid (USD cents)
+    description: Posted invoice total after query filters; explicit empty-set zero.
+      Negative values preserved.
+    format: '#,##0'
+  raw_outstanding_cents_sum:
+    sql: ${invoices.outstanding_cents}
+    aggregate_type: sum
+    filters:
+      status:
+        is: posted
+    hidden: true
+  outstanding_cents_total:
+    sql: COALESCE(${raw_outstanding_cents_sum}, 0)
+    label: Outstanding (USD cents)
+    description: Posted invoice total after query filters; explicit empty-set zero.
+      Negative values preserved.
+    format: '#,##0'
+  payment_rate:
+    sql: ${paid_cents_total} / NULLIF(${revenue_cents}, 0)
+    label: Payment rate
+    description: Ratio of selected paid and net sums. Null at zero net; not an average
+      or sum of invoice ratios.
+    format: 0.00%
+  revenue_usd:
+    sql: ${revenue_cents} / 100.0
+    label: Revenue (USD)
+    format: $#,##0.00
+    description: Display conversion from USD cents exactly once; no currency conversion.
+  fixed_customer_revenue_cents_min:
+    sql: ${invoices.fixed_customer_revenue_cents}
+    aggregate_type: min
+    label: Fixed customer net (MIN across selected mark)
+    description: Preserves the worksheet MIN of its repeated FIXED dimension. Do not
+      SUM this measure across segment marks or assert a grand total.
+    format: '#,##0'

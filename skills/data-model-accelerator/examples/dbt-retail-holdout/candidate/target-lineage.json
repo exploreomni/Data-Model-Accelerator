@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "source_snapshot_sha256": "f9b71a11e4604d41e0d76c1b29933c97554976b59b5c12ef8b76379a33d2a098",
+  "code_version": "corrected-candidate",
+  "source_crosswalk": [
+    {
+      "source_id": "model.retail_quick_reports.stg_orders",
+      "target_id": "model.retail_candidate.stg_orders",
+      "rule_id": "rule.source.stg_orders",
+      "disposition": "byte-identical reuse",
+      "columns": "See canonical dictionary for all five fields"
+    },
+    {
+      "source_id": "model.retail_quick_reports.stg_order_lines",
+      "target_id": "model.retail_candidate.stg_order_lines",
+      "rule_id": "rule.source.stg_order_lines",
+      "disposition": "byte-identical reuse",
+      "columns": "See canonical dictionary for all nine fields"
+    },
+    {
+      "source_id": "model.retail_quick_reports.retail_fulfillment_summary",
+      "target_ids": [
+        "model.retail_candidate.stg_fulfillments",
+        "model.retail_candidate.stg_returns",
+        "model.retail_candidate.fct_order_line_fulfillment",
+        "analysis.retail_candidate.retail_fulfillment_summary"
+      ],
+      "rule_id": "rule.source.retail_fulfillment_summary",
+      "disposition": "split reusable logic and downstream context; correct known child fanout",
+      "source_expression": "Original complete expression/hash in source-graph.json",
+      "field_crosswalk": "semantic/report-contract.md"
+    }
+  ],
+  "edges": [
+    {
+      "from": "DMA_RETAIL.RAW.ORDER_CDC",
+      "to": "DMA_RETAIL.SILVER.STG_ORDERS",
+      "kind": "transformation",
+      "rule": "Latest SEQUENCE within declared entity key, then exclude IS_DELETED; full-capture ambiguity precondition",
+      "source_declaration": "dbt/models/sources.yml"
+    },
+    {
+      "from": "DMA_RETAIL.RAW.ORDER_LINE_CDC",
+      "to": "DMA_RETAIL.SILVER.STG_ORDER_LINES",
+      "kind": "transformation",
+      "rule": "Latest SEQUENCE within declared entity key, then exclude IS_DELETED; full-capture ambiguity precondition",
+      "source_declaration": "dbt/models/sources.yml"
+    },
+    {
+      "from": "DMA_RETAIL.RAW.FULFILLMENT_CDC",
+      "to": "DMA_RETAIL.SILVER.STG_FULFILLMENTS",
+      "kind": "transformation",
+      "rule": "Latest SEQUENCE within declared entity key, then exclude IS_DELETED; full-capture ambiguity precondition",
+      "source_declaration": "dbt/models/sources.yml"
+    },
+    {
+      "from": "DMA_RETAIL.RAW.RETURN_CDC",
+      "to": "DMA_RETAIL.SILVER.STG_RETURNS",
+      "kind": "transformation",
+      "rule": "Latest SEQUENCE within declared entity key, then exclude IS_DELETED; full-capture ambiguity precondition",
+      "source_declaration": "dbt/models/sources.yml"
+    },
+    {
+      "from": "DMA_RETAIL.SILVER.STG_ORDER_LINES",
+      "to": "DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT",
+      "kind": "base-grain",
+      "cardinality": "one-to-one on accepted current line",
+      "key": [
+        "TENANT_ID",
+        "ORDER_ID",
+        "LINE_ID"
+      ]
+    },
+    {
+      "from": "DMA_RETAIL.SILVER.STG_ORDERS",
+      "to": "DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT",
+      "kind": "left join with required logical parent",
+      "predicate": "l.TENANT_ID=o.TENANT_ID AND l.ORDER_ID=o.ORDER_ID",
+      "cardinality": "many lines to one current order; orphans reject"
+    },
+    {
+      "from": "DMA_RETAIL.SILVER.STG_FULFILLMENTS",
+      "to": "DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT",
+      "kind": "aggregate then left join",
+      "predicate": "all TENANT_ID,ORDER_ID,LINE_ID components equal",
+      "cardinality": "zero/many events aggregate to zero/one row per line",
+      "fields": {
+        "FULFILLED_QUANTITY": "SUM(QUANTITY)"
+      }
+    },
+    {
+      "from": "DMA_RETAIL.SILVER.STG_RETURNS",
+      "to": "DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT",
+      "kind": "aggregate then left join",
+      "predicate": "all TENANT_ID,ORDER_ID,LINE_ID components equal",
+      "cardinality": "zero/many events aggregate to zero/one row per line",
+      "fields": {
+        "RETURNED_QUANTITY": "SUM(QUANTITY)",
+        "REFUND_CENTS": "SUM(REFUND_CENTS)"
+      }
+    },
+    {
+      "from": "DMA_RETAIL.GOLD.FCT_ORDER_LINE_FULFILLMENT",
+      "to": "analysis.retail_candidate.retail_fulfillment_summary",
+      "kind": "query-time semantic",
+      "predicate": "validated tenant, half-open order dates, status and optional product",
+      "cardinality": "selected lines to month/product grouping",
+      "materialized": false
+    }
+  ],
+  "constraints": "Logical tested contracts; no physical PK/FK enforcement or live connection identity proof. No effective-time joins or SCD dimensions exist in this scope."
+}

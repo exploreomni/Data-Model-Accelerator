@@ -1,0 +1,15 @@
+name: tableau_billing_migration
+version: '1.0.0'
+config-version: 2
+profile: tableau_billing_migration
+require-dbt-version: ['>=1.10.5', '<2.0.0']
+model-paths: [models]
+test-paths: [tests]
+macro-paths: [macros]
+clean-targets: [target, dbt_packages]
+models:
+  tableau_billing_migration:
+    +materialized: table
+    +persist_docs:
+      relation: true
+      columns: true
