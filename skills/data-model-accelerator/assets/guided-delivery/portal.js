@@ -3,6 +3,74 @@
 const originalShell = '<!doctype html>\n' + document.documentElement.outerHTML;
 const data = JSON.parse(document.getElementById('delivery-data').textContent);
 const eng = data.engagement, review = data.review || {}, files = data.files || [];
+// BEGIN PORTABLE ASSURANCE HELPERS — these functions never authenticate evidence.
+const assuranceLanes = [
+  ['source_coverage','Source coverage','Match the export against an independent source inventory; resolve missing reports, tiles and dependencies.','base'],
+  ['classification','Sensitive data classification','Review overlapping PII, PCI and PHI categories and unresolved lineage.','base'],
+  ['input_egress','Inputs approved for the agent','Use the approved staging boundary before sending any source content to an agent.','base'],
+  ['yaml','Native file structure','Run strict native file parsing on this exact candidate.','semantic'],
+  ['omni_static','Omni model contract','Check physical bindings, fields, joins, types and supported native parameters.','semantic'],
+  ['warehouse_execution','Warehouse execution','Run the authorized target checks and retain results from the actual environment.','base'],
+  ['native_model','Native Omni validation','Validate the exact model revision in the selected Omni branch.','semantic'],
+  ['omni_queries','Omni query execution','Execute the reviewed query cases with the intended connections and settings.','semantic'],
+  ['data_parity','Data and metric comparisons','Compare frozen populations, grain, metrics and edge cases; investigate discrepancies.','base'],
+  ['dashboard_created','Dashboard draft','Create and read back the complete reviewed draft without changing the published document.','dashboard'],
+  ['dashboard_behavior','Dashboard behavior','Verify tiles, filters, listeners, layout, interactions, drill and export behavior.','dashboard'],
+  ['access','Effective access','Verify allowed and denied personas, row filters, masking, metadata and inherited permissions.','base'],
+  ['ai_context','AI context and answers','Review approved meanings and unresolved questions; run the frozen persona question suite.','semantic'],
+  ['output_disclosure','Output disclosure','Scan the exact final package and verify the destination disclosure policy.','base'],
+  ['business_acceptance','Business acceptance','Have the actual decision-maker review this exact candidate and its evidence.','base']
+];
+function portableAssurance(snapshot){
+  const supplied=snapshot?.delivery_assurance||{},scope=['model_only','model_semantic','full_dashboard'].includes(supplied.migration_scope)?supplied.migration_scope:null;
+  const records=Array.isArray(supplied.checks)?supplied.checks:[];
+  const checks=assuranceLanes.map(([lane,label,next_action,group])=>{
+    const required=!scope||group==='base'||group==='semantic'&&scope!=='model_only'||group==='dashboard'&&scope==='full_dashboard';
+    const imported=records.find(c=>c?.lane===lane),reported=['failed','unsupported','stale'].includes(imported?.status)?imported.status:'pending';
+    return{lane,label,required,status:required?reported:'not_applicable',
+      reason:!required?'Excluded by the selected migration scope.':!scope?'Select a migration scope before interpreting readiness.':
+        imported?.status==='passed'?'A reported pass requires verification outside this offline page.':'No authenticated completion is established by this page.',
+      next_action:required?next_action:'No evidence required for this selected scope.'};
+  });
+  return{migration_scope:scope,checks,acceptance_ready:false,deployment_authorized:false,
+    qualification:'Candidate review only. This offline page does not authenticate evidence, business sign-off or deployment authority.'};
+}
+function subsetPath(path){
+  return typeof path==='string'&&path.length>0&&path.length<=500&&!/[\\\x00-\x1f\x7f:]/.test(path)&&!path.startsWith('/')&&
+    path.split('/').every(p=>p&&p!=='.'&&p!=='..')&&!['start_here.html','delivery_manifest.json'].includes(path.toLowerCase());
+}
+async function checkedSubsetFiles(inventory,selection,categories){
+  if(!Array.isArray(inventory)||!Array.isArray(selection)||!selection.length||selection.length>500)throw new Error('Select a bounded registered file set.');
+  const all=new Map(),ids=new Set(),paths=new Set(),entries=[];
+  for(const item of inventory){if(!item||typeof item.id!=='string'||all.has(item.id))throw new Error('The file inventory is ambiguous. Ask the agent to repackage.');all.set(item.id,item);}
+  let total=0;
+  for(const file of selection){
+    const registered=all.get(file?.id);
+    if(!registered||JSON.stringify(file)!==JSON.stringify(registered)||ids.has(file.id)||!subsetPath(file.path)||paths.has(file.path.toLowerCase())||
+       !categories.has(file.category)||!Number.isSafeInteger(file.size)||file.size<0||typeof file.sha256!=='string'||!/^[a-f0-9]{64}$/.test(file.sha256)||
+       !Array.isArray(file.requires)||file.requires.some(id=>typeof id!=='string'))throw new Error('The selected inventory is invalid. Ask the agent to repackage.');
+    const body=bytes(file.base64);total+=body.length;
+    if(body.length!==file.size||await sha256(body)!==file.sha256||total>50*1024*1024)throw new Error('Selected file integrity or size check failed. Ask the agent to repackage.');
+    ids.add(file.id);paths.add(file.path.toLowerCase());entries.push([file.path,body]);
+  }
+  if(selection.some(file=>file.requires.some(id=>!ids.has(id))))throw new Error('Include the required dependent files before exporting.');
+  return entries;
+}
+async function browserSubsetManifest(snapshot,audience,categories,entries){
+  const manifest={schema_version:1,kind:'portable_delivery_integrity',export_origin:'browser_subset',
+    engagement_id:snapshot.engagement_id,source_fingerprint:snapshot.source_fingerprint,
+    ...(snapshot.context_sha256?{context_sha256:snapshot.context_sha256}:{}),target:snapshot.target,audience,
+    migration_scope:portableAssurance(snapshot).migration_scope,deliverables:[...categories].sort(),
+    acceptance_ready:false,deployment_authorized:false,
+    disclosure_policy_status:'not_revalidated_in_browser',
+    content_scan:{status:'not_run_in_browser',coverage_complete:false,
+      next_action:'Return this exact ZIP to the agent for content scanning and destination disclosure review before sharing or deploying.'},
+    integrity_scope:'Selected embedded artifact hashes were checked; checksums below bind the newly rendered files only.',
+    authority:'File integrity only; no new content scan, authenticated review, business acceptance or deployment authority.',files:[]};
+  for(const [path,body]of entries)manifest.files.push({path,sha256:await sha256(body),bytes:body.length});
+  return manifest;
+}
+// END PORTABLE ASSURANCE HELPERS
 const labels = {publish_pr:'Publish a pull request',deploy_development:'Deploy to development',promote:'Promote a tested version',handoff_prepared:'Prepared handoff',dbt:'dbt',coalesce:'Coalesce',native_sql:'Native SQL',snowflake:'Snowflake',databricks:'Databricks',bigquery:'BigQuery',redshift:'Amazon Redshift',clickhouse:'ClickHouse',motherduck:'MotherDuck',gcp:'GCP — service unresolved',documentation:'Model documentation',diagrams:'Connected diagrams',dictionary:'Data dictionary',implementation:'Implementation files',validation:'Validation evidence',sample_data:'Sample data',technical_audit:'Technical audit',reviewer:'Reviewer package',engineer:'Engineering package',audit:'Technical audit'};
 const el = id => document.getElementById(id);
 const text = value => value == null ? 'Not supplied' : typeof value === 'object' ? JSON.stringify(value,null,2) : String(value);
@@ -25,6 +93,12 @@ const fingerprint=typeof eng.source_fingerprint==='object'?eng.source_fingerprin
 el('scope-note').textContent=`${pretty(eng.engagement_type)} · ${text(eng.domain)} · Source ${fingerprint?fingerprint.slice(0,12):'not inventoried'} · This view is a recorded snapshot; refresh through the agent after changes.`;
 el('stage').textContent=pretty(eng.status);el('revision').textContent=`Engagement revision ${eng.revision}. No deployment is asserted.`;
 el('footer-id').textContent=eng.engagement_id;
+const assurance=portableAssurance(eng),scopeNames={model_only:'Data model only',model_semantic:'Data model + Omni semantic layer',full_dashboard:'Full dashboard migration'};
+el('candidate-status').textContent='Candidate · acceptance not established';
+el('assurance-scope').textContent=scopeNames[assurance.migration_scope]||'Migration scope not selected';
+el('assurance-boundary').textContent=assurance.qualification;
+el('assurance-overview').textContent=`${scopeNames[assurance.migration_scope]||'Scope unresolved'} · ${assurance.checks.filter(c=>c.required).length} evidence lanes require verification. Prepared files do not establish completed migration.`;
+table('assurance-checks',[['Evidence lane',c=>c.label],['Required',c=>c.required?'Yes':'Outside scope'],['Status',c=>pretty(c.status)],['Meaning / next action',c=>c.reason+' '+c.next_action]],assurance.checks,20);
 const actions=eng.next_actions||[],first=actions[0];
 el('next-title').textContent=first?.title||({discovery:'Complete the next discovery step',generation:'Review the model prerequisites',readiness:'Resolve the readiness findings',catalogue:'Ground the model in your raw data'}[first?.scope])||'Review readiness and outstanding decisions';
 const nextSection=reviewSections.includes(first?.section)?first.section:eng.delivery?.status==='prepared'?'delivery':'readiness';
@@ -124,4 +198,36 @@ el('download-file').onclick=()=>activeFile&&download(activeFile.path.split('/').
 function crc32(array){let crc=0xffffffff;for(const byte of array){crc^=byte;for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}return(crc^0xffffffff)>>>0;}
 function zip(entries){const chunks=[],central=[];let offset=0,size=0;const enc=new TextEncoder();for(const [path,body]of entries){const name=enc.encode(path),header=new Uint8Array(30+name.length),v=new DataView(header.buffer),crc=crc32(body);v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0x800,true);v.setUint16(12,33,true);v.setUint32(14,crc,true);v.setUint32(18,body.length,true);v.setUint32(22,body.length,true);v.setUint16(26,name.length,true);header.set(name,30);chunks.push(header,body);const c=new Uint8Array(46+name.length),cv=new DataView(c.buffer);cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0x800,true);cv.setUint16(14,33,true);cv.setUint32(16,crc,true);cv.setUint32(20,body.length,true);cv.setUint32(24,body.length,true);cv.setUint16(28,name.length,true);cv.setUint32(42,offset,true);c.set(name,46);central.push(c);offset+=header.length+body.length;size+=c.length;}const end=new Uint8Array(22),ev=new DataView(end.buffer);ev.setUint32(0,0x06054b50,true);ev.setUint16(8,entries.length,true);ev.setUint16(10,entries.length,true);ev.setUint32(12,size,true);ev.setUint32(16,offset,true);return new Blob([...chunks,...central,end],{type:'application/zip'});}
 async function sha256(body){const hash=await crypto.subtle.digest('SHA-256',body);return Array.from(new Uint8Array(hash),x=>x.toString(16).padStart(2,'0')).join('');}
-el('download-package').onclick=async()=>{try{if(!crypto.subtle)throw new Error('This browser cannot create a verifiable package here. Use the original package or ask the agent to export your selected categories.');const selected=selectedFiles(),next=structuredClone(data);next.files=selected;trimMetadataEvidence(next,selected);if(next.deployment){const selectedIds=new Set(selected.map(f=>f.id));if(next.deployment.plan&&!selectedIds.has(next.deployment.plan.evidence_artifact_id)){delete next.deployment.plan;next.deployment.plan_omitted='Plan details are outside this export; request the selected deployment evidence from the agent.';}next.deployment.receipts=(next.deployment.receipts||[]).filter(r=>selectedIds.has(r.evidence_artifact_id));}if(!chosen.has('diagrams')){delete next.diagram;delete next.diagrams;}if(next.review.quality_checks){const selectedIds=new Set(selected.map(f=>f.id));next.review.quality_checks=next.review.quality_checks.map(q=>selectedIds.has(q.evidence_artifact_id)?q:qualityOmitted(q.id));}if(!chosen.has('validation'))delete next.review.validation;if(!['documentation','diagrams','dictionary'].some(x=>chosen.has(x))){delete next.review.models;delete next.review.relationships;}else if(!chosen.has('dictionary'))(next.review.models||[]).forEach(m=>delete m.columns);const encoded=JSON.stringify(next).replaceAll('<','\\u003c').replaceAll('>','\\u003e').replaceAll('&','\\u0026');const shell=originalShell.replace(/(<script id="delivery-data" type="application\/json">)[\s\S]*?(<\/script>)/,(_,a,b)=>a+encoded+b);const entries=selected.map(f=>[f.path,bytes(f.base64)]);entries.push(['START_HERE.html',new TextEncoder().encode(shell)]);const manifest={schema_version:1,kind:'portable_delivery_integrity',engagement_id:eng.engagement_id,source_fingerprint:eng.source_fingerprint,...(eng.context_sha256?{context_sha256:eng.context_sha256}:{}),target:eng.target,audience:data.audience,deliverables:[...chosen].sort(),authority:'File integrity only; not execution, business approval or deployment.',files:[]};for(const [path,body]of entries)manifest.files.push({path,sha256:await sha256(body),bytes:body.length});entries.push(['DELIVERY_MANIFEST.json',new TextEncoder().encode(JSON.stringify(manifest,null,2))]);download('model-delivery-'+data.audience+'.zip',zip(entries),'application/zip');notice('Selected package created. Its Start Here page contains only the selected file payloads.');}catch(error){notice(error.message);}};
+el('download-package').onclick=async()=>{
+  try{
+    if(!crypto.subtle)throw new Error('This browser cannot check file hashes here. Use the original package or ask the agent to export your selected categories.');
+    const selected=selectedFiles(),entries=await checkedSubsetFiles(files,selected,chosen),next=structuredClone(data);
+    next.files=selected;
+    next.engagement.delivery_assurance=portableAssurance(eng);
+    next.export_review={origin:'browser_subset',status:'candidate',content_scan:'not_run_in_browser',disclosure_policy:'not_revalidated_in_browser',acceptance_ready:false,deployment_authorized:false};
+    trimMetadataEvidence(next,selected);
+    if(next.deployment){
+      const selectedIds=new Set(selected.map(f=>f.id));
+      if(next.deployment.plan&&!selectedIds.has(next.deployment.plan.evidence_artifact_id)){
+        delete next.deployment.plan;
+        next.deployment.plan_omitted='Plan details are outside this export; request the selected deployment evidence from the agent.';
+      }
+      next.deployment.receipts=(next.deployment.receipts||[]).filter(r=>selectedIds.has(r.evidence_artifact_id));
+    }
+    if(!chosen.has('diagrams')){delete next.diagram;delete next.diagrams;}
+    if(next.review.quality_checks){
+      const selectedIds=new Set(selected.map(f=>f.id));
+      next.review.quality_checks=next.review.quality_checks.map(q=>selectedIds.has(q.evidence_artifact_id)?q:qualityOmitted(q.id));
+    }
+    if(!chosen.has('validation'))delete next.review.validation;
+    if(!['documentation','diagrams','dictionary'].some(x=>chosen.has(x))){delete next.review.models;delete next.review.relationships;}
+    else if(!chosen.has('dictionary'))(next.review.models||[]).forEach(m=>delete m.columns);
+    const encoded=JSON.stringify(next).replaceAll('<','\\u003c').replaceAll('>','\\u003e').replaceAll('&','\\u0026');
+    const shell=originalShell.replace(/(<script id="delivery-data" type="application\/json">)[\s\S]*?(<\/script>)/,(_,a,b)=>a+encoded+b);
+    entries.push(['START_HERE.html',new TextEncoder().encode(shell)]);
+    const manifest=await browserSubsetManifest(eng,data.audience,chosen,entries);
+    entries.push(['DELIVERY_MANIFEST.json',new TextEncoder().encode(JSON.stringify(manifest,null,2))]);
+    download('model-delivery-'+data.audience+'.zip',zip(entries),'application/zip');
+    notice('Candidate subset created with checked file hashes. No new content scan or disclosure approval was performed; return this exact ZIP to the agent before sharing.');
+  }catch(error){notice(error.message);}
+};

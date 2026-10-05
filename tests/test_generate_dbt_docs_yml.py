@@ -94,6 +94,29 @@ class DbtDocsGenerationTests(unittest.TestCase):
             if path.is_file():
                 self.assertEqual(path.read_bytes(), (destination / path.relative_to(candidate)).read_bytes())
 
+    def test_authored_yaml_resource_path_sequences_survive_round_trip(self):
+        path = self.project / 'dbt_project.yml'
+        original = path.read_text() + ('# Keep the authored resource directories\n'
+            'model-paths: [models]\nseed-paths:\n  - seeds\nsnapshot-paths: [snapshots]\n')
+        path.write_text(original)
+        preview = self.preview()
+        self.assertEqual(preview['status'], 'ready')
+        candidate, _ = self.apply(preview)
+        projected = self.yaml(candidate / 'dbt_project.yml')
+        self.assertEqual(projected['model-paths'], ['models'])
+        self.assertEqual(projected['seed-paths'], ['seeds'])
+        self.assertEqual(projected['snapshot-paths'], ['snapshots'])
+        self.assertIn('# Keep the authored resource directories', (candidate/'dbt_project.yml').read_text())
+        self.assertEqual(path.read_text(), original)
+
+    def test_resource_paths_still_reject_mapping_or_nested_sequence(self):
+        path = self.project/'dbt_project.yml'
+        initial = path.read_text()
+        for declaration in ('model-paths: {models: true}', 'model-paths: [[models]]'):
+            path.write_text(initial + declaration + '\n')
+            with self.subTest(declaration=declaration), self.assertRaisesRegex(ValueError, 'resource paths'):
+                self.preview()
+
     def test_units_do_not_hide_placeholder_descriptions(self):
         self.dictionary['models'][0]['columns'][0].update(description='TBD',units='USD')
         preview=self.preview()

@@ -9,10 +9,26 @@ import hashlib
 import json
 from pathlib import Path
 import zipfile
+import copy
 
 from platform_matrix import FRAMEWORKS, WAREHOUSES
 from guided_workflow import start_engagement, resume_engagement, record_handoff
 from delivery_portal import context_fingerprint, source_fingerprint, model_svg, package_delivery, verify_delivery, render_engagement
+
+
+def synthetic_disclosure(artifacts, audience):
+    """Fixture declarations only, never use for customer content or approval."""
+    from privacy_contract import default_policy, new_classification
+    evidence = [{'reference': 'synthetic-ux-fixture', 'sha256': 'a' * 64}]
+    policy = default_policy()
+    policy.update(review_status='approved', review_reference='synthetic-ux-fixture', evidence=evidence)
+    policy['destinations']['share'] = {'allowed_sensitivities': ['PUBLIC'], 'allowed_categories': []}
+    item = new_classification('PUBLIC')
+    item.update(categories_known=True, review_status='approved', review_reference='synthetic-ux-fixture',
+                evidence=evidence, lineage={'status':'complete','upstream_ids':[],'transformation':'source'})
+    item['handling']['share'] = 'allow'
+    return {'audience': audience, 'policy': policy, 'presentation': copy.deepcopy(item),
+            'artifacts': {a['id']: copy.deepcopy(item) for a in artifacts}}
 
 
 def run(output):
@@ -27,7 +43,8 @@ def run(output):
         {'name':'raw.orders','columns':['order_id','customer_id','order_date','amount']},
         {'name':'raw.customers','columns':['customer_id','customer_name']}]}))
     answers={'engagement_type':'refactor','priority_domain':'Synthetic sales','framework':'dbt','warehouse':'bigquery',
-        'semantic_target':'omni','deliverables':['documentation','diagrams','dictionary','implementation','validation'],
+        'semantic_target':'omni','migration_scope':'model_semantic','input_handling':'pre_sanitized',
+        'deliverables':['documentation','diagrams','dictionary','implementation','validation'],
         'trusted_outputs':['synthetic-legacy-sales'],'retained_behavior':['Order grain and recorded amount; customer joins must not duplicate orders'],
         'corrected_behavior':[],'host':'local synthetic exercise','execution_mode':'assessment_only'}
     results=[]
@@ -86,6 +103,7 @@ def run(output):
                           {'id':'customer-fanout','label':'Customer join preserves the order population','scope':'warehouse','status':'pending','expected':'No added or missing order IDs','actual':None,'details':'Independent row comparison required.'},
                           {'id':'metric-parity','label':'Agreed revenue definition','scope':'semantic','status':'pending','expected':'Accepted filter/currency/history context','actual':None,'details':'Business definition remains unresolved.'}],
             'artifacts':artifacts}
+    review['disclosure'] = synthetic_disclosure(artifacts, 'engineer')
     (output/'review-content.json').write_text(json.dumps(review,indent=2))
     state=record_handoff(run_dir,output/'review-content.json',artifact_root,audience='engineer')
     state=resume_engagement(run_dir)
@@ -94,6 +112,7 @@ def run(output):
     render_engagement(state,output/'REVIEW.html',review)
     package_checks=[]
     for audience in ('engineer','reviewer'):
+        review['disclosure'] = synthetic_disclosure(artifacts, audience)
         path=output/(audience+'-example.zip')
         package_delivery(state,review,artifact_root,path,audience=audience)
         package_checks.append(dict(audience=audience,**verify_delivery(path)))

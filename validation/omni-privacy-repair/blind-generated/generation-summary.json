@@ -1,0 +1,38 @@
+{
+  "energy": {
+    "ai_status": "incomplete",
+    "ai_withheld": 1,
+    "catalogue_grounding": "incomplete_synthetic_plan_only",
+    "columns": 17,
+    "dbt_docs_after_fix_conflicts": 7,
+    "dbt_docs_after_fix_status": "conflicted",
+    "dbt_docs_conflicts": 1,
+    "dbt_docs_preview_status": "blocked",
+    "lint_status": "passed",
+    "local_projection_count": 5,
+    "looker_filters": 1,
+    "looker_tiles": 3,
+    "models": 5,
+    "native_verified": false,
+    "omni_static_status": "passed",
+    "source_coverage": "unknown"
+  },
+  "maintenance": {
+    "ai_status": "incomplete",
+    "ai_withheld": 1,
+    "catalogue_grounding": "incomplete_synthetic_plan_only",
+    "columns": 25,
+    "dbt_docs_after_fix_conflicts": 7,
+    "dbt_docs_after_fix_status": "conflicted",
+    "dbt_docs_conflicts": 1,
+    "dbt_docs_preview_status": "blocked",
+    "lint_status": "passed",
+    "local_projection_count": 5,
+    "looker_filters": 1,
+    "looker_tiles": 3,
+    "models": 5,
+    "native_verified": false,
+    "omni_static_status": "passed",
+    "source_coverage": "unknown"
+  }
+}

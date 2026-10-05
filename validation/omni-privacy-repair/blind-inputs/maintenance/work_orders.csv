@@ -1,0 +1,4 @@
+work_order_id,tenant_id,opened_on,labor_cost,status
+1,7,2026-01-02,10,closed
+2,7,2026-01-02,20,open
+3,8,2026-01-03,30,closed

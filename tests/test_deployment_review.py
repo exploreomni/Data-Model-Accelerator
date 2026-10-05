@@ -19,6 +19,7 @@ import deployment_review as review_export
 import deployment_workflow as deployment
 import guided_workflow as workflow
 from test_guided_workflow import collector
+from disclosure_fixtures import synthetic_disclosure
 
 
 class DeploymentReviewTests(unittest.TestCase):
@@ -33,7 +34,8 @@ class DeploymentReviewTests(unittest.TestCase):
         patcher = patch.object(workflow, '_assess_repository', collector);patcher.start();self.addCleanup(patcher.stop)
         state = workflow.start_engagement(self.source, self.run,
             {'engagement_type':'new_model', 'priority_domain':'Orders', 'framework':'native_sql', 'warehouse':'snowflake',
-             'semantic_target':'omni', 'deliverables':['implementation','documentation']}, catalogue=self.catalogue)
+             'semantic_target':'omni', 'migration_scope':'model_semantic', 'input_handling':'pre_sanitized',
+             'deliverables':['implementation','documentation']}, catalogue=self.catalogue)
         self.candidate = self.root / 'candidate';self.candidate.mkdir()
         (self.candidate / 'model.sql').write_text('select 1 as id\n')
         (self.candidate / 'guide.md').write_text('Synthetic implementation guide.\n')
@@ -46,6 +48,9 @@ class DeploymentReviewTests(unittest.TestCase):
                   'artifacts':[{'id':name,'path':name,'category':category,'audiences':['engineer'],
                                 'sha256':hashlib.sha256((self.candidate/name).read_bytes()).hexdigest()}
                                for name,category in [('model.sql','implementation'),('guide.md','documentation'),('private.csv','sample_data')]]}
+        review['disclosure'] = synthetic_disclosure([a['id'] for a in review['artifacts']])
+        review['disclosure']['generated_evidence'] = {label:copy.deepcopy(review['disclosure']['presentation'])
+            for label in ('plan','receipt','lint-manifest','lint-target','lint-configuration','lint-findings','lint-guide','quality')}
         self.review_path.write_text(json.dumps(review))
         state = workflow.record_handoff(self.run,self.review_path,self.candidate,audience='engineer')
         self.original_handoff = copy.deepcopy(next(e for e in state['evidence'] if e['kind']=='prepared_handoff'))

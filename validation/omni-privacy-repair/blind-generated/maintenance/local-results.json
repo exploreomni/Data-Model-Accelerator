@@ -1,0 +1,249 @@
+{
+  "checks": [
+    {
+      "name": "bronze_work_orders projection",
+      "row_count": 3,
+      "status": "passed"
+    },
+    {
+      "name": "bronze_parts projection",
+      "row_count": 3,
+      "status": "passed"
+    },
+    {
+      "name": "silver_work_orders projection",
+      "row_count": 3,
+      "status": "passed"
+    },
+    {
+      "name": "silver_work_orders key uniqueness in supplied snapshot",
+      "status": "passed"
+    },
+    {
+      "name": "silver_parts projection",
+      "row_count": 3,
+      "status": "passed"
+    },
+    {
+      "name": "silver_parts key uniqueness in supplied snapshot",
+      "status": "passed"
+    },
+    {
+      "name": "gold_work_orders projection",
+      "row_count": 3,
+      "status": "passed"
+    },
+    {
+      "name": "gold_work_orders key uniqueness in supplied snapshot",
+      "status": "passed"
+    },
+    {
+      "name": "no_orphan_children",
+      "status": "passed"
+    }
+  ],
+  "dbt_executed": false,
+  "expected_results_independent": false,
+  "kind": "local_synthetic_execution",
+  "limitations": [
+    "DuckDB transpilation and input-derived checks are local development evidence only. Root evaluator independently owns frozen expectations."
+  ],
+  "results": {
+    "baseline": {
+      "rows": [
+        [
+          "55.00000000"
+        ]
+      ],
+      "sql": "select sum(work_cost) as total_work_cost from gold_work_orders where status = 'closed' and opened_on between date '2026-01-02' and date '2026-01-03'"
+    },
+    "bronze_parts": {
+      "columns": [
+        "part_line_id",
+        "work_order_id",
+        "quantity",
+        "unit_cost"
+      ],
+      "rows": [
+        [
+          "11",
+          "1",
+          "2",
+          "3"
+        ],
+        [
+          "12",
+          "1",
+          "1",
+          "4"
+        ],
+        [
+          "13",
+          "3",
+          "1",
+          "5"
+        ]
+      ]
+    },
+    "bronze_work_orders": {
+      "columns": [
+        "work_order_id",
+        "tenant_id",
+        "opened_on",
+        "labor_cost",
+        "status"
+      ],
+      "rows": [
+        [
+          "1",
+          "7",
+          "2026-01-02",
+          "10",
+          "closed"
+        ],
+        [
+          "2",
+          "7",
+          "2026-01-02",
+          "20",
+          "open"
+        ],
+        [
+          "3",
+          "8",
+          "2026-01-03",
+          "30",
+          "closed"
+        ]
+      ]
+    },
+    "detail": {
+      "rows": [
+        [
+          "2026-01-02",
+          "20.00000000"
+        ],
+        [
+          "2026-01-03",
+          "35.00000000"
+        ]
+      ],
+      "sql": "select opened_on, sum(work_cost) as total_work_cost from gold_work_orders where status = 'closed' and opened_on between date '2026-01-02' and date '2026-01-03' group by opened_on order by opened_on"
+    },
+    "gold_work_orders": {
+      "columns": [
+        "work_order_id",
+        "tenant_id",
+        "opened_on",
+        "labor_cost",
+        "status",
+        "parts_cost",
+        "work_cost"
+      ],
+      "rows": [
+        [
+          "1",
+          "7",
+          "2026-01-02",
+          "10.0000",
+          "closed",
+          "10.00000000",
+          "20.00000000"
+        ],
+        [
+          "3",
+          "8",
+          "2026-01-03",
+          "30.0000",
+          "closed",
+          "5.00000000",
+          "35.00000000"
+        ],
+        [
+          "2",
+          "7",
+          "2026-01-02",
+          "20.0000",
+          "open",
+          "0E-8",
+          "20.00000000"
+        ]
+      ]
+    },
+    "open_retention": {
+      "rows": [
+        [
+          "2",
+          "7",
+          "2026-01-02",
+          "20.0000",
+          "open",
+          "0E-8",
+          "20.00000000"
+        ]
+      ],
+      "sql": "select * from gold_work_orders where status = 'open'"
+    },
+    "silver_parts": {
+      "columns": [
+        "part_line_id",
+        "work_order_id",
+        "quantity",
+        "unit_cost"
+      ],
+      "rows": [
+        [
+          "11",
+          "1",
+          "2.0000",
+          "3.0000"
+        ],
+        [
+          "12",
+          "1",
+          "1.0000",
+          "4.0000"
+        ],
+        [
+          "13",
+          "3",
+          "1.0000",
+          "5.0000"
+        ]
+      ]
+    },
+    "silver_work_orders": {
+      "columns": [
+        "work_order_id",
+        "tenant_id",
+        "opened_on",
+        "labor_cost",
+        "status"
+      ],
+      "rows": [
+        [
+          "1",
+          "7",
+          "2026-01-02",
+          "10.0000",
+          "closed"
+        ],
+        [
+          "2",
+          "7",
+          "2026-01-02",
+          "20.0000",
+          "open"
+        ],
+        [
+          "3",
+          "8",
+          "2026-01-03",
+          "30.0000",
+          "closed"
+        ]
+      ]
+    }
+  },
+  "warehouse_native": false
+}

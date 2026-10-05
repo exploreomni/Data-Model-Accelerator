@@ -1,0 +1,64 @@
+{
+  "evidence_status": "synthetic_planned_not_native",
+  "kind": "data_model_inventory",
+  "models": [
+    {
+      "columns": [
+        "reading_id",
+        "meter_id",
+        "recorded_on",
+        "kwh"
+      ],
+      "grain": "One row per reading_id in the supplied snapshot; no historical uniqueness asserted",
+      "layer": "bronze",
+      "model_id": "bronze_readings",
+      "physical_name": "synthetic-review.dma_energy.bronze_readings"
+    },
+    {
+      "columns": [
+        "meter_id",
+        "zone"
+      ],
+      "grain": "One row per meter_id in the supplied snapshot; no historical uniqueness asserted",
+      "layer": "bronze",
+      "model_id": "bronze_meters",
+      "physical_name": "synthetic-review.dma_energy.bronze_meters"
+    },
+    {
+      "columns": [
+        "reading_id",
+        "meter_id",
+        "recorded_on",
+        "kwh"
+      ],
+      "grain": "One row per reading_id",
+      "layer": "silver",
+      "model_id": "silver_readings",
+      "physical_name": "synthetic-review.dma_energy.silver_readings"
+    },
+    {
+      "columns": [
+        "meter_id",
+        "zone"
+      ],
+      "grain": "One row per meter_id",
+      "layer": "silver",
+      "model_id": "silver_meters",
+      "physical_name": "synthetic-review.dma_energy.silver_meters"
+    },
+    {
+      "columns": [
+        "reading_id",
+        "meter_id",
+        "recorded_on",
+        "kwh",
+        "zone"
+      ],
+      "grain": "One row per reading_id",
+      "layer": "gold",
+      "model_id": "gold_readings",
+      "physical_name": "synthetic-review.dma_energy.gold_readings"
+    }
+  ],
+  "schema_version": 1
+}

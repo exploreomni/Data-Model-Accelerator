@@ -1,0 +1,14 @@
+{
+  "authority": "Synthetic exercise instructions only, not customer approval",
+  "inputs": {
+    "intake.json": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5",
+    "looker-dashboard.json": "9b53eae373a8bb05eb5a166cd18bbb50c0d97883bfb1d93d6f58e85000a4c0cc",
+    "meters.csv": "5f147b5b58b8d886237a8dbf7966075d4f7fdaae567daa3b57bf4a1b83bddbcc",
+    "readings.csv": "b7d4aa16db191525b08571500852f07f031318df60acac2a3fb6db9e3bc8c085"
+  },
+  "mode": "blind_test",
+  "native_observation": false,
+  "permitted_sources": "Skill and referenced helper instructions plus supplied synthetic inputs only",
+  "presanitized": true,
+  "shared_filesystem_is_sandbox": false
+}

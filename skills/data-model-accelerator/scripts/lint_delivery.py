@@ -76,7 +76,7 @@ def _target(value):
 
 
 def _manifest(manifest, limits):
-    require(type(manifest) is dict and set(manifest) <= {'schema_version', 'kind', 'files', 'expected_execution_units', 'physical_models', 'style_exceptions'}, 'Invalid lint manifest')
+    require(type(manifest) is dict and set(manifest) <= {'schema_version', 'kind', 'files', 'expected_execution_units', 'physical_models', 'style_exceptions', 'omni_context'}, 'Invalid lint manifest')
     require(type(manifest.get('schema_version')) is int and manifest['schema_version'] == 1
             and manifest.get('kind') == 'sql_lint_manifest', 'Unsupported lint manifest')
     files, units = manifest.get('files'), manifest.get('expected_execution_units')
@@ -298,6 +298,52 @@ def _finding(code, severity, path, message, *, line=None, column=None):
     return {'code': code, 'severity': severity, 'path': path, 'line': line, 'column': column, 'message': message}
 
 
+def _omni_files(manifest, target):
+    return [f for f in manifest['files'] if f['role'] == 'semantic_config' and (
+        target.get('semantic_target') == 'omni' or Path(f['path']).name in {'model', 'relationships'}
+        or f['path'].endswith(('.view', '.topic')))]
+
+
+def _omni_check(runtime, work, manifest, target, source_data, results, limits):
+    """Run the trusted bounded checker against captured bytes, never source code."""
+    expected = _omni_files(manifest, target)
+    if not expected:
+        return None
+    report = {'status': 'failed', 'native_verified': False}
+    script = Path(__file__).resolve().parent / 'omni_contract.py'
+    try:
+        context = manifest.get('omni_context')
+        require(context is None or type(context) is dict and context.get('warehouse') == target['warehouse'],
+                'Omni catalogue context differs from selected warehouse')
+        names = [Path(f['path']).name for f in expected]
+        require(len(set(names)) == len(names), 'Multiple Omni models need separate lint scopes')
+        inputs = {Path(f['path']).name: source_data[f['path']].decode('utf-8') for f in expected}
+        request = {'files': inputs, 'context': context}
+        (work / 'omni-input.json').write_bytes(_json_bytes(request))
+        trusted_scripts = str(script.parent)
+        code = ('import sys,json; from pathlib import Path; sys.path.insert(0,' + repr(trusted_scripts)
+                + '); from omni_contract import check_model; p=json.loads(Path("omni-input.json").read_text()); '
+                  'print(json.dumps(check_model(p["files"],p["context"])))')
+        exit_code, out, _ = _run(runtime['python_executable'], ['-I', '-c', code], work,
+                                 limits['timeout_seconds'], limits['max_output_bytes'])
+        observed = json.loads(out)
+        require(exit_code == 0 and type(observed) is dict and observed.get('status') in
+                {'passed', 'failed', 'unsupported'} and observed.get('native_verified') is False,
+                'Omni checker response invalid')
+        report = observed
+    except (ValueError, OSError, TimeoutError, OverflowError, KeyError, UnicodeError):
+        pass
+    report['checker_sha256'] = _sha(script.read_bytes())
+    report['context_sha256'] = hash_json(manifest.get('omni_context'))
+    report['files_sha256'] = hash_json({f['path']: f['sha256'] for f in expected})
+    if report['status'] != 'passed':
+        for item in results:
+            if item['path'] in {f['path'] for f in expected} and item['status'] == 'checked':
+                item.update(status='unsupported' if report['status'] == 'unsupported' else 'failed',
+                            check_type='omni_contract', reason='Omni contract has unresolved or invalid definitions; inspect bounded diagnostics.')
+    return report
+
+
 def modeling_findings(manifest, target):
     """Review prompts over explicit model declarations, never inferred data proof."""
     results = []
@@ -513,6 +559,7 @@ def lint_delivery(root, manifest, target, *, python_executable, limits=None):
             except (ValueError, OSError, TimeoutError, OverflowError):
                 for result in yaml_names.values():
                     result.update(status='failed', reason='YAML structural checker unavailable or incomplete.')
+        omni_report = _omni_check(runtime, work, manifest, target, source_data, files, limits)
         mapped = {path for item in manifest['files'] for path in item['source_paths']}
         indexed = {item['path']: item for item in files}
         for result in files:
@@ -555,6 +602,8 @@ def lint_delivery(root, manifest, target, *, python_executable, limits=None):
                   'Configuration checks validate basic structure only, not native schemas or semantic correctness.',
                   'Exact convention exceptions retain raw findings and explain policy choices; they are not human approval or proof of correctness.',
                   'The configured interpreter and installed runtime are trusted; no project templates or third-party lint plugins run.']}
+    if omni_report is not None:
+        report['omni_contract'] = omni_report
     report['report_sha256'] = hash_json(report)
     return report
 
@@ -612,6 +661,15 @@ def verify_report(report, root, target=None, manifest=None, *, runtime=None):
     current_manifest = report['manifest'] if manifest is None else manifest
     current_target = report['target'] if target is None else target
     by_path = _manifest(current_manifest, limits)
+    omni_files = _omni_files(current_manifest, current_target)
+    if omni_files:
+        contract = report.get('omni_contract', {})
+        checker = Path(__file__).resolve().parent / 'omni_contract.py'
+        require(contract.get('status') == 'passed' and contract.get('native_verified') is False
+                and contract.get('checker_sha256') == _sha(checker.read_bytes())
+                and contract.get('context_sha256') == hash_json(current_manifest.get('omni_context'))
+                and contract.get('files_sha256') == hash_json({f['path']: f['sha256'] for f in omni_files}),
+                'Current Omni contract evidence required; YAML-only receipts are insufficient')
     require(hash_json(current_manifest) == report['manifest_sha256'] == hash_json(report['manifest']), 'Lint manifest drift')
     require(hash_json(current_target) == report['target_sha256'] == hash_json(report['target']), 'Lint target drift')
     require(_target(current_target) == report['dialect'], 'Lint dialect drift')

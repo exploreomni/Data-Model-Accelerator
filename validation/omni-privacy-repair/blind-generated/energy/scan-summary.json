@@ -1,0 +1,366 @@
+{
+  "items": [
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "AI_REVIEW_NOTES.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "BRONZE.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "DASHBOARD.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "DICTIONARY.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "ERD.mmd",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "ERD.svg",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "GOLD.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "LINT_SCOPE.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "SILVER.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "START_HERE.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "ai-context/AI_CONTEXT.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "ai-context/AI_CONTEXT.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "ai-context/BUILD_REPORT.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "ai-spec.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "catalogue-bindings.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "catalogue-check.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "dashboard-worklist.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "dbt-doc-after-helper-fix.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "dbt-doc-bindings.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "dbt-doc-preview.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "dictionary-v2.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "disclosure-policy.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "guided-summary.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/SETUP.md",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/dbt/dbt_project.yml",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/dbt/models/bronze/bronze_meters.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/dbt/models/bronze/bronze_readings.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/dbt/models/gold/gold_readings.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/dbt/models/proposed-properties.yml",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/dbt/models/silver/silver_meters.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/dbt/models/silver/silver_readings.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/dbt/models/sources.yml",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/dbt/tests/no_orphan_children.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/omni/GENERATION_MANIFEST.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/omni/STATIC_CHECK.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/omni/energy.topic",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/omni/model",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/omni/readings.view",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/static-sql/bronze_meters.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/static-sql/bronze_readings.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/static-sql/gold_readings.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/static-sql/no_orphan_children.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/static-sql/silver_meters.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "implementation/static-sql/silver_readings.sql",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "input-boundary.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "lint-manifest.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "lint-summary.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "lint-target.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "local-checks-final.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "local-results.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "looker-canonical.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "model-inventory.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "omni-context.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "omni-files.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "omni-generation-check.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "omni-generation-spec.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "placement.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "source-inventory.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "synthetic-catalogue.json",
+      "status": "clear"
+    },
+    {
+      "coverage_complete": true,
+      "findings": [],
+      "path": "synthetic-review.json",
+      "status": "clear"
+    }
+  ],
+  "kind": "bounded_local_scan_summary",
+  "native_access_or_disclosure_approval": false
+}

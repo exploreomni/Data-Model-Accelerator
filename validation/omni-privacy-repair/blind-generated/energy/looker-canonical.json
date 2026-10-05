@@ -1,0 +1,374 @@
+{
+  "assurance": "Read-only source extraction; no execution, translation, approval or native qualification.",
+  "coverage": {
+    "basis": "none",
+    "checks": [
+      {
+        "code": "coverage.expected_inventory_missing",
+        "passed": false
+      }
+    ],
+    "independence_authenticated": false,
+    "limitations": [
+      "An external inventory declaration is not authenticated source execution evidence.",
+      "Inventory agreement does not resolve LookML, query, visualization or business behavior gaps."
+    ],
+    "observed": {
+      "dashboard_id": "energy-source",
+      "filter_count": 1,
+      "filter_ids": [
+        "energy-date"
+      ],
+      "tile_count": 3,
+      "tile_ids": [
+        "energy-total",
+        "energy-detail",
+        "energy-note"
+      ]
+    },
+    "status": "unknown"
+  },
+  "dependencies": [
+    {
+      "id": "energy-q1",
+      "kind": "query",
+      "source_path": "/dashboard_elements/0/query",
+      "source_payload_sha256": "35ffbec1a0f68cf3715c7275a9e699d2854502fba209e865e89444aa1be59ee0",
+      "status": "embedded"
+    },
+    {
+      "id": {
+        "explore": "readings",
+        "model": "energy"
+      },
+      "kind": "lookml_explore",
+      "source_path": "/dashboard_elements/0/query",
+      "source_payload_sha256": null,
+      "status": "unresolved"
+    },
+    {
+      "id": "energy-q2",
+      "kind": "query",
+      "source_path": "/dashboard_elements/1/query",
+      "source_payload_sha256": "684a813a7e2a9501e7ce860d721f16f42f49a203d0a4786742fcf633cfdf3917",
+      "status": "embedded"
+    },
+    {
+      "id": {
+        "explore": "readings",
+        "model": "energy"
+      },
+      "kind": "lookml_explore",
+      "source_path": "/dashboard_elements/1/query",
+      "source_payload_sha256": null,
+      "status": "unresolved"
+    }
+  ],
+  "filters": [
+    {
+      "id": "energy-date",
+      "source_path": "/dashboard_filters/0",
+      "source_payload": {
+        "default_value": "2026-02-01",
+        "id": "energy-date",
+        "name": "Date",
+        "type": "date_filter"
+      },
+      "source_payload_sha256": "627336a9b9a9fddd0f6f02d0828e122540b1c13882e7bbde469fe2d83b918d07"
+    }
+  ],
+  "gaps": [
+    {
+      "code": "dependency.lookml_explore_unresolved",
+      "source_path": "/dashboard_elements/0/query"
+    },
+    {
+      "code": "dependency.lookml_explore_unresolved",
+      "source_path": "/dashboard_elements/1/query"
+    },
+    {
+      "code": "source.api_version_unverified",
+      "source_path": "/provenance/api_version"
+    },
+    {
+      "code": "coverage.unknown",
+      "source_path": "/coverage"
+    }
+  ],
+  "input_integrity": {
+    "original_bytes_sha256": "9b53eae373a8bb05eb5a166cd18bbb50c0d97883bfb1d93d6f58e85000a4c0cc"
+  },
+  "kind": "canonical_dashboard",
+  "layouts": [
+    {
+      "id": "energy-layout",
+      "source_path": "/dashboard_layouts/0",
+      "source_payload": {
+        "active": true,
+        "dashboard_layout_components": [
+          {
+            "column": 0,
+            "dashboard_element_id": "energy-total",
+            "height": 4,
+            "id": "energy-layout-0",
+            "row": 0,
+            "width": 12
+          },
+          {
+            "column": 0,
+            "dashboard_element_id": "energy-detail",
+            "height": 4,
+            "id": "energy-layout-1",
+            "row": 4,
+            "width": 12
+          },
+          {
+            "column": 0,
+            "dashboard_element_id": "energy-note",
+            "height": 4,
+            "id": "energy-layout-2",
+            "row": 8,
+            "width": 12
+          }
+        ],
+        "id": "energy-layout"
+      },
+      "source_payload_sha256": "8cc9d6c0273d97c0bda0707a75c5d6a1f4c376dc853d4255cc64b20190e8e956"
+    }
+  ],
+  "provenance": {},
+  "schema_version": 1,
+  "source": {
+    "contract_reference": "https://cloud.google.com/looker/docs/reference/looker-api/latest/methods/Dashboard/dashboard",
+    "dashboard_id": "energy-source",
+    "dashboard_sha256": "9012d00d443265c6222d41e14179859440e16052a556ffa588ae44957e3b6800",
+    "format": "looker_api_dashboard",
+    "hash_encoding": "canonical_json",
+    "payload_sha256": "9012d00d443265c6222d41e14179859440e16052a556ffa588ae44957e3b6800",
+    "platform": "looker",
+    "source_path": "/"
+  },
+  "source_payload": {
+    "dashboard_elements": [
+      {
+        "id": "energy-total",
+        "listen": {
+          "Date": "readings.recorded_on"
+        },
+        "query": {
+          "fields": [
+            "readings.total_kwh"
+          ],
+          "filters": {
+            "readings.recorded_on": "2026-02-01"
+          },
+          "id": "energy-q1",
+          "limit": "500",
+          "model": "energy",
+          "view": "readings"
+        },
+        "type": "vis"
+      },
+      {
+        "id": "energy-detail",
+        "listen": {
+          "Date": "readings.recorded_on"
+        },
+        "query": {
+          "fields": [
+            "readings.recorded_on",
+            "readings.total_kwh"
+          ],
+          "filters": {
+            "readings.recorded_on": "2026-02-01"
+          },
+          "id": "energy-q2",
+          "limit": "500",
+          "model": "energy",
+          "sorts": [
+            "readings.recorded_on asc"
+          ],
+          "view": "readings"
+        },
+        "type": "vis"
+      },
+      {
+        "body_text": "Synthetic exercise. Native data freshness and business acceptance are pending.",
+        "id": "energy-note",
+        "type": "text"
+      }
+    ],
+    "dashboard_filters": [
+      {
+        "default_value": "2026-02-01",
+        "id": "energy-date",
+        "name": "Date",
+        "type": "date_filter"
+      }
+    ],
+    "dashboard_layouts": [
+      {
+        "active": true,
+        "dashboard_layout_components": [
+          {
+            "column": 0,
+            "dashboard_element_id": "energy-total",
+            "height": 4,
+            "id": "energy-layout-0",
+            "row": 0,
+            "width": 12
+          },
+          {
+            "column": 0,
+            "dashboard_element_id": "energy-detail",
+            "height": 4,
+            "id": "energy-layout-1",
+            "row": 4,
+            "width": 12
+          },
+          {
+            "column": 0,
+            "dashboard_element_id": "energy-note",
+            "height": 4,
+            "id": "energy-layout-2",
+            "row": 8,
+            "width": 12
+          }
+        ],
+        "id": "energy-layout"
+      }
+    ],
+    "id": "energy-source",
+    "title": "Synthetic energy"
+  },
+  "tiles": [
+    {
+      "calculations": [],
+      "filter_listeners": [
+        {
+          "source_path": "/dashboard_elements/0/listen",
+          "value": {
+            "Date": "readings.recorded_on"
+          }
+        }
+      ],
+      "id": "energy-total",
+      "kind": "data",
+      "query": {
+        "fields": [
+          "readings.total_kwh"
+        ],
+        "filters": {
+          "readings.recorded_on": "2026-02-01"
+        },
+        "id": "energy-q1",
+        "limit": "500",
+        "model": "energy",
+        "view": "readings"
+      },
+      "query_source_path": "/dashboard_elements/0/query",
+      "references": {},
+      "source_path": "/dashboard_elements/0",
+      "source_payload": {
+        "id": "energy-total",
+        "listen": {
+          "Date": "readings.recorded_on"
+        },
+        "query": {
+          "fields": [
+            "readings.total_kwh"
+          ],
+          "filters": {
+            "readings.recorded_on": "2026-02-01"
+          },
+          "id": "energy-q1",
+          "limit": "500",
+          "model": "energy",
+          "view": "readings"
+        },
+        "type": "vis"
+      },
+      "source_payload_sha256": "430946dee66846eecbe8f3d61f4efb467b6c8529dee94a707568e7dd8818794a",
+      "text": {},
+      "visualizations": []
+    },
+    {
+      "calculations": [],
+      "filter_listeners": [
+        {
+          "source_path": "/dashboard_elements/1/listen",
+          "value": {
+            "Date": "readings.recorded_on"
+          }
+        }
+      ],
+      "id": "energy-detail",
+      "kind": "data",
+      "query": {
+        "fields": [
+          "readings.recorded_on",
+          "readings.total_kwh"
+        ],
+        "filters": {
+          "readings.recorded_on": "2026-02-01"
+        },
+        "id": "energy-q2",
+        "limit": "500",
+        "model": "energy",
+        "sorts": [
+          "readings.recorded_on asc"
+        ],
+        "view": "readings"
+      },
+      "query_source_path": "/dashboard_elements/1/query",
+      "references": {},
+      "source_path": "/dashboard_elements/1",
+      "source_payload": {
+        "id": "energy-detail",
+        "listen": {
+          "Date": "readings.recorded_on"
+        },
+        "query": {
+          "fields": [
+            "readings.recorded_on",
+            "readings.total_kwh"
+          ],
+          "filters": {
+            "readings.recorded_on": "2026-02-01"
+          },
+          "id": "energy-q2",
+          "limit": "500",
+          "model": "energy",
+          "sorts": [
+            "readings.recorded_on asc"
+          ],
+          "view": "readings"
+        },
+        "type": "vis"
+      },
+      "source_payload_sha256": "cbc34dc2b46572795b8ed805ae6e7f00e4acffdbf2ee8a109fc6b76bc4690c05",
+      "text": {},
+      "visualizations": []
+    },
+    {
+      "calculations": [],
+      "filter_listeners": [],
+      "id": "energy-note",
+      "kind": "text",
+      "query": null,
+      "query_source_path": null,
+      "references": {},
+      "source_path": "/dashboard_elements/2",
+      "source_payload": {
+        "body_text": "Synthetic exercise. Native data freshness and business acceptance are pending.",
+        "id": "energy-note",
+        "type": "text"
+      },
+      "source_payload_sha256": "662a812f5a422e4a9e519c2e124e2303d65405b45d2c57ec4cd1396386211aa1",
+      "text": {
+        "body_text": "Synthetic exercise. Native data freshness and business acceptance are pending."
+      },
+      "visualizations": []
+    }
+  ]
+}

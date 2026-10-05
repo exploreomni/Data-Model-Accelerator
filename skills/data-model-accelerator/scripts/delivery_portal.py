@@ -48,6 +48,41 @@ def _native_omni_artifact(path):
     return path.suffix.lower() in {'.view', '.topic'} or path.name in {'model', 'relationships'}
 
 
+def _check_disclosure_bytes(content, filename):
+    from sensitive_data import scan_bytes
+    report = scan_bytes(content, filename)
+    require(report['status'] == 'clear',
+            'Disclosure scan blocked this output; inspect value-free scan findings in the approved environment.')
+    return {'status': report['status'], 'artifact_sha256': report['artifact_sha256'],
+            'assurance': 'Bounded content scan only; classification and destination approval remain required.'}
+
+
+def _check_share_policy(state, review, selected, data, audience):
+    """New scoped engagements require classified, audience-bound disclosure.
+
+    Legacy candidates retain scan-only assurance; they acquire no acceptance or
+    deployment authority. Policy JSON is supplied review evidence, not a signature.
+    """
+    if not state.get('answers', {}).get('migration_scope'):
+        return 'legacy_candidate_no_disclosure_approval'
+    from privacy_contract import evaluate_disclosure
+    from sensitive_data import scan_bytes
+    contract = review.get('disclosure', {})
+    require(isinstance(contract, dict) and contract.get('audience') == audience,
+            'A reviewed disclosure contract for this audience is required')
+    classifications = contract.get('artifacts', {})
+    require(isinstance(classifications, dict), 'Artifact classifications required')
+    for artifact in selected:
+        report = scan_bytes(artifact['content'], artifact['path'])
+        decision = evaluate_disclosure(classifications.get(artifact['id']), contract.get('policy'), 'share', report)
+        require(decision['allowed'], 'Artifact disclosure policy is unresolved or denied')
+    projected = _json_bytes(data)
+    decision = evaluate_disclosure(contract.get('presentation'), contract.get('policy'), 'share',
+                                   scan_bytes(projected, 'review.json'))
+    require(decision['allowed'], 'Review presentation disclosure policy is unresolved or denied')
+    return 'allowed_by_declared_policy_not_authenticated_approval'
+
+
 def _markdown_destination(value):
     """Read an angle-wrapped or balanced Markdown destination, excluding a title."""
     value = value.lstrip()
@@ -498,8 +533,10 @@ def select_artifacts(review, root, audience, include):
             content = stream.read(MAX_ARTIFACT_BYTES + 1)
         require(len(content) <= MAX_ARTIFACT_BYTES, 'Artifact grew beyond the size limit')
         require(_sha(content) == record.get('sha256'), 'Artifact changed: ' + record['id'])
+        require(not content.startswith(b'PK'), 'Nested archives cannot be disguised as text artifacts')
         if native_omni:
             require('\x00' not in content.decode('utf-8'), 'Native Omni artifacts must be UTF-8 model text')
+        _check_disclosure_bytes(content, str(relative))
         if relative.suffix.lower() == '.svg':
             _validate_svg(content)
         total += len(content)
@@ -700,7 +737,9 @@ def _summary(state):
     platform=readiness.get('platform', {})
     # Explicit projection: never embed absolute roots, full state, answers JSON or receipts.
     delivery = state.get('delivery', {})
+    from delivery_assurance import pending_summary
     return {'engagement_id':state.get('engagement_id','Unassigned'), 'revision':state.get('revision',0),
+            'delivery_assurance': pending_summary(answers.get('migration_scope')),
             'context_sha256':context_fingerprint(state),
             'delivery':{key:delivery[key] for key in ('status','artifact_count','assurance','audience','deliverables','qualification') if key in delivery},
             'status':state.get('status','discovery'), 'source_fingerprint':source_fingerprint(state),
@@ -874,7 +913,9 @@ def render_engagement(state, output_path, review=None):
     _select_metadata_evidence(data, [])
     if review and review.get('models'):
         data['diagrams']=diagram_views(review['models'],review.get('relationships',[]))
-    _atomic_write(output_path,_html(data).encode('utf-8'),overwrite=True)
+    rendered = _html(data).encode('utf-8')
+    _check_disclosure_bytes(rendered, 'START_HERE.html')
+    _atomic_write(output_path,rendered,overwrite=True)
     return str(output_path)
 
 
@@ -915,6 +956,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         data['review'].pop('validation',None)
     if 'diagrams' in include and data['review'].get('models'):
         data['diagrams']=diagram_views(data['review']['models'],data['review'].get('relationships',[]))
+    disclosure = _check_share_policy(state, review, selected, data, audience)
     files={a['destination']:a['content'] for a in selected}
     for artifact in selected:
         data['files'].append({'id':artifact['id'],'path':artifact['destination'],'category':artifact['category'],
@@ -922,7 +964,14 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
                               'sha256':artifact['sha256'],'size':len(artifact['content']),
                               'base64':base64.b64encode(artifact['content']).decode()})
     files['START_HERE.html']=_html(data).encode('utf-8')
+    scans = {name: _check_disclosure_bytes(body, name) for name, body in files.items()}
     manifest={'schema_version':1,'kind':'portable_delivery_integrity','engagement_id':state['engagement_id'],
+              'export_origin': 'agent_packager',
+              'disclosure_scans': scans,
+              'migration_scope': state.get('answers', {}).get('migration_scope'),
+              'acceptance_ready': False,
+              'deployment_authorized': False,
+              'disclosure_policy_status': disclosure,
               'source_fingerprint':source_fingerprint(state),'context_sha256':context_fingerprint(state),
               'target':review['target'],'audience':audience,
               'deliverables':sorted(include),'authority':'File integrity only; not execution, business approval or deployment.',
@@ -934,7 +983,9 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     with zipfile.ZipFile(stream,'w',compression=zipfile.ZIP_DEFLATED) as archive:
         for name,body in sorted(files.items()):
             archive.writestr(name,body)
-    _atomic_write(output_path,stream.getvalue())
+    payload = stream.getvalue()
+    _check_disclosure_bytes(payload, 'delivery.zip')
+    _atomic_write(output_path,payload)
     return manifest
 
 

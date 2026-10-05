@@ -117,7 +117,7 @@ def create_plan(run_dir, request, policy_path, output):
     from deployment_adapters import validate_target, build_plan
     state, handoff, bindings = _handoff(run_dir, refresh=True)
     allowed = {'schema_version', 'action', 'destination_id', 'release_id', 'commit_sha',
-               'artifacts', 'impact', 'recovery', 'required_checks', 'publication', 'qualification', 'quality', 'metadata_phase'}
+               'artifacts', 'impact', 'recovery', 'required_checks', 'publication', 'qualification', 'quality', 'metadata_phase', 'delivery_assurance'}
     require(type(request) is dict and set(request) <= allowed and type(request.get('schema_version')) is int and request.get('schema_version') == 1, 'Invalid deployment request')
     _assert_public(request)
     action = request.get('action')
@@ -209,6 +209,12 @@ def create_plan(run_dir, request, policy_path, output):
             'selected_artifacts': [{k: v for k, v in a.items() if k != 'content'} for a in artifacts],
             'native': native, 'impact': impact, 'recovery': recovery, 'required_checks': required_checks,
             'qualification': request.get('qualification')}
+    # Legacy plans remain readable; new live releases require refreshed scope
+    # and evidence. Evidence is outside the frozen candidate to avoid self-hashes.
+    plan['migration_scope'] = state['answers'].get('migration_scope')
+    if request.get('delivery_assurance') is not None:
+        from delivery_release import bind_context
+        plan['delivery_assurance'] = bind_context(plan, request['delivery_assurance'])
     if action == 'publish_pr':
         plan['publication_destination'] = publication_identity
     if metadata_binding is not None:
@@ -362,12 +368,27 @@ def _current(plan, policy_path):
         require(plan.get('metadata_required') is True or plan.get('metadata_phase') is not None,
                 'Selected metadata delivery requires its release gate')
     _plan_policy(plan, policy)
+    require(plan.get('migration_scope') == state['answers'].get('migration_scope'), 'Migration scope changed')
+    if plan.get('delivery_assurance') is not None:
+        from delivery_release import current_context
+        current_context(plan)
     for item in plan['artifact_manifest']:
-        require(hash_file(Path(plan['artifact_root']) / relative_path(item['path'])) == item['sha256'], 'Release file changed')
+        _release_bytes(plan, item)
     if plan.get('quality') is not None:
         from release_quality import verify_quality
         verify_quality(plan, handoff)
     return policy
+
+
+def _release_bytes(plan, item, *, root=None):
+    """Inspect exactly the stable bytes bound by the complete frozen manifest."""
+    path = relative_path(item['path'])
+    data = _stable_bytes(Path(root or plan['artifact_root']) / path)
+    require(hashlib.sha256(data).hexdigest() == item['sha256'], 'Release file changed')
+    from sensitive_data import scan_bytes
+    require(scan_bytes(data, path)['status'] == 'clear',
+            'Release disclosure scan blocked; inspect value-free findings in the approved environment')
+    return data
 
 
 def _journal_key(policy):
@@ -461,13 +482,12 @@ def _snapshot(plan, root):
             if path.is_file() and path.relative_to(snapshot).as_posix() not in allowed:
                 require(path.parts[len(snapshot.parts)] in {'target', 'logs', '.databricks'}, 'Unexpected file appeared in runner snapshot')
         for item in plan['artifact_manifest']:
-            require(hash_file(snapshot / relative_path(item['path'])) == item['sha256'], 'Runner snapshot drift')
+            _release_bytes(plan, item, root=snapshot)
         return snapshot
     snapshot.mkdir(parents=True, mode=0o700)
     for item in plan['artifact_manifest']:
         relative = relative_path(item['path'])
-        data = _stable_bytes(Path(plan['artifact_root']) / relative)
-        require(hashlib.sha256(data).hexdigest() == item['sha256'], 'Artifact changed during snapshot')
+        data = _release_bytes(plan, item)
         path = snapshot / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         workflow._atomic_write(path, data, replace=False)
@@ -667,6 +687,8 @@ def _approval(plan, policy, model_signoff, approval):
                       'target_sha256': digest(plan['target']), 'runtime_version': plan['target']['runtime_version']})
         require(qualified.get('claims', {}).get('development_deployed_verified') is True and
                 qualified.get('claims', {}).get('recovery_rehearsed') is True, 'Promotion qualification is incomplete')
+    from delivery_release import require_release
+    require_release(plan, policy, excluded_issuers={model['issuer'], deploy['issuer']})
     return model, deploy
 
 
@@ -823,6 +845,13 @@ def accept(policy_path, operation_id, attestation):
             from metadata_release import verify_acceptance
             record['metadata_verification'] = verify_acceptance(plan, record, policy, accepted.get('claims', {}))
         record['acceptance'] = attestation
+        # Execution acceptance never silently becomes migration acceptance.
+        record['migration_acceptance_ready'] = False
+        if plan.get('delivery_assurance') is not None:
+            from delivery_release import require_release
+            readiness = require_release(plan, policy, excluded_issuers={
+                record['model_signoff']['payload']['issuer'], record['approval']['payload']['issuer']})
+            record['migration_acceptance_ready'] = readiness['acceptance_ready']
         record['state'] = 'deployed_verified' if record['mode'] == 'live' else 'simulation_verified'
         return _save_record(root, record, policy, 'independent_acceptance_verified')
 

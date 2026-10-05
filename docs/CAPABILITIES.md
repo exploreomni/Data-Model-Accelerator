@@ -44,7 +44,7 @@ Independent metadata exports are reconciled against the full physical scope, the
 | Source | Current evidence | Material gaps |
 | --- | --- | --- |
 | Existing dbt | Discovery, dependency/refactor contracts, local dbt execution and independent retail/rental exercises | Unseen macros/packages, state/defer patterns, snapshots, incremental behavior and customer CI need qualification |
-| Looker | LookML parsing and a bounded source-to-warehouse/Omni replay | Native Looker behavior and arbitrary LookML are not fully reproduced |
+| Looker | Bounded LookML replay plus Dashboard API 4 JSON extraction of IDs, tiles, queries, filters/listeners, layouts, calculation payloads and explicit gaps | Export counts are not independently authenticated completeness; merged queries, SQL Runner, missing LookML and arbitrary runtime behavior remain explicit gaps |
 | Hex | Pinned native YAML schema, cell/component identity, supported SQL/Python dependency extraction and three-workbook replay | Arbitrary Python, external inputs, interactive app and native Hex behavior |
 | Tableau | Bounded TWB/TDS XML and TWBX inspection, worksheet/filter/calculation identity and local replay | Extracts, published sources, blending/relationships, Prep, actions and native runtime; official XSD compilation has documented gaps |
 | Power BI | Supported PBIP/TMSL/enhanced-PBIR structure, M/DAX/role/filter references and local replay | PBIX/TMDL, arbitrary M/DAX, service membership and native Desktop/service behavior |
@@ -54,6 +54,35 @@ Independent metadata exports are reconciled against the full physical scope, the
 | Raw CSV snapshots | Exact file hashes, headers, bounded logical counts, source-only modeling trial | No live catalogue, ingestion history, owner definitions or reporting baseline established |
 
 Unrecognized formats remain explicit. A CSV inside an existing dbt project retains its source ownership; it does not turn the engagement into a raw-only new build. An incomplete migration cannot switch modes merely to bypass missing comparison evidence.
+
+## Executable Omni and privacy controls
+
+| Surface | Implemented local behavior | What remains outside that proof |
+| --- | --- | --- |
+| Input and output disclosure | Bounded scanner, overlapping PII/PCI/PHI classifications, conservative lineage, destination policy, private pre-agent staging and exact rendered/ZIP scans | Universal DLP, authenticated policy owners, and protected source-to-LLM isolation on arbitrary hosts |
+| Omni model generation | Deterministic emission from explicit reviewed mappings, strict YAML, pinned physical bindings, supported field/type/reference/relationship/topic checks | Arbitrary native syntax, authenticated business review, tenant acceptance |
+| Native model adapter | Scoped validation/update/query requests, exact remote state checks, explicit HTTP-body errors, durable recovery and private result handling | Live qualification and independent acceptance; injected transports remain simulation |
+| Dashboard migration | Reparsed source-bound facet accounting, required manual dispositions, existing-document draft-only adapter with exact readback | Automatic new-document publication, universal importer support, browser behavior or visual parity from readback alone |
+| AI context | Approved definitions bound to exact gold dictionary columns, separate unresolved questions, disclosure projection and frozen structured-answer comparison | Truth of unrestricted prose, real AI-session provenance and effective persona enforcement |
+| Access migration | Nonweakening checks, complete allowed/denied persona path contracts, imported state and result comparison for six warehouses | Native policy provisioning, GRANT/REVOKE, authenticated live observations or protected deployment from imported JSON |
+| Guided review | Scope-aware evidence lanes and next actions; candidate status; selected browser exports verify artifact hashes and disclose absent fresh scanning | Approval, fresh content scanning inside the browser, or release authority |
+
+Use the [privacy](../skills/data-model-accelerator/references/sensitive-data.md),
+[Omni static](../skills/data-model-accelerator/references/omni-static-contract.md),
+[native model](../skills/data-model-accelerator/references/omni-native-validation.md),
+[dashboard](../skills/data-model-accelerator/references/omni-dashboard-native.md),
+[AI context](../skills/data-model-accelerator/references/omni-ai-context.md),
+[parity](../skills/data-model-accelerator/references/migration-parity.md), and
+[access](../skills/data-model-accelerator/references/access-enforcement.md) contracts
+for the exact supported subsets and runtime requirements. A vendor capability
+being documented does not mean the accelerator has qualified its execution.
+
+Completion scope is explicit: `model_only`, `model_semantic`, or `full_dashboard`.
+The shared evidence evaluator keeps source coverage, classification, input
+egress, warehouse execution, data parity, access, output disclosure and business
+acceptance separate; semantic and dashboard scopes add their required lanes.
+The [release evidence contract](../skills/data-model-accelerator/references/delivery-release.md)
+defines the authority boundary. An offline HTML page cannot authenticate a pass.
 
 ## Implementation targets
 

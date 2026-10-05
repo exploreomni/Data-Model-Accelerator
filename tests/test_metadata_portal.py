@@ -83,7 +83,7 @@ class MetadataPortalTests(unittest.TestCase):
         self.assertEqual(value['counts']['resources_required'], 1)
         self.assertEqual(value['counts']['columns_required'], 1)
         self.assertEqual(value['counts']['observed_columns'], 1)
-        self.assertEqual(value['counts']['unknown_sensitivity_columns'], 1)
+        self.assertEqual(value['counts']['unknown_sensitivity_columns'], 0)
         self.assertEqual(value['changes'][0]['before'], None)
         self.assertEqual(value['changes'][0]['after'], plan['operations'][0]['after'])
         self.assertEqual(value['sequence'], plan['phases'])
@@ -204,7 +204,7 @@ class MetadataPortalTests(unittest.TestCase):
         for prefix in ['{"schema_version":1,', '{"extra":NaN,']:
             with self.subTest(prefix=prefix):
                 self.register(body=(prefix + json.dumps(plan)[1:]).encode())
-                with self.assertRaisesRegex(ValueError, 'unambiguous'):
+                with self.assertRaisesRegex(ValueError, 'Disclosure scan'):
                     self.package()
 
     def test_zip_summary_tampering_is_rejected_even_with_new_integrity_hash(self):

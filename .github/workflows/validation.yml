@@ -37,6 +37,10 @@ jobs:
       - run: python -m pip install -r skills/data-model-accelerator/scripts/requirements-deployment.txt
       - run: python skills/data-model-accelerator/scripts/bootstrap_hex_schema.py
       - run: python -m unittest discover -s tests -p 'test_deployment*.py' -v
+      - name: Signed delivery and exact-byte release gates
+        run: python -m unittest discover -s tests -p 'test_delivery_release*.py' -v
+      - name: Access policy and persona contracts
+        run: python -m unittest discover -s tests -p 'test_security_contract*.py' -v
   lint-contracts:
     runs-on: ubuntu-latest
     steps:

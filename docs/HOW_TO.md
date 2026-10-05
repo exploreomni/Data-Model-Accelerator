@@ -46,6 +46,18 @@ Replace the paths and choices in this example with your actual selections:
 
 Choose these independently: **source formats, agent host, transformation framework, warehouse, semantic engine, and execution scope**. Detecting a dbt or Looker source does not choose the destination. “GCP” needs a specific service, such as BigQuery. Omni is optional. Use the [platform matrix](PLATFORM_MATRIX.md) to distinguish candidate authoring from qualified native execution; Coalesce requires a representative versioned native project contract.
 
+Also select the completion scope: `model_only` for the warehouse model,
+`model_semantic` for the model and Omni semantic layer, or `full_dashboard` for
+dashboard migration as well. Reuse a choice already supplied. If you choose a
+full dashboard migration, topic files alone cannot complete it: tile, filter,
+listener, layout, interaction and access evidence remain in scope.
+
+Before giving source content to any agent, establish the classification and
+approved input boundary with the [sensitive-data guide](../skills/data-model-accelerator/references/sensitive-data.md).
+Unknown fields require review; labels such as PII or PHI do not themselves mask
+values. The portable staging route supports reviewed, pre-sanitized inputs and
+does not establish protected-data isolation on every coding-agent host.
+
 Use an absolute canonical source path and a separate new run folder. The source can be an existing repository or a narrowly scoped folder of raw CSV extracts. Do not point at a home directory or an account's entire export. Keep profiles, credentials and private keys outside the inspected scope. The collector reports excluded, unreadable, oversized and unsupported inputs; an incomplete inventory remains incomplete.
 
 The agent starts the saved workflow from the accelerator root:
@@ -57,6 +69,12 @@ python3 skills/data-model-accelerator/scripts/guided_workflow.py start \
 ```
 
 Open the resulting `START_HERE.html`. The helper reads source files without running or changing their code. It writes `state.json`, retained revisions and an offline guide. It does not generate the complete model on its own; the host agent performs the modeling work through the skill.
+
+The page visibly labels the delivery as a candidate. Under **Check the evidence**,
+review the selected scope and each required lane's next action. Local lint,
+native model validation, dashboard readback, query parity, access checks, AI
+answers and business acceptance answer different questions. An imported pass or
+an attractive ERD cannot supply a missing check.
 
 ## Include metadata in the delivery
 
@@ -138,6 +156,30 @@ Validation should establish more than a matching grand total:
 - Effective access boundaries and deliberately introduced defects that the relevant assertion detects.
 
 Freeze the input, model and environment versions with the evidence. Preserve failed attempts and explain repairs. If an SME intentionally changes a definition, version the definition and independent expectations; do not silently overwrite the old comparison. The [dbt qualification guide](../skills/data-model-accelerator/references/dbt-qualification.md) defines the full-build artifact association. Some real projects exceed the bundled executor's scope and need their existing qualified CI/operator path.
+
+For Looker-to-Omni work, use the [Omni delivery sequence](../skills/data-model-accelerator/references/omni-delivery.md).
+Reconcile the source export denominator before generating a reviewed dashboard
+mapping. Retain manual steps for unsupported features. Native validation and
+draft readback require the exact approved destination; dashboard behavior still
+needs separate tests. The implemented writer attaches a draft to an existing
+document and does not publish or replace the current published dashboard.
+
+Build AI context only from reviewed definitions with exact gold-column mappings.
+Leave ambiguous meanings as questions. Use the [AI context builder and evaluation
+contract](../skills/data-model-accelerator/references/omni-ai-context.md) to freeze
+persona questions, allowed fields, definitions, clarification and refusal cases.
+Imported structured answers are useful comparisons; they do not prove that a
+live AI answered correctly. Use the [access contract](../skills/data-model-accelerator/references/access-enforcement.md)
+for native state and allowed/denied persona evidence; documentation and tags
+alone do not enforce security.
+
+When downloading fewer categories from the browser, the new ZIP verifies the
+selected embedded file hashes. It is a new candidate with a newly rendered HTML
+page, and its manifest states that no new content scan or disclosure review ran
+in the browser. Return that exact ZIP to the agent for scanning and destination
+review before sharing or deployment. File-integrity verification alone does not
+clear it for release. Follow the [release evidence contract](../skills/data-model-accelerator/references/delivery-release.md)
+for version-bound acceptance and separate destination authorization.
 
 Keep four lanes visible: code conventions, project validity, native warehouse validation and data accuracy. [Static lint](LINTING.md) can expose syntax/style problems; it cannot establish native behavior. Local DuckDB success is local evidence. Offline adapter compilation is not a Snowflake account build. Neither proves SME acceptance.
 

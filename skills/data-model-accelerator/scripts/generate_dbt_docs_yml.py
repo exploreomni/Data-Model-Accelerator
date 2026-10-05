@@ -284,7 +284,10 @@ def generate_project(project, dictionary, bindings, *, previous_manifest=None, o
     scopes = []
     for key, default in (('model-paths', ['models']), ('seed-paths', ['seeds']), ('snapshot-paths', ['snapshots'])):
         paths = config.get(key, default)
-        _need(type(paths) is list and paths and all(_text(path) for path in paths), 'Templated/nonliteral resource paths require manual review')
+        # The round-trip YAML loader returns CommentedSeq (a list subclass).
+        # Preserve ordinary authored YAML sequences while still rejecting maps,
+        # nested values and templated paths below.
+        _need(isinstance(paths, list) and paths and all(_text(path) for path in paths), 'Templated/nonliteral resource paths require manual review')
         scopes.extend(_relative(path) for path in paths)
     for item, _, _ in rows:
         _need(any(item['property_path'].startswith(scope + '/') for scope in scopes), 'Property binding is outside declared resource paths')

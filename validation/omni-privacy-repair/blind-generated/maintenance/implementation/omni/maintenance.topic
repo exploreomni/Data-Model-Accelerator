@@ -1,0 +1,11 @@
+base_view: work_orders
+fields:
+- work_orders.work_order_id
+- work_orders.tenant_id
+- work_orders.opened_on
+- work_orders.labor_cost
+- work_orders.status
+- work_orders.parts_cost
+- work_orders.work_cost
+- work_orders.total_work_cost
+joins: {}

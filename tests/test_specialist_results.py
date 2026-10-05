@@ -69,6 +69,27 @@ class SpecialistResultTests(unittest.TestCase):
         self.assertFalse(report["extraction_complete"])
         self.assertEqual(report["tasks_returned"], 1)
 
+    def test_json_dashboard_cannot_claim_parsed_without_canonical_extraction(self):
+        payload = {'id': 'd1', 'title': 'Example', 'dashboard_elements': [
+            {'id': 't1', 'type': 'text', 'body_text': 'Review notes'}],
+            'dashboard_filters': [], 'dashboard_layouts': []}
+        source = self.repo / 'dashboard.json'
+        source.write_text(json.dumps(payload))
+        asset = self.assets[1]
+        asset.update(path='dashboard.json', sha256=checker.digest(source))
+        self.inventory_path.write_text(json.dumps(self.inventory))
+        self.plan['source_snapshot_sha256'] = checker.digest(self.inventory_path)
+        for result in self.results.values():
+            result['source_snapshot_sha256'] = self.plan['source_snapshot_sha256']
+        self.assertTrue(any('Missing canonical dashboard' in e for e in self.check()['errors']))
+        canonical = checker.parse_dashboard(payload)
+        self.results['looker']['dashboard_contracts'] = {'looker-asset': canonical}
+        report = self.check()
+        self.assertFalse(report['errors'], report)
+        self.assertFalse(report['extraction_complete'])
+        canonical['tiles'] = []
+        self.assertTrue(any('differs from source' in e for e in self.check()['errors']))
+
     def test_changed_source_invalidates_dispatch(self):
         (self.repo / "dbt.txt").write_text("select an_unreviewed_metric")
         report = self.check()

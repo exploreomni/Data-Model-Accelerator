@@ -16,6 +16,8 @@ Read [source-specialists.md](source-specialists.md) only for detected source typ
 
 ## 2. Execute source specialists
 
+Apply [sensitive-data.md](sensitive-data.md) before dispatch. Stage only approved, scanned inputs with `prepare_agent_input.py`; a task prompt is not host isolation. Protected raw inputs require a separately qualified host boundary. Treat unknown classifications, denied destinations and incomplete scan coverage as blocking the affected disclosure. Preserve originals and keep generated projections in the approved retention boundary.
+
 Use the host's actual subagent/delegation mechanism when available. Do not stop after generating the plan: invoke each runnable task with its source-specific prompt and bounded input scope, wait for its result, and verify the returned files. Only the primary orchestrator writes the integrated model or placement plan. Source agents write only their assigned result file/work folder outside the input repository.
 
 - Reuse a matching live specialist for the same task/snapshot. Never dispatch duplicate work because its first result is slow.
@@ -31,6 +33,8 @@ If the host lacks delegation, perform the same source-specific passes sequential
 ## 3. Specialist result contract v1
 
 One JSON result per planned task. Every assigned asset appears exactly once in `asset_coverage`, including unsupported files. A readable empty file can be parsed with no objects, but its reason must explain that result. Do not call an unrecognized or binary asset fully parsed.
+
+Supported Looker dashboard JSON additionally requires `dashboard_contracts`, keyed by assigned asset ID, containing the deterministic `looker_source.parse_dashboard` output. Preserve parser gaps rather than rewriting them as successful extraction. The generic result checker validates the canonical source fields but does not authenticate separately claimed source inventory completeness.
 
 ```json
 {
@@ -122,3 +126,36 @@ QA also receives the model inventory, complete dictionary, ERD layer views and a
 Generate warehouse artifacts and semantic artifacts as separate outputs from the same accepted placement version. Each field/rule must trace through source → placement → target → tests → approval. The semantic contract should name the physical relations it expects and the warehouse contract should name exposed fields/grain; a warehouse table alone does not complete a semantic migration.
 
 If only the model is in the requested scope, deliver semantic recommendations and explicit integration requirements rather than silently rebuilding dashboards or publishing semantic objects. Use the review/approval contract in [contracts.md](contracts.md) before any separately authorized promotion.
+
+## 7. Scope-aware completion and release
+
+Keep the retained `model_only`, `model_semantic`, or `full_dashboard` scope with
+the same source, catalogue, candidate, target and policy pins. Use
+`delivery_assurance.py` to preserve separate evidence lanes. Missing evidence is
+pending, unsupported behavior is explicit, and out-of-scope checks alone may be
+not applicable. Reusing an old successful receipt after a definition, destination
+or policy change is not a valid shortcut.
+
+For Omni, run the bounded static checker before requesting native validation.
+The [native adapter](omni-native-validation.md) must bind the actual branch,
+model, connection, identity and current remote state. For dashboards, the
+[mapping builder](omni-dashboard-build.md) accounts for source facets and manual
+steps; the [draft adapter](omni-dashboard-native.md) readback is distinct from
+filter, interaction, layout and access tests. Neither module is a universal
+Looker-to-Omni compiler.
+
+The independent analyst owns the frozen [parity cases](migration-parity.md).
+The semantic reviewer owns the [AI-context projection](omni-ai-context.md) from
+approved gold definitions and the persona question suite. The security reviewer
+owns the [access contract](access-enforcement.md), including metadata visibility,
+inherited controls, allowed and denied paths, masks and missing attributes.
+These roles cannot authenticate their own imported results. Retain actual
+execution identities and use the [release evidence protocol](delivery-release.md)
+for external authority and exact-artifact bindings.
+
+The HTML review is a candidate presentation. Its pending evidence summary cannot
+be replaced with a self-approved JSON flag. Agent-created final packages scan
+selected artifacts, rendered HTML and ZIP bytes. Browser-created subsets record
+their new hashes and explicitly retain `not_run_in_browser` for content scanning.
+Before sharing a subset, have the agent scan its exact bytes and check the
+destination policy again. Preserve the original frozen package and its evidence.

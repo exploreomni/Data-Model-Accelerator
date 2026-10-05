@@ -1,0 +1,68 @@
+{
+  "kind": "portable_receipt_summary",
+  "native_materialization_scope_complete": false,
+  "receipts": [
+    {
+      "attempt": 1,
+      "coverage": {
+        "complete": false,
+        "execution_units": {
+          "checked": 5,
+          "expected": 6,
+          "failed": 1,
+          "skipped": 0,
+          "unsupported": 0
+        },
+        "files": {
+          "checked": 19,
+          "expected": 20,
+          "failed": 1,
+          "skipped": 0,
+          "unsupported": 0
+        }
+      },
+      "findings": [
+        {
+          "findings": [
+            {
+              "code": "LT08",
+              "column": 1,
+              "line": 8,
+              "message": "SQLFluff rule LT08 needs correction or a separately reviewed exception.",
+              "path": "static-sql/gold_work_orders.sql",
+              "severity": "error"
+            }
+          ],
+          "path": "static-sql/gold_work_orders.sql"
+        }
+      ],
+      "note": "Summary only; original immutable receipt retained privately. This summary is not a replacement lint receipt.",
+      "original_receipt_file_sha256": "e7de96fb1bdd12a6c1d6bbf02ccf1c0ecbbc37b5f2742a1ef156ef31df56a9d4",
+      "status": "failed"
+    },
+    {
+      "attempt": 2,
+      "coverage": {
+        "complete": true,
+        "execution_units": {
+          "checked": 6,
+          "expected": 6,
+          "failed": 0,
+          "skipped": 0,
+          "unsupported": 0
+        },
+        "files": {
+          "checked": 20,
+          "expected": 20,
+          "failed": 0,
+          "skipped": 0,
+          "unsupported": 0
+        }
+      },
+      "findings": [],
+      "note": "Summary only; original immutable receipt retained privately. This summary is not a replacement lint receipt.",
+      "original_receipt_file_sha256": "f380d6df1397dc3ed8b56b8b8da6e1c5ff7e03fdc4d322e5b0d356d55ff56283",
+      "status": "passed"
+    }
+  ]
+}

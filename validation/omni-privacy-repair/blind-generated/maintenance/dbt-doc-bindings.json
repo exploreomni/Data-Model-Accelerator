@@ -1,0 +1,216 @@
+{
+  "kind": "dbt_metadata_bindings",
+  "project_name": "maintenance_pilot",
+  "resources": [
+    {
+      "columns": [
+        {
+          "column_id": "bronze_work_orders:WORK_ORDER_ID",
+          "name": "work_order_id"
+        },
+        {
+          "column_id": "bronze_work_orders:TENANT_ID",
+          "name": "tenant_id"
+        },
+        {
+          "column_id": "bronze_work_orders:OPENED_ON",
+          "name": "opened_on"
+        },
+        {
+          "column_id": "bronze_work_orders:LABOR_COST",
+          "name": "labor_cost"
+        },
+        {
+          "column_id": "bronze_work_orders:STATUS",
+          "name": "status"
+        }
+      ],
+      "config_path": [
+        "bronze"
+      ],
+      "model_id": "bronze_work_orders",
+      "name": "bronze_work_orders",
+      "property_path": "models/proposed-properties.yml",
+      "resource_type": "model"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "bronze_parts:PART_LINE_ID",
+          "name": "part_line_id"
+        },
+        {
+          "column_id": "bronze_parts:WORK_ORDER_ID",
+          "name": "work_order_id"
+        },
+        {
+          "column_id": "bronze_parts:QUANTITY",
+          "name": "quantity"
+        },
+        {
+          "column_id": "bronze_parts:UNIT_COST",
+          "name": "unit_cost"
+        }
+      ],
+      "config_path": [
+        "bronze"
+      ],
+      "model_id": "bronze_parts",
+      "name": "bronze_parts",
+      "property_path": "models/proposed-properties.yml",
+      "resource_type": "model"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "silver_work_orders:WORK_ORDER_ID",
+          "name": "work_order_id"
+        },
+        {
+          "column_id": "silver_work_orders:TENANT_ID",
+          "name": "tenant_id"
+        },
+        {
+          "column_id": "silver_work_orders:OPENED_ON",
+          "name": "opened_on"
+        },
+        {
+          "column_id": "silver_work_orders:LABOR_COST",
+          "name": "labor_cost"
+        },
+        {
+          "column_id": "silver_work_orders:STATUS",
+          "name": "status"
+        }
+      ],
+      "config_path": [
+        "silver"
+      ],
+      "model_id": "silver_work_orders",
+      "name": "silver_work_orders",
+      "property_path": "models/proposed-properties.yml",
+      "resource_type": "model"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "silver_parts:PART_LINE_ID",
+          "name": "part_line_id"
+        },
+        {
+          "column_id": "silver_parts:WORK_ORDER_ID",
+          "name": "work_order_id"
+        },
+        {
+          "column_id": "silver_parts:QUANTITY",
+          "name": "quantity"
+        },
+        {
+          "column_id": "silver_parts:UNIT_COST",
+          "name": "unit_cost"
+        }
+      ],
+      "config_path": [
+        "silver"
+      ],
+      "model_id": "silver_parts",
+      "name": "silver_parts",
+      "property_path": "models/proposed-properties.yml",
+      "resource_type": "model"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "gold_work_orders:WORK_ORDER_ID",
+          "name": "work_order_id"
+        },
+        {
+          "column_id": "gold_work_orders:TENANT_ID",
+          "name": "tenant_id"
+        },
+        {
+          "column_id": "gold_work_orders:OPENED_ON",
+          "name": "opened_on"
+        },
+        {
+          "column_id": "gold_work_orders:LABOR_COST",
+          "name": "labor_cost"
+        },
+        {
+          "column_id": "gold_work_orders:STATUS",
+          "name": "status"
+        },
+        {
+          "column_id": "gold_work_orders:PARTS_COST",
+          "name": "parts_cost"
+        },
+        {
+          "column_id": "gold_work_orders:WORK_COST",
+          "name": "work_cost"
+        }
+      ],
+      "config_path": [
+        "gold"
+      ],
+      "model_id": "gold_work_orders",
+      "name": "gold_work_orders",
+      "property_path": "models/proposed-properties.yml",
+      "resource_type": "model"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "source:work_orders:WORK_ORDER_ID",
+          "name": "WORK_ORDER_ID"
+        },
+        {
+          "column_id": "source:work_orders:TENANT_ID",
+          "name": "TENANT_ID"
+        },
+        {
+          "column_id": "source:work_orders:OPENED_ON",
+          "name": "OPENED_ON"
+        },
+        {
+          "column_id": "source:work_orders:LABOR_COST",
+          "name": "LABOR_COST"
+        },
+        {
+          "column_id": "source:work_orders:STATUS",
+          "name": "STATUS"
+        }
+      ],
+      "name": "work_orders",
+      "property_path": "models/sources.yml",
+      "resource_type": "source",
+      "source_id": "source:work_orders",
+      "source_name": "raw_maintenance"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "source:parts:PART_LINE_ID",
+          "name": "PART_LINE_ID"
+        },
+        {
+          "column_id": "source:parts:WORK_ORDER_ID",
+          "name": "WORK_ORDER_ID"
+        },
+        {
+          "column_id": "source:parts:QUANTITY",
+          "name": "QUANTITY"
+        },
+        {
+          "column_id": "source:parts:UNIT_COST",
+          "name": "UNIT_COST"
+        }
+      ],
+      "name": "parts",
+      "property_path": "models/sources.yml",
+      "resource_type": "source",
+      "source_id": "source:parts",
+      "source_name": "raw_maintenance"
+    }
+  ],
+  "schema_version": 1
+}

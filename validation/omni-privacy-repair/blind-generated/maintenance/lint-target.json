@@ -1,0 +1,5 @@
+{
+  "context_sha256": "fa4720803f5bb7116933f27d445a43be8b984c8073df1429b790f030408e3d8d",
+  "framework": "dbt",
+  "warehouse": "snowflake"
+}

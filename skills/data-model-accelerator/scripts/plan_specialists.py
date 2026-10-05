@@ -20,6 +20,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from raw_csv_source import inspect_csv
 from platform_matrix import adapter_registry
+from looker_source import is_looker_dashboard
 
 SOURCE_TYPES = set(adapter_registry()["sources"]) | {"looker", "powerbi", "tableau", "hex", "sigma", "unknown"}
 REVIEW_ROLES = ["warehouse_architect", "semantic_architect", "independent_qa"]
@@ -279,6 +280,8 @@ def classify(assets, texts, profiles, gaps):
         if name == "dbt_project.yml":
             add(relative, "dbt", root, "dbt_project.yml project marker")
         if isinstance(obj, dict):
+            if is_looker_dashboard(obj):
+                add(relative, "looker", root, "Looker dashboard API JSON structural contract; export completeness requires independent evidence")
             metadata = obj.get("metadata")
             if isinstance(metadata, dict) and isinstance(metadata.get("dbt_schema_version"), str) and re.match(r"https://schemas\.getdbt\.com/dbt/manifest/v\d+\.json$", metadata["dbt_schema_version"]) and isinstance(obj.get("nodes"), dict) and isinstance(obj.get("sources"), dict):
                 add(relative, "dbt", root, "versioned dbt manifest metadata with nodes and sources")
@@ -410,6 +413,10 @@ def specialist_prompt(task, inventory, snapshot_hash, run_root):
             "supported by the assigned evidence; return other dependencies as unresolved references. "
             "A project-context or explicit-profile classification does not prove complete native coverage. "
             "Unknown/generic SQL assignments must not invent vendor identity.\n\n"
+            "For Looker dashboard JSON, run looker_source.py on the approved staged input. "
+            "Attach the canonical dashboard contract and source hash to dashboard_contracts in the result. "
+            "Preserve every tile/filter and dependency gap. Export completeness requires an independent "
+            "expected inventory; operator declarations and local parsing are not source-observed completeness.\n\n"
             "Raw CSV assignments use references/raw-csv-source-contract.md: inspect metadata only, "
             "never emit source row values or infer native types, business definitions or warehouse identity. "
             "Report metadata scope separately from partial/unknown semantic coverage. A dbt-owned CSV "

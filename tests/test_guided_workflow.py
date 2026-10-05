@@ -81,6 +81,9 @@ class GuidedWorkflowTests(unittest.TestCase):
                   'artifacts': [{'id': 'orders', 'path': 'orders.sql', 'category': 'implementation',
                                  'audiences': ['engineer'], 'sha256': hashlib.sha256(body).hexdigest()}]}
         path = self.root / 'review.json'
+        if state['answers'].get('migration_scope'):
+            from disclosure_fixtures import synthetic_disclosure
+            review['disclosure'] = synthetic_disclosure(['orders'])
         path.write_text(json.dumps(review))
         return path, root
 
@@ -181,7 +184,7 @@ class GuidedWorkflowTests(unittest.TestCase):
         original = b'order_id,amount\n001,12.50\n002,0.00\n'
         (raw / 'orders.csv').write_bytes(original)
         with patch.object(workflow, '_assess_repository', assess_repository):
-            state = workflow.start_engagement(raw, self.run, dict(BASE, semantic_target='omni'), catalogue=self.catalogue)
+            state = workflow.start_engagement(raw, self.run, dict(BASE, semantic_target='omni', migration_scope='model_semantic', input_handling='pre_sanitized'), catalogue=self.catalogue)
             self.assertEqual(state['status'], 'candidate_preparation_ready')
             inventory = state['readiness']['platform']['raw_csv_inventory']
             self.assertEqual(inventory[0]['row_count'], 2)
@@ -235,7 +238,7 @@ class GuidedWorkflowTests(unittest.TestCase):
         for mode in ('migration', 'refactor'):
             with self.subTest(mode=mode):
                 run = self.root / mode
-                state = workflow.start_engagement(self.repo, run, dict(BASE, engagement_type=mode), catalogue=self.catalogue)
+                state = workflow.start_engagement(self.repo, run, dict(BASE, engagement_type=mode, migration_scope='model_only', input_handling='metadata_only'), catalogue=self.catalogue)
                 self.assertEqual(state['readiness']['missing_answers'], ['trusted_outputs', 'retained_behavior', 'corrected_behavior'])
                 state = workflow.update_answers(run, {'trusted_outputs': ['Report 42, revision 3'], 'retained_behavior': ['Order population and timezone']})
                 self.assertEqual(state['readiness']['missing_answers'], ['corrected_behavior'])
@@ -418,6 +421,19 @@ class GuidedWorkflowTests(unittest.TestCase):
         with redirect_stdout(io.StringIO()), redirect_stderr(errors):
             self.assertEqual(workflow.main(['status', '--run', str(self.run), '--no-render']), 1)
         self.assertIn('must be a JSON object', errors.getvalue())
+
+    def test_native_receipt_cli_registers_without_authenticating_claims(self):
+        self.start(dict(BASE, semantic_target='omni', migration_scope='model_semantic', input_handling='pre_sanitized'))
+        receipt = self.root/'native.json'
+        receipt.write_text('{"status":"passed","native_verified":true}')
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(workflow.main(['record-evidence','--run',str(self.run),
+                '--path',str(receipt),'--kind','omni_native','--no-render']),0)
+        state=workflow.load_engagement(self.run)
+        self.assertEqual(state['evidence'][-1]['assurance'],'recorded_unverified')
+        self.assertFalse(state['delivery_assurance']['acceptance_ready'])
+        native=next(c for c in state['delivery_assurance']['checks'] if c['lane']=='native_model')
+        self.assertEqual(native['status'],'pending')
 
     def test_cli_start_answer_status_resume_and_late_renderer(self):
         args = self.root / 'answers.json'
