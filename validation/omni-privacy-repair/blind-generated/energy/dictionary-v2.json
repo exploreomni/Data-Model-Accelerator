@@ -1,0 +1,1640 @@
+{
+  "authority": "Synthetic exercise instructions only, not customer approval",
+  "kind": "data_dictionary",
+  "model_inventory_sha256": "cc3ceb21f24f188a361d17babdb2daad5b625173bcc6a0fc09bec2f1a49fa460",
+  "models": [
+    {
+      "columns": [
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "bronze_readings:reading_id",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Reading identifier in the supplied snapshot.",
+          "key_role": "PRIMARY_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "PRIMARY_KEY"
+          ],
+          "name": "reading_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.reading_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "reading_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "bronze_readings:meter_id",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Meter identifier used for the unique meter lookup.",
+          "key_role": "FOREIGN_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "FOREIGN_KEY"
+          ],
+          "name": "meter_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "bronze_readings:recorded_on",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Reading date retained for interactive UTC date filtering.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "recorded_on",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.recorded_on",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "recorded_on"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "date, UTC dashboard interpretation",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "bronze_readings:kwh",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Energy usage in kilowatt-hours; additive across selected readings.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "kwh",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.kwh",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "kwh"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "kWh",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        }
+      ],
+      "description": "Proposed synthetic bronze model bronze_readings.",
+      "grain": "One row per reading_id in the supplied snapshot; no historical uniqueness asserted",
+      "layer": "bronze",
+      "model_id": "bronze_readings",
+      "model_role": "STAGING",
+      "owner": null,
+      "provenance": {
+        "evidence": [
+          {
+            "reference": "synthetic intake, not actual approval",
+            "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+          }
+        ],
+        "origin": "generated",
+        "review_reference": null
+      },
+      "review_status": "proposed",
+      "source_systems": [
+        "synthetic:energy"
+      ]
+    },
+    {
+      "columns": [
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "bronze_meters:meter_id",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Meter identifier used for the unique meter lookup.",
+          "key_role": "PRIMARY_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "PRIMARY_KEY"
+          ],
+          "name": "meter_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:meters.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:meters"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "bronze_meters:zone",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Meter zone retained for interactive filtering.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "zone",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:meters.zone; synthetic:energy:meters.meter_id; synthetic:energy:readings.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "zone"
+              ],
+              "object_id": "synthetic:energy:meters"
+            },
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:meters"
+            },
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "category",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        }
+      ],
+      "description": "Proposed synthetic bronze model bronze_meters.",
+      "grain": "One row per meter_id in the supplied snapshot; no historical uniqueness asserted",
+      "layer": "bronze",
+      "model_id": "bronze_meters",
+      "model_role": "STAGING",
+      "owner": null,
+      "provenance": {
+        "evidence": [
+          {
+            "reference": "synthetic intake, not actual approval",
+            "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+          }
+        ],
+        "origin": "generated",
+        "review_reference": null
+      },
+      "review_status": "proposed",
+      "source_systems": [
+        "synthetic:energy"
+      ]
+    },
+    {
+      "columns": [
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "silver_readings:reading_id",
+          "data_type": "INT64",
+          "description": "Reading identifier in the supplied snapshot.",
+          "key_role": "PRIMARY_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "PRIMARY_KEY"
+          ],
+          "name": "reading_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.reading_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "reading_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Explicit cast to int64; invalid values fail rather than silently null.",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "silver_readings:meter_id",
+          "data_type": "INT64",
+          "description": "Meter identifier used for the unique meter lookup.",
+          "key_role": "FOREIGN_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "FOREIGN_KEY"
+          ],
+          "name": "meter_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Explicit cast to int64; invalid values fail rather than silently null.",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "silver_readings:recorded_on",
+          "data_type": "DATE",
+          "description": "Reading date retained for interactive UTC date filtering.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "recorded_on",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.recorded_on",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "recorded_on"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Explicit cast to date; invalid values fail rather than silently null.",
+          "units": "date, UTC dashboard interpretation",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "silver_readings:kwh",
+          "data_type": "NUMERIC",
+          "description": "Energy usage in kilowatt-hours; additive across selected readings.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "kwh",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.kwh",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "kwh"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Explicit cast to numeric; invalid values fail rather than silently null.",
+          "units": "kWh",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        }
+      ],
+      "description": "Proposed synthetic silver model silver_readings.",
+      "grain": "One row per reading_id",
+      "layer": "silver",
+      "model_id": "silver_readings",
+      "model_role": "INTERMEDIATE",
+      "owner": null,
+      "provenance": {
+        "evidence": [
+          {
+            "reference": "synthetic intake, not actual approval",
+            "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+          }
+        ],
+        "origin": "generated",
+        "review_reference": null
+      },
+      "review_status": "proposed",
+      "source_systems": [
+        "synthetic:energy"
+      ]
+    },
+    {
+      "columns": [
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "silver_meters:meter_id",
+          "data_type": "INT64",
+          "description": "Meter identifier used for the unique meter lookup.",
+          "key_role": "PRIMARY_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "PRIMARY_KEY"
+          ],
+          "name": "meter_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:meters.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:meters"
+            }
+          ],
+          "transformation": "Explicit cast to int64; invalid values fail rather than silently null.",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "silver_meters:zone",
+          "data_type": "STRING",
+          "description": "Meter zone retained for interactive filtering.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "zone",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:meters.zone; synthetic:energy:meters.meter_id; synthetic:energy:readings.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "zone"
+              ],
+              "object_id": "synthetic:energy:meters"
+            },
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:meters"
+            },
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Meter zone retained for interactive filtering.",
+          "units": "category",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        }
+      ],
+      "description": "Proposed synthetic silver model silver_meters.",
+      "grain": "One row per meter_id",
+      "layer": "silver",
+      "model_id": "silver_meters",
+      "model_role": "INTERMEDIATE",
+      "owner": null,
+      "provenance": {
+        "evidence": [
+          {
+            "reference": "synthetic intake, not actual approval",
+            "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+          }
+        ],
+        "origin": "generated",
+        "review_reference": null
+      },
+      "review_status": "proposed",
+      "source_systems": [
+        "synthetic:energy"
+      ]
+    },
+    {
+      "columns": [
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "gold_readings:reading_id",
+          "data_type": "INT64",
+          "description": "Reading identifier in the supplied snapshot.",
+          "key_role": "PRIMARY_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "PRIMARY_KEY"
+          ],
+          "name": "reading_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.reading_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "reading_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Explicit cast to int64; invalid values fail rather than silently null.",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "gold_readings:meter_id",
+          "data_type": "INT64",
+          "description": "Meter identifier used for the unique meter lookup.",
+          "key_role": "FOREIGN_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "FOREIGN_KEY"
+          ],
+          "name": "meter_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Explicit cast to int64; invalid values fail rather than silently null.",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "gold_readings:recorded_on",
+          "data_type": "DATE",
+          "description": "Reading date retained for interactive UTC date filtering.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "recorded_on",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.recorded_on",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "recorded_on"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Explicit cast to date; invalid values fail rather than silently null.",
+          "units": "date, UTC dashboard interpretation",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "gold_readings:kwh",
+          "data_type": "NUMERIC",
+          "description": "Energy usage in kilowatt-hours; additive across selected readings.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "kwh",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.kwh",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "kwh"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Explicit cast to numeric; invalid values fail rather than silently null.",
+          "units": "kWh",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "gold_readings:zone",
+          "data_type": "STRING",
+          "description": "Meter zone retained for interactive filtering.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "zone",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:meters.zone; synthetic:energy:meters.meter_id; synthetic:energy:readings.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "zone"
+              ],
+              "object_id": "synthetic:energy:meters"
+            },
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:meters"
+            },
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Meter zone retained for interactive filtering.",
+          "units": "category",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        }
+      ],
+      "description": "Proposed synthetic gold model gold_readings.",
+      "grain": "One row per reading_id",
+      "layer": "gold",
+      "model_id": "gold_readings",
+      "model_role": "FACT",
+      "owner": null,
+      "provenance": {
+        "evidence": [
+          {
+            "reference": "synthetic intake, not actual approval",
+            "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+          }
+        ],
+        "origin": "generated",
+        "review_reference": null
+      },
+      "review_status": "proposed",
+      "source_systems": [
+        "synthetic:energy"
+      ]
+    }
+  ],
+  "privacy_schema_version": 1,
+  "schema_version": 2,
+  "source_inventory_sha256": "2f9bceb4a931b9686de62e1ea1a5858cc6a69b3fcd7ec27a4859a04f9eb6f670",
+  "sources": [
+    {
+      "columns": [
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "source:readings:reading_id",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Reading identifier in the supplied snapshot.",
+          "key_role": "PRIMARY_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "PRIMARY_KEY"
+          ],
+          "name": "reading_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.reading_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "reading_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "source:readings:meter_id",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Meter identifier used for the unique meter lookup.",
+          "key_role": "FOREIGN_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "FOREIGN_KEY"
+          ],
+          "name": "meter_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "source:readings:recorded_on",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Reading date retained for interactive UTC date filtering.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "recorded_on",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.recorded_on",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "recorded_on"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "date, UTC dashboard interpretation",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "source:readings:kwh",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Energy usage in kilowatt-hours; additive across selected readings.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "kwh",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:readings.kwh",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "kwh"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "kWh",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        }
+      ],
+      "description": "Supplied synthetic readings snapshot.",
+      "grain": "One row per reading_id is a synthetic contract; original platform grain unknown",
+      "layer": "raw",
+      "model_role": "STAGING",
+      "owner": null,
+      "provenance": {
+        "evidence": [
+          {
+            "reference": "synthetic intake, not actual approval",
+            "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+          }
+        ],
+        "origin": "generated",
+        "review_reference": null
+      },
+      "review_status": "proposed",
+      "source_id": "source:readings",
+      "source_systems": [
+        "synthetic:energy"
+      ]
+    },
+    {
+      "columns": [
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "source:meters:meter_id",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Meter identifier used for the unique meter lookup.",
+          "key_role": "PRIMARY_KEY candidate; not a native enforced constraint",
+          "key_roles": [
+            "PRIMARY_KEY"
+          ],
+          "name": "meter_id",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:meters.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:meters"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "identifier",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        },
+        {
+          "classification": "UNKNOWN: synthetic inputs allowed for this local exercise; destination disclosure is not established.",
+          "column_id": "source:meters:zone",
+          "data_type": "TEXT (CSV lexical contract)",
+          "description": "Meter zone retained for interactive filtering.",
+          "key_role": "UNKNOWN candidate; not a native enforced constraint",
+          "key_roles": [
+            "UNKNOWN"
+          ],
+          "name": "zone",
+          "nullability": "Source null semantics unknown; required key and measure inputs have proposed not_null tests. No default except absent parts becomes zero.",
+          "privacy": {
+            "categories": [],
+            "categories_known": false,
+            "evidence": [],
+            "handling": {
+              "agent_input": "review",
+              "ai_context": "review",
+              "metadata": "review",
+              "share": "review"
+            },
+            "kind": "sensitive_data_classification",
+            "lineage": {
+              "status": "unresolved",
+              "transformation": "unknown",
+              "upstream_ids": []
+            },
+            "review_reference": null,
+            "review_status": "unresolved",
+            "schema_version": 1,
+            "sensitivity": "UNKNOWN"
+          },
+          "provenance": {
+            "evidence": [
+              {
+                "reference": "synthetic intake, not actual approval",
+                "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+              }
+            ],
+            "origin": "generated",
+            "review_reference": null
+          },
+          "review_status": "proposed",
+          "sensitivity": "UNKNOWN",
+          "sensitivity_evidence": [],
+          "sensitivity_review_reference": null,
+          "sensitivity_review_status": "unresolved",
+          "source": "synthetic:energy:meters.zone; synthetic:energy:meters.meter_id; synthetic:energy:readings.meter_id",
+          "source_refs": [
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "zone"
+              ],
+              "object_id": "synthetic:energy:meters"
+            },
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:meters"
+            },
+            {
+              "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+              "column_path": [
+                "meter_id"
+              ],
+              "object_id": "synthetic:energy:readings"
+            }
+          ],
+          "transformation": "Identity retention of lexical CSV value",
+          "units": "category",
+          "validation": "See local-results.json; native tests and independent acceptance remain pending."
+        }
+      ],
+      "description": "Supplied synthetic meters snapshot.",
+      "grain": "One row per meter_id is a synthetic contract; original platform grain unknown",
+      "layer": "raw",
+      "model_role": "STAGING",
+      "owner": null,
+      "provenance": {
+        "evidence": [
+          {
+            "reference": "synthetic intake, not actual approval",
+            "sha256": "bc36aa57da9e1aceb1bd9d4aabcecb666ce153c33a9742ba620d4741e8b93ef5"
+          }
+        ],
+        "origin": "generated",
+        "review_reference": null
+      },
+      "review_status": "proposed",
+      "source_id": "source:meters",
+      "source_systems": [
+        "synthetic:energy"
+      ]
+    }
+  ],
+  "synthetic": true
+}

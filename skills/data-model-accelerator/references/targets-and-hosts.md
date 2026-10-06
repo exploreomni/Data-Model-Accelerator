@@ -33,6 +33,13 @@ The above means Gemini CLI and Genie Code specifically; it does not establish co
 
 Discover the host's actual delegation capability independently of its skill discovery path. Follow [orchestration.md](orchestration.md): use native subagents where available and record task/result evidence, or disclose sequential inline specialist passes. A shared SKILL.md does not imply a universal subagent API or independent QA capability.
 
+For Omni, [the dedicated task adapter](omni-modeler-task.md) records planned,
+running, completed, needs-review, failed and unavailable states with pinned
+inputs and knowledge. Its host names select the coordinator's adapter; they do
+not provision external SDKs or establish tested compatibility. Run the read-only
+installation comparison before use. Unqualified containment always requires
+reviewed pre-sanitized inputs, whether the role is delegated or inline.
+
 ## dbt emitter contract
 
 Inspect the chosen repository's project and adapter versions, dependencies, conventions, macros/hooks, sources, materializations, and schema naming. Generate source declarations, staging/intermediate/mart SQL as justified, column/relationship documentation, data tests, fixture tests where supported, and consumer/exposure mappings. Preserve source identifiers and bind `ref`/`source` dependencies to actual generated or confirmed existing objects.
@@ -66,3 +73,33 @@ The package includes source discovery and specialist handoffs, raw-catalogue con
 ## Shared guided delivery
 
 Use [platform-adapters.md](platform-adapters.md) for static readiness and extension boundaries and [guided-workflow.md](guided-workflow.md) for persistent discovery/resume. [review-surface.md](review-surface.md) renders selected artifacts without a warehouse-specific UI fork. These helpers do not change the native generation/execution qualification requirements above. Existing repositories receive a scoped patch and change mapping rather than an unsolicited replacement project.
+
+## Privacy and execution portability
+
+Packaging a skill for a host does not configure its network, telemetry, retention,
+tool permissions or source-to-model boundary. Follow [sensitive-data.md](sensitive-data.md)
+before sending any source metadata or values to a model. The portable pre-agent
+staging helper permits reviewed pre-sanitized inputs within its declared policy;
+a boolean claiming that a host is isolated does not qualify protected input
+handling. Existing host and organizational controls need independent verification.
+
+PII, PCI and PHI categories can overlap. Unknown classifications remain unknown;
+hashing, aggregation, documentation comments, ordinary tags, hidden Omni fields
+and AI guidance are not automatic declassification or access enforcement.
+Apply the destination policy to generated descriptions, semantic context,
+diagnostics and exports as well as source samples. Native security capability
+and accelerator qualification are listed separately in [access-enforcement.md](access-enforcement.md).
+
+The bounded Omni model checker accepts explicitly bound physical namespaces for
+the six warehouse profiles; each selected dialect and native runtime still needs
+its own qualification. Coalesce node generation, dbt compilation, native SQL,
+warehouse metadata and policy execution remain separate routes. Do not call a
+local DuckDB test a MotherDuck permission test or a generic SQL folder a native
+Coalesce deployment.
+
+Use the same `model_only`, `model_semantic` or `full_dashboard` completion scope
+across hosts. The [release evidence protocol](delivery-release.md) does not turn
+an offline HTML page or imported receipt into an authenticated run. The guided
+page defaults to candidate/pending evidence, and browser subset downloads retain
+their missing fresh content scan. Host portability is useful for producing and
+reviewing candidates; it is not blanket production authorization.

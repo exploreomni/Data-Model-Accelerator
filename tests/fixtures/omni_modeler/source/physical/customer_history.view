@@ -1,0 +1,17 @@
+catalog: CORPUS
+schema: SYNTHETIC
+table_name: CUSTOMER_HISTORY
+dimensions:
+  history_id:
+    sql: '"history_id"'
+    primary_key: true
+  customer_id:
+    sql: '"customer_id"'
+  valid_from:
+    sql: '"valid_from"'
+    timeframes: [raw, date]
+  valid_to:
+    sql: '"valid_to"'
+    timeframes: [raw, date]
+  segment:
+    sql: '"segment"'

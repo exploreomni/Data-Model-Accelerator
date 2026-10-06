@@ -1,0 +1,305 @@
+{
+  "readiness": {
+    "assessed_at": "2026-10-05T22:19:18.318923+00:00",
+    "assessment_allowed": true,
+    "execution_authorized": false,
+    "generation_ready": true,
+    "interview_complete": true,
+    "missing_answers": [],
+    "platform": {
+      "capabilities": {
+        "assessment": {
+          "reason": "Bounded static inventory and compatibility signals only; no native parser, complete lineage, or business validation claim.",
+          "status": "supported"
+        },
+        "execution": {
+          "reason": "No target execution was performed. Use authorized existing CI/operator validation and original receipts; static readiness never qualifies a run. The existing bounded runner/evidence verifier still enforces Core 1.12.4 and its narrower full-project contract.",
+          "status": "requires_operator_validation"
+        },
+        "generation": {
+          "reason": "Agent-assisted candidate authoring after discovery, physical bindings and behavioral contracts; this collector emits no target code.",
+          "status": "agent_assisted"
+        }
+      },
+      "coverage": {
+        "complete": true,
+        "exclusions": [],
+        "gaps": [],
+        "limits": {
+          "max_depth": 40,
+          "max_entries": 20000,
+          "max_file_bytes": 10485760,
+          "max_files": 5000,
+          "max_total_bytes": 67108864
+        },
+        "scanned_bytes": 3509,
+        "scanned_files": 4
+      },
+      "detected_sources": [
+        {
+          "confidence": "static_signal",
+          "paths": [
+            "parts.csv",
+            "work_orders.csv"
+          ],
+          "type": "raw_csv"
+        }
+      ],
+      "execution_performed": false,
+      "findings": [
+        {
+          "blocks": [],
+          "id": "source.raw_csv_snapshot",
+          "next_action": "Confirm source extraction scope, warehouse catalogue, identity/null/type rules and business definitions separately. Do not fabricate a source dbt project or treat CSV data as Excel/report logic.",
+          "paths": [],
+          "severity": "info",
+          "summary": "CSV headers, exact file hashes and bounded logical row counts describe supplied snapshots only; fields remain lexical text."
+        }
+      ],
+      "kind": "platform_readiness",
+      "native_semantics_parsed": false,
+      "platform_pairing": {
+        "access_enforcement": {
+          "documented": true,
+          "framework": "dbt",
+          "framework_boundary": "Metadata and documentation projection does not execute or qualify warehouse policies.",
+          "implementation_scope": "Offline exact-state contract, nonweakening checks, native readback comparison and persona-evidence comparison only.",
+          "implemented": true,
+          "live_qualified": false,
+          "locally_tested": true,
+          "native_evidence_authenticated": false,
+          "native_policy_writes": false,
+          "official_sources": [
+            "https://docs.snowflake.com/en/user-guide/security-column-intro",
+            "https://docs.snowflake.com/en/sql-reference/functions/policy_references"
+          ],
+          "qualification_requirements": [
+            "Exact account, database/schema/object and active role.",
+            "Policy visibility is privilege-scoped; empty readback does not prove no policies.",
+            "Verify account edition and effective policy/tag bindings; metadata comments do not enforce access."
+          ],
+          "read_only_inspection_recipe": [
+            "SHOW GRANTS on exact objects and roles; resolve inherited role privileges.",
+            "DESCRIBE MASKING POLICY / ROW ACCESS POLICY and INFORMATION_SCHEMA.POLICY_REFERENCES with sufficient visibility.",
+            "Run positive and denied role queries, then test derived objects and newly introduced columns."
+          ],
+          "schema_version": 1,
+          "unsupported_functions": [
+            "automatic policy provisioning",
+            "automatic GRANT/REVOKE",
+            "tenant qualification from imported JSON",
+            "automatic policy loosening",
+            "protected deployment without authenticated effective tests"
+          ],
+          "vendor_documented_controls": [
+            "object/role grants",
+            "row access policies",
+            "column masking",
+            "tag policy bindings"
+          ],
+          "warehouse": "snowflake"
+        },
+        "checks": [
+          {
+            "connection_required": false,
+            "cost": "Local CPU/filesystem.",
+            "coverage_gaps": [
+              "Does not produce compiled SQL or validate native references.",
+              "Repository code and packages still require review."
+            ],
+            "documentation": "https://docs.getdbt.com/reference/commands/parse",
+            "id": "dbt_parse",
+            "kind": "framework_config",
+            "recipe": [
+              "dbt",
+              "parse",
+              "--project-dir",
+              "<project>",
+              "--profiles-dir",
+              "<profiles>",
+              "--target",
+              "<target>"
+            ],
+            "runtime_constraint": "Pin and verify the selected native client/server capability.",
+            "side_effects": "Parses project structure and writes artifacts; dependencies must already be provisioned.",
+            "status": "recipe_only"
+          },
+          {
+            "connection_required": true,
+            "cost": "Macros can query the warehouse and incur compute cost.",
+            "coverage_gaps": [
+              "Compiled SQL does not cover actual build behavior.",
+              "Record hooks, tests and materializations in the coverage inventory."
+            ],
+            "documentation": "https://docs.getdbt.com/reference/commands/compile",
+            "id": "dbt_compile",
+            "kind": "framework_render",
+            "recipe": [
+              "dbt",
+              "compile",
+              "--project-dir",
+              "<project>",
+              "--profiles-dir",
+              "<profiles>",
+              "--target",
+              "<target>"
+            ],
+            "runtime_constraint": "Pin and verify the selected native client/server capability.",
+            "side_effects": "Macro/run_query code may execute DDL/DML; authorize the exact project before rendering.",
+            "status": "recipe_only"
+          },
+          {
+            "connection_required": false,
+            "cost": "Local CPU only; no warehouse connection.",
+            "coverage_gaps": [
+              "Not identical to SQLFluff results.",
+              "Rendered variants/placeholders leave explicit coverage gaps.",
+              "DuckDB lint does not establish MotherDuck remote feature support."
+            ],
+            "documentation": "https://docs.getdbt.com/reference/commands/lint",
+            "id": "dbt_v2_lint_optional",
+            "kind": "framework_lint",
+            "recipe": [
+              "dbt",
+              "lint",
+              "--config",
+              "<reviewed-config>",
+              "--format",
+              "json"
+            ],
+            "runtime_constraint": "Available in v2; verify exact runtime/dialect capability. Never apply the v1 dbt templater to an arbitrary v2 runtime.",
+            "side_effects": "Uses bounded symbolic/stub template rendering; no automatic fixes.",
+            "status": "recipe_only"
+          }
+        ],
+        "documentation": [
+          "https://docs.getdbt.com/docs/supported-data-platforms"
+        ],
+        "framework": "dbt",
+        "native_qualified": false,
+        "reason": "Core route requires the selected warehouse adapter/runtime; a local adapter does not imply hosted support.",
+        "requirements": [
+          "Exact dbt runtime and warehouse adapter versions",
+          "Reviewed packages/macros/hooks",
+          "Native target and independent acceptance evidence"
+        ],
+        "status": "conditional",
+        "warehouse": "snowflake"
+      },
+      "questions": [],
+      "raw_csv_inventory": [
+        {
+          "columns": [
+            {
+              "data_type": "text",
+              "name": "part_line_id",
+              "position": 1
+            },
+            {
+              "data_type": "text",
+              "name": "work_order_id",
+              "position": 2
+            },
+            {
+              "data_type": "text",
+              "name": "quantity",
+              "position": 3
+            },
+            {
+              "data_type": "text",
+              "name": "unit_cost",
+              "position": 4
+            }
+          ],
+          "delimiter": ",",
+          "encoding": "utf-8-sig",
+          "gaps": [],
+          "grain": "unknown",
+          "header_required": true,
+          "kind": "raw_csv_metadata",
+          "limits": {
+            "max_columns": 2048,
+            "max_field_chars": 131072,
+            "max_rows": 1000000
+          },
+          "metadata_complete": true,
+          "native_types_verified": false,
+          "path": "parts.csv",
+          "records_observed": 3,
+          "row_count": 3,
+          "schema_version": 1,
+          "sha256": "dd8864fb155fd74a31fc0987ed59e3bc3a3cff16389a1f03fc065d1a3f478da9",
+          "size_bytes": 73,
+          "source_owner": "raw_csv",
+          "source_platform": "unknown",
+          "type_basis": "CSV fields are lexical text; native database types and null semantics are unknown"
+        },
+        {
+          "columns": [
+            {
+              "data_type": "text",
+              "name": "work_order_id",
+              "position": 1
+            },
+            {
+              "data_type": "text",
+              "name": "tenant_id",
+              "position": 2
+            },
+            {
+              "data_type": "text",
+              "name": "opened_on",
+              "position": 3
+            },
+            {
+              "data_type": "text",
+              "name": "labor_cost",
+              "position": 4
+            },
+            {
+              "data_type": "text",
+              "name": "status",
+              "position": 5
+            }
+          ],
+          "delimiter": ",",
+          "encoding": "utf-8-sig",
+          "gaps": [],
+          "grain": "unknown",
+          "header_required": true,
+          "kind": "raw_csv_metadata",
+          "limits": {
+            "max_columns": 2048,
+            "max_field_chars": 131072,
+            "max_rows": 1000000
+          },
+          "metadata_complete": true,
+          "native_types_verified": false,
+          "path": "work_orders.csv",
+          "records_observed": 3,
+          "row_count": 3,
+          "schema_version": 1,
+          "sha256": "3a96d89c2da6410d072556da3f6a4c6502ecdfde266102b47cd0daa444b619a1",
+          "size_bytes": 125,
+          "source_owner": "raw_csv",
+          "source_platform": "unknown",
+          "type_basis": "CSV fields are lexical text; native database types and null semantics are unknown"
+        }
+      ],
+      "schema_version": 1,
+      "selection": {
+        "framework": "dbt",
+        "warehouse": "snowflake"
+      },
+      "source_fingerprint": {
+        "algorithm": "sha256",
+        "complete": true,
+        "scope": "bounded_nonsecret_repository",
+        "value": "f6291ca74304c5d2a8fd4b58fb0c3e8c75c445891847e22e8255b2958ba5284e"
+      }
+    },
+    "qualification": "Candidate preparation guidance only. A catalogue hash proves captured bytes, not normalized physical bindings. verify_catalogue, model, independent baseline and execution gates remain pending; this workflow does not run or replace them.",
+    "questions": []
+  },
+  "status": "candidate_preparation_ready"
+}

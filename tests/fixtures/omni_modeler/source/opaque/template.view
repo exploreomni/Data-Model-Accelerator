@@ -1,0 +1,6 @@
+catalog: CORPUS
+schema: SYNTHETIC
+table_name: ORDERS
+dimensions:
+  experimental_value:
+    sql: '{{ synthetic_runtime_attribute }}'

@@ -1,0 +1,74 @@
+{
+  "bindings": {
+    "work_orders.total_work_cost": {
+      "columns": [
+        {
+          "column": "WORK_COST",
+          "column_id": "gold_work_orders:WORK_COST",
+          "model_id": "gold_work_orders",
+          "namespace": {
+            "database": "SYNTHETIC_REVIEW",
+            "schema": "DMA_MAINTENANCE",
+            "table": "GOLD_WORK_ORDERS"
+          },
+          "view": "work_orders"
+        }
+      ],
+      "field_sha256": "09c4768657951571dbefd9d240bbb19a8ec9f02069ad8da6c6ef8b8abb8e29f8",
+      "layer": "gold"
+    }
+  },
+  "definitions": [
+    {
+      "fields": [
+        "work_orders.total_work_cost"
+      ],
+      "id": "metric-review",
+      "privacy": {
+        "categories": [],
+        "categories_known": false,
+        "evidence": [],
+        "handling": {
+          "agent_input": "review",
+          "ai_context": "review",
+          "metadata": "review",
+          "share": "review"
+        },
+        "kind": "sensitive_data_classification",
+        "lineage": {
+          "status": "unresolved",
+          "transformation": "unknown",
+          "upstream_ids": []
+        },
+        "review_reference": null,
+        "review_status": "unresolved",
+        "schema_version": 1,
+        "sensitivity": "UNKNOWN"
+      },
+      "question": "Confirm the synthetic metric meaning, null behavior, gold dependency and authorized disclosure before using this definition in a live AI context.",
+      "review_reference": null,
+      "source_refs": [
+        {
+          "pointer": "/rules/1",
+          "sha256": "8b806fc5be672f8acbddeababd18f53a699c6082d1935ef8d248bfa9f0bbb81a"
+        }
+      ],
+      "statement": null,
+      "status": "unresolved"
+    }
+  ],
+  "kind": "omni_ai_context_spec",
+  "pins": {
+    "dictionary_sha256": "deea11f730d13bc4638f3b0282e44dba7f54bc0452e0811abc2e81a740b945c4",
+    "disclosure_policy_sha256": "37abe5f550dcaf7771b6e4fa195354c07d97df733e6b436b249eeb246ee0d82b",
+    "model_context_sha256": "fa4720803f5bb7116933f27d445a43be8b984c8073df1429b790f030408e3d8d",
+    "model_sha256": "9b5454f6ec4fff8a98d9990a0ea5dcf7dd9db5dedcc59153929aa2cffa28af24",
+    "source_sha256": "a09cc36cc0999715e48b5c9370405991807a62530fc4924f39715b36966924c8"
+  },
+  "review": {
+    "reference": "synthetic-review.json: local synthetic specification only; no actual approval",
+    "sha256": "6aea2cccc520f18a5924400196ac33a6b0bf8a51ebcbd2dbee2365b8d506375c",
+    "status": "approved"
+  },
+  "schema_version": 1
+}

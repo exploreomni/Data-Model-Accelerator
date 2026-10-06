@@ -1,0 +1,5 @@
+{
+  "context_sha256": "42f951288c2761b0921f1d57094b3e734e8d9a11b434d8f0104d9021a5f7d7d2",
+  "framework": "dbt",
+  "warehouse": "bigquery"
+}

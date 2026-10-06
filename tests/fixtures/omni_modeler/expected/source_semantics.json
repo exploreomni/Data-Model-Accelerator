@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "query_views": {
+    "orders_by_customer": {
+      "identity": "orders_by_customer",
+      "native_file": "orders_by_customer.query.view",
+      "kind": "modeled_query_view",
+      "declared_grain": ["customer_id"],
+      "base_view": "orders", "topic": "orders",
+      "output_mappings": {"orders.customer_id": "customer_id", "orders.order_count": "order_count", "orders.paid_order_count": "paid_order_count", "orders.shipping_cents": "shipping_cents", "orders.paid_shipping_cents": "paid_shipping_cents"},
+      "row_count": 3,
+      "physical_binding": null,
+      "native_verified": false
+    },
+    "returns_by_order": {
+      "identity": "returns_by_order",
+      "native_file": "returns_by_order.query.view",
+      "kind": "sql_query_view",
+      "declared_grain": ["order_id"],
+      "view_dependencies": ["order_lines", "returns"],
+      "output_aliases": ["order_id", "return_count", "returned_quantity", "refund_cents"],
+      "row_count": 3,
+      "physical_binding": null,
+      "native_verified": false
+    }
+  },
+  "scope": {
+    "authored_owned_paths": ["/label"],
+    "inherited_paths_not_to_materialize": ["/catalog", "/schema", "/table_name", "/dimensions", "/measures"],
+    "patch_request": {"operation": "replace", "path": "/label", "value": "Order review candidate"},
+    "expected_authored_patch_file": "expected/authored_label_patch.view",
+    "expected_deleted_files": [],
+    "expected_inherited_deletions": [],
+    "explicit_deletion_case": {"requested_deletions": ["orders.view"], "expected_plan_deletions": ["orders.view"], "authorization": null, "expected_native_delete_calls": 0},
+    "no_op_rule": "Byte equality with the corresponding original snapshot; never export effective content as authored source"
+  },
+  "measure_filter_scope": {"orders.paid_order_count": "measure_local", "orders.paid_shipping_cents": "measure_local", "order_lines.paid_gross_cents": "measure_local_joined_field"},
+  "role_views": {"buyers": {"scope": "roles.topic", "extends": "parties", "join_key": "orders.buyer_party_id"}, "sellers": {"scope": "roles.topic", "extends": "parties", "join_key": "orders.seller_party_id"}},
+  "unknowns": {"future_extension": "opaque_unsupported", "synthetic_runtime_attribute": "opaque_unsupported", "duplicate_label_key": "invalid"}
+}

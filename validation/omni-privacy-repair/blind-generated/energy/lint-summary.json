@@ -1,0 +1,82 @@
+{
+  "kind": "portable_receipt_summary",
+  "native_materialization_scope_complete": false,
+  "receipts": [
+    {
+      "attempt": 1,
+      "coverage": {
+        "complete": false,
+        "execution_units": {
+          "checked": 5,
+          "expected": 6,
+          "failed": 1,
+          "skipped": 0,
+          "unsupported": 0
+        },
+        "files": {
+          "checked": 19,
+          "expected": 20,
+          "failed": 1,
+          "skipped": 0,
+          "unsupported": 0
+        }
+      },
+      "findings": [
+        {
+          "findings": [
+            {
+              "code": "RF04",
+              "column": 29,
+              "line": 3,
+              "message": "SQLFluff rule RF04 needs correction or a separately reviewed exception.",
+              "path": "static-sql/silver_meters.sql",
+              "severity": "error"
+            }
+          ],
+          "path": "static-sql/silver_meters.sql"
+        }
+      ],
+      "note": "Summary only; original immutable receipt retained privately. This summary is not a replacement lint receipt.",
+      "original_receipt_file_sha256": "6a4f97e969b11e91e6fb97fed974773e64dad20d3ad42b792e1d495b34948029",
+      "status": "failed"
+    },
+    {
+      "attempt": 2,
+      "coverage": {
+        "complete": true,
+        "execution_units": {
+          "checked": 6,
+          "expected": 6,
+          "failed": 0,
+          "skipped": 0,
+          "unsupported": 0
+        },
+        "files": {
+          "checked": 20,
+          "expected": 20,
+          "failed": 0,
+          "skipped": 0,
+          "unsupported": 0
+        }
+      },
+      "findings": [
+        {
+          "findings": [
+            {
+              "code": "RF04",
+              "column": 29,
+              "line": 3,
+              "message": "SQLFluff rule RF04 needs correction or a separately reviewed exception.",
+              "path": "static-sql/silver_meters.sql",
+              "severity": "error"
+            }
+          ],
+          "path": "static-sql/silver_meters.sql"
+        }
+      ],
+      "note": "Summary only; original immutable receipt retained privately. This summary is not a replacement lint receipt.",
+      "original_receipt_file_sha256": "4d606287fac2be9829d80c5131834fdec8079e54e901368c47f9305fe3a04c0b",
+      "status": "passed"
+    }
+  ]
+}

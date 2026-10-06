@@ -1,0 +1,24 @@
+{
+  "rules": [
+    {
+      "definition": "Work cost is labor_cost plus the sum of quantity times unit_cost for that work order; no parts means zero parts cost.",
+      "expression": "sum(work_cost)",
+      "id": "metric",
+      "placement": "retain_semantic",
+      "source_field": "work_orders.total_work_cost",
+      "target_field": "work_orders.total_work_cost"
+    },
+    {
+      "definition": "Preserve all source query filters, dashboard default Date, sorts, limits and listeners; no dashboard filters in warehouse SQL.",
+      "id": "filters",
+      "placement": "retain_presentation"
+    },
+    {
+      "definition": "No tenant or persona access policy is established; filter fields do not enforce authorization.",
+      "id": "security",
+      "placement": "unresolved"
+    }
+  ],
+  "schema_version": 1,
+  "synthetic": true
+}

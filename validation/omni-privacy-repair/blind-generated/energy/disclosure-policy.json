@@ -1,0 +1,30 @@
+{
+  "destinations": {
+    "agent_input": {
+      "allowed_categories": [],
+      "allowed_sensitivities": []
+    },
+    "ai_context": {
+      "allowed_categories": [],
+      "allowed_sensitivities": []
+    },
+    "metadata": {
+      "allowed_categories": [],
+      "allowed_sensitivities": []
+    },
+    "share": {
+      "allowed_categories": [],
+      "allowed_sensitivities": []
+    }
+  },
+  "evidence": [],
+  "host_boundary": {
+    "evidence_reference": null,
+    "mode": "unenforced"
+  },
+  "kind": "disclosure_policy",
+  "policy_id": "unreviewed",
+  "review_reference": null,
+  "review_status": "proposed",
+  "schema_version": 1
+}

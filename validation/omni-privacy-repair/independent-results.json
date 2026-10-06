@@ -1,0 +1,69 @@
+{
+  "cases": [
+    {
+      "candidate_sql_sha256": "6934ee39a87c1f25b1ee682ff44320b049889f70d14279f1b1b8ebcd633e4e0c",
+      "dashboard_inventory": "3 tiles and 1 filter preserved; native construction pending",
+      "domain": "maintenance",
+      "models": 5,
+      "omni_static": "passed",
+      "status": "passed",
+      "validation": [
+        {
+          "expected_sha256": "e02fe4d0d59c78dd938f001b9071140d39626276cb6e51345febd16733003307",
+          "rows": 3,
+          "scenario": "baseline",
+          "status": "passed"
+        },
+        {
+          "expected_sha256": "5023320d0bdb7015bbb5f6f69819d6472de9cce2565aa35f0d32d826d5a75b36",
+          "rows": 3,
+          "scenario": "unseen_counterfactual",
+          "status": "passed"
+        },
+        {
+          "scenario": "duplicate_source_key_negative",
+          "status": "detected"
+        }
+      ]
+    },
+    {
+      "candidate_sql_sha256": "a91a943a36d2d0ac197b3c7410657a759ca70e397674984506bd7fa49061ea17",
+      "dashboard_inventory": "3 tiles and 1 filter preserved; native construction pending",
+      "domain": "energy",
+      "models": 5,
+      "omni_static": "passed",
+      "status": "passed",
+      "validation": [
+        {
+          "expected_sha256": "d31ff5cb41d136dfc0796ab4e7d16dc5f3b755d088f4cbda8210de41228c4e74",
+          "rows": 3,
+          "scenario": "baseline",
+          "status": "passed"
+        },
+        {
+          "expected_sha256": "35ddde2ec4ada1146872ed3ee5fed801a82a65dccde699442be38e0c34ba3b40",
+          "rows": 4,
+          "scenario": "unseen_counterfactual",
+          "status": "passed"
+        },
+        {
+          "scenario": "duplicate_source_key_negative",
+          "status": "detected"
+        }
+      ]
+    }
+  ],
+  "context_isolation": "Prompt boundary only; shared filesystem.",
+  "dbt_runtime_executed": false,
+  "kind": "independent_blind_generation_evaluation",
+  "limits": [
+    "Reviewer inspected candidate SQL before evaluator authoring; do not call this a fully blinded evaluator.",
+    "Independent expectation snapshots are derived before executing each candidate variation.",
+    "Local DuckDB translation does not establish Snowflake/BigQuery execution or Omni tenant behavior."
+  ],
+  "native_qualified": false,
+  "oracle": "Python decimal arithmetic over raw CSV and declared rules; no generated result imports.",
+  "schema_version": 1,
+  "status": "passed",
+  "synthetic": true
+}

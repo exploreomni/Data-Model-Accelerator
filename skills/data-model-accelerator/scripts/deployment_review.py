@@ -21,7 +21,7 @@ import deployment_workflow as deployment
 import delivery_portal as portal
 
 REVIEW_FIELDS = ('schema_version', 'title', 'description', 'source_fingerprint', 'context_sha256',
-                'target', 'models', 'relationships', 'changes', 'decisions', 'validation', 'artifacts', 'quality_checks')
+                'target', 'models', 'relationships', 'changes', 'decisions', 'validation', 'artifacts', 'quality_checks', 'disclosure')
 ARTIFACT_FIELDS = ('id', 'path', 'sha256', 'category', 'audiences', 'requires', 'description')
 
 
@@ -109,6 +109,11 @@ def export_review(planpath, policypath, outputdir, receipt=None):
         generated[relative] = body
         extended['artifacts'].append({'id':aid, 'path':relative, 'sha256':digest, 'category':'validation',
                                       'audiences':['engineer'], 'description':'Sanitized deployment ' + label + '; reported display only.'})
+        if state.get('answers', {}).get('migration_scope'):
+            disclosure = extended.get('disclosure', {})
+            classification = disclosure.get('generated_evidence', {}).get(label)
+            require(type(classification) is dict, 'Generated deployment evidence needs a reviewed disclosure classification: ' + label)
+            disclosure.setdefault('artifacts', {})[aid] = copy.deepcopy(classification)
         return aid, digest
     preview = {'schema_version':1, 'kind':'deployment_plan_review', 'request_only':True,
                'plan_sha256':plan['plan_sha256'], 'context_sha256':bindings['context_sha256'],

@@ -194,7 +194,7 @@ class DeliveryPortalTests(unittest.TestCase):
         self.review['quality_checks']=self.review['quality_checks'][:1]
         body=b'not json';(self.root/artifact['path']).write_bytes(body)
         artifact['sha256']=hashlib.sha256(body).hexdigest();self.review['quality_checks'][0]['sha256']=artifact['sha256']
-        with self.assertRaisesRegex(ValueError,'valid UTF-8 JSON'):self.package(audience='engineer')
+        with self.assertRaisesRegex(ValueError,'Disclosure scan'):self.package(audience='engineer')
 
     @unittest.skipUnless(shutil.which('node'), 'Node is needed for the deployment UI guard regression')
     def test_deployment_absent_plan_does_not_stop_quality_and_file_controls(self):
@@ -456,7 +456,7 @@ assert.equal(concreteDeploymentPlan('promote'), null);
         self.artifact('docs/guide #1.md','# Target')
         self.artifact('docs/map.svg','<svg xmlns="http://www.w3.org/2000/svg"/>','diagrams')
         self.artifact('docs/links.md','''[Same section](#example)
-[Web](https://example.org/a?q=b#c) [Email](mailto:owner@example.org)
+[Web](https://example.org/a?q=b#c)
 [Guide][ref] ![Map](map.svg) [ref][] [ref]
 [ref]: <guide%20%231.md#target> "Optional title"
 Inline `[ignored](missing.md)`.

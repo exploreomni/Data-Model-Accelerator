@@ -1,0 +1,10 @@
+- join_from_view: order_lines
+  join_to_view: orders
+  join_type: left
+  relationship_type: many_to_one
+  on_sql: ${order_lines.order_id} = ${orders.order_id}
+- join_from_view: returns
+  join_to_view: order_lines
+  join_type: left
+  relationship_type: many_to_one
+  on_sql: ${returns.line_id} = ${order_lines.line_id}

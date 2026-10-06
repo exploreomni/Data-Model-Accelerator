@@ -21,6 +21,16 @@ SPEC.loader.exec_module(planner)
 
 
 class SpecialistPlannerTests(unittest.TestCase):
+    def test_standalone_dashboard_json_is_structurally_routed(self):
+        self.write('arbitrary.json', json.dumps({'id': 'd1', 'title': 'Example',
+            'dashboard_elements': [{'id': 't1', 'type': 'text', 'body_text': 'Notes'}],
+            'dashboard_filters': [], 'dashboard_layouts': []}))
+        self.write('generic.json', '{"id":"other","title":"Generic"}')
+        _, inventory, _ = self.plan()
+        assets = {a['path']: a for a in inventory['assets']}
+        self.assertEqual(assets['arbitrary.json']['source_types'], ['looker'])
+        self.assertEqual(assets['generic.json']['source_types'], ['unknown'])
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)

@@ -1,0 +1,2065 @@
+{
+  "capabilities": {
+    "aggregate_awareness": {
+      "module": "advanced",
+      "operations": {
+        "deploy": {
+          "documented": false,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "generate": {
+          "documented": false,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "inspect": {
+          "documented": false,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": false,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "preserve": {
+          "documented": false,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": false,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        }
+      },
+      "scope": "Opaque inventory/preservation only; documented guidance does not implement advanced generation or native qualification.",
+      "source_ids": [
+        "placement"
+      ]
+    },
+    "ai_context": {
+      "module": "ai",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [
+            "ai",
+            "checker",
+            "queries"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Reviewed direct/derived gold lineage, topic eligibility, disclosure and repeated offline answer/result comparisons. No protected-data declassification, real AI provenance, access enforcement or business approval.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "ai",
+            "checker",
+            "queries"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Reviewed direct/derived gold lineage, topic eligibility, disclosure and repeated offline answer/result comparisons. No protected-data declassification, real AI provenance, access enforcement or business approval.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        }
+      },
+      "scope": "Read each operation limitation: implemented bounded subset, not this entire native object family.",
+      "source_ids": [
+        "ai_context",
+        "ai_optimization"
+      ]
+    },
+    "composite_topics": {
+      "module": "advanced",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        }
+      },
+      "scope": "Opaque inventory/preservation only; documented guidance does not implement advanced generation or native qualification.",
+      "source_ids": [
+        "composite_topics"
+      ]
+    },
+    "filtered_measures": {
+      "module": "fields",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker",
+            "generator"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        }
+      },
+      "scope": "Read each operation limitation: implemented bounded subset, not this entire native object family.",
+      "source_ids": [
+        "filtered_measures"
+      ]
+    },
+    "inherited_views": {
+      "module": "scopes",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker",
+            "generator"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        }
+      },
+      "scope": "Read each operation limitation: implemented bounded subset, not this entire native object family.",
+      "source_ids": [
+        "layers"
+      ]
+    },
+    "level_of_detail": {
+      "module": "advanced",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        }
+      },
+      "scope": "Opaque inventory/preservation only; documented guidance does not implement advanced generation or native qualification.",
+      "source_ids": [
+        "lod"
+      ]
+    },
+    "lifecycle": {
+      "module": "lifecycle",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "lifecycle",
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Locally recomputed change/dependency closure and separate imported reference/compile/query/access lanes. Imported captures remain unauthenticated; missing coverage, environment or route evidence stays pending/blocked.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "lifecycle",
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Locally recomputed change/dependency closure and separate imported reference/compile/query/access lanes. Imported captures remain unauthenticated; missing coverage, environment or route evidence stays pending/blocked.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        }
+      },
+      "scope": "Read each operation limitation: implemented bounded subset, not this entire native object family.",
+      "source_ids": [
+        "dbt_environments",
+        "git_practices"
+      ]
+    },
+    "models": {
+      "module": "scopes",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker",
+            "generator"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        }
+      },
+      "scope": "Read each operation limitation: implemented bounded subset, not this entire native object family.",
+      "source_ids": [
+        "model_settings"
+      ]
+    },
+    "query_views": {
+      "module": "query_views",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker",
+            "generator",
+            "queries"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Modeled and conservative read-only SQL query forms only; unknown controls/arbitrary SQL remain unsupported. Output and population lineage are local, not native runtime eligibility or materialization.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker",
+            "queries"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Modeled and conservative read-only SQL query forms only; unknown controls/arbitrary SQL remain unsupported. Output and population lineage are local, not native runtime eligibility or materialization.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        }
+      },
+      "scope": "Read each operation limitation: implemented bounded subset, not this entire native object family.",
+      "source_ids": [
+        "query_views",
+        "query_parameter",
+        "sql_parameter"
+      ]
+    },
+    "relationships": {
+      "module": "joins_topics",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker",
+            "generator"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        }
+      },
+      "scope": "Read each operation limitation: implemented bounded subset, not this entire native object family.",
+      "source_ids": [
+        "relationships",
+        "role_playing"
+      ]
+    },
+    "security": {
+      "module": "lifecycle",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [],
+          "implemented": [],
+          "limitation": "No implemented qualification for this full object/operation; preserve unsupported behavior and request a scoped review.",
+          "live_qualified": false,
+          "locally_tested": []
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "access"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Offline exact-state/nonweakening comparator only; imports do not authenticate effective access or provision controls.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        }
+      },
+      "scope": "Full object family is broader than any implemented bounded subset.",
+      "source_ids": [
+        "access"
+      ]
+    },
+    "topics": {
+      "module": "joins_topics",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker",
+            "generator"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        }
+      },
+      "scope": "Read each operation limitation: implemented bounded subset, not this entire native object family.",
+      "source_ids": [
+        "topics"
+      ]
+    },
+    "views": {
+      "module": "fields",
+      "operations": {
+        "deploy": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "generate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker",
+            "generator"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake",
+            "bigquery"
+          ]
+        },
+        "inspect": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "native_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "native",
+            "checker",
+            "lifecycle"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Request/authority/transport plumbing for the supported bounded candidate on an explicitly authorized isolated synthetic development target only; all tests simulated. No production, delete, refresh, merge, promotion or live qualification.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "preserve": {
+          "documented": true,
+          "evidence_ids": [
+            "inventory"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Exact raw-byte preservation and bounded identity/dependency inspection only. Opaque syntax is not interpreted or semantically qualified; scope/inventory completeness stays explicit.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake"
+          ]
+        },
+        "static_validate": {
+          "documented": true,
+          "evidence_ids": [
+            "checker"
+          ],
+          "implemented": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ],
+          "limitation": "Bounded supported contract only: physical/single-parent views, typed fields/local filters, topic selectors/aliases and relationship paths. Unknown operational settings, multiple inheritance and advanced combinations remain gated.",
+          "live_qualified": false,
+          "locally_tested": [
+            "snowflake",
+            "bigquery",
+            "databricks",
+            "redshift",
+            "clickhouse",
+            "motherduck"
+          ]
+        }
+      },
+      "scope": "Read each operation limitation: implemented bounded subset, not this entire native object family.",
+      "source_ids": [
+        "symmetric_aggregates"
+      ]
+    }
+  },
+  "conflicts": [
+    {
+      "id": "ai_context_limits",
+      "resolution": "Use dated approximate metadata budgets; reject older universal 200K/550-field and deterministic precedence claims.",
+      "source_ids": [
+        "ai_optimization"
+      ],
+      "status": "resolved_by_current_docs"
+    },
+    {
+      "id": "dbt_deferral",
+      "resolution": "Native non-production deferral is documented; clones are optional and production fallback must be disclosed.",
+      "source_ids": [
+        "dbt_environments",
+        "virtual_schemas"
+      ],
+      "status": "resolved_by_current_docs"
+    },
+    {
+      "id": "query_view_placement",
+      "resolution": "Do not automatically move every Query View or calculation upstream; preserve explicit placement choices.",
+      "source_ids": [
+        "query_views",
+        "placement"
+      ],
+      "status": "resolved_by_current_docs"
+    },
+    {
+      "id": "extension_git",
+      "resolution": "Suggested repository layouts do not remove the stated extension Git limitation; qualify the selected route.",
+      "source_ids": [
+        "extensions"
+      ],
+      "status": "review_required"
+    },
+    {
+      "id": "vendor_metric_rules",
+      "resolution": "Do not invent primary keys or force aggregate_type onto every SQL-derived measure from a generic vendor prompt.",
+      "source_ids": [
+        "symmetric_aggregates",
+        "filtered_measures"
+      ],
+      "status": "review_required"
+    },
+    {
+      "id": "git_external_edits",
+      "resolution": "External edits are discouraged, not universally impossible; followers are specifically read-only.",
+      "source_ids": [
+        "git_practices",
+        "follower"
+      ],
+      "status": "resolved_by_current_docs"
+    }
+  ],
+  "kind": "omni_knowledge",
+  "modules": {
+    "advanced": {
+      "path": "references/omni-modeler-advanced.md",
+      "sha256": "87f26dc07247a14bccbb1d8a6013417446a95fbe690dc2c1780f3afd47a1b4bd",
+      "source_ids": [
+        "composite_topics",
+        "lod",
+        "placement"
+      ],
+      "upstream_ids": [
+        "builder"
+      ]
+    },
+    "ai": {
+      "path": "references/omni-modeler-ai.md",
+      "sha256": "2b597d2393143cb6d067334e07e521d7efb26a5933aaa2d787679d7c0a7bddf6",
+      "source_ids": [
+        "ai_optimization",
+        "ai_context",
+        "ai_quality"
+      ],
+      "upstream_ids": [
+        "ai_optimizer"
+      ]
+    },
+    "core": {
+      "path": "references/omni-modeler.md",
+      "sha256": "a92f98604d818f36177835db45c54bc13632c8ed54b4650ef6ad44030fc3a6bd",
+      "source_ids": [
+        "layers"
+      ],
+      "upstream_ids": [
+        "modeler",
+        "explorer"
+      ]
+    },
+    "fields": {
+      "path": "references/omni-modeler-fields.md",
+      "sha256": "de4dd5355344d9c388fc9515f20e9d7f7871b7fa4fabce51b203f0cb403deaf8",
+      "source_ids": [
+        "filtered_measures",
+        "symmetric_aggregates"
+      ],
+      "upstream_ids": [
+        "builder"
+      ]
+    },
+    "joins_topics": {
+      "path": "references/omni-modeler-joins-topics.md",
+      "sha256": "996cdb4106fe78c5258ae27933972e58798db07c488edfa90b26f52a409e0399",
+      "source_ids": [
+        "topics",
+        "relationships",
+        "role_playing"
+      ],
+      "upstream_ids": [
+        "builder"
+      ]
+    },
+    "lifecycle": {
+      "path": "references/omni-modeler-lifecycle.md",
+      "sha256": "230237e46e7f9eca53e9e6e50a91df97217610e5f6bba269a92797d9c2a77a02",
+      "source_ids": [
+        "access",
+        "dbt_environments",
+        "virtual_schemas",
+        "git_practices",
+        "follower",
+        "cache"
+      ],
+      "upstream_ids": [
+        "explorer"
+      ]
+    },
+    "query_views": {
+      "path": "references/omni-modeler-query-views.md",
+      "sha256": "fcd776b68cef2faaf415127d24eb77fcef0e82787fb59686182f3e8e2b781907",
+      "source_ids": [
+        "query_views",
+        "query_parameter",
+        "sql_parameter",
+        "placement"
+      ],
+      "upstream_ids": [
+        "builder"
+      ]
+    },
+    "scopes": {
+      "path": "references/omni-modeler-scopes.md",
+      "sha256": "1647694cdb5f70d6580109a82e358e6e0003bb50136ccc33eb59e28d5d233e85",
+      "source_ids": [
+        "layers",
+        "model_settings",
+        "extensions"
+      ],
+      "upstream_ids": [
+        "explorer",
+        "builder"
+      ]
+    }
+  },
+  "review_after": "2027-01-03",
+  "reviewed_on": "2026-10-05",
+  "runtime_evidence": {
+    "access": {
+      "description": "Offline nonweakening and supplied exact-state/persona comparisons; not enforcement.",
+      "path": "scripts/security_contract.py",
+      "sha256": "c914c9acb149f361e4e3dbde69b62e6a02d73a9b5a42a4dff6eedcb468ae6ea4"
+    },
+    "ai": {
+      "description": "Version2 approved direct/derived gold lineage and repeated offline answer/result comparisons; no native AI provenance.",
+      "path": "scripts/omni_ai_context.py",
+      "sha256": "51261e3dd4f45d52b5f8ca018122d54ec6f24e5f2403bd6f0776b654b82f0eba"
+    },
+    "checker": {
+      "description": "Bounded omni-static-v2-2026-10-05 core/query static contract; local synthetic tests, no native acceptance.",
+      "path": "scripts/omni_contract.py",
+      "sha256": "e321e8bd82f2711b5872c6aa89be9e6297d26819117917e6dc35a7a530e5c090"
+    },
+    "generator": {
+      "description": "Explicit reviewed physical, inherited and query mappings; synthetic candidate generation tests.",
+      "path": "scripts/generate_omni_model.py",
+      "sha256": "a5ad106937c51a7f1431ae49dfca3374e463f7ae7e586b379ebec861a5bdccb4"
+    },
+    "handoff": {
+      "description": "Curated exact-candidate semantic handoff rebuilt before export; no warehouse-layer or native acceptance claims.",
+      "path": "scripts/omni_handoff.py",
+      "sha256": "3b2844cc8a7896cff85b7aed766d2d8beaed91c6bada584b6a49bc8887b6daf0"
+    },
+    "inventory": {
+      "description": "Exact-byte native inventory, origin/dependency graph and hash-bound leaf patches; incomplete/opaque semantics stay explicit.",
+      "path": "scripts/omni_inventory.py",
+      "sha256": "2223892ee14f415ce12da9b36a9733416f6459f7f18fc985f6b80779fc3ff15d"
+    },
+    "lifecycle": {
+      "description": "Changed/dependent closure and imported issue/environment preflight; independent lanes, no authenticated collector.",
+      "path": "scripts/omni_lifecycle.py",
+      "sha256": "5a6bdd50cec6f5aaadef167a4663e18c7353ba3dedde93061af4aece7e8c5f4e"
+    },
+    "modeler": {
+      "description": "Pinned presanitized task callback and installation comparison; no SDK adapter or external-host qualification.",
+      "path": "scripts/omni_modeler.py",
+      "sha256": "a697ab0b9c295a2d41dcc72b5e81c0ae2ab2f9f1f06c1a02d1c1ba8d7817f928"
+    },
+    "native": {
+      "description": "Signed isolated synthetic-development adapter with optional lifecycle binding; simulated transport tests only.",
+      "path": "scripts/omni_native.py",
+      "sha256": "9753314aab9aba37cda6eeabdce884721b264377231bd63ccdbdd86174945eb1"
+    },
+    "queries": {
+      "description": "Bounded modeled/read-only SQL query output and population lineage; local independent comparisons, no native compiler.",
+      "path": "scripts/omni_query_views.py",
+      "sha256": "80ff21b238543c0d00c0e3b11fe13c4affa482b5c1c2111889e2c3c9124536e7"
+    }
+  },
+  "schema_version": 1,
+  "sources": {
+    "access": {
+      "claim": "Access grants, attributes and filters require effective-policy evaluation.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/develop/data-access-control"
+    },
+    "ai_context": {
+      "claim": "ai_context_patch is server-managed and model inheritance affects effective context.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/models/ai-context"
+    },
+    "ai_optimization": {
+      "claim": "Context has metadata budgets and nondeterministic behavior; no universal field-count limit.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/develop/ai-optimization"
+    },
+    "ai_quality": {
+      "claim": "Model curation and independent real-question evaluation affect answer quality.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/guides/ai/improve-ai-answer-quality"
+    },
+    "cache": {
+      "claim": "Cache age, scheduling and suggestions have separate behavior.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "extension cache scheduling: coming soon",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/models/cache-policies"
+    },
+    "composite_topics": {
+      "claim": "Composite topics preserve separate fact grains through shared dimensions.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "Beta",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/composite-topics"
+    },
+    "dbt_environments": {
+      "claim": "Native deferral is documented for non-production environments.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/integrations/dbt/environments"
+    },
+    "extensions": {
+      "claim": "Extensions inherit and can override parent logic.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "full Git support for extension models: work in progress",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/guides/deployment/scaled-deployments-shared-model-extensions"
+    },
+    "filtered_measures": {
+      "claim": "Measure-local filters preserve separate aggregate populations.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/guides/modeling/single-field-filter"
+    },
+    "follower": {
+      "claim": "Followers are read-only and promoted from a leader branch through PR.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/integrations/git/follower-mode"
+    },
+    "git_practices": {
+      "claim": "Stale Omni branch promotion can overwrite newer shared content.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/integrations/git/best-practices"
+    },
+    "layers": {
+      "claim": "Schema, shared, workbook and branch scopes differ.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling"
+    },
+    "lod": {
+      "claim": "LOD changes aggregation grain and dimensionality.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/analyze-explore/custom-fields/level-of-detail"
+    },
+    "model_settings": {
+      "claim": "Model parameters span operational and semantic settings; model skills is scheduled to be deprecated.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "skills: scheduled to be deprecated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/models"
+    },
+    "placement": {
+      "claim": "LOD, SQL, CTE and workbook calculations have context-dependent uses.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/guides/patterns/level-of-detail-build-comparison"
+    },
+    "query_parameter": {
+      "claim": "Modeled query views expose selected and aliased output fields.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/views/parameters/query"
+    },
+    "query_views": {
+      "claim": "Query Views use .query.view with modeled query or SQL definitions.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/query-views"
+    },
+    "relationships": {
+      "claim": "Global and topic relationships and inferred cardinality differ.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/relationships"
+    },
+    "role_playing": {
+      "claim": "Repeated table roles require scoped aliases.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/guides/modeling/join-to-same-table"
+    },
+    "sql_parameter": {
+      "claim": "SQL-backed views bind their projected output columns.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/views/parameters/sql"
+    },
+    "symmetric_aggregates": {
+      "claim": "Fanout protection depends on correct keys and relationship cardinality.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/analyze-explore/sql/symmetric-aggregates"
+    },
+    "topics": {
+      "claim": "Topics curate business use cases over a base view and joins.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/modeling/topics"
+    },
+    "virtual_schemas": {
+      "claim": "Partial builds may resolve unbuilt models to production; migration has distinct operational steps.",
+      "confidence": "high",
+      "dialects": [
+        "snowflake",
+        "bigquery",
+        "databricks",
+        "redshift",
+        "clickhouse",
+        "motherduck"
+      ],
+      "evidence_type": "official_documentation",
+      "release_status": "not_stated",
+      "retrieved_on": "2026-10-05",
+      "review_after": "2027-01-03",
+      "revision": null,
+      "sha256": null,
+      "url": "https://docs.omni.co/integrations/dbt/virtual-schemas"
+    }
+  },
+  "upstream": {
+    "license": "Apache-2.0",
+    "license_url": "https://github.com/exploreomni/omni-agent-skills/blob/90d523181438a46d59cf976ed9117174d29889da/LICENSE",
+    "modules": {
+      "ai_optimizer": {
+        "path": "skills/omni-ai-optimizer/SKILL.md",
+        "purpose": "AI curation guidance; no guaranteed precedence, accuracy or security enforcement.",
+        "sha256": "c14dd76298469e9aaeac0cb915856a7f5e0be45a3c1a3a6da7f24e7c99926d2f",
+        "url": "https://github.com/exploreomni/omni-agent-skills/blob/90d523181438a46d59cf976ed9117174d29889da/skills/omni-ai-optimizer/SKILL.md"
+      },
+      "builder": {
+        "path": "skills/omni-model-builder/SKILL.md",
+        "purpose": "Modeling examples; review syntax and semantics against current docs and native contract.",
+        "sha256": "d1ca077c36fd2ca5c58ffb1921705053d0b9da8e559ff953c280dc0abb97df69",
+        "url": "https://github.com/exploreomni/omni-agent-skills/blob/90d523181438a46d59cf976ed9117174d29889da/skills/omni-model-builder/SKILL.md"
+      },
+      "explorer": {
+        "path": "skills/omni-model-explorer/SKILL.md",
+        "purpose": "Inventory guidance; not completeness, authorization or sandbox proof.",
+        "sha256": "39a21ca4ccb143912840699a80357ea14a563d97c4ea45280f2c6fd31f0f85d1",
+        "url": "https://github.com/exploreomni/omni-agent-skills/blob/90d523181438a46d59cf976ed9117174d29889da/skills/omni-model-explorer/SKILL.md"
+      },
+      "modeler": {
+        "path": "agents/omni-modeler.md",
+        "purpose": "Role guidance; DMA authority and evidence controls remain authoritative.",
+        "sha256": "d199150d77183e89f204b52049827b9182575d108155cea7ff9c1178b19490fa",
+        "url": "https://github.com/exploreomni/omni-agent-skills/blob/90d523181438a46d59cf976ed9117174d29889da/agents/omni-modeler.md"
+      }
+    },
+    "repository": "https://github.com/exploreomni/omni-agent-skills",
+    "revision": "90d523181438a46d59cf976ed9117174d29889da"
+  },
+  "version": "omni-knowledge-v2-2026-10-05"
+}

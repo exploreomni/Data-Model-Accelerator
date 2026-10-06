@@ -1,0 +1,4 @@
+customer_id,order_count,paid_order_count,shipping_cents,paid_shipping_cents
+ca,2,2,300,300
+cb,2,1,300,0
+cc,2,1,450,50

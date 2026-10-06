@@ -47,6 +47,10 @@ Known credential/profile paths are excluded before opening or hashing. Error out
 
 This is not an atomic filesystem snapshot. Re-assess before dependent work and compare the fingerprint; use the existing immutable source/evidence contracts for actual execution. A concurrent change entirely between two observations can only be caught by the host's stronger snapshot controls.
 
+## Access controls are a separate qualification
+
+Platform and pairing profiles expose `access_enforcement`, derived from `security_capabilities.py`. It separates documented vendor functions, implemented local checks, local tests, live qualification and unsupported automatic operations. Read [access enforcement](access-enforcement.md) before using protected data. Metadata comments, tags, hidden semantic fields and successful SQL lint do not prove enforcement. All native policy provisioning routes remain unqualified; use the security contract and an authorized operator to capture exact existing controls, readback and positive/negative persona evidence. The release coordinator must authenticate that evidence separately.
+
 ## Platform routes and boundaries
 
 | Selection | Assessment and candidate route | Execution boundary |

@@ -6,6 +6,7 @@ from data_dictionary_v2 import migrate_dictionary
 from metadata_contract import build_contract, verify_contract
 from metadata_platforms import capabilities
 from test_metadata_intake import OPTIONS
+from test_privacy_contract import approved_classification, approved_policy
 
 
 def dictionary(approved=True):
@@ -16,6 +17,12 @@ def dictionary(approved=True):
                 item['review_status'] = 'approved'
                 item['provenance']['review_reference'] = 'synthetic-review:1'
                 item['provenance']['evidence'] = [{'reference': 'synthetic-evidence', 'sha256': 'a'*64}]
+        for column in model['columns']:
+            if approved:
+                column.update(sensitivity='INTERNAL', sensitivity_review_status='approved',
+                              sensitivity_review_reference='synthetic-review:1',
+                              sensitivity_evidence=[{'reference': 'synthetic-classification', 'sha256': 'b'*64}],
+                              privacy=approved_classification())
     return value
 
 
@@ -25,6 +32,7 @@ def configuration(warehouse='snowflake', framework='dbt'):
             'framework': framework, 'environment': 'development',
             'target': {'id': 'fixture-target', 'identity': {'account': 'synthetic', 'principal': 'fixture'}},
             'candidate_sha256': 'c'*64, 'catalogue_sha256': 'b'*64,
+            'disclosure_policy': approved_policy(),
             'metadata_policy': copy.deepcopy(OPTIONS), 'resources': [{
                 'resource_id': 'fixture.fact_customer', 'resource_type': 'model', 'layer': 'gold',
                 'relation': {'namespace': namespace, 'name': 'fact_customer', 'kind': 'table'},
@@ -48,7 +56,10 @@ class MetadataContractTests(unittest.TestCase):
 
     def test_unknown_definitions_are_reported_not_approved(self):
         contract = build_contract(dictionary(False), configuration())
-        self.assertEqual(len(contract['blockers']), 2)
+        self.assertTrue(any('model definition requires review' in b for b in contract['blockers']))
+        self.assertTrue(any('column definition requires review' in b for b in contract['blockers']))
+        self.assertTrue(any('sensitivity requires review' in b for b in contract['blockers']))
+        self.assertTrue(any('metadata disclosure blocked' in b for b in contract['blockers']))
         self.assertEqual(contract['resources'][0]['columns'][0]['sensitivity'], 'UNKNOWN')
 
     def test_source_writes_require_scope_decision_and_exact_lineage(self):
@@ -85,6 +96,24 @@ class MetadataContractTests(unittest.TestCase):
         config = configuration()
         config['resources'][0].update(disposition='documented_only', reason='Read-only source')
         self.assertEqual(len(build_contract(dictionary(False), config)['resources']), 1)
+
+    def test_comments_only_unknown_and_missing_disclosure_policy_block_publication(self):
+        config = configuration()
+        self.assertEqual(config['metadata_policy']['mode'], 'comments')
+        config.pop('disclosure_policy')
+        self.assertTrue(any('disclosure blocked' in v for v in build_contract(dictionary(), config)['blockers']))
+        value = dictionary(); column = value['models'][0]['columns'][0]
+        column.update(sensitivity='UNKNOWN', sensitivity_review_status='unresolved',
+                      sensitivity_review_reference=None, sensitivity_evidence=[])
+        column.pop('privacy')
+        self.assertTrue(any('sensitivity requires review' in v for v in build_contract(value, configuration())['blockers']))
+
+    def test_sensitive_description_is_blocked_without_echoing_value(self):
+        value = dictionary()
+        value['models'][0]['columns'][0]['description'] = 'Contact fictional-person@example.invalid'
+        result = build_contract(value, configuration())
+        self.assertTrue(any('scan.not_clear' in v for v in result['blockers']))
+        self.assertNotIn('fictional-person', str(result['blockers']))
 
 
 if __name__ == '__main__':

@@ -24,10 +24,14 @@ UNSET = object()
 ANSWER_KEYS = {'engagement_type', 'priority_domain', 'framework', 'warehouse',
                'semantic_target', 'deliverables', 'trusted_outputs',
                'retained_behavior', 'corrected_behavior', 'host', 'environment',
-               'execution_mode', 'audience', 'metadata_policy', 'naming_policy'}
+               'execution_mode', 'audience', 'metadata_policy', 'naming_policy',
+               'migration_scope', 'input_handling', 'security_reviewer',
+               'business_reviewer', 'catalogue_authority'}
 DELIVERABLES = {'implementation', 'diagrams', 'documentation', 'dictionary',
                 'validation', 'sample_data', 'technical_audit'}
 ENUMS = {'engagement_type': {'migration', 'refactor', 'new_model', 'blind_test'},
+         'migration_scope': {'model_only', 'model_semantic', 'full_dashboard'},
+         'input_handling': {'metadata_only', 'pre_sanitized', 'protected_environment'},
          'framework': set(FRAMEWORKS),
          'warehouse': set(WAREHOUSES) | {'gcp'},
          'execution_mode': {'assessment_only', 'candidate_only',
@@ -42,6 +46,8 @@ SECRET_PATH = re.compile(r'(?:^|[._-])(?:credentials?|secrets?|tokens?|service[.
 DEPENDENCIES = {'source', 'catalogue', 'target', 'runtime', 'discovery'}
 STATUSES = {'interview_pending', 'assessment_ready', 'candidate_preparation_ready', 'needs_evidence', 'handoff_prepared'}
 QUESTIONS = {
+    'migration_scope': ('Do you need the warehouse model, the model and semantic layer, or a complete dashboard migration?', ['model_only', 'model_semantic', 'full_dashboard']),
+    'input_handling': ('Which approved input boundary applies to this engagement?', ['metadata_only', 'pre_sanitized', 'protected_environment']),
     'engagement_type': ('What are we doing: migrating, refactoring, designing a new model, or running a blind test?', ['migration', 'refactor', 'new_model', 'blind_test']),
     'priority_domain': ('Which business domain, report, or decision should we handle first?', []),
     'framework': ('How should the target transformations be delivered?', list(FRAMEWORKS)),
@@ -219,6 +225,8 @@ def _known(value):
 
 def _missing(answers):
     fields = ['engagement_type', 'priority_domain', 'framework', 'warehouse', 'semantic_target', 'deliverables']
+    if answers.get('semantic_target') == 'omni' or answers.get('engagement_type') == 'migration':
+        fields += ['migration_scope', 'input_handling']
     if answers.get('engagement_type') in ('migration', 'refactor'):
         fields += ['trusted_outputs', 'retained_behavior', 'corrected_behavior']
     missing = []
@@ -239,6 +247,9 @@ def _selection(answers):
     # Preserve historical fingerprints when the feature was never selected.
     # Once supplied, all choices participate in invalidation, including null.
     for key in ('metadata_policy', 'naming_policy'):
+        if key in answers:
+            target[key] = answers[key]
+    for key in ('migration_scope', 'input_handling', 'security_reviewer', 'business_reviewer', 'catalogue_authority'):
         if key in answers:
             target[key] = answers[key]
     target['sha256'] = _digest(target)
@@ -370,6 +381,8 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
     _secrets(options)
     state['readiness_options'] = options
     a = state['answers']
+    from delivery_assurance import pending_summary
+    state['delivery_assurance'] = pending_summary(a.get('migration_scope'))
     framework = a.get('framework') if _known(a.get('framework')) else None
     warehouse = a.get('warehouse') if _known(a.get('warehouse')) else None
     platform = _assess_repository(repo, framework, warehouse, **options)
@@ -404,6 +417,11 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
                           'missing_answers': missing, 'questions': questions, 'platform': platform,
                           'assessed_at': _now(),
                           'qualification': 'Candidate preparation guidance only. A catalogue hash proves captured bytes, not normalized physical bindings. verify_catalogue, model, independent baseline and execution gates remain pending; this workflow does not run or replace them.'}
+    if a.get('semantic_target') == 'omni':
+        from omni_modeler import plan_request
+        state['specialist_requests'] = [plan_request(fingerprint['value'], warehouse=warehouse if warehouse in WAREHOUSES else None)]
+    else:
+        state['specialist_requests'] = []
     if missing:
         state['status'] = 'interview_pending'
     elif generation_ready:
@@ -413,6 +431,9 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
     else:
         state['status'] = 'assessment_ready'
     state['next_actions'] = [{'id': 'answer_' + q['id'], 'action': q['prompt'], 'scope': 'discovery'} for q in questions]
+    if state['specialist_requests']:
+        state['next_actions'].append({'id': 'prepare_omni_modeler', 'scope': 'specialist',
+            'action': 'Prepare a pinned Omni Modeler task from approved inputs and invoke the available host adapter. This routing request has not run a specialist.'})
     if not missing:
         state['next_actions'] += [{'id': f['id'], 'action': f.get('next_action', f['summary']), 'scope': 'readiness'} for f in blockers]
         if not generation_ready and not blockers:
@@ -591,7 +612,7 @@ def _cli_options(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
-    for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff'):
+    for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence'):
         p = sub.add_parser(command)
         p.add_argument('--run', type=Path, required=True, help='Local engagement folder outside the input repository.')
         p.add_argument('--no-render', action='store_true', help='Skip the offline START_HERE.html refresh.')
@@ -611,6 +632,9 @@ def main(argv=None):
             p.add_argument('--artifact-root', type=Path, required=True)
             p.add_argument('--audience', choices=('reviewer', 'engineer', 'audit'))
             p.add_argument('--include', nargs='+', choices=sorted(DELIVERABLES))
+        if command == 'record-evidence':
+            p.add_argument('--path', type=Path, required=True)
+            p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
     args = parser.parse_args(argv)
     try:
         if args.command in ('init', 'start'):
@@ -623,6 +647,8 @@ def main(argv=None):
             state = resume_engagement(args.run)
         elif args.command == 'record-handoff':
             state = record_handoff(args.run, args.review, args.artifact_root, args.audience, args.include)
+        elif args.command == 'record-evidence':
+            state = record_evidence(args.run, args.path, args.kind)
         else:
             state = status_engagement(args.run, refresh=args.refresh)
         if not args.no_render:

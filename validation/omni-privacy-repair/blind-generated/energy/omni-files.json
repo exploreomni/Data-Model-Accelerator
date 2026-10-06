@@ -1,0 +1,5 @@
+{
+  "energy.topic": "base_view: readings\nfields:\n- readings.reading_id\n- readings.meter_id\n- readings.recorded_on\n- readings.kwh\n- readings.zone\n- readings.total_kwh\njoins: {}\n",
+  "model": "week_start_day: Monday\n",
+  "readings.view": "catalog: synthetic-review\ndimensions:\n  kwh:\n    sql: '`kwh`'\n  meter_id:\n    sql: '`meter_id`'\n  reading_id:\n    primary_key: true\n    sql: '`reading_id`'\n  recorded_on:\n    sql: '`recorded_on`'\n  zone:\n    sql: '`zone`'\nmeasures:\n  total_kwh:\n    aggregate_type: sum\n    sql: ${readings.kwh}\nschema: dma_energy\ntable_name: gold_readings\n"
+}

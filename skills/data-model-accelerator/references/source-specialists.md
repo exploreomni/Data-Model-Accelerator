@@ -82,6 +82,8 @@ Sources checked 2026-09-24: [Dataform compilation and execution lifecycle](https
 
 ## Looker specialist
 
+For API dashboard JSON use `scripts/looker_source.py` after approved input staging. The parser preserves native IDs, text and data tiles, filters, query behavior and unresolved dependencies in a canonical dashboard contract. Attach it under `dashboard_contracts[asset_id]` in specialist results. The result verifier recomputes extraction from the captured source; a `parsed` label alone is insufficient. Provide a separately captured expected inventory with pagination and capture provenance. An operator scope declaration is useful but cannot establish source-observed completeness. Current reference: [Looker API dashboard contract](https://docs.cloud.google.com/looker/docs/reference/looker-api/latest/methods/Dashboard/dashboard), checked 2026-10-05. No source code or embedded URL is executed.
+
 **Identify:** `.model.lkml`, `.view.lkml`, `.explore.lkml`, `manifest.lkml`, and `.dashboard.lookml`; generic `.lkml` also needs grammar inspection. Follow includes, refinements, extensions, and imported projects.
 
 **Extract:** Views/Explores, dimensions/measures, primary keys, relationships, derived tables/PDTs, persistence rules, filters, Liquid/parameters, access filters/grants, timezone behavior, and dashboard query context where present.
@@ -91,6 +93,30 @@ Sources checked 2026-09-24: [Dataform compilation and execution lifecycle](https
 **Traps:** Symmetric aggregates depend on correct keys and relationships; flattening joins can reintroduce fanout. Separate row transformations in derived tables from context-dependent measures, drill paths, and user filters. Inspect generated SQL as evidence without mistaking generated aggregation safeguards for source business rules.
 
 Sources: [Project file types](https://cloud.google.com/looker/docs/lookml-project-files), [Symmetric aggregates](https://cloud.google.com/looker/docs/best-practices/understanding-symmetric-aggregates).
+
+## Omni specialist
+
+**Identify:** Native `.view`, `.query.view`, `.topic`, `model` and `relationships`
+files require matching structure. Weak support files such as a label-only model
+or empty relationships file need a structurally recognized native sibling.
+Generic files with similar names do not establish Omni origin. The source route
+also requests the dedicated `omni_modeler` target role; routing is not execution.
+
+**Extract:** Use the [lossless inventory contract](omni-inventory.md) for authored
+and effective snapshots, scoped objects, field identity, query output mappings,
+relationships, topic aliases, dependencies and explicit gaps. Preserve raw bytes
+and opaque constructs. Compare against a separately captured scope/inventory;
+repository completeness is not tenant completeness.
+
+**Traps:** Never write a resolved combined model back as authored overrides,
+flatten workbook intent into shared definitions, infer deletion from omission,
+invent physical bindings for query views, or claim source completeness from a
+self-count. Reference scans, compilation, query results, access and SME acceptance
+remain separate. A minimal proposed patch has no deployment authority.
+
+Sources checked 2026-10-05: [Modeling layers](https://docs.omni.co/modeling),
+[Query views](https://docs.omni.co/modeling/query-views),
+[Read model YAML](https://docs.omni.co/api/models/get-model-yaml).
 
 ## Power BI specialist
 

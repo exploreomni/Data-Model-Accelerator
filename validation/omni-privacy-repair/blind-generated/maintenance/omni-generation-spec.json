@@ -1,0 +1,118 @@
+{
+  "contract_version": "omni-static-v1-2026-10-05",
+  "kind": "omni_generation_spec",
+  "model": {
+    "week_start_day": "Monday"
+  },
+  "pins": {
+    "catalogue_sha256": "feabf4cf1caadf49922d032ef33c0aea6a48b62640e59b3d47d7698906e7754d",
+    "context_sha256": "fa4720803f5bb7116933f27d445a43be8b984c8073df1429b790f030408e3d8d",
+    "model_sha256": "99bf95d7222a650f02d9a190ef08a96933c939a4fd7fc8f034e2eb8db2bfad77",
+    "placement_sha256": "55796e686d93b7800d2dd3c04e6ca3bdafecc748aac6c8c7b395321dc33d717c"
+  },
+  "relationships": [],
+  "review": {
+    "evidence_sha256": "22a1d04a704d86aaa7f1ea610c095a591ee118640aaf16a5937b36e8f93149eb",
+    "reference": "synthetic-review.json: synthetic-only local review; NOT actual approval",
+    "spec_sha256": "996934125cc5645bffebc6f378032742c6e74f70f142f2c75b0f0763ff1db127",
+    "status": "approved"
+  },
+  "schema_version": 1,
+  "topics": {
+    "maintenance": {
+      "base_view": "work_orders",
+      "fields": [
+        "work_orders.work_order_id",
+        "work_orders.tenant_id",
+        "work_orders.opened_on",
+        "work_orders.labor_cost",
+        "work_orders.status",
+        "work_orders.parts_cost",
+        "work_orders.work_cost",
+        "work_orders.total_work_cost"
+      ],
+      "joins": {}
+    }
+  },
+  "views": {
+    "work_orders": {
+      "definition": {
+        "dimensions": {
+          "labor_cost": {},
+          "opened_on": {},
+          "parts_cost": {},
+          "status": {},
+          "tenant_id": {},
+          "work_cost": {},
+          "work_order_id": {
+            "primary_key": true
+          }
+        },
+        "measures": {
+          "total_work_cost": {
+            "aggregate_type": "sum",
+            "sql": "${work_orders.work_cost}"
+          }
+        }
+      },
+      "field_mappings": {
+        "labor_cost": {
+          "column": "LABOR_COST",
+          "kind": "physical",
+          "source_refs": [
+            "model#/models/4/columns/3"
+          ]
+        },
+        "opened_on": {
+          "column": "OPENED_ON",
+          "kind": "physical",
+          "source_refs": [
+            "model#/models/4/columns/2"
+          ]
+        },
+        "parts_cost": {
+          "column": "PARTS_COST",
+          "kind": "physical",
+          "source_refs": [
+            "model#/models/4/columns/5"
+          ]
+        },
+        "status": {
+          "column": "STATUS",
+          "kind": "physical",
+          "source_refs": [
+            "model#/models/4/columns/4"
+          ]
+        },
+        "tenant_id": {
+          "column": "TENANT_ID",
+          "kind": "physical",
+          "source_refs": [
+            "model#/models/4/columns/1"
+          ]
+        },
+        "total_work_cost": {
+          "kind": "aggregate",
+          "source_refs": [
+            "placement#/rules/0"
+          ]
+        },
+        "work_cost": {
+          "column": "WORK_COST",
+          "kind": "physical",
+          "source_refs": [
+            "model#/models/4/columns/6"
+          ]
+        },
+        "work_order_id": {
+          "column": "WORK_ORDER_ID",
+          "kind": "physical",
+          "source_refs": [
+            "model#/models/4/columns/0"
+          ]
+        }
+      },
+      "kind": "physical"
+    }
+  }
+}

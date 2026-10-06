@@ -180,6 +180,8 @@ def get_platform(warehouse: str) -> Dict[str, Any]:
         'qualification': 'read_only_starter_template_not_live_validated'}
     from metadata_platforms import capabilities
     profile['metadata_delivery'] = capabilities(warehouse)
+    from security_capabilities import capabilities as security_capabilities
+    profile['access_enforcement'] = security_capabilities(warehouse)
     return profile
 
 
@@ -191,6 +193,8 @@ def get_pairing(framework: str, warehouse: str) -> Pairing:
     framework = 'dbt' if framework == 'dbt_core' else framework
     result = {'framework': framework, 'warehouse': warehouse, 'status': 'conditional', 'native_qualified': False,
               'reason': '', 'requirements': [], 'checks': [], 'documentation': []}
+    from security_capabilities import capabilities as security_capabilities
+    result['access_enforcement'] = security_capabilities(warehouse, framework)
     if framework == 'native_sql':
         result.update(status='supported', reason='Candidate SQL authoring and native validation recipes exist; no live qualification.',
                       requirements=['Reviewed dialect-specific SQL and target identity'], checks=get_platform(warehouse)['native_checks'])

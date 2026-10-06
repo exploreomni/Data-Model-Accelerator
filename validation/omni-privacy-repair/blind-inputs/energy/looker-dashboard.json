@@ -1,0 +1,93 @@
+{
+  "id": "energy-source",
+  "title": "Synthetic energy",
+  "dashboard_elements": [
+    {
+      "id": "energy-total",
+      "type": "vis",
+      "query": {
+        "id": "energy-q1",
+        "model": "energy",
+        "view": "readings",
+        "fields": [
+          "readings.total_kwh"
+        ],
+        "filters": {
+          "readings.recorded_on": "2026-02-01"
+        },
+        "limit": "500"
+      },
+      "listen": {
+        "Date": "readings.recorded_on"
+      }
+    },
+    {
+      "id": "energy-detail",
+      "type": "vis",
+      "query": {
+        "id": "energy-q2",
+        "model": "energy",
+        "view": "readings",
+        "fields": [
+          "readings.recorded_on",
+          "readings.total_kwh"
+        ],
+        "filters": {
+          "readings.recorded_on": "2026-02-01"
+        },
+        "sorts": [
+          "readings.recorded_on asc"
+        ],
+        "limit": "500"
+      },
+      "listen": {
+        "Date": "readings.recorded_on"
+      }
+    },
+    {
+      "id": "energy-note",
+      "type": "text",
+      "body_text": "Synthetic exercise. Native data freshness and business acceptance are pending."
+    }
+  ],
+  "dashboard_filters": [
+    {
+      "id": "energy-date",
+      "name": "Date",
+      "type": "date_filter",
+      "default_value": "2026-02-01"
+    }
+  ],
+  "dashboard_layouts": [
+    {
+      "id": "energy-layout",
+      "active": true,
+      "dashboard_layout_components": [
+        {
+          "id": "energy-layout-0",
+          "dashboard_element_id": "energy-total",
+          "row": 0,
+          "column": 0,
+          "width": 12,
+          "height": 4
+        },
+        {
+          "id": "energy-layout-1",
+          "dashboard_element_id": "energy-detail",
+          "row": 4,
+          "column": 0,
+          "width": 12,
+          "height": 4
+        },
+        {
+          "id": "energy-layout-2",
+          "dashboard_element_id": "energy-note",
+          "row": 8,
+          "column": 0,
+          "width": 12,
+          "height": 4
+        }
+      ]
+    }
+  ]
+}

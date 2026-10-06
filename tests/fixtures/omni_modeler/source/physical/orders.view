@@ -1,0 +1,40 @@
+catalog: CORPUS
+schema: SYNTHETIC
+table_name: ORDERS
+dimensions:
+  order_id:
+    sql: '"order_id"'
+    primary_key: true
+  customer_id:
+    sql: '"customer_id"'
+  buyer_party_id:
+    sql: '"buyer_party_id"'
+  seller_party_id:
+    sql: '"seller_party_id"'
+  placed_on:
+    sql: '"placed_on"'
+    timeframes: [raw, date]
+  status:
+    sql: '"status"'
+  shipping_amount_cents:
+    sql: '"shipping_cents"'
+measures:
+  order_count:
+    aggregate_type: count
+  paid_order_count:
+    aggregate_type: count
+    filters:
+      status:
+        is: paid
+  shipping_cents:
+    sql: ${shipping_amount_cents}
+    aggregate_type: sum
+  paid_shipping_cents:
+    sql: ${shipping_amount_cents}
+    aggregate_type: sum
+    filters:
+      status:
+        is: paid
+  paid_shipping_share:
+    sql: ${paid_shipping_cents} / NULLIF(${shipping_cents}, 0)
+    format: '0.00%'

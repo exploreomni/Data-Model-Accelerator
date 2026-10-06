@@ -15,7 +15,7 @@ from ae_common import require, hash_json, load_json, _json_bytes
 
 VERSION = 1
 ACTIONS = {'publish_pr', 'deploy_development', 'promote'}
-PURPOSES = {'model_signoff', 'deployment_approval', 'deployment_acceptance', 'adapter_qualification', 'deployment_recovery', 'deployment_reconciliation'}
+PURPOSES = {'model_signoff', 'deployment_approval', 'deployment_acceptance', 'adapter_qualification', 'deployment_recovery', 'deployment_reconciliation', 'delivery_evidence'}
 
 
 def utc_now():
@@ -91,6 +91,12 @@ def load_policy(path, *, excluded_roots=()):
     for issuer_id, issuer in policy['issuers'].items():
         require(isinstance(issuer_id, str) and type(issuer) is dict, 'Invalid issuer registry')
         require(type(issuer.get('purposes')) is list and set(issuer['purposes']) <= PURPOSES, 'Invalid issuer purposes')
+        if 'delivery_evidence' in issuer['purposes']:
+            from delivery_assurance import LANES
+            lanes = issuer.get('evidence_lanes')
+            require(type(lanes) is list and bool(lanes) and all(type(v) is str for v in lanes)
+                    and len(lanes) == len(set(lanes)) and set(lanes) <= LANES,
+                    'Evidence issuers require an explicit lane allowlist')
         require(type(issuer.get('actors')) is list and bool(issuer['actors']) and
                 all(isinstance(v, str) and v for v in issuer['actors']), 'Issuer actor allowlist is required')
         require(type(issuer.get('public_key')) is str, 'Issuer public key is required')

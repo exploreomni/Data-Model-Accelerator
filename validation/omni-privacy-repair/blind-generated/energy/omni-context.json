@@ -1,0 +1,28 @@
+{
+  "access_grants": [],
+  "bindings": {
+    "readings": {
+      "columns": {
+        "kwh": "number",
+        "meter_id": "number",
+        "reading_id": "number",
+        "recorded_on": "date",
+        "zone": "string"
+      },
+      "evidence_sha256": "cc3ceb21f24f188a361d17babdb2daad5b625173bcc6a0fc09bec2f1a49fa460",
+      "namespace": {
+        "dataset": "dma_energy",
+        "project": "synthetic-review",
+        "table": "gold_readings"
+      }
+    }
+  },
+  "catalogue_sha256": "36ab70a8b341a2922ced28424a71ca7c064ab844180c3d7a587ed39604165c46",
+  "default_catalog": null,
+  "environment": "synthetic_offline_candidate",
+  "inherited_views": {},
+  "kind": "omni_model_context",
+  "schema_version": 1,
+  "user_attributes": [],
+  "warehouse": "bigquery"
+}

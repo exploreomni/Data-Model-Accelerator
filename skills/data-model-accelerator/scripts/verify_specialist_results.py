@@ -5,6 +5,8 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from looker_source import is_looker_dashboard, parse_dashboard
 
 
 COVERAGE = {"parsed", "partial", "unsupported", "missing", "unreadable"}
@@ -182,6 +184,35 @@ def verify(plan_path):
                     errors.append("Binary/unreadable artifact requires separately inventoried extraction: " + aid)
             for aid in allowed - coverage.keys():
                 errors.append("Assigned asset omitted from result " + tid + ": " + aid)
+
+            # Re-extract supported JSON from the captured source. A specialist's
+            # prose claim of 'parsed' cannot hide a missing dashboard contract.
+            for aid in allowed:
+                asset = assets.get(aid, {})
+                if task.get('source_type') != 'looker' or not str(asset.get('path', '')).endswith('.json'):
+                    continue
+                try:
+                    source_path = inside(repo_root, asset['path'])
+                    if source_path.stat().st_size > 8 * 1024 * 1024:
+                        raise ValueError('Dashboard input exceeds bound')
+                    payload = read_json(source_path)
+                    if not is_looker_dashboard(payload):
+                        continue
+                    actual = parse_dashboard(payload)
+                    supplied = result.get('dashboard_contracts', {}).get(aid)
+                    if not isinstance(supplied, dict):
+                        errors.append('Missing canonical dashboard contract: ' + aid)
+                        continue
+                    for field in ('source', 'tiles', 'filters', 'layouts', 'dependencies'):
+                        if supplied.get(field) != actual.get(field):
+                            errors.append('Dashboard extraction differs from source: ' + aid + ':' + field)
+                    if actual.get('gaps'):
+                        gaps.append('Dashboard dependencies/behavior require review: ' + aid)
+                    # Completeness declarations do not authenticate a source
+                    # inventory. Release independently verifies the denominator.
+                    gaps.append('Independent dashboard source completeness remains unverified: ' + aid)
+                except (OSError, ValueError, TypeError):
+                    errors.append('Invalid or unavailable canonical dashboard input: ' + aid)
 
             def evidence_ok(item, label):
                 evidence = item.get("evidence")

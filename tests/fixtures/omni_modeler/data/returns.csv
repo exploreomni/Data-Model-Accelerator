@@ -1,0 +1,5 @@
+return_id,line_id,returned_on,quantity,refund_cents
+r111,l11a,2026-04-12,1,1000
+r112,l11a,2026-04-13,1,900
+r121,l12a,2026-04-20,1,3000
+r141,l14a,2026-04-20,1,500

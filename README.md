@@ -1,5 +1,9 @@
 # Data Model Accelerator
 
+The dedicated **Omni Modeler** now inventories existing Omni models, proposes scoped changes, builds supported views/topics/query views, traces AI definitions to reviewed warehouse columns, and adds an Omni review to the guided ZIP. Start with the [Omni operator guide](docs/OMNI_MODELER.md); see the [qualification record](validation/omni-modeler/README.md) for the exact tested scope. Advanced constructs are preserved and flagged when generation is unsupported.
+
+Omni deliveries distinguish prepared artifacts from native model validation, query parity, dashboard behavior and access acceptance. General YAML lint and synthetic examples do not establish a completed dashboard migration. The [Omni and sensitive-data repair plan](docs/plans/16-omni-and-sensitive-data-repair.md) tracks implementation and remaining live qualification. Sensitive input handling must be selected before agent submission; a classification label or selected export folder is not a masking or disclosure control.
+
 Warehouse metadata now travels with model deliveries: a versioned dictionary, safely merged dbt documentation, reviewed native comment/tag changes, independent readback checks and a guided Metadata review. See the [metadata operator guide](skills/data-model-accelerator/references/warehouse-metadata.md) for Snowflake, Databricks, BigQuery, Redshift, ClickHouse and MotherDuck. Metadata SQL is available for a reviewed operator/CI handoff; automatic live metadata dispatch awaits authenticated drift-collector integration. Coalesce node exports and native compatibility retain their qualification requirements.
 
 Turn tangled analytics code into documented, testable warehouse models and a curated semantic layer—with an analytics engineer and business SMEs in control of the decisions.
@@ -19,6 +23,10 @@ The accelerator is a portable agent skill with local analysis, validation and de
 | Review test evidence | [Qualification status](docs/qualification.md) |
 | Publish or deploy an approved model | [Deployment guide](docs/DEPLOYMENT.md) |
 | Deliver descriptions and governed metadata | [Metadata operator guide](skills/data-model-accelerator/references/warehouse-metadata.md) |
+| Handle PII, PCI, PHI and source-to-agent disclosure | [Sensitive-data boundary](skills/data-model-accelerator/references/sensitive-data.md) |
+| Migrate Looker reports into Omni | [Omni delivery workflow](skills/data-model-accelerator/references/omni-delivery.md) |
+| Build, inspect or refactor an Omni model | [Omni Modeler operator guide](docs/OMNI_MODELER.md) |
+| Understand release evidence and access checks | [Release evidence](skills/data-model-accelerator/references/delivery-release.md) · [Access enforcement](skills/data-model-accelerator/references/access-enforcement.md) |
 
 ## Your first run
 
@@ -62,6 +70,16 @@ START_HERE.html               Guided review: model, decisions, evidence, files
 
 Exact files depend on the engagement. Existing projects receive a scoped patch and before/after mapping; new models receive a coherent candidate project. Reviewer, engineer and technical-audit exports can be separate. Source rows, credentials and working databases are not automatically included. The offline guide previews/copies/downloads artifacts; it does not run warehouse code or grant approval.
 
+## Choose what completion means
+
+Select `model_only`, `model_semantic`, or `full_dashboard` during discovery. A full dashboard migration includes dashboard behavior and effective access; a folder of topics cannot satisfy that scope. `START_HERE.html` shows every evidence lane, whether it applies, and the next action. It remains a candidate review page: imported pass labels do not authenticate business sign-off or execution.
+
+The Looker dashboard API JSON reader preserves tiles, filters, listeners, layouts, calculations, source IDs and unresolved features. A reviewed mapping produces a bounded Omni dashboard build contract. The optional native adapter works with a reviewed draft on an existing document and preserves its published state; automatic new-document creation, publication and unsupported import paths remain outside this route. See [dashboard mapping](skills/data-model-accelerator/references/omni-dashboard-build.md) and [native draft limits](skills/data-model-accelerator/references/omni-dashboard-native.md).
+
+The accelerator checks native Omni structure beyond YAML syntax, produces pinned gold-field AI context, compares frozen data/behavior cases, and checks access-state changes across all six warehouse options. These are distinct tools and evidence lanes. Local fixture success does not qualify a tenant, live AI session, source export completeness, or warehouse policy enforcement.
+
+The agent scans selected artifacts, rendered HTML and its final ZIP within the supported scanner coverage. A **browser-created reduced ZIP** checks embedded file hashes but cannot run a new content scan or reapprove disclosure. Its manifest says so; return that exact ZIP to the agent for scanning and destination review before sharing. Classification, metadata comments, hidden fields and AI instructions are not substitutes for native access policies.
+
 ## Platforms and sources
 
 Choose the **framework**, **warehouse**, **semantic engine** and **agent host** separately.
@@ -75,7 +93,7 @@ These are not interchangeable support claims. Coalesce routes are conditional fo
 
 ## What the tests establish
 
-The latest [source-only trial](validation/no-context-release-candidate/README.md) used 15 pinned CSVs and delivered 43 dbt models, 105 passing dbt tests, documentation for 58 objects/513 columns, and three Omni topics. Independent checks caught deliberately wrong amounts, fanout, missing rows, field exposure and an incorrect date-role join. The extracted delivery rebuilt successfully.
+The recorded [source-only trial](validation/no-context-release-candidate/README.md) used 15 pinned CSVs and delivered 43 dbt models, 105 passing dbt tests, documentation for 58 objects/513 columns, and three Omni topics. Independent checks caught deliberately wrong amounts, fanout, missing rows, field exposure and an incorrect date-role join. The extracted delivery rebuilt successfully.
 
 The recorded source-only trial's full local regression suite passed **905 tests with no skips**. See [current qualification](docs/qualification.md) for subsequent release checks. Test counts measure toolkit regression coverage, not a percentage of customer migration accuracy. The Snowflake adapter was parsed/compiled offline; the model ran locally in DuckDB. Native Snowflake, Omni and live AI-answer qualification remain open.
 

@@ -1,0 +1,113 @@
+{
+  "curated_replay": {
+    "elapsed_seconds": 1.416,
+    "errors": [],
+    "results": {
+      "A_raw_new_model": {
+        "callback_state": "needs_review",
+        "candidate_sha256": "42a13a1b5e002dc16c39da4fa0cfea157eecfa60ac57bb7dffa9450e8afa0a2b",
+        "catalogue_context_complete": true,
+        "elapsed_seconds": 0.848,
+        "local_rows": 3,
+        "sql_parsed_models": [
+          "stg_tickets",
+          "fct_ticket_records",
+          "stg_sites",
+          "dim_sites"
+        ],
+        "static_status": "passed",
+        "status": "handoff_prepared",
+        "task_sha256": "f71356d866003dae73a0d72e49d4ef185a734e2ee8189d371e7ef666b7bae6b0"
+      },
+      "B_existing_workbook": {
+        "affected_content": [
+          "window_dashboard",
+          "site_dashboard"
+        ],
+        "authored_round_trip_exact": true,
+        "callback_state": "needs_review",
+        "candidate_v1_sha256": "94bc2c7fb1da76021631a2c8e1bb6e7bb80039035b0a17ffc53d906ba3626b5c",
+        "candidate_v2_sha256": "14737b1e4362f0cd83e6d7187cd248aa013417852d13f91f700e1dbc0949cc94",
+        "effective_round_trip_exact": true,
+        "elapsed_seconds": 0.567,
+        "lifecycle_status": "pending",
+        "stale_evidence_records": 2,
+        "stale_review_rejected": "Review is stale: input, catalogue, target or runtime context differs",
+        "static_status": "unsupported",
+        "status_after_correction": "candidate_preparation_ready",
+        "status_before_correction": "handoff_prepared",
+        "task_sha256": "f88940b30041eb96b3a68621704a2689767e99655ec2f1b06fe8b45d1f1f1f49",
+        "unsupported_preserved": true
+      }
+    }
+  },
+  "curation": {
+    "actual_agent_execution_established_by_replay": false,
+    "fix": "Bind the catalogue to the actual repository snapshot digest and assert caller alignment; add failure assertions for catalogue, callback, static status, packaging, content impact and stale evidence.",
+    "script_sha256": "a39a0a386ec97ede320de4c948be246faf41691324271ff438b2f45a140925a5"
+  },
+  "evidence_boundary": {
+    "deployed": false,
+    "human_approval": false,
+    "independent_accuracy": false,
+    "native_verified": false,
+    "synthetic_only": true
+  },
+  "kind": "omni_modeler_fresh_operator_local_evidence",
+  "observed_on": "2026-10-05",
+  "original_authoring": {
+    "elapsed_seconds": 2.255,
+    "errors": [],
+    "evidence_boundary": {
+      "callback_mode": "simulation",
+      "deployed": false,
+      "human_approval": false,
+      "independent_accuracy": false,
+      "native_verified": false,
+      "synthetic_only": true
+    },
+    "instructions": "Reproduce with run_fresh_operator.py --repo <checkout> --output <new-folder>. Replays do not establish a new real agent run. B v1 package is historical after simulated correction.",
+    "kind": "omni_modeler_fresh_operator_local_evidence",
+    "observed_authoring_task": "/root/omni_fresh_operator",
+    "observed_on": "2026-10-05",
+    "results": {
+      "A_raw_new_model": {
+        "callback_state": "needs_review",
+        "candidate_sha256": "42a13a1b5e002dc16c39da4fa0cfea157eecfa60ac57bb7dffa9450e8afa0a2b",
+        "catalogue_context_complete": true,
+        "elapsed_seconds": 1.647,
+        "local_rows": 3,
+        "sql_parsed_models": [
+          "stg_tickets",
+          "fct_ticket_records",
+          "stg_sites",
+          "dim_sites"
+        ],
+        "static_status": "passed",
+        "status": "handoff_prepared",
+        "task_sha256": "8c3a6bd947073eca2a287096a56d66507215579911c7ccc4884048b3f20dbd6c"
+      },
+      "B_existing_workbook": {
+        "affected_content": [
+          "window_dashboard",
+          "site_dashboard"
+        ],
+        "authored_round_trip_exact": true,
+        "callback_state": "needs_review",
+        "candidate_v1_sha256": "94bc2c7fb1da76021631a2c8e1bb6e7bb80039035b0a17ffc53d906ba3626b5c",
+        "candidate_v2_sha256": "14737b1e4362f0cd83e6d7187cd248aa013417852d13f91f700e1dbc0949cc94",
+        "effective_round_trip_exact": true,
+        "elapsed_seconds": 0.607,
+        "lifecycle_status": "pending",
+        "stale_evidence_records": 2,
+        "stale_review_rejected": "Review is stale: input, catalogue, target or runtime context differs",
+        "static_status": "unsupported",
+        "status_after_correction": "candidate_preparation_ready",
+        "status_before_correction": "handoff_prepared",
+        "task_sha256": "8a270b1f0e62815a05bac82fa942e1c8fb0c10215fdfcd7a24d9a2cd1cb9035e",
+        "unsupported_preserved": true
+      }
+    }
+  },
+  "schema_version": 1
+}

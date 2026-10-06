@@ -139,6 +139,9 @@ def validate_dictionary(value):
         errors.append('$/schema_version: metadata deployment requires data_dictionary v2; migrate a copy of v1')
     if value.get('kind') != 'data_dictionary':
         errors.append('$/kind: expected data_dictionary')
+    privacy_version = value.get('privacy_schema_version')
+    if 'privacy_schema_version' in value and (type(privacy_version) is not int or privacy_version != 1):
+        errors.append('$/privacy_schema_version: unsupported privacy extension')
     if ('model_inventory_sha256' not in value or value['model_inventory_sha256'] is not None
             and not _sha(value['model_inventory_sha256'])):
         errors.append('$/model_inventory_sha256: expected null or a SHA-256 inventory binding')
@@ -152,6 +155,7 @@ def validate_dictionary(value):
     if (sources or 'source_inventory_sha256' in value) and not _sha(value.get('source_inventory_sha256')):
         errors.append('$/source_inventory_sha256: source inventory requires a SHA-256 binding')
     model_ids, column_ids = set(), set()
+    privacy_records = {}
     records = [('$/models/' + str(i), m, 'model_id') for i, m in enumerate(models)]
     records += [('$/sources/' + str(i), s, 'source_id') for i, s in enumerate(sources)]
     for path, model, identity_key in records:
@@ -224,6 +228,18 @@ def validate_dictionary(value):
             elif roles == ['NONE'] and column.get('review_status') != 'approved':
                 errors.append(here + '/key_roles: NONE means reviewed absence and requires an approved definition')
             errors.extend(_source_errors(column.get('source_refs'), here + '/source_refs'))
+            if 'privacy' in column or privacy_version == 1:
+                from privacy_contract import validate_classification
+                privacy = column.get('privacy')
+                privacy_errors = validate_classification(privacy)
+                if _text(column.get('column_id')):
+                    privacy_records[column['column_id']] = privacy
+                errors.extend(here + '/privacy: ' + code for code in privacy_errors)
+                if not privacy_errors and privacy['sensitivity'] != sensitivity:
+                    errors.append(here + '/privacy: sensitivity differs from the canonical classification')
+    if privacy_records:
+        from privacy_contract import validate_lineage_classifications
+        errors.extend('$/privacy: ' + code for code in validate_lineage_classifications(privacy_records))
     return errors
 
 

@@ -1,0 +1,205 @@
+{
+  "checks": [
+    {
+      "name": "no_orphan_children",
+      "status": "passed"
+    }
+  ],
+  "dbt_executed": false,
+  "expectations_independent": false,
+  "kind": "final_byte_local_observations",
+  "model_files": {
+    "implementation/dbt/models/bronze/bronze_meters.sql": "eeff0e44fa1b24fb1c7fe23e224d5d07c2fd83968495ca7dff338cbb3c4a7bcc",
+    "implementation/dbt/models/bronze/bronze_readings.sql": "6a53330422f9c9cd398ecc6e88f3fda5b7e9702563979ca8b55128b2f866278b",
+    "implementation/dbt/models/gold/gold_readings.sql": "eb5915c5099edda12e48cb72790f56968c0545b2eb2362d015dc2a44f7889aa7",
+    "implementation/dbt/models/silver/silver_meters.sql": "202e4e9897747ab5420e39e39b433fc922b868add12282c8a54f212c8a807288",
+    "implementation/dbt/models/silver/silver_readings.sql": "aa0c1c3fbc8f377b85cccab1c0151311c7a999ea02b055925630468006523996"
+  },
+  "models": [
+    {
+      "columns": [
+        "meter_id",
+        "zone"
+      ],
+      "name": "bronze_meters",
+      "row_count": 2,
+      "rows": [
+        [
+          "101",
+          "north"
+        ],
+        [
+          "102",
+          "south"
+        ]
+      ]
+    },
+    {
+      "columns": [
+        "reading_id",
+        "meter_id",
+        "recorded_on",
+        "kwh"
+      ],
+      "name": "bronze_readings",
+      "row_count": 3,
+      "rows": [
+        [
+          "21",
+          "101",
+          "2026-02-01",
+          "4"
+        ],
+        [
+          "22",
+          "101",
+          "2026-02-02",
+          "6"
+        ],
+        [
+          "23",
+          "102",
+          "2026-02-01",
+          "8"
+        ]
+      ]
+    },
+    {
+      "columns": [
+        "meter_id",
+        "zone"
+      ],
+      "name": "silver_meters",
+      "row_count": 2,
+      "rows": [
+        [
+          101,
+          "north"
+        ],
+        [
+          102,
+          "south"
+        ]
+      ]
+    },
+    {
+      "columns": [
+        "reading_id",
+        "meter_id",
+        "recorded_on",
+        "kwh"
+      ],
+      "name": "silver_readings",
+      "row_count": 3,
+      "rows": [
+        [
+          21,
+          101,
+          "2026-02-01",
+          "4.000"
+        ],
+        [
+          22,
+          101,
+          "2026-02-02",
+          "6.000"
+        ],
+        [
+          23,
+          102,
+          "2026-02-01",
+          "8.000"
+        ]
+      ]
+    },
+    {
+      "columns": [
+        "reading_id",
+        "meter_id",
+        "recorded_on",
+        "kwh",
+        "zone"
+      ],
+      "name": "gold_readings",
+      "row_count": 3,
+      "rows": [
+        [
+          21,
+          101,
+          "2026-02-01",
+          "4.000",
+          "north"
+        ],
+        [
+          22,
+          101,
+          "2026-02-02",
+          "6.000",
+          "north"
+        ],
+        [
+          23,
+          102,
+          "2026-02-01",
+          "8.000",
+          "south"
+        ]
+      ]
+    }
+  ],
+  "native_verified": false,
+  "omni_static_check": {
+    "candidate_sha256": "e367035568931d81fb88e6c9ccd9b8fa64da00255753fdc02a3c4306352b62b9",
+    "context_sha256": "42f951288c2761b0921f1d57094b3e734e8d9a11b434d8f0104d9021a5f7d7d2",
+    "contract_version": "omni-static-v1-2026-10-05",
+    "findings": [],
+    "kind": "omni_static_check",
+    "limitations": [
+      "Static subset only; SQL lint, native compilation, cardinality, access and business parity require separate evidence.",
+      "Context evidence and reviewed declarations are not authenticated observations."
+    ],
+    "native_verified": false,
+    "schema_version": 1,
+    "security_verified": false,
+    "status": "passed"
+  },
+  "slices": {
+    "baseline": {
+      "rows": [
+        [
+          "12.000"
+        ]
+      ],
+      "sql": "select sum(kwh) as total_kwh from gold_readings where recorded_on = date '2026-02-01'"
+    },
+    "detail": {
+      "rows": [
+        [
+          "2026-02-01",
+          "12.000"
+        ]
+      ],
+      "sql": "select recorded_on, sum(kwh) as total_kwh from gold_readings where recorded_on = date '2026-02-01' group by recorded_on order by recorded_on"
+    },
+    "north_all_dates": {
+      "rows": [
+        [
+          "10.000"
+        ]
+      ],
+      "sql": "select sum(kwh) as total_kwh from gold_readings where zone = 'north'"
+    },
+    "north_interactive": {
+      "rows": [
+        [
+          "4.000"
+        ]
+      ],
+      "sql": "select sum(kwh) as total_kwh from gold_readings where recorded_on = date '2026-02-01' and zone = 'north'"
+    }
+  },
+  "source_files": {
+    "meters.csv": "5f147b5b58b8d886237a8dbf7966075d4f7fdaae567daa3b57bf4a1b83bddbcc",
+    "readings.csv": "b7d4aa16db191525b08571500852f07f031318df60acac2a3fb6db9e3bc8c085"
+  }
+}

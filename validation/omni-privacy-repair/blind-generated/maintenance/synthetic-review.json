@@ -1,0 +1,8 @@
+{
+  "deployment_authorized": false,
+  "human_approved": false,
+  "intake_sha256": "d37f06e6927c94712c842ccb5027c01f946372ff14c6b37286c3113d90aca9c8",
+  "kind": "synthetic_review_only",
+  "native_evidence": false,
+  "reason": "Helper requires approved enum; this synthetic exercise only pins the agent-reviewed structural candidate. No real-world authority is asserted."
+}

@@ -1,0 +1,157 @@
+{
+  "candidate_sha256": "e367035568931d81fb88e6c9ccd9b8fa64da00255753fdc02a3c4306352b62b9",
+  "filters": {
+    "energy-date": {
+      "behavior": {
+        "source_payload": {
+          "reason": "Review source behavior",
+          "source_sha256": "627336a9b9a9fddd0f6f02d0828e122540b1c13882e7bbde469fe2d83b918d07",
+          "status": "manual"
+        }
+      },
+      "reason": "Translate and review this source item",
+      "source_sha256": "3920217f86c5e0b7888ef60a98a04a0dc65a13452e1de0bf6b5f9d37c23096bc",
+      "status": "manual"
+    }
+  },
+  "kind": "omni_dashboard_mapping",
+  "layout": {
+    "reason": "Review native layout mapping",
+    "source_sha256": "c3498219efeac3afd8682935ae4182d822d7b240561c2281eb7701eaa9b415ce",
+    "status": "manual"
+  },
+  "native_payload": {
+    "containers": [],
+    "controls": {
+      "data": {},
+      "order": []
+    },
+    "modelId": "00000000-0000-4000-8000-000000000000",
+    "name": "Migration candidate",
+    "queryPresentations": {
+      "data": {},
+      "order": []
+    }
+  },
+  "review": {
+    "mapping_sha256": null,
+    "reference": null,
+    "status": "pending"
+  },
+  "schema_version": 1,
+  "source_sha256": "cc05599ee85747aaf8e63c39470bb7d7081097728251884108f8fdfe308271a4",
+  "target_model_id": "00000000-0000-4000-8000-000000000000",
+  "tiles": {
+    "energy-detail": {
+      "behavior": {
+        "calculations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        },
+        "filter_listeners": {
+          "reason": "Review source behavior",
+          "source_sha256": "494586d5632cec6b70dd7298ae957827b0997873d0bd57d3fedb4b17244fe118",
+          "status": "manual"
+        },
+        "query": {
+          "reason": "Review source behavior",
+          "source_sha256": "684a813a7e2a9501e7ce860d721f16f42f49a203d0a4786742fcf633cfdf3917",
+          "status": "manual"
+        },
+        "source_payload": {
+          "reason": "Review source behavior",
+          "source_sha256": "cbc34dc2b46572795b8ed805ae6e7f00e4acffdbf2ee8a109fc6b76bc4690c05",
+          "status": "manual"
+        },
+        "text": {
+          "reason": "Review source behavior",
+          "source_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "status": "manual"
+        },
+        "visualizations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        }
+      },
+      "reason": "Translate and review this source item",
+      "source_sha256": "92ad26fb1ff8b89ef4c9f014e0ec48c7950e755a290d27a753229dd98185af5d",
+      "status": "manual"
+    },
+    "energy-note": {
+      "behavior": {
+        "calculations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        },
+        "filter_listeners": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        },
+        "query": {
+          "reason": "Review source behavior",
+          "source_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "status": "manual"
+        },
+        "source_payload": {
+          "reason": "Review source behavior",
+          "source_sha256": "662a812f5a422e4a9e519c2e124e2303d65405b45d2c57ec4cd1396386211aa1",
+          "status": "manual"
+        },
+        "text": {
+          "reason": "Review source behavior",
+          "source_sha256": "d85e2eadcc9fb19d203863280bb0dfb8c0d3b46035450d99750e54cbe7464052",
+          "status": "manual"
+        },
+        "visualizations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        }
+      },
+      "reason": "Translate and review this source item",
+      "source_sha256": "e31558f2119c92154726904f181b19c45e27918c8cd2a1687ecfe1ecae2d282a",
+      "status": "manual"
+    },
+    "energy-total": {
+      "behavior": {
+        "calculations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        },
+        "filter_listeners": {
+          "reason": "Review source behavior",
+          "source_sha256": "cc6e02e42c114064c92de796815e337a54988bf5d6b756f45547d38b24a95178",
+          "status": "manual"
+        },
+        "query": {
+          "reason": "Review source behavior",
+          "source_sha256": "35ffbec1a0f68cf3715c7275a9e699d2854502fba209e865e89444aa1be59ee0",
+          "status": "manual"
+        },
+        "source_payload": {
+          "reason": "Review source behavior",
+          "source_sha256": "430946dee66846eecbe8f3d61f4efb467b6c8529dee94a707568e7dd8818794a",
+          "status": "manual"
+        },
+        "text": {
+          "reason": "Review source behavior",
+          "source_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "status": "manual"
+        },
+        "visualizations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        }
+      },
+      "reason": "Translate and review this source item",
+      "source_sha256": "0a8311c91e67fb7940c9100e645da1036218f47a2362e4f35b486d63742f346b",
+      "status": "manual"
+    }
+  }
+}

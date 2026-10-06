@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "kind": "independent_synthetic_expectations",
+  "totals": {
+    "orders": 6, "paid_orders": 4, "lines": 6, "sold_quantity": 9,
+    "gross_cents": 9900, "paid_gross_cents": 7000,
+    "returns": 4, "returned_quantity": 4, "refund_cents": 5400,
+    "paid_refund_cents": 5400, "paid_net_cents": 1600,
+    "shipping_cents": 1050, "paid_shipping_cents": 350,
+    "paid_refund_rate": {"numerator": 27, "denominator": 35},
+    "paid_shipping_share": {"numerator": 1, "denominator": 3}
+  },
+  "customer_metrics": {
+    "ca": {"gross_cents": 6500, "paid_gross_cents": 6500, "paid_refund_cents": 4900, "paid_net_cents": 1600, "paid_refund_rate": {"numerator": 49, "denominator": 65}, "paid_shipping_share": {"numerator": 1, "denominator": 1}},
+    "cb": {"gross_cents": 2600, "paid_gross_cents": 500, "paid_refund_cents": 500, "paid_net_cents": 0, "paid_refund_rate": {"numerator": 1, "denominator": 1}, "paid_shipping_share": {"numerator": 0, "denominator": 1}},
+    "cc": {"gross_cents": 800, "paid_gross_cents": 0, "paid_refund_cents": 0, "paid_net_cents": 0, "paid_refund_rate": null, "paid_shipping_share": {"numerator": 1, "denominator": 9}}
+  },
+  "paid_gross_by_buyer": {"Amber": 6500, "Teal": 500, "Indigo": 0},
+  "paid_gross_by_seller": {"Amber": 0, "Teal": 2500, "Indigo": 4500},
+  "paid_gross_by_asof_segment": {"Basic": 3000, "Plus": 4000},
+  "paid_gross_by_current_segment": {"Basic": 500, "Plus": 6500},
+  "paid_shipping_share_by_order": {"o11": {"numerator": 1, "denominator": 1}, "o12": {"numerator": 1, "denominator": 1}, "o13": {"numerator": 0, "denominator": 1}, "o14": null, "o15": {"numerator": 0, "denominator": 1}, "o16": {"numerator": 1, "denominator": 1}},
+  "wrong_answer_sentinels": {
+    "unaggregated_orders_lines_returns_join_rows": 8,
+    "naive_line_gross_after_return_fanout": 11900,
+    "naive_paid_line_gross_after_return_fanout": 9000,
+    "naive_shipping_after_line_join": 1150,
+    "naive_shipping_after_line_and_return_join": 1250,
+    "sum_distinct_line_amounts": 9400,
+    "sum_distinct_paid_line_amounts": 6500,
+    "sum_of_nonzero_paid_order_refund_rates": {"numerator": 251, "denominator": 100},
+    "average_of_nonzero_paid_order_refund_rates": {"numerator": 251, "denominator": 300},
+    "average_customer_shipping_shares": {"numerator": 10, "denominator": 27}
+  },
+  "native_verified": false,
+  "business_accepted": false
+}

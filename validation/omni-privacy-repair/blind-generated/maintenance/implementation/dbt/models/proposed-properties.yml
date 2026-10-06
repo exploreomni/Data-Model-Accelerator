@@ -1,0 +1,111 @@
+version: 2
+models:
+- name: bronze_work_orders
+  description: 'Proposed synthetic model. Grain: One row per work_order_id in the
+    supplied snapshot; no historical uniqueness asserted'
+  columns:
+  - name: work_order_id
+    description: 'Proposed: Work order identifier in the synthetic snapshot.'
+  - name: tenant_id
+    description: 'Proposed: Tenant identifier retained for downstream filtering; no
+      security policy is established.'
+  - name: opened_on
+    description: 'Proposed: Work order opening date; dashboard date interpretation
+      is UTC.'
+  - name: labor_cost
+    description: 'Proposed: Labor contribution to work cost; currency is unspecified.'
+  - name: status
+    description: 'Proposed: Work order status retained without upstream filtering.'
+- name: bronze_parts
+  description: 'Proposed synthetic model. Grain: One row per part_line_id in the supplied
+    snapshot; no historical uniqueness asserted'
+  columns:
+  - name: part_line_id
+    description: 'Proposed: Part line identifier in the supplied snapshot.'
+  - name: work_order_id
+    description: 'Proposed: Work order identifier in the synthetic snapshot.'
+  - name: quantity
+    description: 'Proposed: Quantity of the part on this line.'
+  - name: unit_cost
+    description: 'Proposed: Cost per part unit; currency is unspecified.'
+- name: silver_work_orders
+  description: 'Proposed synthetic model. Grain: One row per work_order_id'
+  columns:
+  - name: work_order_id
+    description: 'Proposed: Work order identifier in the synthetic snapshot.'
+    data_tests:
+    - not_null
+    - unique
+  - name: tenant_id
+    description: 'Proposed: Tenant identifier retained for downstream filtering; no
+      security policy is established.'
+    data_tests:
+    - not_null
+  - name: opened_on
+    description: 'Proposed: Work order opening date; dashboard date interpretation
+      is UTC.'
+    data_tests:
+    - not_null
+  - name: labor_cost
+    description: 'Proposed: Labor contribution to work cost; currency is unspecified.'
+    data_tests:
+    - not_null
+  - name: status
+    description: 'Proposed: Work order status retained without upstream filtering.'
+    data_tests:
+    - not_null
+- name: silver_parts
+  description: 'Proposed synthetic model. Grain: One row per part_line_id'
+  columns:
+  - name: part_line_id
+    description: 'Proposed: Part line identifier in the supplied snapshot.'
+    data_tests:
+    - not_null
+    - unique
+  - name: work_order_id
+    description: 'Proposed: Work order identifier in the synthetic snapshot.'
+    data_tests:
+    - not_null
+  - name: quantity
+    description: 'Proposed: Quantity of the part on this line.'
+    data_tests:
+    - not_null
+  - name: unit_cost
+    description: 'Proposed: Cost per part unit; currency is unspecified.'
+    data_tests:
+    - not_null
+- name: gold_work_orders
+  description: 'Proposed synthetic model. Grain: One row per work_order_id'
+  columns:
+  - name: work_order_id
+    description: 'Proposed: Work order identifier in the synthetic snapshot.'
+    data_tests:
+    - not_null
+    - unique
+  - name: tenant_id
+    description: 'Proposed: Tenant identifier retained for downstream filtering; no
+      security policy is established.'
+    data_tests:
+    - not_null
+  - name: opened_on
+    description: 'Proposed: Work order opening date; dashboard date interpretation
+      is UTC.'
+    data_tests:
+    - not_null
+  - name: labor_cost
+    description: 'Proposed: Labor contribution to work cost; currency is unspecified.'
+    data_tests:
+    - not_null
+  - name: status
+    description: 'Proposed: Work order status retained without upstream filtering.'
+    data_tests:
+    - not_null
+  - name: parts_cost
+    description: 'Proposed: Sum of quantity times unit_cost by work_order_id; zero
+      when no part rows exist.'
+    data_tests:
+    - not_null
+  - name: work_cost
+    description: 'Proposed: Labor cost plus parts cost at work order grain.'
+    data_tests:
+    - not_null

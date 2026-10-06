@@ -1,10 +1,13 @@
 """Canonical metadata projection and exact physical scope. No warehouse execution."""
 import copy
+import json
 import re
 from ae_common import hash_json, require
 from metadata_platforms import capabilities
 from metadata_options import validate_options
 from metadata_descriptions import relation_description, column_description, meaningful_description
+from privacy_contract import new_classification, evaluate_disclosure, validate_disclosure_policy
+from sensitive_data import scan_bytes
 
 SHA = re.compile(r'[0-9a-f]{64}\Z')
 
@@ -74,7 +77,11 @@ def build_contract(dictionary, configuration):
     require(not validate_dictionary(dictionary), 'A valid v2 dictionary is required: ' + '; '.join(validate_dictionary(dictionary)))
     required = {'schema_version', 'kind', 'framework', 'warehouse', 'environment', 'target',
                 'candidate_sha256', 'catalogue_sha256', 'metadata_policy', 'resources'}
-    require(type(configuration) is dict and set(configuration) == required, 'Invalid metadata configuration fields')
+    require(type(configuration) is dict and required <= set(configuration)
+            and set(configuration) <= required | {'disclosure_policy'}, 'Invalid metadata configuration fields')
+    disclosure_policy = configuration.get('disclosure_policy')
+    require(disclosure_policy is None or not validate_disclosure_policy(disclosure_policy),
+            'Invalid metadata disclosure policy')
     require(type(configuration['schema_version']) is int and configuration['schema_version'] == 1
             and configuration['kind'] == 'metadata_configuration', 'Unsupported metadata configuration')
     warehouse, framework = configuration['warehouse'], configuration['framework']
@@ -148,12 +155,25 @@ def build_contract(dictionary, configuration):
                     'description': column_description(column), 'data_type': column['data_type'],
                     'sensitivity': column['sensitivity'], 'review_status': column['review_status'],
                     'key_roles': column['key_roles'], 'source_refs': column['source_refs'],
-                    'tags': ctags.get(column['name'], [])}
+                    'tags': ctags.get(column['name'], []),
+                    'privacy': copy.deepcopy(column.get('privacy', new_classification(column['sensitivity'])))}
             if disposition == 'required':
                 if column['review_status'] != 'approved' or not meaningful_description(column):
                     blockers.append(mid + '.' + column['name'] + ': column definition requires review')
-                if policy['mode'] == 'comments_and_tags' and (column['sensitivity'] == 'UNKNOWN' or column['sensitivity_review_status'] != 'approved'):
+                if column['sensitivity'] == 'UNKNOWN' or column['sensitivity_review_status'] != 'approved':
                     blockers.append(mid + '.' + column['name'] + ': sensitivity requires review')
+                # The informational metadata text has a disclosure boundary even
+                # when no tags are emitted. Draft contracts remain inspectable.
+                projection = {'relation': rel, 'description': relation_description(model),
+                              'grain': model['grain'], 'column': item['name'],
+                              'column_description': item['description'], 'tags': tags + item['tags']}
+                scan = scan_bytes(json.dumps(projection, ensure_ascii=True).encode('utf-8'), 'metadata.json')
+                disclosure = evaluate_disclosure(item['privacy'], disclosure_policy, 'metadata', scan)
+                if not disclosure['allowed']:
+                    # Do not echo unreviewed identifiers or description values in
+                    # the disclosure diagnostic. The private contract retains scope.
+                    blockers.append('resource[' + str(len(resources)) + '].column[' + str(len(result_columns))
+                                    + ']: metadata disclosure blocked (' + ','.join(disclosure['reasons']) + ')')
                 if binding['resource_type'] == 'source' and not any(
                         ref['object_id'] == mid and ref['column_path'] == [item['name']]
                         and ref['catalogue_sha256'] == configuration['catalogue_sha256']

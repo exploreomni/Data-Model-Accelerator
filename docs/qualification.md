@@ -1,8 +1,12 @@
 # Qualification evidence
 
-Current scope reviewed September 25, 2026. Evidence is specific to named inputs and runtimes; a source in the specialist roster is not universal parser support. Start with [capabilities](CAPABILITIES.md) for scoping and [the how-to guide](HOW_TO.md) for operation.
+Current local scope reviewed October 5, 2026. Evidence is specific to named inputs and runtimes; a source in the specialist roster is not universal parser support. Start with [capabilities](CAPABILITIES.md) for scoping and [the how-to guide](HOW_TO.md) for operation.
 
 ## Current release evidence
+
+- [Dedicated Omni Modeler evidence](../validation/omni-modeler/README.md), October 5, 2026: versioned knowledge, real task callback boundary, safe inventory/patches, bounded core/query modeling, change impact, derived AI lineage, repeated evaluation and guided handoff. Native tenant, external host, customer and release qualification remain separate.
+
+- [Omni and sensitive-data repair evidence](../validation/omni-privacy-repair/README.md), October 5, 2026: scope-aware delivery, bounded privacy controls, Looker API4 extraction, Omni model/dashboard adapters, independent parity, access contracts and signed release integration. Two fresh-context synthetic domains pass six independent local scenarios. Native pilots, effective-access collection, live AI answers, SME decisions and remote CI remain pending.
 
 - [Warehouse metadata implementation evidence](../validation/warehouse-metadata-governance/README.md), September 30, 2026: versioned dictionary, dbt YAML preservation, six-warehouse metadata generation, physical coverage/readback, signed release simulations and guided ZIP integrity. No live provider execution; automatic live metadata dispatch remains blocked pending authenticated drift collection.
 

@@ -1,0 +1,22 @@
+catalog: CORPUS
+schema: SYNTHETIC
+table_name: RETURNS
+dimensions:
+  return_id:
+    sql: '"return_id"'
+    primary_key: true
+  line_id:
+    sql: '"line_id"'
+  returned_on:
+    sql: '"returned_on"'
+    timeframes: [raw, date]
+  quantity:
+    sql: '"quantity"'
+  refund_amount_cents:
+    sql: '"refund_cents"'
+measures:
+  return_count:
+    aggregate_type: count
+  refund_cents:
+    sql: ${refund_amount_cents}
+    aggregate_type: sum

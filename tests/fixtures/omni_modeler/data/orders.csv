@@ -1,0 +1,7 @@
+order_id,customer_id,buyer_party_id,seller_party_id,placed_on,status,shipping_cents
+o11,ca,pa,pb,2026-04-10,paid,100
+o12,ca,pa,pc,2026-04-15,paid,200
+o13,cb,pb,pa,2026-04-15,pending,300
+o14,cb,pb,pc,2026-04-16,paid,0
+o15,cc,pc,pb,2026-04-20,cancelled,400
+o16,cc,pc,pa,2026-04-21,paid,50

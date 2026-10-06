@@ -1,0 +1,157 @@
+{
+  "candidate_sha256": "9b5454f6ec4fff8a98d9990a0ea5dcf7dd9db5dedcc59153929aa2cffa28af24",
+  "filters": {
+    "maintenance-date": {
+      "behavior": {
+        "source_payload": {
+          "reason": "Review source behavior",
+          "source_sha256": "16c0d888242ca1956e2b0a25f1136f277695e56da426b9508abc1788ea676c0a",
+          "status": "manual"
+        }
+      },
+      "reason": "Translate and review this source item",
+      "source_sha256": "b0777af60929a21d43b3c4f9d0ff768490089904eaf43f705bc9d3bc60a75217",
+      "status": "manual"
+    }
+  },
+  "kind": "omni_dashboard_mapping",
+  "layout": {
+    "reason": "Review native layout mapping",
+    "source_sha256": "0d08d9dacd706194c1775e1e2473881aedfb5b46abf0ad5da07f09b1c6ccd938",
+    "status": "manual"
+  },
+  "native_payload": {
+    "containers": [],
+    "controls": {
+      "data": {},
+      "order": []
+    },
+    "modelId": "00000000-0000-4000-8000-000000000000",
+    "name": "Migration candidate",
+    "queryPresentations": {
+      "data": {},
+      "order": []
+    }
+  },
+  "review": {
+    "mapping_sha256": null,
+    "reference": null,
+    "status": "pending"
+  },
+  "schema_version": 1,
+  "source_sha256": "8b1a5e8d9b472248dc1b24d0caa00d6033026a3572bd3d76db814cdd603e1cc5",
+  "target_model_id": "00000000-0000-4000-8000-000000000000",
+  "tiles": {
+    "maintenance-detail": {
+      "behavior": {
+        "calculations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        },
+        "filter_listeners": {
+          "reason": "Review source behavior",
+          "source_sha256": "363ec8c5ffb56d3f57caa242ab1a8a6569bac11cd5406096b402bc59efb0b083",
+          "status": "manual"
+        },
+        "query": {
+          "reason": "Review source behavior",
+          "source_sha256": "23d894a1358b011ad0a75a9a0cabf00de04650da123b35b9784c99717f140e78",
+          "status": "manual"
+        },
+        "source_payload": {
+          "reason": "Review source behavior",
+          "source_sha256": "572468bb8b0d7f2f7b1f936d3b5bb4b678837836328f603002693c71865d7e31",
+          "status": "manual"
+        },
+        "text": {
+          "reason": "Review source behavior",
+          "source_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "status": "manual"
+        },
+        "visualizations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        }
+      },
+      "reason": "Translate and review this source item",
+      "source_sha256": "5692a3822046a2a74167db6681ce138334e8f242ec9be930a164c9e2486071e9",
+      "status": "manual"
+    },
+    "maintenance-note": {
+      "behavior": {
+        "calculations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        },
+        "filter_listeners": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        },
+        "query": {
+          "reason": "Review source behavior",
+          "source_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "status": "manual"
+        },
+        "source_payload": {
+          "reason": "Review source behavior",
+          "source_sha256": "127710a32fa07fd209e44142a6b086fbc8f213c4d354446705318004b81fc7d0",
+          "status": "manual"
+        },
+        "text": {
+          "reason": "Review source behavior",
+          "source_sha256": "d85e2eadcc9fb19d203863280bb0dfb8c0d3b46035450d99750e54cbe7464052",
+          "status": "manual"
+        },
+        "visualizations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        }
+      },
+      "reason": "Translate and review this source item",
+      "source_sha256": "f1958a053155062545265c7b04b49e157f3375cd54ade2fd100ebc7135632806",
+      "status": "manual"
+    },
+    "maintenance-total": {
+      "behavior": {
+        "calculations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        },
+        "filter_listeners": {
+          "reason": "Review source behavior",
+          "source_sha256": "42d39b36e1a24eac9e02d694c1596bfeb04e1c72e70dbd068542f37c4fa24665",
+          "status": "manual"
+        },
+        "query": {
+          "reason": "Review source behavior",
+          "source_sha256": "b7bd972bc48f1eeddd0ebcf806beee5200f6bd331b0dc9f14238e9a9063378ba",
+          "status": "manual"
+        },
+        "source_payload": {
+          "reason": "Review source behavior",
+          "source_sha256": "0b49567e68cda1b8c209413fc1e6537310c8953c3875e036aab3517441b49bfd",
+          "status": "manual"
+        },
+        "text": {
+          "reason": "Review source behavior",
+          "source_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "status": "manual"
+        },
+        "visualizations": {
+          "reason": "Review source behavior",
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "status": "manual"
+        }
+      },
+      "reason": "Translate and review this source item",
+      "source_sha256": "e434952994c6aea1c3ac18b48d263648a371cd1c5439376b0551186cc26bda5b",
+      "status": "manual"
+    }
+  }
+}

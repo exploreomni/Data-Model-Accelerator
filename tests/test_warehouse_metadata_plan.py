@@ -42,7 +42,9 @@ def tagged_contract():
     column.update(sensitivity='RESTRICTED', sensitivity_review_status='approved',
                   sensitivity_review_reference='synthetic-security-review',
                   sensitivity_evidence=[{'reference': 'synthetic-classification', 'sha256':'f'*64}])
+    column['privacy']['sensitivity'] = 'RESTRICTED'
     config = configuration()
+    config['disclosure_policy']['destinations']['metadata']['allowed_sensitivities'].append('RESTRICTED')
     config['metadata_policy'].update(mode='comments_and_tags', taxonomy='fixture-taxonomy', tag_namespace=['fixture_db', 'governance'])
     tag = {'id': 'sensitivity', 'name': ['fixture_db', 'governance', 'sensitivity'],
            'value': 'RESTRICTED', 'policy_effects': 'none_verified', 'evidence_reference': 'synthetic-policy-review'}

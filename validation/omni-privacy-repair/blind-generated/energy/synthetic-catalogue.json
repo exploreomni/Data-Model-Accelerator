@@ -1,0 +1,234 @@
+{
+  "captured_at": null,
+  "context": {
+    "platform_instance": "SYNTHETIC_ONLY_NOT_A_NATIVE_INSTANCE",
+    "principal": "none_offline_generation",
+    "scope": [
+      {
+        "catalog": "synthetic-review",
+        "location": "UNKNOWN",
+        "schema": "raw_energy",
+        "scope_id": "energy"
+      }
+    ]
+  },
+  "coverage": {
+    "gaps": [
+      "CSV structure is observed; physical names and native types are planned synthetic bindings. No live catalogue, exporter identity, watermark, constraints or policies."
+    ],
+    "status": "partial"
+  },
+  "extractions": [
+    {
+      "artifact_path": "../../blind-inputs/energy/readings.csv",
+      "component": "objects",
+      "evidence_status": "synthetic_snapshot_only",
+      "extraction_id": "readings-objects",
+      "pagination_complete": true,
+      "query_id": null,
+      "scope_id": "energy",
+      "sha256": "b7d4aa16db191525b08571500852f07f031318df60acac2a3fb6db9e3bc8c085",
+      "status": "complete"
+    },
+    {
+      "artifact_path": "../../blind-inputs/energy/readings.csv",
+      "component": "columns",
+      "evidence_status": "synthetic_snapshot_only",
+      "extraction_id": "readings-columns",
+      "pagination_complete": true,
+      "query_id": null,
+      "scope_id": "energy",
+      "sha256": "b7d4aa16db191525b08571500852f07f031318df60acac2a3fb6db9e3bc8c085",
+      "status": "complete"
+    },
+    {
+      "artifact_path": "../../blind-inputs/energy/meters.csv",
+      "component": "objects",
+      "evidence_status": "synthetic_snapshot_only",
+      "extraction_id": "meters-objects",
+      "pagination_complete": true,
+      "query_id": null,
+      "scope_id": "energy",
+      "sha256": "5f147b5b58b8d886237a8dbf7966075d4f7fdaae567daa3b57bf4a1b83bddbcc",
+      "status": "complete"
+    },
+    {
+      "artifact_path": "../../blind-inputs/energy/meters.csv",
+      "component": "columns",
+      "evidence_status": "synthetic_snapshot_only",
+      "extraction_id": "meters-columns",
+      "pagination_complete": true,
+      "query_id": null,
+      "scope_id": "energy",
+      "sha256": "5f147b5b58b8d886237a8dbf7966075d4f7fdaae567daa3b57bf4a1b83bddbcc",
+      "status": "complete"
+    }
+  ],
+  "kind": "warehouse_raw_catalogue",
+  "objects": [
+    {
+      "columns": [
+        {
+          "data_type": "TEXT",
+          "nullable": null,
+          "path": [
+            "reading_id"
+          ]
+        },
+        {
+          "data_type": "TEXT",
+          "nullable": null,
+          "path": [
+            "meter_id"
+          ]
+        },
+        {
+          "data_type": "TEXT",
+          "nullable": null,
+          "path": [
+            "recorded_on"
+          ]
+        },
+        {
+          "data_type": "TEXT",
+          "nullable": null,
+          "path": [
+            "kwh"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "extraction_id": "readings-objects",
+          "locator": "CSV header; planned relation identity"
+        },
+        {
+          "extraction_id": "readings-columns",
+          "locator": "CSV header"
+        }
+      ],
+      "identity": {
+        "catalog": "synthetic-review",
+        "name": "readings",
+        "schema": "raw_energy"
+      },
+      "metadata_status": {
+        "comments": "unknown",
+        "ownership": "unknown",
+        "relationships": "unknown",
+        "replication": "unknown",
+        "security": "unknown",
+        "statistics": "unknown"
+      },
+      "object_id": "synthetic:energy:readings",
+      "object_type": "TABLE",
+      "scope_id": "energy"
+    },
+    {
+      "columns": [
+        {
+          "data_type": "TEXT",
+          "nullable": null,
+          "path": [
+            "meter_id"
+          ]
+        },
+        {
+          "data_type": "TEXT",
+          "nullable": null,
+          "path": [
+            "zone"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "extraction_id": "meters-objects",
+          "locator": "CSV header; planned relation identity"
+        },
+        {
+          "extraction_id": "meters-columns",
+          "locator": "CSV header"
+        }
+      ],
+      "identity": {
+        "catalog": "synthetic-review",
+        "name": "meters",
+        "schema": "raw_energy"
+      },
+      "metadata_status": {
+        "comments": "unknown",
+        "ownership": "unknown",
+        "relationships": "unknown",
+        "replication": "unknown",
+        "security": "unknown",
+        "statistics": "unknown"
+      },
+      "object_id": "synthetic:energy:meters",
+      "object_type": "TABLE",
+      "scope_id": "energy"
+    }
+  ],
+  "origin": "synthetic",
+  "planned_models": [
+    {
+      "columns": [
+        "reading_id",
+        "meter_id",
+        "recorded_on",
+        "kwh"
+      ],
+      "grain": "One row per reading_id in the supplied snapshot; no historical uniqueness asserted",
+      "layer": "bronze",
+      "model_id": "bronze_readings",
+      "physical_name": "synthetic-review.dma_energy.bronze_readings"
+    },
+    {
+      "columns": [
+        "meter_id",
+        "zone"
+      ],
+      "grain": "One row per meter_id in the supplied snapshot; no historical uniqueness asserted",
+      "layer": "bronze",
+      "model_id": "bronze_meters",
+      "physical_name": "synthetic-review.dma_energy.bronze_meters"
+    },
+    {
+      "columns": [
+        "reading_id",
+        "meter_id",
+        "recorded_on",
+        "kwh"
+      ],
+      "grain": "One row per reading_id",
+      "layer": "silver",
+      "model_id": "silver_readings",
+      "physical_name": "synthetic-review.dma_energy.silver_readings"
+    },
+    {
+      "columns": [
+        "meter_id",
+        "zone"
+      ],
+      "grain": "One row per meter_id",
+      "layer": "silver",
+      "model_id": "silver_meters",
+      "physical_name": "synthetic-review.dma_energy.silver_meters"
+    },
+    {
+      "columns": [
+        "reading_id",
+        "meter_id",
+        "recorded_on",
+        "kwh",
+        "zone"
+      ],
+      "grain": "One row per reading_id",
+      "layer": "gold",
+      "model_id": "gold_readings",
+      "physical_name": "synthetic-review.dma_energy.gold_readings"
+    }
+  ],
+  "provider": "bigquery",
+  "schema_version": 1
+}

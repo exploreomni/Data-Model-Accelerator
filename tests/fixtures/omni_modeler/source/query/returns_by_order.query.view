@@ -1,0 +1,16 @@
+schema: SYNTHETIC
+sql: |
+  SELECT
+    l."order_id" AS order_id,
+    COUNT(*) AS return_count,
+    SUM(r."quantity") AS returned_quantity,
+    SUM(r."refund_cents") AS refund_cents
+  FROM ${returns} AS r
+  JOIN ${order_lines} AS l ON r."line_id" = l."line_id"
+  GROUP BY l."order_id"
+dimensions:
+  order_id:
+    primary_key: true
+  return_count: {}
+  returned_quantity: {}
+  refund_cents: {}

@@ -1,0 +1,13 @@
+catalog: CORPUS
+schema: SYNTHETIC
+table_name: ORDERS
+dimensions:
+  order_id:
+    sql: '"order_id"'
+    primary_key: true
+  shipping_amount_cents:
+    sql: '"shipping_cents"'
+measures:
+  shipping_cents:
+    sql: ${shipping_amount_cents}
+    aggregate_type: sum

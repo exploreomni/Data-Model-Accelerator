@@ -1,0 +1,9 @@
+catalog: CORPUS
+schema: SYNTHETIC
+table_name: PARTIES
+dimensions:
+  party_id:
+    sql: '"party_id"'
+    primary_key: true
+  label:
+    sql: '"label"'

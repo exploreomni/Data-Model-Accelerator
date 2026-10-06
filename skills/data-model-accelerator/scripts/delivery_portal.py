@@ -48,6 +48,41 @@ def _native_omni_artifact(path):
     return path.suffix.lower() in {'.view', '.topic'} or path.name in {'model', 'relationships'}
 
 
+def _check_disclosure_bytes(content, filename):
+    from sensitive_data import scan_bytes
+    report = scan_bytes(content, filename)
+    require(report['status'] == 'clear',
+            'Disclosure scan blocked this output; inspect value-free scan findings in the approved environment.')
+    return {'status': report['status'], 'artifact_sha256': report['artifact_sha256'],
+            'assurance': 'Bounded content scan only; classification and destination approval remain required.'}
+
+
+def _check_share_policy(state, review, selected, data, audience):
+    """New scoped engagements require classified, audience-bound disclosure.
+
+    Legacy candidates retain scan-only assurance; they acquire no acceptance or
+    deployment authority. Policy JSON is supplied review evidence, not a signature.
+    """
+    if not state.get('answers', {}).get('migration_scope'):
+        return 'legacy_candidate_no_disclosure_approval'
+    from privacy_contract import evaluate_disclosure
+    from sensitive_data import scan_bytes
+    contract = review.get('disclosure', {})
+    require(isinstance(contract, dict) and contract.get('audience') == audience,
+            'A reviewed disclosure contract for this audience is required')
+    classifications = contract.get('artifacts', {})
+    require(isinstance(classifications, dict), 'Artifact classifications required')
+    for artifact in selected:
+        report = scan_bytes(artifact['content'], artifact['path'])
+        decision = evaluate_disclosure(classifications.get(artifact['id']), contract.get('policy'), 'share', report)
+        require(decision['allowed'], 'Artifact disclosure policy is unresolved or denied')
+    projected = _json_bytes(data)
+    decision = evaluate_disclosure(contract.get('presentation'), contract.get('policy'), 'share',
+                                   scan_bytes(projected, 'review.json'))
+    require(decision['allowed'], 'Review presentation disclosure policy is unresolved or denied')
+    return 'allowed_by_declared_policy_not_authenticated_approval'
+
+
 def _markdown_destination(value):
     """Read an angle-wrapped or balanced Markdown destination, excluding a title."""
     value = value.lstrip()
@@ -299,6 +334,99 @@ def _metadata_omitted(ref):
             'next_action': 'Include the registered metadata plan to inspect its scope, changes and blockers.'}
 
 
+def _validate_omni_reference(review):
+    if 'omni' not in review:return
+    ref=review['omni']
+    require(type(ref) is dict and set(ref)=={'artifact_id','sha256'} and type(ref['artifact_id']) is str
+            and type(ref['sha256']) is str and re.fullmatch(r'[a-f0-9]{64}',ref['sha256']), 'Invalid Omni review reference')
+    matches=[a for a in review.get('artifacts',[]) if a.get('id')==ref['artifact_id']]
+    require(len(matches)==1 and matches[0].get('category')=='documentation' and matches[0].get('sha256')==ref['sha256'],
+            'Omni review must pin one registered documentation artifact')
+
+
+def _omni_omitted(ref):
+    return {'artifact_id':ref['artifact_id'],'sha256':ref['sha256'],'evidence_state':'not_included',
+            'status':'unknown','summary':'Omni semantic evidence is not included in this page.',
+            'next_action':'Include the registered Omni semantic review to inspect topics, metrics, dependencies and gaps.'}
+
+
+def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
+    """Only selected, pinned curated bytes may populate the Omni review panel.
+
+    Agent packaging additionally rebuilds from registered private inputs without
+    embedding those inputs. Portable integrity verification never authenticates
+    collection, execution or imported completion claims.
+    """
+    ref=data.get('review',{}).get('omni')
+    if ref is None:return
+    matches=[a for a in selected if a.get('id')==ref.get('artifact_id')]
+    require(len(matches)<=1,'Duplicate selected Omni artifact')
+    included=bool(matches)
+    # Agent packaging verifies the bound private inputs even for a reduced
+    # export. Reclassifying an input must not disclose it when the catalog is
+    # omitted from the selected categories.
+    if not included and state is None:data['review']['omni']=_omni_omitted(ref);return
+    if included:artifact=matches[0]
+    else:
+        records={a['id']:a for a in review['artifacts']}
+        registered=records.get(ref['artifact_id'])
+        require(registered is not None and registered.get('sha256')==ref['sha256'],'Omni evidence registration is stale')
+        artifact_root=_path(root)
+        path=_path(artifact_root/_relative(registered['path']),root=artifact_root)
+        require(path.is_file() and path.stat().st_size<=MAX_ARTIFACT_BYTES,'Omni evidence is unavailable')
+        artifact=dict(registered,content=path.read_bytes())
+    require(_sha(artifact['content'])==ref['sha256']==artifact['sha256'],'Omni evidence changed')
+    def parse(body):
+        def unique(pairs):
+            result={}
+            for key,value in pairs:
+                require(key not in result,'Duplicate Omni JSON key');result[key]=value
+            return result
+        def invalid(_):raise ValueError('Invalid Omni JSON number')
+        try:result=json.loads(body.decode('utf-8'),object_pairs_hook=unique,parse_constant=invalid)
+        except (UnicodeError,ValueError):raise ValueError('Omni evidence must be unambiguous JSON') from None
+        from omni_contract import _bounded
+        _bounded(result);return result
+    summary=parse(artifact['content'])
+    from omni_contract import canonical_hash
+    require(type(summary) is dict and summary.get('schema_version')==1 and summary.get('kind')=='omni_semantic_handoff'
+            and summary.get('handoff_sha256')==canonical_hash({k:v for k,v in summary.items() if k!='handoff_sha256'}),
+            'Omni semantic artifact integrity failed')
+    pins=summary.get('pins',{})
+    require(pins.get('context_sha256')==data['engagement']['context_sha256'] and
+            all(pins.get('target',{}).get(k)==data['engagement']['target'].get(k) for k in ('framework','warehouse')),
+            'Omni semantic context or target is stale')
+    if state is not None:
+        from omni_handoff import verify_handoff
+        require(pins.get('source_fingerprint')==source_fingerprint(state),'Omni source inventory is stale')
+        records={a['id']:a for a in review['artifacts']}
+        artifact_root=_path(root)
+        def read(record,category,audiences,relative):
+            registered=records.get(record.get('artifact_id'))
+            require(registered is not None and registered.get('sha256')==record.get('sha256'),'Omni source artifact registration is stale')
+            require(registered.get('category')==category and
+                    sorted(registered.get('audiences',[]))==sorted(audiences) and
+                    registered.get('path')==relative,'Omni source artifact audience boundary changed')
+            path=_path(artifact_root/_relative(registered['path']),root=artifact_root)
+            require(path.is_file() and path.stat().st_size<=MAX_ARTIFACT_BYTES,'Omni source artifact is unavailable')
+            content=path.read_bytes();require(_sha(content)==record['sha256'],'Omni source artifact changed')
+            return content
+        model_files={entry['path']:read(entry,'implementation',['engineer'],'omni/model/'+entry['path']).decode('utf-8')
+                     for entry in summary['inputs']['model_files']}
+        from omni_handoff import CONTEXT_PATH
+        model_context=parse(read(summary['inputs']['model_context'],'technical_audit',['audit'],CONTEXT_PATH))
+        verify_handoff(summary,state,model_files,model_context)
+    if not included:data['review']['omni']=_omni_omitted(ref);return
+    data['review']['omni']={'artifact_id':ref['artifact_id'],'sha256':ref['sha256'],'evidence_state':'selected',
+        'status':'candidate','candidate_sha256':pins['model_candidate_sha256'],'static_status':summary['static_status'],
+        'topics':copy_quality(summary['topics']),'metrics':copy_quality(summary['metrics']),
+        'query_views':copy_quality(summary['query_views']),'dependencies':copy_quality(summary['dependencies']),
+        'decisions':copy_quality(summary['decisions']),'unknowns':copy_quality(summary['unknowns']),
+        'next_actions':copy_quality(summary['next_actions']),
+        'qualification':'Candidate review only. This page does not authenticate native execution, access, AI behavior, business sign-off or deployment.',
+        'native_status':'pending','business_status':'pending','deployment_status':'not_authorized','acceptance_ready':False}
+
+
 def _select_metadata_evidence(data, selected):
     """Regenerate a bounded display from selected canonical plan bytes only.
 
@@ -456,6 +584,7 @@ def validate_review(state, review):
                 'Human approval belongs in the authority record, not a pass badge')
     _validate_quality_checks(state, review)
     _validate_metadata_reference(review)
+    _validate_omni_reference(review)
     return review
 
 
@@ -498,8 +627,10 @@ def select_artifacts(review, root, audience, include):
             content = stream.read(MAX_ARTIFACT_BYTES + 1)
         require(len(content) <= MAX_ARTIFACT_BYTES, 'Artifact grew beyond the size limit')
         require(_sha(content) == record.get('sha256'), 'Artifact changed: ' + record['id'])
+        require(not content.startswith(b'PK'), 'Nested archives cannot be disguised as text artifacts')
         if native_omni:
             require('\x00' not in content.decode('utf-8'), 'Native Omni artifacts must be UTF-8 model text')
+        _check_disclosure_bytes(content, str(relative))
         if relative.suffix.lower() == '.svg':
             _validate_svg(content)
         total += len(content)
@@ -700,7 +831,9 @@ def _summary(state):
     platform=readiness.get('platform', {})
     # Explicit projection: never embed absolute roots, full state, answers JSON or receipts.
     delivery = state.get('delivery', {})
+    from delivery_assurance import pending_summary
     return {'engagement_id':state.get('engagement_id','Unassigned'), 'revision':state.get('revision',0),
+            'delivery_assurance': pending_summary(answers.get('migration_scope')),
             'context_sha256':context_fingerprint(state),
             'delivery':{key:delivery[key] for key in ('status','artifact_count','assurance','audience','deliverables','qualification') if key in delivery},
             'status':state.get('status','discovery'), 'source_fingerprint':source_fingerprint(state),
@@ -832,6 +965,7 @@ def _presentation(state, review=None, audience='engineer'):
                 for key in ('context_sha256', 'evidence_artifact_id', 'sha256')}) for row in review['quality_checks']]
         if 'metadata' in review:
             data['review']['metadata'] = dict(review['metadata'])
+        if 'omni' in review:data['review']['omni']=dict(review['omni'])
         if audience == 'reviewer':
             data['review']['validation']=[{k:v.get(k) for k in ('id','label','scope','status','details','evidence_id')} for v in review.get('validation',[])]
         if audience == 'audit':
@@ -872,9 +1006,12 @@ def render_engagement(state, output_path, review=None):
     data=_presentation(state,review)
     _select_quality_evidence(data, [])
     _select_metadata_evidence(data, [])
+    _select_omni_evidence(data, [])
     if review and review.get('models'):
         data['diagrams']=diagram_views(review['models'],review.get('relationships',[]))
-    _atomic_write(output_path,_html(data).encode('utf-8'),overwrite=True)
+    rendered = _html(data).encode('utf-8')
+    _check_disclosure_bytes(rendered, 'START_HERE.html')
+    _atomic_write(output_path,rendered,overwrite=True)
     return str(output_path)
 
 
@@ -905,6 +1042,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     _select_deployment_evidence(data, selected)
     _select_quality_evidence(data, selected)
     _select_metadata_evidence(data, selected)
+    _select_omni_evidence(data, selected, state=state, review=review, root=artifact_root)
     # Data-heavy views must also obey deliverable selection, not just file omission.
     if not set(include)&{'documentation','dictionary','diagrams'}:
         data['review'].pop('models',None); data['review'].pop('relationships',None)
@@ -915,6 +1053,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         data['review'].pop('validation',None)
     if 'diagrams' in include and data['review'].get('models'):
         data['diagrams']=diagram_views(data['review']['models'],data['review'].get('relationships',[]))
+    disclosure = _check_share_policy(state, review, selected, data, audience)
     files={a['destination']:a['content'] for a in selected}
     for artifact in selected:
         data['files'].append({'id':artifact['id'],'path':artifact['destination'],'category':artifact['category'],
@@ -922,7 +1061,14 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
                               'sha256':artifact['sha256'],'size':len(artifact['content']),
                               'base64':base64.b64encode(artifact['content']).decode()})
     files['START_HERE.html']=_html(data).encode('utf-8')
+    scans = {name: _check_disclosure_bytes(body, name) for name, body in files.items()}
     manifest={'schema_version':1,'kind':'portable_delivery_integrity','engagement_id':state['engagement_id'],
+              'export_origin': 'agent_packager',
+              'disclosure_scans': scans,
+              'migration_scope': state.get('answers', {}).get('migration_scope'),
+              'acceptance_ready': False,
+              'deployment_authorized': False,
+              'disclosure_policy_status': disclosure,
               'source_fingerprint':source_fingerprint(state),'context_sha256':context_fingerprint(state),
               'target':review['target'],'audience':audience,
               'deliverables':sorted(include),'authority':'File integrity only; not execution, business approval or deployment.',
@@ -934,7 +1080,9 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     with zipfile.ZipFile(stream,'w',compression=zipfile.ZIP_DEFLATED) as archive:
         for name,body in sorted(files.items()):
             archive.writestr(name,body)
-    _atomic_write(output_path,stream.getvalue())
+    payload = stream.getvalue()
+    _check_disclosure_bytes(payload, 'delivery.zip')
+    _atomic_write(output_path,payload)
     return manifest
 
 
@@ -993,6 +1141,19 @@ def verify_delivery(path):
                 _select_quality_evidence(embedded, evidence)
                 require(json.dumps(embedded['review']['quality_checks'], sort_keys=True) == before,
                         'Quality evidence is absent or differs from the package summary')
+            if embedded.get('review',{}).get('omni'):
+                ref=embedded['review']['omni'];evidence=[]
+                for item in embedded.get('files',[]):
+                    if item.get('id')!=ref.get('artifact_id'):continue
+                    require(item.get('path') in names,'Omni artifact is absent from package')
+                    body=archive.read(item['path'])
+                    require(base64.b64decode(item.get('base64',''),validate=True)==body and item.get('sha256')==_sha(body),
+                            'Embedded Omni artifact differs from package bytes')
+                    evidence.append({'id':item['id'],'sha256':_sha(body),'content':body})
+                before=json.dumps(ref,sort_keys=True)
+                _select_omni_evidence(embedded,evidence)
+                require(json.dumps(embedded['review']['omni'],sort_keys=True)==before,
+                        'Omni evidence is absent or differs from the package summary')
             if embedded.get('review', {}).get('metadata'):
                 evidence = []
                 ref = embedded['review']['metadata']

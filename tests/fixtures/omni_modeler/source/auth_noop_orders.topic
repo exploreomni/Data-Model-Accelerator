@@ -1,0 +1,5 @@
+base_view: orders
+joins: {}
+fields:
+  - orders.order_id
+  - orders.shipping_cents

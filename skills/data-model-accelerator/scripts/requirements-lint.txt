@@ -1,2 +1,5 @@
 # Optional isolated static SQL lint runtime. No dbt templater or warehouse adapter.
 sqlfluff==4.3.0
+# Bounded Omni model contract checker; neither library executes model SQL.
+PyYAML==6.0.3
+sqlglot==30.18.0

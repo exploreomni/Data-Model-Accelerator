@@ -3,7 +3,7 @@ title = "Data Model Accelerator secret scanning"
 [extend]
 useDefault = true
 
-# These three values are recorded SHA-256 digests of synthetic SQL artifacts,
+# These values are recorded SHA-256 digests of synthetic SQL/Omni artifacts,
 # not credentials. Match the exact field AND exact reviewed digest; neither
 # entire files nor arbitrary 64-character strings are excluded.
 [[rules]]
@@ -14,4 +14,8 @@ regexTarget = "match"
 regexes = [
   '''^adjustment_key_unique\.sql":\s*"(?:8acc551d6f36f57efa14238054ab2b70096bbf42c5b1c96bd635a92462134937|e9a819edbae2c495bcf56e16467ab22575fa8c6e5818c60449341403cac4337d)"$''',
   '''^bronze_lexical_keys\.sql":\s*"28153b9d6125e34640e376ed5a49a3ab5c7ccf7927583516eb81b0a0b74b9171"$''',
+  # Recomputed against the frozen native fixtures; "auth" in the filename is
+  # a test scenario name, not a credential assignment. Keep exact digests.
+  '''^auth_noop_orders\.topic":\s*"fa4865474919438b4f3bbc9f2b13b4916b5e4115a10a6c832c83e1018d882c37"$''',
+  '''^auth_noop_orders\.view":\s*"6a1e9722152074a59985827d94643c7169a8d5198145452d76b7cc7517d932ea"$''',
 ]
