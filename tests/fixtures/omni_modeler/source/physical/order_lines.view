@@ -1,0 +1,27 @@
+catalog: CORPUS
+schema: SYNTHETIC
+table_name: ORDER_LINES
+dimensions:
+  line_id:
+    sql: '"line_id"'
+    primary_key: true
+  order_id:
+    sql: '"order_id"'
+  quantity:
+    sql: '"quantity"'
+  unit_price_cents:
+    sql: '"unit_price_cents"'
+  line_amount_cents:
+    sql: ${quantity} * ${unit_price_cents}
+measures:
+  line_count:
+    aggregate_type: count
+  gross_cents:
+    sql: ${line_amount_cents}
+    aggregate_type: sum
+  paid_gross_cents:
+    sql: ${line_amount_cents}
+    aggregate_type: sum
+    filters:
+      orders.status:
+        is: paid

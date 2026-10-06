@@ -9,7 +9,7 @@ import copy
 import hashlib
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import re
 import shutil
 
@@ -18,7 +18,7 @@ from data_dictionary_v2 import validate_dictionary
 from privacy_contract import evaluate_disclosure, validate_classification
 from sensitive_data import scan_bytes
 
-VERSION = 'omni-ai-context-v1-2026-10-05'
+VERSION = 'omni-ai-context-v2-2026-10-05'
 MAX_RECORDS = 500
 ID = re.compile(r'[A-Za-z][A-Za-z0-9_-]{0,99}\Z')
 SHA = re.compile(r'[a-f0-9]{64}\Z')
@@ -101,20 +101,6 @@ def input_pins(*, dictionary, source, model_files, model_context, disclosure_pol
             'disclosure_policy_sha256': digest(disclosure_policy)}
 
 
-def _views(files, context):
-    views = {name: copy.deepcopy(item['definition']) for name, item in context['inherited_views'].items()}
-    for path, body in sorted(files.items()):
-        name = PurePosixPath(path).name
-        if name.endswith(('.yaml', '.yml')): name = name.rsplit('.', 1)[0]
-        if name.endswith('.view'):
-            name = name[:-5]
-            views[name] = omni._merge(views.get(name, {}), omni._load(body))
-    # A cross-view extends chain needs the exact native resolved context; this
-    # portable projection must not guess overrides or dependency semantics.
-    need(all('extends' not in value for value in views.values()), 'context.extends_requires_resolved_input')
-    return views
-
-
 def _field(views, ref):
     match = omni.FIELD.fullmatch(ref) if type(ref) is str else None
     need(match and match['view'] in views, 'context.field_unresolved')
@@ -129,50 +115,6 @@ def _field(views, ref):
     return match['view'], match['field'], value, dimension is not None
 
 
-def _dependencies(views, context, ref, trail=()):
-    need(ref not in trail and len(trail) < 32, 'context.field_dependency_cycle')
-    view, field, definition, dimension = _field(views, ref)
-    need(view in context['bindings'], 'context.physical_view_unresolved')
-    binding = context['bindings'][view]
-    sql = definition.get('sql')
-    dependencies = set()
-    if sql is None:
-        if dimension:
-            need(field in binding['columns'], 'context.physical_field_unresolved')
-            dependencies.add((view, field))
-        else:
-            # Count rows depends on the table's reviewed grain. All physical columns
-            # conservatively remain in its privacy lineage; no aggregate declassifies.
-            need(definition.get('aggregate_type') == 'count', 'context.expression_required')
-            dependencies.update((view, name) for name in binding['columns'])
-    sql_parts = [] if sql is None else [sql]
-    if 'custom_primary_key_sql' in definition:
-        sql_parts.append(definition['custom_primary_key_sql'])
-    refs = [ref for part in sql_parts for ref in omni.REF.findall(part)]
-    if 'order_by_field' in definition:
-        refs.append(definition['order_by_field'])
-    for referenced in refs:
-        parsed = omni.FIELD.fullmatch(referenced)
-        need(parsed is not None, 'context.reference_unresolved')
-        qualified = referenced if parsed['view'] else view + '.' + referenced
-        dependencies |= _dependencies(views, context, qualified, trail + (ref,))
-    for part in sql_parts:
-        replaced = omni.REF.sub('0', part)
-        try:
-            expression = omni.sqlglot.parse_one(replaced, read=omni.DIALECTS[context['warehouse']], error_message_context=0)
-        except Exception:
-            raise ContextError('context.expression_unresolved') from None
-        for column in expression.find_all(omni.exp.Column):
-            need(not column.table and not column.db and not column.catalog, 'context.qualified_column_unsupported')
-            name = column.name
-            if context['warehouse'] == 'snowflake' and not column.this.args.get('quoted'):
-                name = name.upper()
-            need(name in binding['columns'], 'context.physical_field_unresolved')
-            dependencies.add((view, name))
-    need(bool(dependencies), 'context.constant_requires_separate_review')
-    return dependencies
-
-
 def _review(value, content, code):
     need(type(value) is dict and set(value) == {'status', 'reference', 'sha256'}
          and value['status'] == 'approved' and text(value['reference']) and value['sha256'] == digest(content), code)
@@ -185,7 +127,8 @@ def build_context(spec, *, dictionary, source, model_files, model_context, discl
         inputs = dict(dictionary=dictionary, source=source, model_files=model_files,
                       model_context=model_context, disclosure_policy=disclosure_policy)
         pins = input_pins(**inputs)
-        need(type(spec) is dict and set(spec) == {'schema_version', 'kind', 'pins', 'bindings', 'definitions', 'review'}
+        required = {'schema_version', 'kind', 'pins', 'bindings', 'definitions', 'review'}
+        need(type(spec) is dict and required <= set(spec) <= required | {'topic'}
              and type(spec['schema_version']) is int and spec['schema_version'] == 1
              and spec['kind'] == 'omni_ai_context_spec' and spec['pins'] == pins, 'context.spec_or_pins_invalid')
         _review(spec['review'], {k: v for k, v in spec.items() if k != 'review'}, 'context.spec_review_stale')
@@ -193,7 +136,19 @@ def build_context(spec, *, dictionary, source, model_files, model_context, discl
         need(dictionary.get('privacy_schema_version') == 1, 'context.dictionary_privacy_required')
         check = omni.check_model(model_files, model_context)
         need(check['status'] == 'passed', 'context.static_model_not_passed')
-        views = _views(model_files, model_context)
+        from omni_query_views import analyze_query_views
+        topic = spec.get('topic')
+        need(topic is None or type(topic) is str and omni.NAME.fullmatch(topic), 'context.topic_shape')
+        lineage = analyze_query_views(model_files, model_context, topic=topic)
+        need(lineage['status'] == 'passed', 'context.derived_lineage_unqualified')
+        views = lineage['effective_views']
+        topic_scope = None
+        if topic is not None:
+            scope = check.get('topic_scopes', {}).get(topic)
+            need(type(scope) is dict and type(scope.get('selections')) is dict, 'context.topic_unresolved')
+            topic_scope = {'topic': topic, 'definition_sha256': digest(lineage['topic_definition']),
+                           'selection_sha256': digest(scope),
+                           'access_enforcement_verified': False}
         columns = {column['column_id']: (model, column) for model in dictionary['models'] for column in model['columns']}
         bindings = spec['bindings']
         need(type(bindings) is dict and 0 < len(bindings) <= MAX_RECORDS, 'context.bindings_required')
@@ -203,7 +158,16 @@ def build_context(spec, *, dictionary, source, model_files, model_context, discl
                  and binding['layer'] == 'gold', 'context.gold_binding_required')
             _, _, definition, _ = _field(views, field)
             need(binding['field_sha256'] == digest(definition), 'context.field_mapping_drift')
-            physical = _dependencies(views, model_context, field)
+            parsed = omni.FIELD.fullmatch(field)
+            need(parsed is not None and parsed['view'], 'context.field_unresolved')
+            base_field = parsed['view'] + '.' + parsed['field']
+            if topic is not None:
+                need(base_field in scope['selections'].get('fields', []) and
+                     base_field in scope['selections'].get('ai_fields', []), 'context.field_outside_selected_topic')
+            dependency = lineage['field_lineage'].get(base_field)
+            need(type(dependency) is dict, 'context.field_lineage_unresolved')
+            physical = {(column['view'], column['column']) for column in dependency['physical_columns']}
+            need(bool(physical), 'context.constant_requires_separate_review')
             need(type(binding['columns']) is list and len(binding['columns']) == len(physical), 'context.exact_column_bindings_required')
             seen, mapped = set(), []
             for item in binding['columns']:
@@ -278,6 +242,7 @@ def build_context(spec, *, dictionary, source, model_files, model_context, discl
         need(used_fields == set(bindings), 'context.unused_binding')
         context = {'schema_version': 1, 'kind': 'omni_ai_context', 'contract_version': VERSION,
                    'pins': pins, 'spec_sha256': digest(spec), 'rules': list(RULES),
+                   'topic_scope': topic_scope,
                    'fields': [field_rows[k] for k in sorted(field_rows)],
                    'approved_definitions': sorted(approved, key=lambda x: x['id']),
                    'unresolved_questions': sorted(questions, key=lambda x: x['id']),
@@ -305,6 +270,9 @@ def render_markdown(context):
     # No raw HTML, executable fences or native template evaluation is emitted.
     lines = ['# Reviewed business context', '', 'This candidate requires native import and persona validation.', '']
     lines.extend('- ' + rule for rule in RULES)
+    if context.get('topic_scope'):
+        lines += ['', 'Selected topic: ' + json.dumps(context['topic_scope']['topic']) + '.',
+                  'Topic and AI field selections describe this context; effective access still requires native tests.']
     lines += ['', '## Approved definitions', '']
     for item in context['approved_definitions']:
         lines.append('- ' + json.dumps({'definition_id': item['id'], 'fields': item['fields'], 'statement': item['statement']}, ensure_ascii=True))
@@ -323,7 +291,7 @@ def verify_context(context):
     encoded(context)
     need(type(context) is dict and set(context) == {'schema_version', 'kind', 'contract_version', 'pins', 'spec_sha256', 'rules',
         'fields', 'approved_definitions', 'unresolved_questions', 'withheld_definition_count', 'native_verified',
-        'review_authority_authenticated', 'access_enforcement_verified', 'context_sha256'}, 'evaluation.context_schema')
+        'review_authority_authenticated', 'access_enforcement_verified', 'context_sha256', 'topic_scope'}, 'evaluation.context_schema')
     need(type(context['schema_version']) is int and context['schema_version'] == 1 and context['kind'] == 'omni_ai_context'
          and context['contract_version'] == VERSION and context['rules'] == RULES
          and all(context[k] is False for k in ('native_verified','review_authority_authenticated','access_enforcement_verified'))
@@ -331,6 +299,12 @@ def verify_context(context):
     need(type(context['pins']) is dict and set(context['pins']) == {'dictionary_sha256', 'source_sha256', 'model_sha256',
         'model_context_sha256', 'disclosure_policy_sha256'} and all(sha(value) for value in context['pins'].values())
         and sha(context['spec_sha256']), 'evaluation.context_pins')
+    topic_scope = context['topic_scope']
+    need(topic_scope is None or type(topic_scope) is dict and
+         set(topic_scope) == {'topic', 'definition_sha256', 'selection_sha256', 'access_enforcement_verified'} and
+         type(topic_scope['topic']) is str and omni.NAME.fullmatch(topic_scope['topic']) and
+         sha(topic_scope['definition_sha256']) and sha(topic_scope['selection_sha256']) and
+         topic_scope['access_enforcement_verified'] is False, 'evaluation.context_topic_scope')
     need(type(context['withheld_definition_count']) is int and 0 <= context['withheld_definition_count'] <= MAX_RECORDS,
          'evaluation.context_withheld_count')
     need(type(context['fields']) is list and len(context['fields']) <= MAX_RECORDS, 'evaluation.context_fields')
@@ -397,7 +371,8 @@ def _suite(suite, context):
              and type(case['id']) is str and ID.fullmatch(case['id']) and case['id'] not in indexed
              and text(case['question']) and case['persona_id'] in personas, 'evaluation.case_shape')
         expected = case['expected']; persona = personas[case['persona_id']]
-        need(type(expected) is dict and set(expected) == {'decision','allowed_fields','required_fields','definition_ids','clarification_ids','required_attributes'}
+        expected_keys = {'decision','allowed_fields','required_fields','definition_ids','clarification_ids','required_attributes'}
+        need(type(expected) is dict and expected_keys <= set(expected) <= expected_keys | {'result'}
              and expected['decision'] in ('answer','refuse','clarify') and strings(expected['allowed_fields'])
              and strings(expected['required_fields']) and ids(expected['definition_ids']) and ids(expected['clarification_ids'])
              and ids(expected['required_attributes']), 'evaluation.expected_shape')
@@ -410,6 +385,7 @@ def _suite(suite, context):
                  'evaluation.definition_outside_field_scope')
         else:
             need(not expected['required_fields'] and not expected['definition_ids'] and not expected['allowed_fields'], 'evaluation.nonanswer_cannot_disclose')
+            need('result' not in expected, 'evaluation.nonanswer_cannot_disclose')
             if expected['decision'] == 'clarify': need(expected['clarification_ids'] and not absent, 'evaluation.clarification_not_supported')
             else: need(not expected['clarification_ids'], 'evaluation.refusal_not_supported')
         indexed[case['id']] = case
@@ -420,11 +396,12 @@ def _suite(suite, context):
 def evaluate_answers(suite, observations, context):
     """Compare imported structured claims; never infer correctness from prose."""
     report = {'schema_version': 1, 'kind': 'omni_ai_evaluation_report', 'contract_version': VERSION,
-              'status': 'failed', 'findings': [], 'live_ai_authenticated': False,
+              'status': 'failed', 'findings': [], 'results_expected': 0, 'results_compared': 0, 'live_ai_authenticated': False,
               'natural_language_answer_verified': False, 'access_enforcement_verified': False,
               'assurance': 'Imported structured observations only; no live session, persona execution or prose truth is authenticated.'}
     try:
         cases, personas, definitions = _suite(suite, context)
+        report['results_expected'] = sum('result' in case['expected'] for case in cases.values())
         report.update(context_sha256=context['context_sha256'], suite_sha256=digest(suite), observations_sha256=digest(observations))
         need(type(observations) is dict and set(observations) == {'schema_version','kind','suite_sha256','answers'}
              and type(observations['schema_version']) is int and observations['schema_version'] == 1
@@ -435,13 +412,18 @@ def evaluate_answers(suite, observations, context):
         seen = set()
         for index, answer in enumerate(answers):
             try:
-                need(type(answer) is dict and set(answer) == {'case_id','persona_id','question_sha256','context_sha256','decision',
-                    'fields','claims','clarification_ids','attributes_used'}, 'evaluation.answer_shape')
+                answer_keys = {'case_id','persona_id','question_sha256','context_sha256','decision',
+                               'fields','claims','clarification_ids','attributes_used'}
+                need(type(answer) is dict and answer_keys <= set(answer) <= answer_keys | {'result'}, 'evaluation.answer_shape')
                 need(answer['case_id'] in cases and answer['case_id'] not in seen, 'evaluation.case_coverage')
                 seen.add(answer['case_id']); case = cases[answer['case_id']]; expected = case['expected']; persona = personas[case['persona_id']]
                 need(answer['persona_id'] == case['persona_id'] and answer['question_sha256'] == digest(case['question'])
                      and answer['context_sha256'] == context['context_sha256'], 'evaluation.answer_binding')
                 need(answer['decision'] == expected['decision'], 'evaluation.decision_mismatch')
+                need(('result' in expected) == ('result' in answer), 'evaluation.result_coverage')
+                if 'result' in expected:
+                    report['results_compared'] += 1
+                    need(digest(answer['result']) == digest(expected['result']), 'evaluation.result_mismatch')
                 need(strings(answer['fields']) and set(expected['required_fields']) <= set(answer['fields']) <= set(expected['allowed_fields']),
                      'evaluation.field_scope')
                 need(ids(answer['attributes_used']) and set(answer['attributes_used']) <= set(persona['available_attributes']), 'evaluation.unavailable_attribute')
@@ -466,6 +448,63 @@ def evaluate_answers(suite, observations, context):
         report['findings'].append({'code': str(error)})
     except (ValueError, TypeError, KeyError, AttributeError, UnicodeError, RecursionError):
         report['findings'].append({'code': 'evaluation.invalid_input'})
+    return report
+
+
+def evaluate_trials(plan, suite, observations, context):
+    """Compare repeated imported observations without authenticating a provider.
+
+    Trial IDs, provider and delivered-context hashes are supplied declarations.
+    The trusted collector must separately attest actual delivery and execution.
+    One failed/missing trial fails the fixed requested denominator.
+    """
+    report = {'schema_version': 1, 'kind': 'omni_ai_trial_report', 'contract_version': VERSION,
+              'status': 'failed', 'findings': [], 'trials_compared': 0, 'cases_compared': 0,
+              'failed_trials': 0, 'results_expected': 0, 'results_compared': 0, 'live_ai_authenticated': False,
+              'natural_language_answer_verified': False, 'access_enforcement_verified': False,
+              'business_accepted': False,
+              'assurance': 'Repeated supplied structured observations only; no native AI, identity, delivery or prose authentication.'}
+    try:
+        _suite(suite, context)
+        encoded(plan); encoded(observations)
+        need(type(plan) is dict and set(plan) == {'schema_version', 'kind', 'suite_sha256', 'minimum_trials', 'provider'}
+             and type(plan['schema_version']) is int and plan['schema_version'] == 1
+             and plan['kind'] == 'omni_ai_trial_plan' and plan['suite_sha256'] == digest(suite)
+             and type(plan['minimum_trials']) is int and 2 <= plan['minimum_trials'] <= 100, 'trials.plan')
+        provider = plan['provider']
+        need(type(provider) is dict and set(provider) == {'name', 'model', 'settings_sha256'} and
+             text(provider['name']) and text(provider['model']) and sha(provider['settings_sha256']), 'trials.provider')
+        need(type(observations) is dict and set(observations) == {'schema_version', 'kind', 'plan_sha256', 'trials'}
+             and type(observations['schema_version']) is int and observations['schema_version'] == 1
+             and observations['kind'] == 'omni_ai_trials' and observations['plan_sha256'] == digest(plan), 'trials.binding')
+        trials = observations['trials']
+        need(type(trials) is list and plan['minimum_trials'] <= len(trials) <= 100, 'trials.coverage')
+        scan({'plan': plan, 'observations': observations})
+        report.update(plan_sha256=digest(plan), suite_sha256=digest(suite),
+                      context_sha256=context['context_sha256'], observations_sha256=digest(observations),
+                      provider_sha256=digest(provider), minimum_trials=plan['minimum_trials'])
+        report['results_expected'] = len(trials) * sum('result' in case['expected'] for case in suite['cases'])
+        seen = set()
+        for index, trial in enumerate(trials):
+            report['trials_compared'] += 1
+            try:
+                need(type(trial) is dict and set(trial) == {'id', 'provider', 'delivered_context_sha256', 'observations'}
+                     and type(trial['id']) is str and ID.fullmatch(trial['id']) and trial['id'] not in seen, 'trials.identity')
+                seen.add(trial['id'])
+                need(trial['provider'] == provider, 'trials.provider_changed')
+                need(trial['delivered_context_sha256'] == context['context_sha256'], 'trials.context_delivery_changed')
+                result = evaluate_answers(suite, trial['observations'], context)
+                report['cases_compared'] += result.get('cases_compared', 0)
+                report['results_compared'] += result.get('results_compared', 0)
+                need(result['status'] == 'passed', 'trials.answer_comparison_failed')
+            except ContextError as error:
+                report['failed_trials'] += 1
+                report['findings'].append({'trial_index': index, 'code': str(error)})
+        report['status'] = 'failed' if report['failed_trials'] else 'passed'
+    except ContextError as error:
+        report['findings'].append({'code': str(error)})
+    except (ValueError, TypeError, KeyError, AttributeError, UnicodeError, RecursionError):
+        report['findings'].append({'code': 'trials.invalid_input'})
     return report
 
 
@@ -521,6 +560,9 @@ def main(argv=None):
     evaluate_parser = commands.add_parser('evaluate')
     for name in ('suite','observations','context','output'):
         evaluate_parser.add_argument('--' + name, type=Path, required=True)
+    trial_parser = commands.add_parser('evaluate-trials')
+    for name in ('plan', 'suite', 'observations', 'context', 'output'):
+        trial_parser.add_argument('--' + name, type=Path, required=True)
     args = parser.parse_args(argv)
     try:
         read = lambda path: _json(_read(path))
@@ -530,7 +572,9 @@ def main(argv=None):
             write_context(result, args.output)
             print(json.dumps({'status': result['report']['status'], 'native_verified': False}))
             return 0
-        result = evaluate_answers(read(args.suite), read(args.observations), read(args.context))
+        result = (evaluate_trials(read(args.plan), read(args.suite), read(args.observations), read(args.context))
+                  if args.command == 'evaluate-trials' else
+                  evaluate_answers(read(args.suite), read(args.observations), read(args.context)))
         _private_file(args.output, result)
         print(json.dumps({'status': result['status'], 'live_ai_authenticated': False}))
         return 0 if result['status'] == 'passed' else 1

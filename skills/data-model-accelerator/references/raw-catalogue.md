@@ -51,6 +51,15 @@ This shape is intentionally incomplete; do not reuse its timestamp or claim live
 
 Each extraction records `extraction_id`, `scope_id`, `component`, `status`, relative `artifact_path`, actual `sha256`, `query_id` (null if unavailable) and `pagination_complete`. Every scope needs complete `objects` and `columns` exports; represent zero-result scopes explicitly. Other components capture enrichment. Status is `complete`, `partial`, `failed` or `unavailable`. Optional enrichment failures remain limitations; incomplete required exports block context completeness. Integrity checks apply to all supplied evidence.
 
+The catalogue-level `coverage.status` has a **different** enum:
+`complete_for_visible_scope`, `partial`, or `unavailable`. Do not use `complete`
+there; it belongs to an individual extraction. Include a `coverage.gaps` array
+even when empty. `complete_for_visible_scope` is a declaration about the stated
+identity and scope, not proof of account-wide completeness or authenticated
+collection. Guided workflow `candidate_preparation_ready` checks registered
+input presence only; run this verifier separately before relying on catalogue
+integrity, freshness or bindings.
+
 Each object records `object_id`, `scope_id`, `identity` with `catalog/schema/name`, `object_type`, `columns`, `metadata_status` and `evidence`. A column has `path` as an array of literal identifier components, `data_type` and `nullable` as boolean or null. This distinguishes literal dots in identifiers from nested fields. Each object cites its scope's object and column exports using `extraction_id` and a native row/path `locator`.
 
 Preserve native object/column IDs when provided. Assign deterministic normalized IDs from provider, platform instance and exact physical identity; retain rename/drop/recreation evidence instead of assuming the same name always identifies the same object. An empty schema is a legitimate zero-object observation; a consumable table/view with unknown columns is incomplete.

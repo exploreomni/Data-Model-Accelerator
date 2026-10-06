@@ -13,7 +13,7 @@ import fcntl
 import hashlib
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import re
 import socket
 import ssl
@@ -110,7 +110,7 @@ def validate_request(request):
     required = {'schema_version', 'kind', 'run_id', 'operation', 'destination_id', 'target', 'files',
                 'context', 'warning_policy', 'expected_remote', 'commit_message'}
     _need(type(request) is dict and required <= set(request)
-          and set(request) <= required | {'query', 'query_mode', 'timezone'}, 'request.fields')
+          and set(request) <= required | {'query', 'query_mode', 'timezone', 'lifecycle'}, 'request.fields')
     _need(type(request['schema_version']) is int and request['schema_version'] == 1
           and request['kind'] == 'omni_native_request', 'request.version')
     _need(type(request['run_id']) is str and RUN_ID.fullmatch(request['run_id']), 'request.run_id')
@@ -121,12 +121,13 @@ def validate_request(request):
     _need(type(request['commit_message']) is str and 0 < len(request['commit_message']) <= 240, 'request.commit_message')
     files = request['files']
     _need(type(files) is dict and 0 < len(files) <= MAX_FILES, 'request.file_inventory')
+    from omni_inventory import native_identity, InventoryError
     for name, body in files.items():
-        path = PurePosixPath(name)
-        _need(type(name) is str and path.name == name and '\\' not in name and ':' not in name
-              and name not in ('.', '..') and (name in ('model', 'relationships')
-                   or re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*\.(?:view|topic)', name))
-              and type(body) is str and bool(body.strip()), 'request.native_file')
+        try:
+            recognized = native_identity(name)
+        except InventoryError:
+            raise AdapterError('request.native_file') from None
+        _need(recognized is not None and type(body) is str and bool(body.strip()), 'request.native_file')
     expected = request['expected_remote']
     _need(type(expected) is dict and set(expected) == SNAPSHOT_KEYS and all(_sha(v) for v in expected.values()),
           'request.remote_snapshot_required')
@@ -152,9 +153,27 @@ def validate_request(request):
               'request.query_unsupported_parameter')
     else:
         _need('query' not in request and 'query_mode' not in request and 'timezone' not in request, 'request.unused_query')
+    if 'lifecycle' in request:
+        _lifecycle(request)
     scan = scan_bytes(_json_bytes(request), 'request.json')
     _need(scan['status'] == 'clear' and scan['coverage']['complete'], 'request.disclosure_scan_not_clear')
     return copy.deepcopy(request)
+
+
+def _lifecycle(request):
+    if 'lifecycle' not in request:
+        return {'status': 'unassessed', 'preflight_status': 'unassessed', 'native_verified': False,
+                'imported_evidence_authenticated': False, 'deployment_authorized': False,
+                'code': 'lifecycle.legacy_route_environment_impact_and_access_unassessed'}
+    from omni_lifecycle import verify_request, LifecycleError
+    try:
+        return verify_request(request['lifecycle'], files=request['files'], context=request['context'],
+            target=request['target'], expected_remote=request['expected_remote'], operation=request['operation'],
+            query=request.get('query'), query_mode=request.get('query_mode'), timezone=request.get('timezone'))
+    except LifecycleError as error:
+        raise AdapterError(str(error)) from None
+    except (ValueError, TypeError, KeyError, RecursionError):
+        raise AdapterError('lifecycle.invalid_or_unverified_state') from None
 
 
 def request_bindings(request, policy_sha256):
@@ -340,6 +359,9 @@ def _approval(request, policy, digest, envelope):
           and bool(preflight['evidence_reference'].strip()), 'authorization.preflight_required')
     if request['operation'] == 'query':
         _need(preflight.get('effective_timezone') == request['timezone'], 'authorization.query_timezone_unverified')
+    if 'lifecycle' in request:
+        _need(preflight.get('lifecycle_assessment_sha256') == request['lifecycle']['assessment_sha256'],
+              'authorization.lifecycle_preflight_required')
     return payload
 
 
@@ -577,6 +599,7 @@ def run(request, *, policy_path, candidate_root, approval=None, transport=None):
     journal = None
     try:
         request = validate_request(request)
+        report['lifecycle'] = _lifecycle(request)
         policy, policy_hash = _policy(policy_path, candidate_root, request['destination_id'], request['target'])
         report.update(request_sha256=canonical_hash(request), target=copy.deepcopy(request['target']),
                       candidate_sha256=canonical_hash(request['files']), context_sha256=canonical_hash(request['context']),
@@ -606,6 +629,11 @@ def run(request, *, policy_path, candidate_root, approval=None, transport=None):
         saved = journal.data.get('baseline')
         if saved is None:
             _need(initial['hashes'] == request['expected_remote'], 'snapshot.baseline_changed')
+            if 'lifecycle' in request and request['operation'] == 'update_and_validate':
+                from omni_inventory import decode_files
+                baseline = decode_files(request['lifecycle']['baseline_inventory']['authored_files'])
+                _need({path: body.decode('utf-8') for path,body in baseline.items()} == initial['snapshots']['authored']['files'],
+                      'lifecycle.remote_baseline_mismatch')
             journal.data['baseline'] = {'hashes': initial['hashes'],
                 'files': {k: canonical_hash(v) for k, v in initial['snapshots']['authored']['files'].items()}}
             journal.save()
@@ -674,6 +702,11 @@ def verify_receipt(request, receipt, policy_sha256):
             _need(receipt.get('query_mode') == request['query_mode'] and receipt.get('timezone') == request['timezone']
                   and receipt.get('query_lane') == ('native_compilation' if request['query_mode'] == 'plan' else 'modeled_query_execution'),
                   'receipt.query_lane')
+        lifecycle = _lifecycle(request)
+        # Older v1 receipts may omit this observation-only extension. They gain
+        # no lifecycle qualification; an explicit new request must carry it.
+        _need(receipt.get('lifecycle', lifecycle if 'lifecycle' not in request else None) == lifecycle,
+              'receipt.lifecycle_binding')
         mode, status = receipt.get('execution_mode'), receipt.get('status')
         _need(mode in ('live', 'simulation') and type(receipt.get('native_verified')) is bool,
               'receipt.execution_mode')

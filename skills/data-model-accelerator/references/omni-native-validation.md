@@ -24,14 +24,19 @@ The initial release permits approved **synthetic development data only**. A clas
 | `operation` | `validate`, `update_and_validate`, or `query` |
 | `destination_id` | Exact provisioned policy destination |
 | `target` | `instance_url`, `model_id`, `branch_id`, `connection_id`, `environment_connection_id`, `principal_id`, `environment: development` |
-| `files` | Complete native filename-to-YAML map (`model`, `relationships`, `name.view`, `name.topic`) |
+| `files` | Complete native filename-to-YAML map (`model`, `relationships`, `name.view`, `name.topic`, `name.query.view`), including safe relative directories and optional `.yaml`/`.yml` suffixes recognized by the inventory. URLs, absolute paths and traversal are rejected. Recognition alone never establishes semantic support. |
 | `context` | `omni_model_context` bound to the development warehouse catalogue |
 | `expected_remote` | Bootstrap hashes `authored_sha256`, `resolved_sha256`, `base_sha256`, `schema_sha256`, `identity_sha256` |
 | `warning_policy` | Explicit `fail` or `allow` |
 | `commit_message` | Reviewed bounded message |
 | Query only | `query`, `query_mode: plan\|execute`, `timezone` (IANA timezone) |
+| Optional `lifecycle` | Version 1 `omni_lifecycle_request`: exact contract, original/candidate inventories, observations and recomputable assessment hash. Required when invoking the new modeler lifecycle pathway. |
 
 Queries require exact `modelId`, modeled topic `table`, nonempty modeled `fields`, and `limit` from 1–1000. Arbitrary SQL, edited SQL, impersonation, and workbook creation parameters are unsupported. `plan` is native compilation; it cannot satisfy an executed-query acceptance lane. Skip-cache and explicit branch, environment connection and timezone are sent for both modes.
+
+When `lifecycle` is supplied, `omni_lifecycle.verify_request` checks the exact candidate, target, context, expected remote snapshot, selected physical namespaces and selected principal. A follower cannot receive updates; unknown route or incomplete environment/build/refresh evidence blocks the request before transport. Each query binds a corresponding frozen case and timezone. Writes and queries additionally require the signed approval's `preflight.lifecycle_assessment_sha256` to match the recomputed report. The approved update's original authored files must match the initial remote snapshot. Changing any included lifecycle input invalidates the exact action signature.
+
+Lifecycle declarations and imported observations remain unauthenticated even if their local comparison passes. This adapter does not collect or execute content-impact, refresh, Git promotion or access-policy probes. Its native model/query observation cannot satisfy those separate lanes. Legacy requests without `lifecycle` return an explicit `unassessed` lifecycle report. Older receipt integrity checks retain compatibility but confer no new qualification. See [lifecycle assessment](omni-modeler-lifecycle.md) for the contract and preflight-versus-runtime distinction.
 
 Run these commands from the skill directory with the pinned optional semantic/deployment dependencies installed. The trusted operator provisions the external policy first. `inspect.json` contains only the target object and destination ID.
 

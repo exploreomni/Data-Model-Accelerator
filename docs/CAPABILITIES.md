@@ -52,6 +52,7 @@ Independent metadata exports are reconciled against the full physical scope, the
 | Snowflake / Databricks / BigQuery/Dataform / Redshift / ClickHouse / MotherDuck | Platform markers, generic SQL evidence and specialist routes; profiles retain native identity requirements | Complete native semantics, dynamic SQL/procedures and remote catalogue collection |
 | Sigma | Specialist routing and extraction guidance | Equivalent complete source-specific migration pilot |
 | Raw CSV snapshots | Exact file hashes, headers, bounded logical counts, source-only modeling trial | No live catalogue, ingestion history, owner definitions or reporting baseline established |
+| Existing Omni models | Native file detection, exact-byte inventory, origin/dependency analysis, hash-bound leaf edits and explicit missing-scope coverage | Opaque advanced syntax is preserved; declared inventories and exports do not authenticate completeness |
 
 Unrecognized formats remain explicit. A CSV inside an existing dbt project retains its source ownership; it does not turn the engagement into a raw-only new build. An incomplete migration cannot switch modes merely to bypass missing comparison evidence.
 
@@ -61,11 +62,14 @@ Unrecognized formats remain explicit. A CSV inside an existing dbt project retai
 | --- | --- | --- |
 | Input and output disclosure | Bounded scanner, overlapping PII/PCI/PHI classifications, conservative lineage, destination policy, private pre-agent staging and exact rendered/ZIP scans | Universal DLP, authenticated policy owners, and protected source-to-LLM isolation on arbitrary hosts |
 | Omni model generation | Deterministic emission from explicit reviewed mappings, strict YAML, pinned physical bindings, supported field/type/reference/relationship/topic checks | Arbitrary native syntax, authenticated business review, tenant acceptance |
+| Dedicated Omni Modeler | Pinned knowledge, actual callback task contracts, installation comparison, scoped inventory, filtered measures, single-parent inheritance, topic aliases/selectors and bounded modeled/SQL query views | Host SDK integration is supplied by the coordinator; multiple inheritance, composites, LOD and aggregate-awareness generation remain gated |
+| Omni change impact | Recomputed changed/dependent closure, baseline issue comparison, explicit environment/route evidence and separately bound native preflight | Imported scans remain unauthenticated; compilation, execution and access are independent lanes; no automatic refresh, merge or promotion |
 | Native model adapter | Scoped validation/update/query requests, exact remote state checks, explicit HTTP-body errors, durable recovery and private result handling | Live qualification and independent acceptance; injected transports remain simulation |
 | Dashboard migration | Reparsed source-bound facet accounting, required manual dispositions, existing-document draft-only adapter with exact readback | Automatic new-document publication, universal importer support, browser behavior or visual parity from readback alone |
-| AI context | Approved definitions bound to exact gold dictionary columns, separate unresolved questions, disclosure projection and frozen structured-answer comparison | Truth of unrestricted prose, real AI-session provenance and effective persona enforcement |
+| AI context | Approved direct and derived definitions bound to exact gold columns, effective topic selections, disclosure projection, repeated structured-answer trials and optional exact numeric/result comparison | Missing result expectations provide zero numeric coverage; imported provider/trial assertions do not prove real AI-session provenance or effective access |
 | Access migration | Nonweakening checks, complete allowed/denied persona path contracts, imported state and result comparison for six warehouses | Native policy provisioning, GRANT/REVOKE, authenticated live observations or protected deployment from imported JSON |
 | Guided review | Scope-aware evidence lanes and next actions; candidate status; selected browser exports verify artifact hashes and disclose absent fresh scanning | Approval, fresh content scanning inside the browser, or release authority |
+| Omni handoff | Candidate-bound semantic dictionary, topics/metrics, dependency SVG, unresolved decisions, native files and a dedicated HTML review | Warehouse layer documentation remains separately required; the semantic panel cannot certify native or business acceptance |
 
 Use the [privacy](../skills/data-model-accelerator/references/sensitive-data.md),
 [Omni static](../skills/data-model-accelerator/references/omni-static-contract.md),

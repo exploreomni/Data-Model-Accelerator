@@ -1,5 +1,7 @@
 # Data Model Accelerator
 
+The dedicated **Omni Modeler** now inventories existing Omni models, proposes scoped changes, builds supported views/topics/query views, traces AI definitions to reviewed warehouse columns, and adds an Omni review to the guided ZIP. Start with the [Omni operator guide](docs/OMNI_MODELER.md); see the [qualification record](validation/omni-modeler/README.md) for the exact tested scope. Advanced constructs are preserved and flagged when generation is unsupported.
+
 Omni deliveries distinguish prepared artifacts from native model validation, query parity, dashboard behavior and access acceptance. General YAML lint and synthetic examples do not establish a completed dashboard migration. The [Omni and sensitive-data repair plan](docs/plans/16-omni-and-sensitive-data-repair.md) tracks implementation and remaining live qualification. Sensitive input handling must be selected before agent submission; a classification label or selected export folder is not a masking or disclosure control.
 
 Warehouse metadata now travels with model deliveries: a versioned dictionary, safely merged dbt documentation, reviewed native comment/tag changes, independent readback checks and a guided Metadata review. See the [metadata operator guide](skills/data-model-accelerator/references/warehouse-metadata.md) for Snowflake, Databricks, BigQuery, Redshift, ClickHouse and MotherDuck. Metadata SQL is available for a reviewed operator/CI handoff; automatic live metadata dispatch awaits authenticated drift-collector integration. Coalesce node exports and native compatibility retain their qualification requirements.
@@ -23,6 +25,7 @@ The accelerator is a portable agent skill with local analysis, validation and de
 | Deliver descriptions and governed metadata | [Metadata operator guide](skills/data-model-accelerator/references/warehouse-metadata.md) |
 | Handle PII, PCI, PHI and source-to-agent disclosure | [Sensitive-data boundary](skills/data-model-accelerator/references/sensitive-data.md) |
 | Migrate Looker reports into Omni | [Omni delivery workflow](skills/data-model-accelerator/references/omni-delivery.md) |
+| Build, inspect or refactor an Omni model | [Omni Modeler operator guide](docs/OMNI_MODELER.md) |
 | Understand release evidence and access checks | [Release evidence](skills/data-model-accelerator/references/delivery-release.md) · [Access enforcement](skills/data-model-accelerator/references/access-enforcement.md) |
 
 ## Your first run

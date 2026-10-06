@@ -1,0 +1,5 @@
+history_id,customer_id,valid_from,valid_to,segment
+ha1,ca,2026-04-01,2026-04-15,Basic
+ha2,ca,2026-04-15,,Plus
+hb1,cb,2026-04-01,,Basic
+hc1,cc,2026-04-01,,Plus

@@ -105,7 +105,15 @@ Inventory all physical model inputs, including newly selected raw objects and tr
 After source extraction is reconciled, dispatch two bounded review roles on the same graph/snapshot:
 
 - **Warehouse architect:** entity identity, data grain, CDC/history, reusable row-level transformations, join strategy, materialization, freshness, operational ownership, existing model reuse and source-to-gold design.
-- **Semantic architect:** metric population and aggregation, filter context, dimensions, query-time joins, dimensional/time behavior, interactions, access policy, semantic target capabilities and analyst flexibility. Load an Omni-specific reviewer when Omni is selected; otherwise use the chosen semantic engine's documented contract. With no target selected, propose a target-neutral semantic contract and leave emission unresolved.
+- **Semantic architect:** metric population and aggregation, filter context, dimensions, query-time joins, dimensional/time behavior, interactions, access policy, semantic target capabilities and analyst flexibility. For Omni, use the explicit `omni_modeler` role and [task contract](omni-modeler-task.md); otherwise use the chosen semantic engine's documented contract. With no target selected, propose a target-neutral semantic contract and leave emission unresolved.
+
+The planner's `target_tasks` are separate from source extraction tasks. The guided
+workflow also retains `specialist_requests`; both remain `planned` until the host
+actually invokes a role. `omni_modeler.run_task` binds approved projections,
+knowledge and results around a caller-supplied host adapter. Imported output or a
+named review role cannot satisfy that execution observation. Its completion
+receipt does not authenticate native acceptance or independent reasoning. Use
+the existing analyst/security/release roles for those separate obligations.
 
 Give both architects the selected naming and semantic contracts as shared context. For Snowflake, [naming-and-modeling.md](naming-and-modeling.md) separates documented Snowflake behavior, phData recommendations and the exercise's chosen convention; preserve existing namespaces unless a rename is justified. For Looker-to-Omni work, [looker-omni-contract.md](looker-omni-contract.md) covers native expressions, filters, physical mappings, measures, keys, joins and access-filter syntax. These references do not replace source/catalogue evidence or prove native target validation. The [E2E exercise](looker-omni-e2e.md) is a bounded local simulation with optional dependencies, not a requirement to adopt its schema or an external deployment step.
 

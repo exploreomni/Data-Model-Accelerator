@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "omni_model_context",
+  "warehouse": "snowflake",
+  "environment": "development",
+  "catalogue_sha256": "e6c525c749a77f7b4d4e796ebacb55cc7b467f0415e711cef58d49497888bcb4",
+  "bindings": {
+    "orders": {
+      "namespace": {
+        "database": "CORPUS",
+        "schema": "SYNTHETIC",
+        "table": "ORDERS"
+      },
+      "columns": {
+        "order_id": "string",
+        "customer_id": "string",
+        "buyer_party_id": "string",
+        "seller_party_id": "string",
+        "placed_on": "date",
+        "status": "string",
+        "shipping_cents": "number"
+      },
+      "evidence_sha256": "0b9521ee85d3bbb4c377c3abdccca52aec932611fcaa0a21601863844f13f7b4"
+    },
+    "order_lines": {
+      "namespace": {
+        "database": "CORPUS",
+        "schema": "SYNTHETIC",
+        "table": "ORDER_LINES"
+      },
+      "columns": {
+        "line_id": "string",
+        "order_id": "string",
+        "quantity": "number",
+        "unit_price_cents": "number"
+      },
+      "evidence_sha256": "31e0ab2487e6719ac505bdf372155dbb4d778b0f653d4f2d451940eaac7506fa"
+    },
+    "returns": {
+      "namespace": {
+        "database": "CORPUS",
+        "schema": "SYNTHETIC",
+        "table": "RETURNS"
+      },
+      "columns": {
+        "return_id": "string",
+        "line_id": "string",
+        "returned_on": "date",
+        "quantity": "number",
+        "refund_cents": "number"
+      },
+      "evidence_sha256": "dcab0efafaaf8745723bc23d418a1dce4ff2f9b98be57e287ab598ce0020d4ca"
+    },
+    "parties": {
+      "namespace": {
+        "database": "CORPUS",
+        "schema": "SYNTHETIC",
+        "table": "PARTIES"
+      },
+      "columns": {
+        "party_id": "string",
+        "label": "string"
+      },
+      "evidence_sha256": "e7320e7d416c73e6d99640d7f55dcb77eb60a630430c08effe6659020a0e8164"
+    },
+    "customer_history": {
+      "namespace": {
+        "database": "CORPUS",
+        "schema": "SYNTHETIC",
+        "table": "CUSTOMER_HISTORY"
+      },
+      "columns": {
+        "history_id": "string",
+        "customer_id": "string",
+        "valid_from": "date",
+        "valid_to": "date",
+        "segment": "string"
+      },
+      "evidence_sha256": "8adcedca9dca2078cd9fe95a0c67f78a1117514bbf65133013259a9d7d441a88"
+    }
+  },
+  "inherited_views": {},
+  "default_catalog": null,
+  "user_attributes": [],
+  "access_grants": []
+}

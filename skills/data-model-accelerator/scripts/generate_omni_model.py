@@ -71,17 +71,23 @@ def generate_model(spec, context, model_version, placement_version):
     _require(type(context.get('bindings')) is dict and type(context.get('inherited_views')) is dict,'generation.context')
     _require(type(spec['model']) is dict and type(spec['views']) is dict and bool(spec['views'])
              and type(spec['topics']) is dict and type(spec['relationships']) is list,'generation.shapes')
-    files={}; mappings=[]
+    files={}; mappings=[]; query_mappings=[]
     if spec['model']:
         files['model']=yaml.safe_dump(spec['model'],sort_keys=True,allow_unicode=False)
     for view,item in sorted(spec['views'].items()):
         _require(NAME.fullmatch(view) is not None and type(item) is dict
                  and set(item)=={'kind','definition','field_mappings'}
-                 and item['kind'] in ('physical','inherited_override')
+                 and item['kind'] in ('physical','inherited_override','query_view','sql_view')
                  and type(item['definition']) is dict and type(item['field_mappings']) is dict,'generation.view_mapping')
         definition=copy.deepcopy(item['definition']); binding=context['bindings'].get(view)
-        _require(type(binding) is dict and type(binding.get('namespace')) is dict
-                 and type(binding.get('columns')) is dict,'generation.binding_required')
+        is_query=item['kind'] in ('query_view','sql_view')
+        if is_query:
+            _require(binding is None and 'table_name' not in definition,'generation.query_physical_binding_forbidden')
+            source_key='query' if item['kind']=='query_view' else 'sql'
+            _require(source_key in definition and ('query' in definition)^('sql' in definition),'generation.query_source')
+        else:
+            _require(type(binding) is dict and type(binding.get('namespace')) is dict
+                     and type(binding.get('columns')) is dict,'generation.binding_required')
         if item['kind']=='physical':
             ns=binding['namespace']; native={'catalog':ns.get('database',ns.get('catalog',ns.get('project'))),
                                           'schema':ns.get('schema',ns.get('dataset')),'table_name':ns.get('table')}
@@ -90,7 +96,7 @@ def generate_model(spec, context, model_version, placement_version):
                     _require(_text(value),'generation.namespace')
                     _require(key not in definition or definition[key]==value,'generation.namespace_conflict')
                     definition[key]=value
-        else:
+        elif not is_query:
             _require(view in context['inherited_views'],'generation.inherited_definition_required')
         all_fields={}
         for category in ('dimensions','measures'):
@@ -103,7 +109,7 @@ def generate_model(spec, context, model_version, placement_version):
         _require(set(item['field_mappings'])==set(all_fields),'generation.mapping_coverage')
         for name,(category,field) in all_fields.items():
             mapping=item['field_mappings'][name]
-            _require(type(mapping) is dict and set(mapping)<= {'kind','source_refs','column'}
+            _require(type(mapping) is dict and set(mapping)<= {'kind','source_refs','column','output'}
                      and {'kind','source_refs'}<=set(mapping),'generation.field_mapping')
             refs=mapping['source_refs']
             _require(type(refs) is list and refs and all(_text(v) for v in refs)
@@ -111,10 +117,11 @@ def generate_model(spec, context, model_version, placement_version):
             for reference in refs:
                 _source_reference(reference,{'model':model_version,'placement':placement_version})
             kind=mapping['kind']
-            _require(type(kind) is str and kind in ('physical','derived','aggregate','inherited'),'generation.mapping_kind')
+            _require(type(kind) is str and kind in ('physical','derived','aggregate','inherited','query_output'),'generation.mapping_kind')
+            _require(kind=='query_output' or 'output' not in mapping,'generation.output_placement')
             if kind=='physical':
                 column=mapping.get('column')
-                _require(category=='dimensions' and type(column) is str and column in binding['columns'], 'generation.column_unresolved')
+                _require(not is_query and category=='dimensions' and type(column) is str and column in binding['columns'], 'generation.column_unresolved')
                 quoted=_quote(column,context['warehouse'])
                 if 'sql' in field:
                     from omni_contract import sqlglot, exp
@@ -130,7 +137,10 @@ def generate_model(spec, context, model_version, placement_version):
                     field['sql']=quoted
             else:
                 _require('column' not in mapping,'generation.nonphysical_column')
-                if kind=='derived':
+                if kind=='query_output':
+                    _require(is_query and category=='dimensions' and _text(mapping.get('output')),'generation.query_output_required')
+                    query_mappings.append((view,name,mapping['output'],field))
+                elif kind=='derived':
                     _require(_text(field.get('sql')),'generation.derived_sql_required')
                 elif kind=='aggregate':
                     _require(category=='measures' and (_text(field.get('sql')) or field.get('aggregate_type')=='count'), 'generation.aggregate_required')
@@ -139,12 +149,35 @@ def generate_model(spec, context, model_version, placement_version):
                     _require(type(inherited) is dict and type(inherited.get('definition')) is dict
                              and name in inherited['definition'].get(category,{}),'generation.inherited_field_required')
             mappings.append({'target':view+'.'+name,'kind':kind,'source_refs':list(refs)})
-        files[view+'.view']=yaml.safe_dump(definition,sort_keys=True,allow_unicode=False)
+        files[view+('.query.view' if is_query else '.view')]=yaml.safe_dump(definition,sort_keys=True,allow_unicode=False)
     for name,definition in sorted(spec['topics'].items()):
         _require(NAME.fullmatch(name) is not None and type(definition) is dict,'generation.topic')
         files[name+'.topic']=yaml.safe_dump(definition,sort_keys=True,allow_unicode=False)
     if spec['relationships']:
         files['relationships']=yaml.safe_dump(spec['relationships'],sort_keys=True,allow_unicode=False)
+    if query_mappings:
+        from omni_query_views import analyze_query_views
+        query_result=analyze_query_views(files,context)
+        # Descriptors can be built before output dimensions receive generated SQL;
+        # unresolved dimension aliases here are assessed after the final mapping.
+        for view,name,output,field in query_mappings:
+            descriptor=query_result['descriptors'].get(view,{})
+            resolved=descriptor.get('outputs',{}).get(output)
+            _require(type(resolved) is dict,'generation.query_output_unresolved')
+            identifier=resolved['sql_identifier']
+            if 'sql' in field:
+                from omni_contract import sqlglot, exp
+                _require(sqlglot is not None and _text(field['sql']),'generation.sql_runtime_unavailable')
+                try:trees=sqlglot.parse(field['sql'],read=DIALECTS[context['warehouse']],error_message_context=0)
+                except Exception:raise ValueError('generation.query_output_sql_invalid') from None
+                _require(len(trees)==1 and type(trees[0]) is exp.Column and not trees[0].table,'generation.query_output_sql_invalid')
+                actual=trees[0].name.upper() if context['warehouse']=='snowflake' and not trees[0].this.args.get('quoted') else trees[0].name
+                _require(actual==identifier,'generation.query_output_sql_conflict')
+            else:field['sql']=_quote(identifier,context['warehouse'])
+            path=view+'.query.view';definition=yaml.safe_load(files[path]);definition['dimensions'][name]=copy.deepcopy(field)
+            files[path]=yaml.safe_dump(definition,sort_keys=True,allow_unicode=False)
+            for mapping in mappings:
+                if mapping['target']==view+'.'+name:mapping['output']=output
     checked=check_model(files,context)
     manifest={'schema_version':1,'kind':'omni_generation_candidate','contract_version':CONTRACT_VERSION,
               'spec_sha256':canonical_hash(spec),'pins':copy.deepcopy(pins),

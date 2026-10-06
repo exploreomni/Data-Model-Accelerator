@@ -1,0 +1,7 @@
+line_id,order_id,quantity,unit_price_cents
+l11a,o11,2,1000
+l11b,o11,1,500
+l12a,o12,1,4000
+l13a,o13,3,700
+l14a,o14,1,500
+l15a,o15,1,800

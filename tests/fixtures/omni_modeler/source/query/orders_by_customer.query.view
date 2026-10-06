@@ -1,0 +1,17 @@
+schema: SYNTHETIC
+query:
+  fields:
+    orders.customer_id: customer_id
+    orders.order_count: order_count
+    orders.paid_order_count: paid_order_count
+    orders.shipping_cents: shipping_cents
+    orders.paid_shipping_cents: paid_shipping_cents
+  base_view: orders
+  topic: orders
+dimensions:
+  customer_id:
+    primary_key: true
+  order_count: {}
+  paid_order_count: {}
+  shipping_cents: {}
+  paid_shipping_cents: {}

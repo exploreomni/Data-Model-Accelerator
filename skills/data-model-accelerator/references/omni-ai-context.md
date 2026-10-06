@@ -20,9 +20,11 @@ Each column needs nonempty catalogue source references matching the candidate's
 catalogue pin. Column names and physical namespaces must match exactly.
 
 The candidate must pass the bounded [Omni static contract](omni-static-contract.md).
-Field definitions are pinned individually. The builder follows semantic SQL
-references, physical columns, distinct measure key expressions, and order-by
-field dependencies. Missing or duplicate dependency mappings block generation.
+The v2 context contract pins field definitions individually and uses the shared
+derived-lineage analyzer. It follows semantic SQL references, physical columns,
+measure-local filters, distinct keys, order-by fields, topic aliases and reviewed
+modeled/SQL query outputs. Grouping, predicate and join columns remain part of the
+population lineage even when not displayed. Missing or duplicate dependency mappings block generation.
 A row count conservatively retains every physical column in its bound view;
 aggregation does not automatically remove a privacy classification.
 
@@ -76,6 +78,7 @@ The specification uses `schema_version: 1`, `kind: omni_ai_context_spec`, and:
 | `bindings` | Map of fully qualified semantic fields to `layer`, `field_sha256`, and complete physical `columns` |
 | `definitions` | Distinct approved definitions or unresolved questions |
 | `review` | `status: approved`, a review `reference`, and `sha256` of the specification without `review` |
+| `topic` | Optional exact topic identity; pins its effective definition and selected fields for topic-specific context |
 
 Each binding column is an exact object with `view`, `column`, `model_id`,
 `column_id`, and `namespace`. The namespace uses the selected warehouse's
@@ -104,7 +107,16 @@ inferred business meaning approved merely because its SQL is valid. Source
 pointers bind evidence; this module does not judge whether that evidence supports
 the human-authored statement.
 
-Cross-view `extends`, constant-only expressions, native dynamic templates, raw
+Single-parent inherited views and topic-scoped aliases resolve to their real
+warehouse origins. Query views never acquire fictional physical bindings: every
+included dependency still needs an accepted gold dictionary column. When `topic`
+is supplied, each context field must be in both effective `fields` and `ai_fields`
+selection. This checks context eligibility, not effective user permissions.
+Without `topic`, the result states no topic qualification. Contexts now include
+`topic_scope` and use `omni-ai-context-v2-2026-10-05`; regenerate/review older v1
+bundles rather than relabeling their previous evidence.
+
+Multiple inheritance, constant-only expressions, native dynamic templates, raw
 HTML, and URL-bearing prose need separate review in this bounded projection.
 The builder blocks or withholds those cases rather than guessing. This is a
 supported-subset boundary, not a claim that Omni universally prohibits them.
@@ -161,6 +173,38 @@ prose is not accepted as proof of correctness. A structured pass establishes
 only agreement with the supplied frozen contract; it does not establish whether
 an AI actually produced that answer, whether its narrative was true, or whether
 access controls worked for a live user.
+
+For result-bearing questions, include independently frozen bounded JSON `result`
+in the case's `expected` object and require the same property in the observed
+answer. The comparator checks exact canonical values, including NULL and types;
+missing, extra or wrong results fail. Use decimal strings for exact decimals.
+Use the separate analyst benchmark for ordered/keyed rows and approved numeric
+tolerances. Non-answer cases cannot carry results. `results_expected` and
+`results_compared` expose coverage; zero means values were not tested. Result
+snapshots must be independently approved for this local evaluation and scanned;
+they are not copied into report diagnostics or AI context. Supplied values still
+do not authenticate an actual AI query or correct narrative.
+
+### Repeated trials
+
+`evaluate_trials(plan, suite, observations, context)` keeps repeated runs under
+one fixed denominator. Its version-1 `omni_ai_trial_plan` contains the exact
+`suite_sha256`, `minimum_trials` (2–100), and `provider` with `name`, `model`, and
+`settings_sha256`. The provider fields describe the declared evaluation setup;
+they do not authenticate a provider. Do not store secrets or raw settings.
+
+The version-1 `omni_ai_trials` object binds `plan_sha256` and includes `trials`.
+Each trial supplies a unique `id`, the same `provider`, the exact
+`delivered_context_sha256`, and its ordinary `omni_ai_observations` object.
+Missing trials, provider/settings changes, a truncated/different context, or any
+failed answer fails the batch. A correct clarification is distinct from an
+unsupported confident answer. All records are scanned before comparison; report
+diagnostics retain indexes/codes rather than provider text.
+
+The CLI `evaluate-trials` accepts `--plan`, `--suite`, `--observations`, `--context`
+and `--output`. These are supplied observations, not evidence that a live session
+received the claimed context. Native collection, effective personas, prose/result
+accuracy and SME acceptance remain separate required evidence.
 
 ## Private local commands
 

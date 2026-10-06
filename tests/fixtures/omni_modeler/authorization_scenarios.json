@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_authorization_noop_scenarios",
+  "execution": "injected simulation transport only; network must be disabled",
+  "target": {"instance_url": "https://omni-modeler-corpus.omniapp.co", "model_id": "5ac01000-0000-4000-8000-000000000001", "branch_id": "5ac01000-0000-4000-8000-000000000002", "connection_id": "5ac01000-0000-4000-8000-000000000003", "environment_connection_id": "5ac01000-0000-4000-8000-000000000003", "principal_id": "5ac01000-0000-4000-8000-000000000004", "environment": "development"},
+  "target_evidence": "fabricated identifiers for offline schema testing; no tenant existence or permissions asserted",
+  "cases": [
+    {"id": "local_preview_without_deploy_authority", "operation": "local_preview", "approval": null, "expected": {"candidate_state": "proposed", "transport_calls": 0, "remote_mutations": 0, "native_verified": false}},
+    {"id": "update_without_approval", "operation": "update_and_validate", "approval": null, "expected": {"status": "blocked", "transport_calls": 0, "remote_mutations": 0, "native_verified": false}},
+    {"id": "query_without_approval", "operation": "query", "query_mode": "execute", "approval": null, "query": {"table": "orders", "fields": ["orders.shipping_cents"], "limit": 1}, "expected": {"status": "blocked", "transport_calls": 0, "remote_mutations": 0, "native_verified": false}},
+    {"id": "synthetic_claim_is_not_authorization", "operation": "update_and_validate", "approval": {"status": "approved", "reference": "synthetic-review-only", "synthetic": true}, "expected": {"status": "blocked", "transport_calls": 0, "remote_mutations": 0, "native_verified": false}},
+    {"id": "production_target_rejected", "operation": "update_and_validate", "target_patch": {"environment": "production"}, "approval": null, "expected": {"status": "blocked", "transport_calls": 0, "remote_mutations": 0, "native_verified": false}},
+    {"id": "stale_candidate_attestation", "operation": "update_and_validate", "simulation_setup": "Use a short-lived in-memory test issuer to bind the original source file map, then append a comment to orders.view without reissuing the attestation.", "candidate_append": {"orders.view": "\n# synthetic post-review change\n"}, "expected": {"status": "blocked", "transport_calls": 0, "remote_mutations": 0, "native_verified": false}},
+    {"id": "wrong_destination_policy", "operation": "update_and_validate", "destination_id": "not-permitted", "approval": null, "expected": {"status": "blocked", "transport_calls": 0, "remote_mutations": 0, "native_verified": false}},
+    {"id": "static_success_never_authorizes", "operation": "local_static_check", "approval": null, "expected": {"static_status": "passed", "transport_calls": 0, "remote_mutations": 0, "native_verified": false, "security_verified": false, "deployment_authorized": false}}
+  ],
+  "driver_requirements": ["Materialize current request and policy schemas in a temporary private directory; do not mutate corpus files.", "Generate test-only signing keys in memory if an attestation test needs them. Never store or load operational credentials.", "A success in a recording transport is simulation evidence only.", "Check call logs and unchanged remote file bytes; a returned blocked string alone is insufficient.", "For negative authorization cases, keep the baseline source statically supported and all unrelated request fields valid so the intended boundary is reached."]
+}

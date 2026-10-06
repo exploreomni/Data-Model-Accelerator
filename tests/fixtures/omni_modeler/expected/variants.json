@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "counterfactual_extra_return": {
+    "input_operation": "append data/extra_return_append.csv to returns",
+    "order_id": "o12", "order_refund_cents": 3100, "order_return_count": 2,
+    "total_return_count": 5, "total_returned_quantity": 4,
+    "total_paid_gross_cents": 7000, "total_paid_refund_cents": 5500,
+    "total_paid_net_cents": 1500,
+    "paid_refund_rate": {"numerator": 11, "denominator": 14},
+    "unchanged": ["order_count", "line_count", "shipping_cents", "paid_shipping_cents", "buyer_assignments", "seller_assignments"]
+  },
+  "counterfactual_amount_change": {
+    "input_operation": "replace order_lines row with matching line_id using data/amount_change.csv",
+    "order_id": "o14", "order_gross_cents": 650,
+    "total_gross_cents": 10050, "total_paid_gross_cents": 7150,
+    "total_paid_refund_cents": 5400, "total_paid_net_cents": 1750,
+    "paid_refund_rate": {"numerator": 108, "denominator": 143},
+    "paid_gross_by_buyer": {"Amber": 6500, "Teal": 650, "Indigo": 0},
+    "paid_gross_by_seller": {"Amber": 0, "Teal": 2500, "Indigo": 4650},
+    "unchanged": ["order_count", "line_count", "return_count", "shipping_cents", "paid_shipping_cents"]
+  },
+  "temporal_overlap": {
+    "input_operation": "append data/overlap_history_append.csv to customer_history",
+    "expected_status": "blocked_ambiguous_temporal_match",
+    "matches_by_order": {"o11": ["ha1"], "o12": ["ha2", "ha_bad"], "o13": ["hb1"], "o14": ["hb1"], "o15": ["hc1"], "o16": ["hc1"]},
+    "must_not_choose": ["first_match", "latest_row_without_reviewed_priority", "any_value"],
+    "incorrect_total_if_overlap_silently_fans_out": 11000
+  },
+  "top_one_customer_shipping": {
+    "input_operation": "sort query_orders_by_customer by shipping_cents descending then customer_id ascending; limit 1",
+    "expected_rows": [{"customer_id": "cc", "order_count": 2, "paid_order_count": 1, "shipping_cents": 450, "paid_shipping_cents": 50}],
+    "complete_population": false,
+    "must_not_claim_all_customer_shipping_cents": 450,
+    "all_customer_shipping_cents": 1050
+  },
+  "query_output_schema_drift": {
+    "input_operation": "remove output alias paid_shipping_cents from orders_by_customer query.fields; retain its dimension",
+    "expected_status": "unresolved_output_field",
+    "field": "orders_by_customer.paid_shipping_cents",
+    "must_not_invent_physical_column": true
+  }
+}

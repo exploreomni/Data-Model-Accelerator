@@ -1,0 +1,15 @@
+base_view: orders
+relationships:
+  - join_from_view: orders
+    join_to_view: customer_history
+    join_type: left
+    relationship_type: many_to_one
+    on_sql: >-
+      ${orders.customer_id} = ${customer_history.customer_id}
+      AND ${orders.placed_on} >= ${customer_history.valid_from}
+      AND (${orders.placed_on} < ${customer_history.valid_to} OR ${customer_history.valid_to} IS NULL)
+joins:
+  customer_history: {}
+fields:
+  - orders.order_id
+  - customer_history.segment

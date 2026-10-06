@@ -165,6 +165,11 @@ needs separate tests. The implemented writer attaches a draft to an existing
 document and does not publish or replace the current published dashboard.
 
 Build AI context only from reviewed definitions with exact gold-column mappings.
+The [Omni Modeler](OMNI_MODELER.md) also supports reviewed derivations through
+inherited views, topic aliases and bounded query views. It follows filters,
+grouping and join dependencies back to actual approved gold inputs; it does not
+invent a physical table for a saved query view. Topic field selection and AI
+awareness are checked separately from effective access.
 Leave ambiguous meanings as questions. Use the [AI context builder and evaluation
 contract](../skills/data-model-accelerator/references/omni-ai-context.md) to freeze
 persona questions, allowed fields, definitions, clarification and refusal cases.

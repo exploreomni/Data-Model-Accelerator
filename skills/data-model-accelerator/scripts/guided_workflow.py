@@ -417,6 +417,11 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
                           'missing_answers': missing, 'questions': questions, 'platform': platform,
                           'assessed_at': _now(),
                           'qualification': 'Candidate preparation guidance only. A catalogue hash proves captured bytes, not normalized physical bindings. verify_catalogue, model, independent baseline and execution gates remain pending; this workflow does not run or replace them.'}
+    if a.get('semantic_target') == 'omni':
+        from omni_modeler import plan_request
+        state['specialist_requests'] = [plan_request(fingerprint['value'], warehouse=warehouse if warehouse in WAREHOUSES else None)]
+    else:
+        state['specialist_requests'] = []
     if missing:
         state['status'] = 'interview_pending'
     elif generation_ready:
@@ -426,6 +431,9 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
     else:
         state['status'] = 'assessment_ready'
     state['next_actions'] = [{'id': 'answer_' + q['id'], 'action': q['prompt'], 'scope': 'discovery'} for q in questions]
+    if state['specialist_requests']:
+        state['next_actions'].append({'id': 'prepare_omni_modeler', 'scope': 'specialist',
+            'action': 'Prepare a pinned Omni Modeler task from approved inputs and invoke the available host adapter. This routing request has not run a specialist.'})
     if not missing:
         state['next_actions'] += [{'id': f['id'], 'action': f.get('next_action', f['summary']), 'scope': 'readiness'} for f in blockers]
         if not generation_ready and not blockers:

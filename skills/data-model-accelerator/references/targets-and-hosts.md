@@ -33,6 +33,13 @@ The above means Gemini CLI and Genie Code specifically; it does not establish co
 
 Discover the host's actual delegation capability independently of its skill discovery path. Follow [orchestration.md](orchestration.md): use native subagents where available and record task/result evidence, or disclose sequential inline specialist passes. A shared SKILL.md does not imply a universal subagent API or independent QA capability.
 
+For Omni, [the dedicated task adapter](omni-modeler-task.md) records planned,
+running, completed, needs-review, failed and unavailable states with pinned
+inputs and knowledge. Its host names select the coordinator's adapter; they do
+not provision external SDKs or establish tested compatibility. Run the read-only
+installation comparison before use. Unqualified containment always requires
+reviewed pre-sanitized inputs, whether the role is delegated or inline.
+
 ## dbt emitter contract
 
 Inspect the chosen repository's project and adapter versions, dependencies, conventions, macros/hooks, sources, materializations, and schema naming. Generate source declarations, staging/intermediate/mart SQL as justified, column/relationship documentation, data tests, fixture tests where supported, and consumer/exposure mappings. Preserve source identifiers and bind `ref`/`source` dependencies to actual generated or confirmed existing objects.

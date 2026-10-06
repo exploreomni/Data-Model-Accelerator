@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "kind": "omni_modeler_independent_corpus",
+  "corpus_id": "orders-returns-roles-2026-10-05-v1",
+  "evidence_class": "independently_authored_synthetic_fixture",
+  "currency_unit": "integer_cents",
+  "date_semantics": "ISO date, no timestamp or time zone conversion",
+  "empty_csv_cell": "SQL NULL",
+  "tables": {
+    "orders": {"path": "data/orders.csv", "grain": ["order_id"], "physical_table": "ORDERS"},
+    "order_lines": {"path": "data/order_lines.csv", "grain": ["line_id"], "foreign_keys": {"order_id": "orders.order_id"}, "physical_table": "ORDER_LINES"},
+    "returns": {"path": "data/returns.csv", "grain": ["return_id"], "foreign_keys": {"line_id": "order_lines.line_id"}, "physical_table": "RETURNS"},
+    "parties": {"path": "data/parties.csv", "grain": ["party_id"], "physical_table": "PARTIES"},
+    "customer_history": {"path": "data/customer_history.csv", "grain": ["history_id"], "physical_table": "CUSTOMER_HISTORY", "temporal_key": "customer_id", "interval": "valid_from <= placed_on AND (placed_on < valid_to OR valid_to IS NULL)"}
+  },
+  "semantics": {
+    "line_amount": "quantity * unit_price_cents",
+    "refund_amount": "refund_cents is authoritative money; do not reconstruct it from returned quantity",
+    "paid": "status exactly equals paid",
+    "paid_net": "sum of paid order line amounts minus sum of returns belonging to paid orders",
+    "empty_order": "preserve o16; zero additive amounts and NULL zero-denominator ratio",
+    "ratio": "ratio of aggregate numerator to aggregate denominator; NULL when denominator is zero",
+    "temporal_overlap": "multiple as-of matches block qualification; no winner rule is approved",
+    "current_segment": "open-ended row only, intentionally different from historical as-of segment",
+    "local_filters": "measure filters do not change the population seen by another measure",
+    "role_aliases": "buyer and seller independently reference parties using their own keys"
+  },
+  "context": "context.json",
+  "case_contract": "cases.json",
+  "source_expectations": "expected/source_semantics.json",
+  "authorization_cases": "authorization_scenarios.json",
+  "expected_results": ["expected/orders.csv", "expected/query_orders_by_customer.csv", "expected/query_returns_by_order.csv", "expected/metrics.json", "expected/variants.json"],
+  "source_files_are": "hand-authored challenge inputs, not generated answers or qualified native models",
+  "physical_bindings_are": "planned synthetic bindings derived from fixture CSV headers, not native observations",
+  "native_verified": false,
+  "deployment_authorized": false,
+  "human_approval_obtained": false
+}

@@ -83,7 +83,7 @@ function download(name,body,mime){const url=URL.createObjectURL(new Blob([body],
 function bytes(b64){return Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
 function card(parent,title,value,note){const c=make('article',undefined,'card');c.append(make('h3',title),make('strong',value),make('p',note));parent.append(c);}
 function table(id,columns,rows,pageSize=30){let page=0;const draw=()=>{const target=clear(id);if(!rows.length){target.append(make('p','No matching records.','empty'));return;}const wrap=make('div',undefined,'table-scroll'),t=make('table'),head=make('tr');columns.forEach(c=>head.append(make('th',c[0])));const thead=make('thead');thead.append(head);t.append(thead);const body=make('tbody');rows.slice(page*pageSize,(page+1)*pageSize).forEach(row=>{const tr=make('tr');columns.forEach(c=>{const td=make('td'),v=c[1](row);td.append(v instanceof Node?v:make('span',v));tr.append(td);});body.append(tr);});t.append(body);wrap.append(t);target.append(wrap);const pager=make('div',undefined,'pager'),prev=make('button','Previous','secondary'),next=make('button','Next','secondary');prev.disabled=page===0;next.disabled=(page+1)*pageSize>=rows.length;prev.onclick=()=>{page--;draw();};next.onclick=()=>{page++;draw();};pager.append(prev,make('span',`${page*pageSize+1}–${Math.min((page+1)*pageSize,rows.length)} of ${rows.length}`),next);target.append(pager);};draw();}
-const reviewSections=['overview','readiness','changes','model','validation','delivery','deployment',...(review.metadata?['metadata']:[])];
+const reviewSections=['overview','readiness','changes','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[])];
 function navigate(){const id=location.hash.slice(1)||'overview';const valid=reviewSections.includes(id)?id:'overview';document.querySelectorAll('[data-section]').forEach(s=>s.hidden=s.id!==valid);document.querySelectorAll('[data-nav]').forEach(n=>{n.classList.toggle('active',n.dataset.nav===valid);if(n.dataset.nav===valid)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});}
 addEventListener('hashchange',navigate);navigate();
 el('page-title').textContent=review.title||'Your modeling engagement';
@@ -125,6 +125,25 @@ for(const [id,title,meaning]of qualityLanes){const q=(review.quality_checks||[])
 function metadataOmitted(ref){return{plan_artifact_id:ref.plan_artifact_id,sha256:ref.sha256,evidence_state:'not_included',status:'unknown',summary:'Metadata plan evidence is not included in this page.',next_action:'Include the registered metadata plan to inspect its scope, changes and blockers.'};}
 function trimMetadataEvidence(next,selected){if(next.review?.metadata&&!selected.some(f=>f.id===next.review.metadata.plan_artifact_id))next.review.metadata=metadataOmitted(next.review.metadata);}
 const metadata=review.metadata;
+// BEGIN OMNI SUBSET HELPERS — unselected semantic details never survive export.
+function omniOmitted(ref){return{artifact_id:ref.artifact_id,sha256:ref.sha256,evidence_state:'not_included',status:'unknown',summary:'Omni semantic evidence is not included in this page.',next_action:'Include the registered Omni semantic review to inspect topics, metrics, dependencies and gaps.'};}
+function trimOmniEvidence(next,selected){if(next.review?.omni&&!selected.some(f=>f.id===next.review.omni.artifact_id))next.review.omni=omniOmitted(next.review.omni);}
+// END OMNI SUBSET HELPERS
+const omni=review.omni;
+el('omni-nav').hidden=!omni;
+if(omni){
+  const selected=omni.evidence_state==='selected';el('omni-status').textContent=selected?'Candidate · native checks pending':'Evidence not included';
+  el('omni-summary').textContent=selected?omni.qualification:omni.summary+' '+omni.next_action;el('omni-detail').hidden=!selected;
+  if(selected){
+    table('omni-topics',[['Topic',r=>r.label],['Base population',r=>r.base_view||'Unresolved'],['Reachable views',r=>r.scope.views.join(', ')],['Fields / AI awareness',r=>r.scope.selections.fields.length+' / '+r.scope.selections.ai_fields.length]],omni.topics);
+    table('omni-metrics',[['Metric',r=>r.id],['Topic',r=>r.topic||'Shared model'],['Selection',r=>r.topic?`Query: ${r.selected_for_query?'selected':'not selected'} · AI: ${r.selected_for_ai?'aware':'not selected'}`:'Shared inventory'],['Meaning',r=>r.description||'Definition needs review'],['Aggregation',r=>r.aggregate_type||'Custom expression'],['Population',r=>r.has_local_filter?'Measure-local filter':'No local filter declared']],omni.metrics);
+    table('omni-query-views',[['Query view',r=>r.id],['Kind',r=>pretty(r.kind)],['Outputs',r=>r.outputs.join(', ')],['Population',r=>r.complete_population?'No declared limit':'Limited output'],['Qualification',r=>pretty(r.runtime_eligibility)]],Object.entries(omni.query_views).map(([id,r])=>({id,...r})));
+    table('omni-dependencies',[['Source view',r=>r.from],['Dependent view',r=>r.to],['Relationship',r=>pretty(r.kind)]],omni.dependencies);
+    table('omni-decisions',[['Subject',r=>r.subject],['Placement',r=>r.placement],['Reason',r=>r.reason],['Status',r=>r.status]],omni.decisions);
+    table('omni-unknowns',[['Artifact',r=>r.path],['Gap',r=>r.code],['Location',r=>r.location]],omni.unknowns);
+    omni.next_actions.forEach(step=>el('omni-next').append(make('li',step)));el('omni-inspect').onclick=()=>openArtifact(omni.artifact_id);
+  }
+}
 el('metadata-nav').hidden=!metadata;
 if(metadata){
   const selected=metadata.evidence_state==='selected';
@@ -206,6 +225,7 @@ el('download-package').onclick=async()=>{
     next.engagement.delivery_assurance=portableAssurance(eng);
     next.export_review={origin:'browser_subset',status:'candidate',content_scan:'not_run_in_browser',disclosure_policy:'not_revalidated_in_browser',acceptance_ready:false,deployment_authorized:false};
     trimMetadataEvidence(next,selected);
+    trimOmniEvidence(next,selected);
     if(next.deployment){
       const selectedIds=new Set(selected.map(f=>f.id));
       if(next.deployment.plan&&!selectedIds.has(next.deployment.plan.evidence_artifact_id)){

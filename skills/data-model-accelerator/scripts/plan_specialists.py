@@ -22,7 +22,7 @@ from raw_csv_source import inspect_csv
 from platform_matrix import adapter_registry
 from looker_source import is_looker_dashboard
 
-SOURCE_TYPES = set(adapter_registry()["sources"]) | {"looker", "powerbi", "tableau", "hex", "sigma", "unknown"}
+SOURCE_TYPES = set(adapter_registry()["sources"]) | {"looker", "powerbi", "tableau", "hex", "sigma", "omni", "unknown"}
 REVIEW_ROLES = ["warehouse_architect", "semantic_architect", "independent_qa"]
 IGNORED_DIRS = {
     ".git", ".hg", ".svn", "node_modules", "vendor", ".venv", "venv",
@@ -279,6 +279,14 @@ def classify(assets, texts, profiles, gaps):
                 pass
         if name == "dbt_project.yml":
             add(relative, "dbt", root, "dbt_project.yml project marker")
+        from omni_inventory import is_omni_file
+        if is_omni_file(relative, content):
+            add(relative, "omni", root, "Omni native filename and own model structure; routing is not semantic validation")
+        elif is_omni_file(relative, content, corroborated=True):
+            native_siblings = [p for p in texts if PurePosixPath(p).parent == path.parent
+                               and re.sub(r'\.(?:yaml|yml)$', '', p).endswith(('.view', '.topic'))]
+            if any(is_omni_file(p, texts[p]) for p in native_siblings):
+                add(relative, "omni", root, "Omni support-file shape corroborated by a structurally recognized native sibling; routing is not semantic validation")
         if isinstance(obj, dict):
             if is_looker_dashboard(obj):
                 add(relative, "looker", root, "Looker dashboard API JSON structural contract; export completeness requires independent evidence")
@@ -417,6 +425,9 @@ def specialist_prompt(task, inventory, snapshot_hash, run_root):
             "Attach the canonical dashboard contract and source hash to dashboard_contracts in the result. "
             "Preserve every tile/filter and dependency gap. Export completeness requires an independent "
             "expected inventory; operator declarations and local parsing are not source-observed completeness.\n\n"
+            "For Omni model files, load references/omni-modeler.md and use the bounded Omni inventory "
+            "adapter on the approved projection. Keep authored and effective state separate; preserve "
+            "native .query.view names and unknown constructs. An inventory is not native validation.\n\n"
             "Raw CSV assignments use references/raw-csv-source-contract.md: inspect metadata only, "
             "never emit source row values or infer native types, business definitions or warehouse identity. "
             "Report metadata scope separately from partial/unknown semantic coverage. A dbt-owned CSV "
@@ -442,7 +453,8 @@ def specialist_prompt(task, inventory, snapshot_hash, run_root):
 
 
 def plan_repository(repo, output, source_profiles=(), max_files=2000, max_file_bytes=1048576,
-                    max_total_bytes=33554432, inspect_git=True, include_paths=()):
+                    max_total_bytes=33554432, inspect_git=True, include_paths=(),
+                    semantic_target=None, warehouse=None):
     repo = Path(repo).expanduser().absolute()
     if repo.is_symlink() or not repo.is_dir():
         raise PlanningError("Input must be an existing directory, not a symlink")
@@ -505,6 +517,10 @@ def plan_repository(repo, output, source_profiles=(), max_files=2000, max_file_b
     plan = {"schema_version": 1, "source_snapshot_sha256": snapshot_hash,
             "inventory_path": "inventory.json", "status": "incomplete" if gaps else "planned",
             "tasks": tasks, "review_roles": REVIEW_ROLES, "coverage": coverage}
+    if semantic_target == 'omni' or any(t['source_type'] == 'omni' for t in tasks):
+        from omni_modeler import plan_request
+        plan['target_tasks'] = [plan_request(snapshot_hash, warehouse=warehouse)]
+        plan['review_roles'] = ['warehouse_architect', 'omni_modeler', 'independent_qa']
     output.mkdir(parents=True, exist_ok=True)
     if any(output.iterdir()):
         raise PlanningError("Output became nonempty; refusing to overwrite")
@@ -514,6 +530,10 @@ def plan_repository(repo, output, source_profiles=(), max_files=2000, max_file_b
     for task in tasks:
         with (output / task["prompt_path"]).open("x", encoding="utf-8") as stream:
             stream.write(specialist_prompt(task, inventory, snapshot_hash, output))
+    for task in plan.get('target_tasks', []):
+        from omni_modeler import request_prompt
+        with (output / task['prompt_path']).open('x', encoding='utf-8') as stream:
+            stream.write(request_prompt(task))
     with (output / "dispatch-plan.json").open("xb") as stream:
         stream.write(json_bytes(plan))
     # results/ is deliberately not populated: task plans are not execution.
@@ -530,10 +550,13 @@ def main(argv=None):
     parser.add_argument("--max-file-bytes", type=int, default=1048576)
     parser.add_argument("--max-total-bytes", type=int, default=33554432)
     parser.add_argument("--no-git", action="store_true", help="Skip optional Git metadata inspection")
+    parser.add_argument("--semantic-target", choices=('omni', 'none', 'retain_existing'))
+    parser.add_argument("--warehouse", choices=('snowflake', 'databricks', 'bigquery', 'redshift', 'clickhouse', 'motherduck'))
     args = parser.parse_args(argv)
     try:
         plan = plan_repository(args.repo, args.output, args.source_profile, args.max_files,
-                               args.max_file_bytes, args.max_total_bytes, not args.no_git, args.include_path)
+                               args.max_file_bytes, args.max_total_bytes, not args.no_git, args.include_path,
+                               semantic_target=args.semantic_target, warehouse=args.warehouse)
     except (PlanningError, OSError) as exc:
         print("ERROR: " + str(exc), file=sys.stderr)
         return 1

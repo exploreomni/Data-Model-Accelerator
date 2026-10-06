@@ -105,7 +105,28 @@ For Tableau, load [tableau-source-contract.md](references/tableau-source-contrac
 
 For Power BI, load [powerbi-source-contract.md](references/powerbi-source-contract.md) and the [qualification exercise](references/powerbi-omni-e2e.md). Use `powerbi_source.inspect_repo(repo)` for the supported PBIP/TMSL/enhanced-PBIR path. Preserve M partitions, calculated columns versus measures, native field/lineage identifiers, model references, relationships, role predicates and report filters. Validate official JSON schemas independently of TOM/M/DAX/native runtime acceptance. Keep PBIX/TMDL, remote models, pending changes and unsupported report/model features as explicit gaps. Test totals, BLANK/zero, relationship propagation, CALCULATE replacement versus KEEPFILTERS intersection, selective filter removal and disconnected selectors before deciding placement. Role predicates are not evidence of service membership; ordinary measure filters must not cancel security. The local companion is not an exported Omni workbook.
 
-Then have warehouse and semantic architects review the same graph, with an independent QA pass on their combined proposal. Follow [semantic-placement.md](references/semantic-placement.md). For Snowflake naming/modeling decisions, read [naming-and-modeling.md](references/naming-and-modeling.md); its fixture conventions are not universal vendor requirements. For Looker-to-Omni work, load [looker-omni-contract.md](references/looker-omni-contract.md) for documented source and target syntax. Otherwise load the chosen semantic engine's guidance. Specialists recommend; the orchestrator integrates; actual business authorities resolve disputed definitions. Do not treat two agreeing agents as human approval.
+Then have warehouse and semantic architects review the same graph, with an independent QA pass on their combined proposal. For Omni, dispatch the dedicated modeler below. Follow [semantic-placement.md](references/semantic-placement.md). For Snowflake naming/modeling decisions, read [naming-and-modeling.md](references/naming-and-modeling.md); its fixture conventions are not universal vendor requirements. For Looker-to-Omni work, load [looker-omni-contract.md](references/looker-omni-contract.md) for documented source and target syntax. Otherwise load the chosen semantic engine's guidance. Specialists recommend; the orchestrator integrates; actual business authorities resolve disputed definitions. Do not treat two agreeing agents as human approval.
+
+## Dedicated Omni Modeler
+
+When Omni is selected or an existing Omni model is being assessed, use [omni-modeler.md](references/omni-modeler.md) and [the task contract](references/omni-modeler-task.md). Select relevant modeling modules with `scripts/omni_knowledge.py`; retain source, knowledge and upstream pins. Check the installed skill against the intended checkout with `scripts/omni_modeler.py inspect-install` before relying on it. Do not silently use an older installed copy.
+
+The target request in the source plan and guided workflow is only planned. Prepare the reviewed pre-sanitized projection, invoke the host's actual available delegation through the callback contract, and record its returned task identity and artifacts. Disclose inline execution separately; it cannot substitute for input containment or independent QA. Missing adapters remain unavailable. Callback completion, static checks, native behavior, accuracy, effective access and SME acceptance remain distinct.
+
+The role covers models, views, relationships, topics, query views, advanced composition and AI context through the versioned capability matrix. A documented feature can still be unsupported by generation or native execution. Preserve unknown constructs, original scope and unresolved meanings. Pinned upstream guidance never grants permission to merge, publish, refresh production, or weaken the accelerator's privacy and release gates.
+
+For existing Omni input, follow [omni-inventory.md](references/omni-inventory.md).
+Keep authored/effective bytes separate, reconcile an independently supplied scope
+inventory, and propose hash-bound leaf edits. Opaque blocks and inherited defaults
+must survive. A no-op must emit no changes; omission never authorizes deletion.
+
+Use [lifecycle impact](references/omni-modeler-lifecycle.md) to recompute changed
+dependencies and preserve unresolved baseline issues. Separate reference scans,
+compilation, executed results and effective access. Existing synthetic native
+restrictions and signed authority remain required; legacy receipts are explicitly
+lifecycle-unassessed. Use [the Omni handoff](references/omni-handoff.md) to add
+the actual candidate, semantic dictionary and connected graph to `START_HERE.html`
+and the selected ZIP. Keep warehouse-layer documentation separately complete.
 
 ## Recover behavior, then decide its destination
 
@@ -139,6 +160,12 @@ Run the frozen structured-answer cases, including prohibited fields, unavailable
 attributes, fabricated definitions and ambiguity. Do not describe imported
 answers as authenticated live AI execution or claim universal hallucination
 prevention.
+
+Derived/query-view definitions must trace through all population dependencies
+to reviewed gold inputs, including filters, groups and joins. Keep query field
+selection, AI awareness and effective permissions separate. Use repeated trials
+with exact provider/context pins; report numeric coverage only for cases with
+actual expected results. Never author server-managed `ai_context_patch`.
 
 The guided page must show the completion scope, candidate status, independent
 evidence lanes and next actions. A browser-created reduced ZIP verifies embedded

@@ -21,7 +21,7 @@ try:
 except ImportError:
     sqlglot = exp = None
 
-CONTRACT_VERSION = 'omni-static-v1-2026-10-05'
+CONTRACT_VERSION = 'omni-static-v2-2026-10-05'
 MAX_FILES, MAX_BYTES, MAX_NODES, MAX_DEPTH = 256, 8 * 1024 * 1024, 100000, 40
 NAME = re.compile(r'[A-Za-z][A-Za-z0-9_]*\Z')
 SHA = re.compile(r'[0-9a-f]{64}\Z')
@@ -38,12 +38,12 @@ NAMESPACE = {'snowflake':('database','schema','table'), 'redshift':('database','
 TEXT = {'label','description','ai_context','group_label','view_label','schema_label','folder','base_view_label'}
 BOOL = {'hidden','ignored','primary_key','convert_tz','template','auto_run'}
 LIST = {'tags','synonyms','aliases','required_access_grants'}
-COMMON = TEXT | {'hidden','ignored','tags','required_access_grants'}
+COMMON = TEXT | {'hidden','ignored','tags','required_access_grants','display_order'}
 DIM = COMMON | {'sql','primary_key','convert_tz','timeframes','week_start_day','format','aliases','synonyms','order_by_field'}
 MEASURE = COMMON | {'sql','aggregate_type','format','aliases','synonyms','filters','percentile','custom_primary_key_sql'}
-VIEW = COMMON | {'name','catalog','schema','table_name','extends','dimensions','measures'}
-TOPIC = COMMON | {'base_view','joins','relationships','fields','ai_fields','access_filters','week_start_day','default_row_limit'}
-MODEL = {'week_start_day','label','description','ai_context'}
+VIEW = COMMON | {'name','catalog','schema','table_name','extends','dimensions','measures','query','sql'}
+TOPIC = COMMON | {'base_view','joins','relationships','fields','ai_fields','access_filters','week_start_day','default_row_limit','views','extends','default_filters','always_where_filters'}
+MODEL = {'week_start_day','label','description','ai_context','fiscal_month_offset','default_timeframes'}
 RELATION = {'join_from_view','join_to_view','join_type','on_sql','relationship_type','reversible'}
 
 
@@ -118,7 +118,7 @@ def _merge(base, override):
     return result
 
 
-def check_model(files, context=None):
+def check_model(files, context=None, *, _scoped=False):
     """Check the documented bounded subset; unknown behavior is unsupported.
 
     files is the exact complete native candidate, keyed by relative model paths.
@@ -127,9 +127,10 @@ def check_model(files, context=None):
     findings = []
     report = {'schema_version':1, 'kind':'omni_static_check', 'status':'passed',
               'contract_version':CONTRACT_VERSION, 'candidate_sha256':None, 'context_sha256':None,
-              'native_verified':False, 'security_verified':False, 'findings':findings,
+              'native_verified':False, 'security_verified':False, 'findings':findings, 'topic_scopes':{},
               'limitations':['Static subset only; SQL lint, native compilation, cardinality, access and business parity require separate evidence.',
-                             'Context evidence and reviewed declarations are not authenticated observations.']}
+                             'Context evidence and reviewed declarations are not authenticated observations.',
+                             'Implicit whitelist dependency eligibility requires native qualification; direct field exclusions and explicit negative dependencies are checked.']}
     def issue(code, path='context', location='/', unsupported=False):
         item = {'path':path, 'location':location, 'code':code,
                 'severity':'unsupported' if unsupported else 'error'}
@@ -160,7 +161,7 @@ def check_model(files, context=None):
         if name.endswith(('.yaml','.yml')):
             name = name.rsplit('.',1)[0]
         kind = 'view' if name.endswith('.view') else 'topic' if name.endswith('.topic') else name
-        identity = name.rsplit('.',1)[0] if kind in ('view','topic') else name
+        identity = name[:-len('.query.view')] if name.endswith('.query.view') else name.rsplit('.',1)[0] if kind in ('view','topic') else name
         if kind not in ('view','topic','model','relationships'):
             issue('artifact.unsupported', path, unsupported=True); continue
         if (kind, identity) in all_names:
@@ -242,6 +243,8 @@ def check_model(files, context=None):
                 issue('parameter.string_list_required',path,loc+'/'+key)
         if 'week_start_day' in obj and (type(obj['week_start_day']) is not str or obj['week_start_day'] not in WEEKDAYS):
             issue('parameter.week_start_day',path,loc+'/week_start_day')
+        if 'display_order' in obj and type(obj['display_order']) not in (int,float):
+            issue('parameter.display_order',path,loc+'/display_order')
         if 'format' in obj:
             if type(obj['format']) is dict:
                 issue('format.conditional_unqualified',path,loc+'/format',True)
@@ -252,7 +255,29 @@ def check_model(files, context=None):
                 issue('access.grant_unresolved',path,loc+'/required_access_grants')
     if models_seen:
         keys(model, MODEL, model_path, '')
+        if 'fiscal_month_offset' in model and type(model['fiscal_month_offset']) is not int:
+            issue('calendar.fiscal_offset_unqualified',model_path,'/fiscal_month_offset',True)
+        if 'default_timeframes' in model and (type(model['default_timeframes']) is not list or
+                any(type(v) is not str or v.lower() not in TIMEFRAMES for v in model['default_timeframes'])):
+            issue('calendar.default_timeframes',model_path,'/default_timeframes')
 
+    resolved_topics={}; topic_visiting=set()
+    def resolve_topic(name):
+        if name in resolved_topics:return resolved_topics[name]
+        if name in topic_visiting or len(topic_visiting)>MAX_DEPTH:
+            issue('topic.inheritance_cycle',topics[name][1]);return {}
+        obj,path=topics[name]; topic_visiting.add(name); combined={}
+        if 'extends' in obj:
+            parents=obj['extends']
+            if not _names(parents):issue('topic.inheritance_shape',path,'/extends')
+            elif len(parents)!=1:issue('topic.multiple_inheritance_unqualified',path,'/extends',True)
+            elif parents[0] not in topics:issue('topic.inheritance_unresolved',path,'/extends')
+            else:combined=resolve_topic(parents[0])
+        combined=_merge(combined,obj);combined.pop('extends',None)
+        topic_visiting.remove(name);resolved_topics[name]=combined;return combined
+    for name in topics:resolve_topic(name)
+
+    bindings=copy.deepcopy(bindings)
     resolved, visiting = {}, set()
     def resolve_view(name):
         if name in resolved: return resolved[name]
@@ -268,16 +293,32 @@ def check_model(files, context=None):
             if not _names(obj['extends']): issue('inheritance.invalid', paths[name], '/extends')
             elif len(obj['extends']) > 1: issue('inheritance.multiple_unqualified', paths[name], '/extends',True)
             else:
-                for base in obj['extends']: combined = _merge(combined,resolve_view(base))
+                for base in obj['extends']:
+                    combined = _merge(combined,resolve_view(base))
+                    if name not in bindings and base in bindings:bindings[name]=copy.deepcopy(bindings[base])
         combined = _merge(combined,obj); visiting.remove(name); resolved[name] = combined
         return combined
     for name in definitions: resolve_view(name)
+    derived_columns={}
+    if any('query' in obj or 'sql' in obj for obj in resolved.values()):
+        from omni_query_views import analyze_query_views
+        query_report=analyze_query_views(files,context)
+        report['query_views']=query_report['descriptors']
+        for finding in query_report['findings']:
+            issue(finding['code'],finding['path'],finding['location'],finding['severity']=='unsupported')
+        for name,descriptor in query_report['descriptors'].items():
+            derived_columns[name]={o['sql_identifier']:o['datatype'] for o in descriptor['outputs'].values()}
+    def column_set(view):
+        return derived_columns.get(view,bindings.get(view,{}).get('columns',{}))
     fields, field_paths, edges, temporal = {}, {}, {}, {}
     for view, obj in resolved.items():
         path = paths.get(view,'context'); keys(obj,VIEW,path,'')
         if 'name' in obj and obj['name'] != view: issue('view.name_mismatch',path,'/name')
         binding = bindings.get(view)
-        if binding is None:
+        derived='query' in obj or 'sql' in obj
+        if derived:
+            if binding is not None:issue('query.physical_binding_forbidden',path)
+        elif binding is None:
             issue('binding.view_unresolved',path,unsupported=not valid_context)
         else:
             ns = binding['namespace']; catalog = ns.get('database',ns.get('catalog',ns.get('project')))
@@ -306,6 +347,8 @@ def check_model(files, context=None):
                     values=definition['timeframes']
                     if type(values) is not list or any(type(v) is not str or v.lower() not in TIMEFRAMES for v in values):
                         issue('field.timeframe',path,loc+'/timeframes')
+                    elif any(v.lower() in ('fiscal_quarter','fiscal_year') for v in values) and type(model.get('fiscal_month_offset')) is not int:
+                        issue('calendar.fiscal_offset_required',path,loc+'/timeframes')
                 if category=='measures':
                     agg=definition.get('aggregate_type')
                     if agg is not None and (type(agg) is not str or agg not in AGGREGATES): issue('measure.aggregate_type',path,loc+'/aggregate_type')
@@ -314,7 +357,7 @@ def check_model(files, context=None):
                     if type(agg) is str and agg.endswith('_distinct_on') and not _text(definition.get('custom_primary_key_sql')):
                         issue('measure.deduplication_key_required',path,loc)
                 if 'sql' not in definition and category=='dimensions':
-                    columns=binding['columns'] if binding else {}
+                    columns=column_set(view)
                     matches=[c for c in columns if c==name or warehouse=='snowflake' and c==name.upper()]
                     if len(matches)!=1: issue('field.definition_unresolved',path,loc,True)
                     elif columns[matches[0]] in ('date','timestamp'): temporal[qualified]=True
@@ -329,6 +372,8 @@ def check_model(files, context=None):
         if scope is not None and view not in scope: issue('reference.view_outside_topic',path,loc)
         if match['time']:
             if match['time'].lower() not in TIMEFRAMES: issue('reference.timeframe',path,loc)
+            if match['time'].lower() in ('fiscal_year','fiscal_quarter') and type(model.get('fiscal_month_offset')) is not int:
+                issue('calendar.fiscal_offset_required',path,loc)
             if fields[target][0]!='dimensions': issue('reference.timeframe_on_measure',path,loc)
             elif target not in temporal: issue('reference.temporal_type_unresolved',path,loc,True)
         if fields[target][1].get('ignored') is True: issue('reference.ignored_field',path,loc)
@@ -362,8 +407,12 @@ def check_model(files, context=None):
             if target and fields[target][0]=='measures' and aggregate is not None:
                 issue('measure.nested_aggregate_reference',path,loc)
         for node in tree.find_all(exp.Column):
-            if node.name.startswith('__dma_ref_') and not node.table: continue
-            columns=bindings.get(current,{}).get('columns',{})
+            if node.name.startswith('__dma_ref_') and not node.table:
+                target=refs[int(node.name[len('__dma_ref_'):])]
+                if target and fields[target][0]=='measures' and node.find_ancestor(exp.AggFunc):
+                    issue('measure.nested_aggregate_reference',path,loc)
+                continue
+            columns=column_set(current)
             if node.table or node.db or node.catalog: issue('sql.physical_qualification_unqualified',path,loc,True); continue
             quoted=bool(node.this.args.get('quoted'))
             name=node.name.upper() if warehouse=='snowflake' and not quoted else node.name
@@ -372,10 +421,32 @@ def check_model(files, context=None):
         if field_id and fields[field_id][0]=='dimensions' and any(isinstance(n,exp.AggFunc) for n in tree.walk()):
             issue('dimension.aggregate_unqualified',path,loc,True)
         if field_id and fields[field_id][0]=='dimensions' and type(tree) is exp.Column and not refs:
-            columns=bindings.get(current,{}).get('columns',{})
+            columns=column_set(current)
             physical=tree.name.upper() if warehouse=='snowflake' and not tree.this.args.get('quoted') else tree.name
             if (fields[field_id][1].get('timeframes') or 'week_start_day' in fields[field_id][1]) and columns.get(physical) not in ('date','timestamp','unknown',None):
                 issue('field.timeframe_non_temporal',path,loc)
+    def filters_check(value,current,path,loc,field_id=None,scope=None):
+        if type(value) is not dict:
+            issue('filter.mapping_required',path,loc);return
+        for ref,condition in value.items():
+            target=reference(ref,current,path,loc,scope)
+            if target:
+                if field_id:edges[field_id].add(target)
+                if fields[target][0]!='dimensions':issue('filter.dimension_required',path,loc)
+            if type(condition) is not dict or len(condition)!=1:
+                issue('filter.condition_unqualified',path,loc,True);continue
+            operator,operand=next(iter(condition.items()))
+            if operator in ('is','not'):
+                values=operand if type(operand) is list else [operand]
+                if not all(v is None or type(v) in (str,int,float,bool) for v in values):issue('filter.value_shape',path,loc)
+                if any(type(v) is str and ('{{' in v or '${' in v) for v in values):issue('filter.dynamic_unqualified',path,loc,True)
+            elif operator in ('greater_than','greater_than_or_equal_to','less_than','less_than_or_equal_to'):
+                if type(operand) not in (int,float):issue('filter.numeric_required',path,loc)
+            elif operator in ('contains','not_contains','starts_with','not_starts_with','ends_with','not_ends_with'):
+                if type(operand) is not str:issue('filter.string_required',path,loc)
+                elif '{{' in operand or '${' in operand:issue('filter.dynamic_unqualified',path,loc,True)
+            else:issue('filter.operator_unqualified',path,loc,True)
+
     # First validate physical SQLs to establish temporal catalogue types before
     # resolving references to their bracket timeframes.
     for qualified,(category,definition,view) in fields.items():
@@ -389,7 +460,7 @@ def check_model(files, context=None):
         if 'custom_primary_key_sql' in definition:
             sql_check(definition['custom_primary_key_sql'],view,path,loc+'/custom_primary_key_sql',qualified)
         if 'order_by_field' in definition: reference(definition['order_by_field'],view,path,loc+'/order_by_field')
-        if 'filters' in definition: issue('measure.filters_unqualified',path,loc+'/filters',True)
+        if 'filters' in definition: filters_check(definition['filters'],view,path,loc+'/filters',qualified)
     def cycles(graph, code):
         pending={k:set(v) for k,v in graph.items()}; ready=[k for k,v in pending.items() if not v]; dependents={}
         for child,parents in pending.items():
@@ -425,7 +496,29 @@ def check_model(files, context=None):
             sql_check(item.get('on_sql'),left,path,at+'/on_sql',scope={left,right})
         return links
     global_links=relationships(global_relations,'relationships','') if rel_seen else set()
-    for _,(topic,path) in topics.items():
+    for topic_name,(_,path) in topics.items():
+        topic=resolved_topics[topic_name]
+        if 'views' in topic:
+            overrides=topic['views']
+            if _scoped or type(overrides) is not dict:
+                issue('topic.views_shape',path,'/views');continue
+            scoped_files={p:t for p,t in files.items() if not p.removesuffix('.yaml').removesuffix('.yml').endswith('.topic')}
+            scoped_context=copy.deepcopy(context);scoped_context['bindings']=copy.deepcopy(bindings)
+            for alias,definition in overrides.items():
+                if not NAME.fullmatch(alias) or type(definition) is not dict:
+                    issue('topic.view_shape',path,'/views');continue
+                existing=resolved.get(alias,{})
+                scoped_definition=_merge(existing,definition)
+                existing_path=paths.get(alias)
+                if existing_path in scoped_files:scoped_files.pop(existing_path)
+                scoped_files[alias+'.view']=yaml.safe_dump(scoped_definition,sort_keys=True)
+            flat=copy.deepcopy(topic);flat.pop('views')
+            scoped_files[path]=yaml.safe_dump(flat,sort_keys=True)
+            scoped=check_model(scoped_files,scoped_context,_scoped=True)
+            for finding in scoped['findings']:
+                issue(finding['code'],path,'/views'+finding['location'],finding['severity']=='unsupported')
+            report['topic_scopes'][topic_name]=scoped['topic_scopes'].get(topic_name,{})
+            continue
         keys(topic,TOPIC,path,''); base=topic.get('base_view')
         if type(base) is not str or base not in resolved:
             issue('topic.base_view_unresolved',path,'/base_view'); continue
@@ -442,14 +535,54 @@ def check_model(files, context=None):
                 if (parent,child) not in links: issue('topic.relationship_unresolved',path,at)
                 joins(nested,child,trail|{child},at)
         joins(topic.get('joins',{}),base,{base},'/joins')
+        selections={}
         for key in ('fields','ai_fields'):
             if key in topic:
                 if type(topic[key]) is not list: issue('topic.field_list_required',path,'/'+key)
                 else:
+                    ordered=[];selected=set();excluded=set()
                     for index,value in enumerate(topic[key]):
-                        if type(value) is str and ('*' in value or value.startswith('-')):
-                            issue('topic.field_selector_unqualified',path,'/'+key+'/'+str(index),True)
-                        else: reference(value,base,path,'/'+key+'/'+str(index),included)
+                        loc='/'+key+'/'+str(index)
+                        if type(value) is not str:issue('topic.selector_shape',path,loc);continue
+                        negative=value.startswith('-');selector=value[1:] if negative else value
+                        matches=set();rank=5
+                        if selector=='all_views.*':rank=1;matches={f for f in fields if fields[f][2] in included}
+                        elif selector.endswith('.*'):
+                            rank=2;view=selector[:-2]
+                            if view not in included:issue('reference.view_outside_topic',path,loc)
+                            matches={f for f in fields if fields[f][2]==view}
+                        elif ':tag:' in selector or selector.startswith('tag:'):
+                            rank=4 if ':tag:' in selector else 3
+                            view,tag=selector.split(':tag:',1) if rank==4 else (None,selector[4:])
+                            if not tag or view is not None and view not in included:issue('topic.selector_unresolved',path,loc)
+                            matches={f for f,(_,d,v) in fields.items() if v in included and (view is None or v==view) and
+                                     (tag in d.get('tags',[]) or tag in resolved[v].get('tags',[]))}
+                        else:
+                            target=reference(selector,base,path,loc,included)
+                            if target:matches={target}
+                        ordered.append((rank,index,negative,matches))
+                    for _,_,negative,matches in sorted(ordered):
+                        if negative:selected-=matches;excluded|=matches
+                        else:selected|=matches;excluded-=matches
+                    for field in selected:
+                        todo=list(edges[field]);seen=set()
+                        while todo:
+                            dependency=todo.pop()
+                            if dependency in seen:continue
+                            seen.add(dependency);todo.extend(edges.get(dependency,()))
+                        if key=='fields' and seen & excluded:issue('topic.excluded_dependency',path,'/'+key)
+                    selections[key]=sorted(selected)
+        all_reachable={f for f,(_,definition,v) in fields.items() if v in included and not definition.get('ignored')}
+        selections.setdefault('fields',sorted(all_reachable))
+        selections.setdefault('ai_fields',list(selections['fields']))
+        for selected in selections['fields']:
+            if any(fields[d][2] not in included for d in edges.get(selected,()) if d in fields):
+                issue('topic.dependency_view_unreachable',path,'/fields')
+        report['topic_scopes'][topic_name]={'views':sorted(included),'selections':selections,
+                 'selection_origins':{key:'explicit' if key in topic else 'default' for key in ('fields','ai_fields')},
+                 'ai_fields_is_access_control':False}
+        for key in ('default_filters','always_where_filters'):
+            if key in topic:filters_check(topic[key],base,path,'/'+key,scope=included)
         if 'default_row_limit' in topic and (type(topic['default_row_limit']) is not int or topic['default_row_limit']<=0):
             issue('topic.row_limit',path,'/default_row_limit')
         access=topic.get('access_filters',[])

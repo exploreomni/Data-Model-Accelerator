@@ -1,0 +1,19 @@
+# Query Views and placement
+
+Omni documents `.query.view` files with modeled `query:` or SQL `sql:` definitions. The v2 static/generation path supports a bounded subset of both. Do not substitute a fabricated physical table. `sql_from` is not a documented synonym in the reviewed sources.
+
+`analyze_query_views(files, context, topic=None)` is a private local API in `scripts/omni_query_views.py`. It pins exact candidate/context hashes, preserves effective view definitions, resolves inherited and topic-local physical binding origins, and returns output descriptors plus `field_lineage`. Columns contain their actual physical namespace and source view. Projection, grouping, predicate, join, filter and ordering dependencies are included conservatively; count populations include all source columns. Unknown types remain unknown. Definitions and lineage contain private source content and must pass disclosure controls before sharing.
+
+Modeled queries accept nonempty fields mappings or arrays of strings/single-pair alias mappings, one base view, an optional explicit topic and bounded filters. Direct fields must be reachable and selected by the source topic. Explicit negative dependency exclusions fail. Implicit whitelist dependencies are listed for native qualification; this checker does not silently widen the topic. Topic-local aliases need the matching explicit analyzer scope. Advanced composite/LOD/aggregate-awareness constructs remain unqualified.
+
+SQL views accept one read-only SELECT over explicitly referenced bound views with named projections. Join, WHERE, GROUP BY and ORDER BY column lineage is preserved. Wildcards (apart from count populations), ambiguous columns, unbound relations, writes, multiple statements, CTEs, subqueries, windows and unknown functions are gated. Sorted SQL limits are identified as incomplete populations. No SQL is executed by this parser.
+
+Generation uses view kinds `query_view` / `sql_view` and dimension mappings `{kind: query_output, output: <exact output alias>, source_refs: [...]}`. Mapped output columns receive dialect quoting; existing SQL must reference that exact output. Derived fields may reference those outputs. Physical bindings for query views are rejected. All generated fields still require reviewed, pinned source mappings; write_candidate requires a passed static report. Neither descriptors nor local fixture execution grant native/deployment acceptance.
+
+The official query page's property table says array while its examples show mapping aliases. Both strict forms are preserved. The documented `{field, desc}` sort shape and `limit` example occur under measure `query_structure`, not an exact query-view contract. Top-level modeled-query sorts/limits therefore remain inspectable but unsupported for qualification. They carry controls and truncation flags; SQL ORDER BY/LIMIT is separately parsed. Checked 2026-10-05: [measure query-structure example](https://docs.omni.co/modeling/measures/parameters/filters).
+
+Capture input dependencies, projected names, aliases, grain, filter stage, ordering and limits. A saved query is not a physical materialization. Preserve workbook scope unless promotion is explicitly qualified and authorized. Use native round-trip fixtures to settle exact serialized shapes.
+
+Choose placement based on reuse, ownership, portability, performance, freshness and filter behavior. A SQL Query View or one-off workbook calculation can remain appropriate; repeated costly cleansing may justify upstream modeling. Never execute source SQL merely to discover its meaning.
+
+Sources: [Query Views](https://docs.omni.co/modeling/query-views), [query](https://docs.omni.co/modeling/views/parameters/query), [sql](https://docs.omni.co/modeling/views/parameters/sql), [placement alternatives](https://docs.omni.co/guides/patterns/level-of-detail-build-comparison).

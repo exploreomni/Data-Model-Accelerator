@@ -1,0 +1,30 @@
+base_view: orders
+views:
+  buyers:
+    extends: [parties]
+    dimensions:
+      label:
+        label: Buyer label
+  sellers:
+    extends: [parties]
+    dimensions:
+      label:
+        label: Seller label
+relationships:
+  - join_from_view: orders
+    join_to_view: buyers
+    join_type: left
+    relationship_type: many_to_one
+    on_sql: ${orders.buyer_party_id} = ${buyers.party_id}
+  - join_from_view: orders
+    join_to_view: sellers
+    join_type: left
+    relationship_type: many_to_one
+    on_sql: ${orders.seller_party_id} = ${sellers.party_id}
+joins:
+  buyers: {}
+  sellers: {}
+fields:
+  - orders.order_id
+  - buyers.label
+  - sellers.label

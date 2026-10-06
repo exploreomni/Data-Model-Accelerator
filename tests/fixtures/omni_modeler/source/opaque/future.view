@@ -1,0 +1,10 @@
+# Preserve this comment, order, quoting and trailing newline during no-op.
+catalog: CORPUS
+schema: SYNTHETIC
+table_name: ORDERS
+future_extension:
+  opaque_value: 'SYNTHETIC_SOURCE_TEXT_QUIET'
+  sequence: [second, first]
+dimensions:
+  order_id:
+    sql: '"order_id"'
