@@ -46,7 +46,7 @@
   "native": {
     "preflight": "Separate native parse with no partial parse",
     "full_build": "Complete unselected dbt build; five models, 52 tests; all 57 nodes must pass/succeed",
-    "denominator": "evidence/native-build/receipt.json expected_node_ids frozen from preflight",
+    "denominator": "Fresh replay output: working/candidate/evidence/native-build/receipt.json; expected_node_ids frozen from that run preflight",
     "report": "Compile downstream analysis, execute as SELECT, compare exact gold/report interfaces and assert no REPORTS relation"
   },
   "expectation_basis": {

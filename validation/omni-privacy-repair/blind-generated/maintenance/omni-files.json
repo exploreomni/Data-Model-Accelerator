@@ -1,5 +1,0 @@
-{
-  "maintenance.topic": "base_view: work_orders\nfields:\n- work_orders.work_order_id\n- work_orders.tenant_id\n- work_orders.opened_on\n- work_orders.labor_cost\n- work_orders.status\n- work_orders.parts_cost\n- work_orders.work_cost\n- work_orders.total_work_cost\njoins: {}\n",
-  "model": "week_start_day: Monday\n",
-  "work_orders.view": "catalog: SYNTHETIC_REVIEW\ndimensions:\n  labor_cost:\n    sql: '\"LABOR_COST\"'\n  opened_on:\n    sql: '\"OPENED_ON\"'\n  parts_cost:\n    sql: '\"PARTS_COST\"'\n  status:\n    sql: '\"STATUS\"'\n  tenant_id:\n    sql: '\"TENANT_ID\"'\n  work_cost:\n    sql: '\"WORK_COST\"'\n  work_order_id:\n    primary_key: true\n    sql: '\"WORK_ORDER_ID\"'\nmeasures:\n  total_work_cost:\n    aggregate_type: sum\n    sql: ${work_orders.work_cost}\nschema: DMA_MAINTENANCE\ntable_name: GOLD_WORK_ORDERS\n"
-}

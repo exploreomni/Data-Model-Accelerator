@@ -20,7 +20,7 @@ The shared v2 dictionary records approved descriptions, grain, units, classifica
 
 Independent metadata exports are reconciled against the full physical scope, then against expected comments and direct tag assignments. The guided Metadata page and ZIP retain the plan, exclusions, changes and evidence associations. Downstream handoff preserves the same definitions and physical names for Omni/AI review. Local signed simulations exercise linked build/metadata phases, wrong destinations, immutable expected scope, partial failure, recovery locks and independent acceptance.
 
-**Remaining boundaries:** automatic live metadata dispatch is blocked pending an authenticated current-state collector. Reviewed SQL/operator or independently governed CI delivery is available. Governance provisioning, policy changes, native Coalesce node projection, live provider qualification and actual Omni refresh remain separate work. Local DuckDB persistence is not MotherDuck execution. Read the [metadata guide](../skills/data-model-accelerator/references/warehouse-metadata.md) and [test evidence](../validation/warehouse-metadata-governance/README.md).
+**Remaining boundaries:** automatic live metadata dispatch is blocked pending an authenticated current-state collector. Reviewed SQL/operator or independently governed CI delivery is available. Governance provisioning, policy changes, native Coalesce node projection, live provider qualification and actual Omni refresh remain separate work. Local DuckDB persistence is not MotherDuck execution. Read the [metadata guide](../skills/data-model-accelerator/references/warehouse-metadata.md) and [qualification and reproduction](qualification.md).
 
 ## End-to-end workflow
 

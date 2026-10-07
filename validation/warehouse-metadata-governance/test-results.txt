@@ -1,9 +1,0 @@
-Pinned local verification lane
-Python 3.12.14
-Command: python -m unittest discover -s tests -v
-----------------------------------------------------------------------
-Ran 1108 tests in 94.016s
-
-OK
-
-Native provider execution: not performed

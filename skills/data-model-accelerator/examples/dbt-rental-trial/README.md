@@ -1,7 +1,7 @@
 # Independent rental refactoring trial
 
 A synthetic messy dbt project refactored into five models by an engineering agent
-that did not receive the independent oracle. See the [qualification record](../../../../validation/analytics-engineering/README.md)
+that did not receive the independent oracle. See the [qualification and reproduction guide](../../../../docs/qualification.md)
 and [workflow guide](../../../../docs/analytics-engineering-workflow.md).
 
 - `input/`: original project, synthetic raw catalogue, accepted fixture rules and

@@ -8,3 +8,19 @@ __pycache__/
 
 # Publisher schema is acquired explicitly and is not redistributed.
 skills/data-model-accelerator/scripts/schemas/hex-file-schema.v3.json
+
+# Generated runs and internal implementation notes do not belong in source.
+/validation/
+/docs/plans/
+/output/
+/outputs/
+/artifacts/
+/dist/
+/coverage/
+.pytest_cache/
+.coverage
+*.duckdb
+*.duckdb.wal
+# The retail replay regenerates these in its isolated output copy.
+skills/data-model-accelerator/examples/dbt-retail-holdout/candidate/evidence/
+skills/data-model-accelerator/examples/dbt-retail-holdout/candidate/runtime/

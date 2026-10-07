@@ -64,7 +64,7 @@ A stale copy blocks invocation when supplied to the runner. With no installed pa
 | Change impact and native requests | [Lifecycle](../skills/data-model-accelerator/references/omni-modeler-lifecycle.md), [native validation](../skills/data-model-accelerator/references/omni-native-validation.md) |
 | Reviewed AI definitions and repeated answer/result trials | [AI context](../skills/data-model-accelerator/references/omni-ai-context.md) |
 | Curated semantic catalog, diagram and selected ZIP | [Omni handoff](../skills/data-model-accelerator/references/omni-handoff.md) |
-| Static results and evidence limits | [Qualification](../validation/omni-modeler/README.md) |
+| Static results and evidence limits | [Qualification](qualification.md) |
 
 Host identifiers name available adapter destinations, not prebuilt integrations with every host SDK. The coordinator supplies the actual delegation callback and records its execution identity; no callback returns an actionable `unavailable` status. Inline work must disclose its independence limit. A prompt file, imported receipt or successful local callback cannot authenticate an external AI session.
 

@@ -1,3 +1,0 @@
-14:45:15  Running with dbt=1.12.4
-14:45:15  Registered adapter: duckdb=1.11.0
-14:45:15  Performance info: /private/tmp/dma-retail-portable-verified/working/candidate/runtime/dbt-target/perf_info.json

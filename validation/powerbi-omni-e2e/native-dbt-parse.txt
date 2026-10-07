@@ -1,3 +1,0 @@
-13:34:40  Running with dbt=1.12.4
-13:34:42  Registered adapter: snowflake=1.12.0
-13:34:43  Performance info: /private/tmp/dma-powerbi-dbt-parse/target/perf_info.json
