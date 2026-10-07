@@ -1,9 +1,0 @@
-base_view: readings
-fields:
-- readings.reading_id
-- readings.meter_id
-- readings.recorded_on
-- readings.kwh
-- readings.zone
-- readings.total_kwh
-joins: {}

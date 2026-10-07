@@ -1,6 +1,6 @@
 # Bronze: supplied raw contracts
 
-Coverage: `DMA_RETAIL.RAW.ORDER_CDC`, `DMA_RETAIL.RAW.ORDER_LINE_CDC`, `DMA_RETAIL.RAW.FULFILLMENT_CDC`, `DMA_RETAIL.RAW.RETURN_CDC` — four objects, 30 columns. Bronze is reused; creating four extra copy tables would add no transformation or evidence. The [catalogue](../evidence/catalogue/warehouse-catalogue.json), its original [exports](../evidence/catalogue/exports/columns.json) and [bindings](../evidence/catalogue/catalogue-bindings.json) establish the declared schema. The [dictionary](data-dictionary.md) documents every raw column and the [ERD](model-erd.md) covers all four independently landed inputs.
+Coverage: `DMA_RETAIL.RAW.ORDER_CDC`, `DMA_RETAIL.RAW.ORDER_LINE_CDC`, `DMA_RETAIL.RAW.FULFILLMENT_CDC`, `DMA_RETAIL.RAW.RETURN_CDC` — four objects, 30 columns. Bronze is reused; creating four extra copy tables would add no transformation or evidence. The [catalogue](../../input/catalogue/warehouse-catalogue.json), its original [exports](../../input/catalogue/exports/columns.json) and [source declarations](../dbt/models/sources.yml) establish the declared schema. The [dictionary](data-dictionary.md) documents every raw column and the [ERD](model-erd.md) covers all four independently landed inputs.
 
 ## Grain and identity
 

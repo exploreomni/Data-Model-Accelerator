@@ -42,6 +42,6 @@ Public Hex YAML excludes outputs; real migrations need separately captured resul
 
 ## Review evidence
 
-The checked-in [validation report](../../../validation/hex-omni-e2e/README.md) links executed comparisons, queries, catalogue bindings, independent QA, native dbt parse evidence and the versioned review manifest. The [model documentation](../examples/hex-omni-e2e/documentation/README.md) includes ERD, complete dictionary, lineage, placement/conflict decisions and bronze/silver/gold operating contracts.
+The runner writes fresh comparisons, queries and catalogue bindings to its selected output directory. See [qualification and reproduction](../../../docs/qualification.md) for the separate dbt checks and historical records. The [fixture pins](../examples/hex-omni-e2e/fixture-pins.json) protect the reviewed execution inputs; they are not a completed review package. The [model documentation](../examples/hex-omni-e2e/documentation/README.md) includes ERD, complete dictionary, lineage, placement/conflict decisions and bronze/silver/gold operating contracts.
 
 Native dbt parse is recorded independently from this runner. It can establish project/schema/macro parsing without a warehouse connection, but it does not establish native compilation, query execution, correctness, deployment or business approval. Do not substitute it for those gates.

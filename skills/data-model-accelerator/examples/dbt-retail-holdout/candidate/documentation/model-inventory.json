@@ -16,7 +16,7 @@
         "SEQUENCE",
         "IS_DELETED"
       ],
-      "code": "evidence/catalogue/warehouse-catalogue.json",
+      "code": "../input/catalogue/warehouse-catalogue.json",
       "logical_name": "ORDER_CDC",
       "materialization": "externally supplied synthetic raw table"
     },
@@ -35,7 +35,7 @@
         "SEQUENCE",
         "IS_DELETED"
       ],
-      "code": "evidence/catalogue/warehouse-catalogue.json",
+      "code": "../input/catalogue/warehouse-catalogue.json",
       "logical_name": "ORDER_LINE_CDC",
       "materialization": "externally supplied synthetic raw table"
     },
@@ -52,7 +52,7 @@
         "SEQUENCE",
         "IS_DELETED"
       ],
-      "code": "evidence/catalogue/warehouse-catalogue.json",
+      "code": "../input/catalogue/warehouse-catalogue.json",
       "logical_name": "FULFILLMENT_CDC",
       "materialization": "externally supplied synthetic raw table"
     },
@@ -70,7 +70,7 @@
         "SEQUENCE",
         "IS_DELETED"
       ],
-      "code": "evidence/catalogue/warehouse-catalogue.json",
+      "code": "../input/catalogue/warehouse-catalogue.json",
       "logical_name": "RETURN_CDC",
       "materialization": "externally supplied synthetic raw table"
     },

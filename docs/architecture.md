@@ -86,7 +86,7 @@ Customer-specific data stays in the authorized environment. A source file can co
 
 ## Qualified local example
 
-The [Looker → Snowflake → Omni exercise](../skills/data-model-accelerator/references/looker-omni-e2e.md) adds a native LookML parse, separately authored Snowflake and Omni candidates, an independent raw-data oracle and an executable DuckDB simulation. It grounds physical inputs in a verified synthetic catalogue and preserves report context. [Run evidence](../validation/looker-omni-e2e/README.md) records observed defects, fixes and remaining native gates. This bounded path is additional development evidence; other source/target combinations retain their existing qualification limits.
+The [Looker → Snowflake → Omni exercise](../skills/data-model-accelerator/references/looker-omni-e2e.md) adds a native LookML parse, separately authored Snowflake and Omni candidates, an independent raw-data oracle and an executable DuckDB simulation. It grounds physical inputs in a verified synthetic catalogue and preserves report context. [Qualification and reproduction](qualification.md) describes the checks and remaining native gates. This bounded path is additional development evidence; other source/target combinations retain their existing qualification limits.
 
 ## Current qualification and remaining boundaries
 

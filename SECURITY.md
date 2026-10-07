@@ -1,14 +1,14 @@
 # Security
 
 Report a potential vulnerability privately through this repository's
-[security advisory form](https://github.com/exploreomni/DataModelAccelerator/security/advisories/new).
+[security advisory form](https://github.com/exploreomni/Data-Model-Accelerator/security/advisories/new).
 Do not put credentials, customer files, exploitable payloads, or private warehouse
 details in a public issue. Include the affected commit, a minimal synthetic
 reproduction, and the expected trust boundary.
 
 Security fixes target the latest `main`. There is no promised response SLA or
 security certification. Scan results establish only the tools, inputs and date
-recorded in [the public-release audit](validation/public-release/README.md).
+recorded in the [CI run for that commit](https://github.com/exploreomni/Data-Model-Accelerator/actions).
 
 ## Operating boundaries
 

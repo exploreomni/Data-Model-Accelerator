@@ -79,9 +79,8 @@ def verify_file_pins(repo, manifest_path, paths):
 def prepare(case_name, output):
     case = SKILL / 'examples' / (case_name + '-omni-e2e')
     source = case / 'target/dbt'
-    repo = SKILL.parents[1]
     input_paths = [case / 'input/raw-data.json', case / 'input/repo/adjustments.csv', case / 'expected/expected_rows.json']
-    review_pin = verify_file_pins(repo, repo / (case_name + '-omni-review-package.json'),
+    fixture_pin = verify_file_pins(case, case / 'fixture-pins.json',
         [p for p in source.rglob('*') if p.is_file()] + input_paths)
     project = output / 'project'
     shutil.copytree(source, project)
@@ -116,7 +115,7 @@ def prepare(case_name, output):
     state = dict(case=case, project=project, output=output, profiles=profiles,
                  db_path=db_path, sources=sources, raw=raw, adjustments=adjustments,
                  original_hashes=hashes(source), overlay_hashes=hashes(project))
-    write_json(output / 'overlay.json', {'origin': 'synthetic', 'review_package_sha256': review_pin, 'original_project_hashes': state['original_hashes'], 'executed_project_hashes': state['overlay_hashes'], 'changes': overlay,
+    write_json(output / 'overlay.json', {'origin': 'synthetic', 'fixture_manifest_sha256': fixture_pin, 'original_project_hashes': state['original_hashes'], 'executed_project_hashes': state['overlay_hashes'], 'changes': overlay,
         'scope': 'Native dbt Core/DuckDB with two explicit SQL substitutions; Snowflake remains unverified.'})
     write_json(output / 'input-pins.json', {p.relative_to(case).as_posix(): digest(p) for p in [case / 'input/raw-data.json', case / 'input/repo/adjustments.csv', case / 'expected/expected_rows.json']})
     return state

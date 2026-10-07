@@ -1,9 +1,0 @@
-{
-  "status": "pass",
-  "final_archive_sha256": "2905c4419c11ece927d7b16c9573f69e72eac92be10a87c6e7c0285f7a2e2d3f",
-  "tested_archive_sha256": "0798ca3bc4b3b35e1e676de00bff6c9713c2cbe8e8677d26c14bdc1f32f14689",
-  "unchanged_implementation_files": 90,
-  "local_markdown_links": 29,
-  "no_working_database_or_raw_rows": true,
-  "guide_included": true
-}

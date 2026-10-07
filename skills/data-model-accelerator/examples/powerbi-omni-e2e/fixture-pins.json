@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_execution_fixture_pins",
+  "scope": "Reviewed bundled dbt code, source inputs and independent expected rows. These pins detect drift; they are not execution or approval evidence.",
+  "artifacts": [
+    {
+      "path": "expected/expected_rows.json",
+      "sha256": "f795bfd1535f33739cdb2a1fd621af9461f19657243f67c0cc0d9a95a7b86661"
+    },
+    {
+      "path": "input/raw-data.json",
+      "sha256": "d28ffee6457c1d8ebcde1d5e756f10771ec42b4d76c844e582cd1c981ce94d9c"
+    },
+    {
+      "path": "input/repo/adjustments.csv",
+      "sha256": "43b062327e2ff07db032b1b2ceb7c31f4aa6b1c69b2ac801bb18baf3b284ba6e"
+    },
+    {
+      "path": "target/dbt/README.md",
+      "sha256": "d56dd121eb466e94b335020ed52b29e8edf468c524cf5033076b3864aa33f64c"
+    },
+    {
+      "path": "target/dbt/dbt_project.yml",
+      "sha256": "62c527b775901b31eb03d2a64b36948f9d15f9f17b49a92dec976f6e42d303ed"
+    },
+    {
+      "path": "target/dbt/macros/generate_schema_name.sql",
+      "sha256": "c38041b2daa96ba71c59c1decbaa6739589087f04e962be3a07108f85af240dd"
+    },
+    {
+      "path": "target/dbt/models/gold/dim_customers.sql",
+      "sha256": "e2b514e66c04c99e7c0c06fb4f2ca0dd829c6dde376ad247b22d2df41f251f54"
+    },
+    {
+      "path": "target/dbt/models/gold/fct_invoices.sql",
+      "sha256": "31d9351915bd0013cadc075613492b7fea777e1407c79cb57fdcbdd9acd725a7"
+    },
+    {
+      "path": "target/dbt/models/models.yml",
+      "sha256": "b1641e9321d0eeb7dbdea6cac5df5b4365d96fa64e7be0f329543b82c649de2f"
+    },
+    {
+      "path": "target/dbt/models/silver/billing_adjustments.sql",
+      "sha256": "254c5bb8264bccc99965ea6d1e5da046031cb5a83f5a78fc9b639a7dec9abffc"
+    },
+    {
+      "path": "target/dbt/models/silver/billing_customer_history.sql",
+      "sha256": "d33106d046df01395d6557bdf79c6c400f12e020cd532fc62133d1751a9d5ade"
+    },
+    {
+      "path": "target/dbt/models/silver/billing_invoices.sql",
+      "sha256": "362049667a6d9206926bc36462169565153eb1a9b29f4204f41c3abd657d5d83"
+    },
+    {
+      "path": "target/dbt/models/silver/billing_payments.sql",
+      "sha256": "8c2ad9b2c3370fbe95f7eb241ac37badfa14ddb4dd1df322dcf46bd27be872a5"
+    },
+    {
+      "path": "target/dbt/models/sources.yml",
+      "sha256": "66489abc035277472eea22dbae88c614cb1f313f4d1a93b843665c356bbbc4c2"
+    },
+    {
+      "path": "target/dbt/profiles.yml.example",
+      "sha256": "c5eb645bb564c5eb364885a22fd359a97e76939a76c4733aaca91708f5e7078c"
+    },
+    {
+      "path": "target/dbt/tests/adjustment_key_unique.sql",
+      "sha256": "8acc551d6f36f57efa14238054ab2b70096bbf42c5b1c96bd635a92462134937"
+    },
+    {
+      "path": "target/dbt/tests/current_orphan_references.sql",
+      "sha256": "9c0f1611aafc2e479cd0d81a2e372d074441db06b0ec8120d63b5f4992778ce9"
+    },
+    {
+      "path": "target/dbt/tests/declared_grains.sql",
+      "sha256": "75dcd700a0d8839303aee9cf3048969824eaf2a3f1c76e3357a75b5c9c9658e9"
+    },
+    {
+      "path": "target/dbt/tests/fact_balance_and_customer_binding.sql",
+      "sha256": "b01f463efeddd2923a397c0d5566be15d474e5e25b5b93e8cf99fcfac82eb5d9"
+    },
+    {
+      "path": "target/dbt/tests/invoice_history_exactly_one.sql",
+      "sha256": "e3e36bfa0a7ea0240ad10909e2c9813bd6e9d189472bc60f7b1febc2132b8727"
+    },
+    {
+      "path": "target/dbt/tests/payment_reconciliation.sql",
+      "sha256": "b69dd3782a5affa700dc1b76faae0e4a9ea47fb7c09c7394fbd355b6a63c7197"
+    },
+    {
+      "path": "target/dbt/tests/source_history_overlap.sql",
+      "sha256": "720382abea31c3c35b214b2dc3f5a26fec1a6ad9334cc6d697ade305c41faa68"
+    },
+    {
+      "path": "target/dbt/tests/source_identity_and_required_values.sql",
+      "sha256": "d6187eb8b4f57aaf0752d7793567f30623af47978c927c92a03825a50bef13a5"
+    },
+    {
+      "path": "target/dbt/tests/source_version_conflicts.sql",
+      "sha256": "793881c185dfa02f4453a618a8f64e625ed9fc534f1fc2792c71ec78394455cb"
+    }
+  ]
+}

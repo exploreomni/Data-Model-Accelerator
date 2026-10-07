@@ -1,5 +1,0 @@
-Python 3.12.14; full pinned optional dependency environment
-Command: python -m unittest discover -s tests -q
-Ran 905 tests in 59.649s
-OK (no skips)
-Local development result; remote CI and native services not invoked.

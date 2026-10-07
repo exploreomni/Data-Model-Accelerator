@@ -28,7 +28,7 @@ jobs:
       - run: python skills/data-model-accelerator/scripts/run_looker_omni_e2e.py --output "$RUNNER_TEMP/looker-e2e"
       - run: python skills/data-model-accelerator/scripts/run_hex_omni_e2e.py --output "$RUNNER_TEMP/hex-e2e"
       - name: Reproduce the synthetic Omni operator workflows
-        run: python validation/omni-modeler/run_fresh_operator.py --repo . --output "$RUNNER_TEMP/omni-modeler-pilots"
+        run: python tests/run_omni_operator.py --repo . --output "$RUNNER_TEMP/omni-modeler-pilots"
   deployment-contracts:
     runs-on: ubuntu-latest
     steps:

@@ -52,6 +52,20 @@ class ReviewedFixturePinTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Bundled fixture changed from reviewed pin: target/dbt/unreviewed.sql'):
             qualification.verify_file_pins(self.repo,self.manifest,current_paths)
 
+    def test_all_bundled_candidates_prepare_without_historical_review_packages(self):
+        for name in ('hex','tableau','powerbi'):
+            with self.subTest(case=name):
+                state=qualification.prepare(name,self.repo/name)
+                receipt=json.loads((state['output']/'overlay.json').read_text())
+                manifest=state['case']/'fixture-pins.json'
+                self.assertEqual(receipt['fixture_manifest_sha256'],qualification.digest(manifest))
+                self.assertNotIn('review_package_sha256',receipt)
+                pins=json.loads(manifest.read_text())['artifacts']
+                expected={p.relative_to(state['case']).as_posix() for p in
+                    (state['case']/'target/dbt').rglob('*') if p.is_file()}
+                expected.update(('input/raw-data.json','input/repo/adjustments.csv','expected/expected_rows.json'))
+                self.assertEqual({p['path'] for p in pins},expected)
+
 
 @unittest.skipUnless(HAS_NATIVE_DBT,'Optional native dbt/DuckDB qualification dependencies are required')
 class DbtOverlayAndTimeoutTests(unittest.TestCase):

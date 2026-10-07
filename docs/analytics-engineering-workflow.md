@@ -1,23 +1,22 @@
 # Analytics engineering and independent validation
 
 This extension turns the existing assessment/placement workflow into bounded
-implementation work with an independently frozen benchmark. It implements nine
-sequentially planned components. It does not certify arbitrary projects, host
+implementation work with an independently frozen benchmark. Its components preserve separate implementation and validation responsibilities. It does not certify arbitrary projects, host
 platforms, Snowflake accounts or Omni tenants.
 
-## Completed implementation stages
+## Components and review boundaries
 
-| Plan | Component | Review boundary |
+| Stage | Component | Review boundary |
 | --- | --- | --- |
-| [1](plans/01-refactoring-planner.md) | Model dependencies, domain tasks, exact ownership | Accepted model specification and catalogue associations |
-| [2](plans/02-independent-baseline.md) | Analyst-authored expected exports and context | Freeze before engineering; preserve protected baseline digest |
-| [3](plans/03-snowflake-execution.md) | Reviewed project copy and native dbt receipt | Explicit development profile, destination allowlist and execution authority |
-| [4](plans/04-benchmark-engine.md) | Full case/key/value comparison | Compatibility and approved corrections remain separate |
-| [5](plans/05-coordination-gates.md) | Role separation, stale evidence and repair history | Actual host execution records and externally pinned event head |
-| [6](plans/06-agent-qualification.md) | Independent authoring trial, local replay and negative controls | Synthetic evidence only; target acceptance remains separate |
-| [7](plans/07-independent-evidence-hardening.md) | Typed exports, conserved source values and physical column coverage | Independently pinned expectations and observed metadata |
-| [8](plans/08-reusable-engagement-workflow.md) | Composite validation, complete declared scope and downstream consumers | Recomputed gates; native invocation and snapshot bindings |
-| [9](plans/09-authority-and-catalogue-provenance.md) | Typed authority and normalized catalogue/export reconciliation | Simulation, provisional development and recorded approval remain distinct |
+| 1 | Model dependencies, domain tasks, exact ownership | Accepted model specification and catalogue associations |
+| 2 | Analyst-authored expected exports and context | Freeze before engineering; preserve protected baseline digest |
+| 3 | Reviewed project copy and native dbt receipt | Explicit development profile, destination allowlist and execution authority |
+| 4 | Full case/key/value comparison | Compatibility and approved corrections remain separate |
+| 5 | Role separation, stale evidence and repair history | Actual host execution records and externally pinned event head |
+| 6 | Independent authoring trial, local replay and negative controls | Synthetic evidence only; target acceptance remains separate |
+| 7 | Typed exports, conserved source values and physical column coverage | Independently pinned expectations and observed metadata |
+| 8 | Composite validation, complete declared scope and downstream consumers | Recomputed gates; native invocation and snapshot bindings |
+| 9 | Typed authority and normalized catalogue/export reconciliation | Simulation, provisional development and recorded approval remain distinct |
 
 Read the [operator contract](../skills/data-model-accelerator/references/analytics-engineering.md)
 for exact JSON fields, command examples, handoffs and limitations. The source
@@ -84,7 +83,4 @@ The command executes only the bundled rental fixture, copies its archived
 candidate and labels execution `fixture_replay`. It does not start new agents.
 It freezes the fixture baseline, builds real dbt models, queries the local database,
 compares every frozen case, verifies integration and executes deliberately broken
-model variants. The [original host authoring record](../validation/analytics-engineering/README.md)
-is maintained separately from these repeated local results. The first trial
-passed all eight benchmark cases and verified documentation for eight relations
-and 63 columns; its report preserves observed failures and remaining coverage gaps.
+model variants. See [qualification and reproduction](qualification.md) for the current checks and historical records. Each replay writes its own results; a repeated fixture run does not establish a new independent authoring trial.
