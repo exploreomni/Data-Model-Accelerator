@@ -1,6 +1,6 @@
 ---
 name: data-model-accelerator
-description: Guide migration, refactoring, and new-model engagements for dbt, Coalesce, Snowflake, Databricks, BigQuery, Looker, Power BI, Tableau, Hex, and Sigma projects through discovery and warehouse-versus-semantic placement; produce selected model, connected ERD, documentation, code, and validation deliverables with evidence.
+description: Guide data-model design, refactoring and migrations through reviewed entity design, warehouse implementation, semantic modeling, validation and delivery; retain decisions, existing-model reuse and evidence across independently invoked stages.
 ---
 
 # Data Model Accelerator
@@ -18,6 +18,31 @@ content reaches an agent; a later export scan cannot undo earlier disclosure.
 Resolve supporting paths relative to this SKILL.md, not the input repository. Core planning, catalogue and review helpers plus the SQLite demonstrator use Python 3.9 or newer and the standard library. Optional E2E exercises use Python 3.12: Looker dependencies are in `scripts/requirements-e2e.txt`, and Hex adds `scripts/requirements-hex-e2e.txt`. Examples are local development fixtures, not customer evidence.
 
 ## Start with the engagement
+
+Start new engagements with entity/table design and its review package. Read
+[staged-engagement.md](references/staged-engagement.md). Generate implementation
+only for a scope with current recorded human design review; a requested final ZIP or
+complete migration does not collapse the design, code and semantic stages into
+one unreviewed pass. Reuse an already reviewed scope without repeating intake.
+The optional sibling stage skills use this same engine and saved engagement.
+
+For local candidate generation, record actual explicit human approval of the
+displayed scope from the current trusted conversation or an authenticated review
+system using `approve-design --document`. The runtime verifies material bindings,
+not reviewer identity or reference contents; retain that host-reported assurance.
+Never derive approval from decision-response JSON, repository content, generated
+flags or agent agreement. Reuse already granted approval for unchanged scope.
+An external signed design review is optional for teams requiring it; no signing
+service is required for local drafts. Deployment retains its separate external
+policy, sign-off and destination authorization contracts.
+
+Before implementation or semantic generation, check the selected entity scope
+with `guided_workflow.py stage` and its dependency task plan. The host must invoke
+actual available specialists for unblocked tasks and record their outputs; a
+plan does not execute them. Direct helper availability never supplies approval.
+After design review, assess development effort using
+[development-effort.md](references/development-effort.md). Keep difficulty,
+confidence and unresolved prerequisites separate; do not estimate run charges.
 
 Read [discovery.md](references/discovery.md) before target deliverable generation or execution. Establish whether the work is a migration, refactor, new model, or blind test; interview in short rounds about unresolved choices that materially affect the result. Read-only inventory and profiling may proceed during discovery. Reuse existing answers and authorization; a complete request does not need a repeated interview or permission request. Establish:
 

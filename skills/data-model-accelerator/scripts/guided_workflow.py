@@ -308,6 +308,9 @@ def _delivery_progress(state):
                      and item.get('assurance') == 'file_integrity_only' and 'handoff' in item), None)
     state.pop('delivery', None)
     if prepared is None or not state['readiness']['generation_ready']:
+        if state['status'] == 'handoff_prepared':
+            state['status'] = 'candidate_preparation_ready' if state['readiness']['generation_ready'] else 'needs_evidence'
+            state['next_actions'] = [a for a in state['next_actions'] if a['id'] != 'review_prepared_handoff']
         return
     snapshot = prepared['handoff']
     state['status'] = 'handoff_prepared'
@@ -372,6 +375,19 @@ def _assessment_summary(platform):
         'detected_source_count': len(platform.get('detected_sources', [])),
         'question_count': len(platform.get('questions', [])),
     }
+
+
+def _stage_progress(state):
+    if not state.get('workflow'):
+        return
+    from engagement_stages import refresh, public_view
+    refresh(state)
+    stage_view = public_view(state, _refresh=False)
+    # Preserve discovery and file-review actions; candidate readiness does not
+    # substitute for the current stage's reviewed inputs.
+    state['next_actions'] = [a for a in state['next_actions'] if a['scope'] in {'discovery', 'readiness', 'review'}]
+    state['next_actions'].append({'id': 'continue_' + stage_view['current_stage'],
+                                 'scope': 'stage', 'action': stage_view['next_action']})
 
 
 def _refresh(state, *, catalogue=UNSET, readiness_options=None):
@@ -441,6 +457,7 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
         if generation_ready:
             state['next_actions'].append({'id': 'prepare_selected_handoff', 'action': 'Verify the physical catalogue and review the scoped model contract before generating selected artifacts. Independent baseline and execution gates remain separate qualified actions.', 'scope': 'generation'})
     _delivery_progress(state)
+    _stage_progress(state)
     bindings = _bindings(state)
     state['evidence'].append({'id': 'assessment-' + uuid.uuid4().hex, 'kind': 'static_readiness',
                               'status': 'current', 'assurance': 'static_read_only', 'recorded_at': _now(),
@@ -506,6 +523,8 @@ def start_engagement(repo, run_dir, answers=None, catalogue=None, engagement_id=
                  'inputs': {'source': {'path': str(repo)}, 'catalogue': None},
                  'readiness': {}, 'evidence': [], 'history': [], 'status': 'interview_pending',
                  'next_actions': [], 'authority': 'Requests and local guidance only; no execution, deployment or business approval is conferred.'}
+        from engagement_stages import empty_workflow
+        state['workflow'] = empty_workflow()
         invalidated = _refresh(state, catalogue=catalogue, readiness_options=readiness_options)
         return _save(run_dir, state, 'started', changed_answers=supplied, invalidated=invalidated)
 
@@ -609,10 +628,68 @@ def _cli_options(args):
     return value
 
 
+def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
+                 artifact_root=None, policy=None, attestation=None):
+    """Persist stage work using the same lock, fresh context and immutable history."""
+    import engagement_stages as stages
+    run_dir = _path(run_dir)
+    with _lock(run_dir):
+        state = load_engagement(run_dir)
+        invalidated = _refresh(state)
+        if document is not None:
+            _secrets(document)
+        if action == 'migrate-stages':
+            stages.migrate(state)
+        elif action == 'import-design':
+            stages.import_design(state, document)
+        elif action == 'answer-decisions':
+            stages.record_responses(state, document)
+        elif action == 'review-bindings':
+            state['workflow']['review_request'] = stages.review_bindings(state, entities)
+        elif action == 'approve-design':
+            if document is not None:
+                _require(policy is None and attestation is None, 'Choose human review recording or signed review, not both')
+                stages.record_design_review(state, entities, document)
+            else:
+                _require(policy is not None and attestation is not None, 'An attributable human review record or external signed attestation is required')
+                from deployment_authority import outside
+                outside(policy, (run_dir, state['inputs']['source']['path']))
+                stages.approve_design(state, entities, policy, attestation)
+        elif action == 'assess-effort':
+            stages.assess_development(state, document)
+        elif action in ('plan-tasks', 'record-task'):
+            root = _path(artifact_root)
+            _outside(root, _path(state['inputs']['source']['path']))
+            _require(root != run_dir and root not in run_dir.parents and run_dir not in root.parents,
+                     'Candidate artifacts must be separate from engagement state')
+            _require(root.is_dir(), 'Artifact root must be an existing directory')
+            if action == 'plan-tasks' and document is not None:
+                stages.register_tasks(state, document)
+            state['workflow']['artifact_root'] = str(root)
+            if action == 'record-task':
+                stages.record_task(state, root, document)
+            else:
+                state['workflow']['last_plan'] = stages.plan_tasks(state, root)
+        elif action == 'stage':
+            selected = stages.require_stage(state, stage, entities)
+            state['workflow']['requested_stage'] = {'stage': stage, 'entity_ids': selected,
+                'qualification': 'Stage prerequisites checked. Native execution and deployment remain separately authorized.'}
+        else:
+            raise ValueError('Unknown stage action')
+        # Stage mutations can change a review binding after the initial refresh.
+        # Invalidate the old package in this same revision, before rendering it.
+        invalidated += _invalidate(state)
+        _delivery_progress(state)
+        _stage_progress(state)
+        return _save(run_dir, state, action, invalidated=invalidated)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
-    for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence'):
+    stage_commands = ('migrate-stages', 'import-design', 'answer-decisions', 'review-bindings',
+                      'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'stage')
+    for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence') + stage_commands:
         p = sub.add_parser(command)
         p.add_argument('--run', type=Path, required=True, help='Local engagement folder outside the input repository.')
         p.add_argument('--no-render', action='store_true', help='Skip the offline START_HERE.html refresh.')
@@ -635,6 +712,19 @@ def main(argv=None):
         if command == 'record-evidence':
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
+        if command in ('import-design', 'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task'):
+            p.add_argument('--document', type=Path, required=command != 'plan-tasks')
+        if command in ('review-bindings', 'approve-design', 'stage'):
+            p.add_argument('--entities', nargs='+', required=True)
+        if command == 'approve-design':
+            p.add_argument('--document', type=Path, help='Exact-scope human decision attributed by the trusted host; never an approval inferred from input files.')
+            p.add_argument('--policy', type=Path)
+            p.add_argument('--attestation', type=Path)
+        if command in ('plan-tasks', 'record-task'):
+            p.add_argument('--artifact-root', type=Path, required=True)
+        if command == 'stage':
+            from engagement_stages import STAGES
+            p.add_argument('--stage', choices=STAGES, required=True)
     args = parser.parse_args(argv)
     try:
         if args.command in ('init', 'start'):
@@ -649,6 +739,13 @@ def main(argv=None):
             state = record_handoff(args.run, args.review, args.artifact_root, args.audience, args.include)
         elif args.command == 'record-evidence':
             state = record_evidence(args.run, args.path, args.kind)
+        elif args.command in stage_commands:
+            document = _nonsecret_json(args.document)[0] if getattr(args, 'document', None) else None
+            # Signed envelopes contain signatures, not private credentials.
+            attestation = _json(args.attestation) if getattr(args, 'attestation', None) else None
+            state = stage_action(args.run, args.command, document=document,
+                entities=getattr(args, 'entities', None), stage=getattr(args, 'stage', None),
+                artifact_root=getattr(args, 'artifact_root', None), policy=getattr(args, 'policy', None), attestation=attestation)
         else:
             state = status_engagement(args.run, refresh=args.refresh)
         if not args.no_render:

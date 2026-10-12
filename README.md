@@ -9,6 +9,7 @@ Turn tangled analytics code into documented, testable warehouse models and an Om
 | Your goal | Guide |
 | --- | --- |
 | Run your first engagement | [End-to-end how-to](docs/HOW_TO.md) |
+| Run one stage or continue a reviewed design | [Independent stages](skills/data-model-accelerator/references/staged-engagement.md) |
 | Build or refactor Omni models | [Omni Modeler](docs/OMNI_MODELER.md) |
 | Choose a supported route | [Capabilities](docs/CAPABILITIES.md) · [Platform matrix](docs/PLATFORM_MATRIX.md) |
 | Understand testing and remaining limits | [Qualification and reproduction](docs/qualification.md) |
@@ -26,17 +27,35 @@ Ask your coding agent to read [`skills/data-model-accelerator/SKILL.md`](skills/
 
 Copy this prompt and replace the paths:
 
-> Use the Data Model Accelerator skill in this checkout. Assess `/absolute/customer-repo` read-only and save the engagement in `/absolute/customer-modeling-run`. Our target is dbt on Snowflake with Omni. Interview me about missing scope and definitions; an analytics engineer and business SMEs are available. Reuse answers already provided. Inventory repository dependencies and request the scoped raw warehouse catalogue. Propose one complete domain for the first wave, preserve existing behavior, and identify corrections separately. Prepare models, connected ERDs, a data dictionary, Bronze/Silver/Gold documentation, candidate dbt code, Omni topics, AI context and independent validation evidence. Give me one guided review page and a selected delivery ZIP. Request additional execution or publication scope when necessary.
+> Use the Data Model Accelerator skill in this checkout. Assess `/absolute/source-repo` read-only and save the engagement in `/absolute/modeling-run`. Our target is dbt on Snowflake with Omni. Reuse known answers and interview us about missing definitions. Inventory the scoped warehouse catalogue and existing warehouse models. Start with the entity/table design, connected ERD, dictionary, layer responsibilities and asset mappings for one domain. Show outstanding decisions and how to answer them. Iterate on this design before generating code. After the selected design is reviewed, assess development effort, then run implementation and Omni generation as separate stages. Retain our progress and give us one guided review page.
 
 Discovery does not execute the source project. Core helpers require Python 3.9+ and a POSIX filesystem; optional validation engines use an isolated Python 3.12 environment.
 
 ## Workflow and deliverables
 
-1. **Interview and inventory.** Confirm the scope, raw catalogue, source formats, dependencies and missing evidence.
-2. **Recover behavior.** Trace formulas, filters, joins, grain and consumers; distinguish observed logic from proposed corrections.
-3. **Review definitions.** Resolve meaning, date anchors, currency, history and access with the business owner.
-4. **Build and validate.** Generate the selected model and semantic artifacts, then compare against independent expectations and test deliberate defects.
-5. **Review and hand off.** Iterate in the guided HTML, export selected files, and deploy only the approved version to the selected destination.
+1. **Design and review.** Inventory sources and existing models; propose entities, grains, keys, relationships and placement. Resolve scoped decisions before recording design sign-off.
+2. **Assess development effort.** Show Easy, Somewhat easy, Difficult or Very difficult, with evidence, confidence and blockers separate. These are complexity categories, not duration estimates.
+3. **Implement.** Generate the selected warehouse code from the reviewed design.
+4. **Model the semantic layer.** Generate Omni files and AI context against the selected physical implementation or verified reused models.
+5. **Validate.** Compare independent expectations and retain native, access and business checks separately.
+6. **Package and deploy.** Export the requested files; use separately authorized release controls for publication or deployment.
+
+Each stage uses the same saved engagement. Optional `data-model-design`,
+`data-model-implement`, `data-model-semantic`, `data-model-validate`,
+`data-model-package` and `data-model-deploy` skills provide focused entrypoints;
+install them beside the complete main skill. They share contracts and answers.
+The local stage commands plan and gate work; the coding-agent host performs the
+actual specialist work. For local candidate generation, the host records explicit
+human approval of the exact design scope from the trusted conversation or an
+authenticated review system. No signing service is required. Teams can optionally
+use external signed design review. Neither path authorizes SQL execution or
+deployment; the governed release workflow retains its separate authority checks.
+
+Replanning saved tasks shows what can be reused, regenerated or is blocked
+when source slices, decisions, outputs or relevant accelerator components change.
+Asset filters help inspect the entities tied to a report or dashboard; filtering
+does not silently change approved scope or exported files. Existing warehouse
+models are compared before proposing reuse, extension, creation or replacement.
 
 A model delivery maintains an ERD, complete dictionary and documentation for every scoped layer. The selected ZIP opens offline:
 
@@ -72,6 +91,7 @@ Routing is not equivalent to full native support. Read the [capability levels](d
 ## Repository map
 
 - `skills/data-model-accelerator/`: skill instructions, specialist references, runtime tools, templates, schemas and runnable synthetic examples.
+- `skills/data-model-*/SKILL.md`: optional stage entrypoints using the complete shared accelerator.
 - `docs/`: user guides, architecture, supported routes and qualification boundaries.
 - `tests/`: regression tests, frozen independent fixtures and the synthetic Omni operator exercise.
 - `.github/workflows/`: automated validation and security checks.

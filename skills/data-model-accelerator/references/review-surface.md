@@ -2,6 +2,28 @@
 
 Use `scripts/delivery_portal.py` after the durable workflow in [guided-workflow.md](guided-workflow.md). The host agent assembles presentation content from the existing evidence/model contracts; the customer should not hand-author this file. It is a projection for navigation, never a replacement for a catalogue, review-package, authority or execution verifier.
 
+## Stage and decision review
+
+Use the saved [staged engagement](staged-engagement.md) as the authority for stage
+progress, design version, current scoped review and task freshness. Its public
+projection supplies stage next actions, entities, asset mappings, decisions and
+development-effort results; do not invent pass badges in presentation JSON.
+Show answer-recorded separately from resolved. The page exports version-bound
+decision-response requests; the agent imports them and refreshes the page.
+Downloading responses cannot authenticate a reviewer or approve a design.
+
+Filter the entity inventory by associated asset, use its layer selector and
+table/domain search, and inspect related decisions to explain why each entity
+exists. Retain verified/inferred/unmapped coverage and
+dependency context. These controls change only the visible view: they do not
+prune approved scope, remove required dependencies or alter exported files.
+Scope and artifact selection remain explicit operations.
+
+Show development effort with its reviewed scope, category, confidence, reasons
+and blockers. Unknown and stale assessments must remain visible instead of
+becoming Easy. A design-only package can omit implementation while retaining its
+review state; omitted code is not evidence of completion or approval.
+
 ## Content contract
 
 The review is JSON schema version 1 with:
