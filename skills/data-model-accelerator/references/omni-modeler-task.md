@@ -5,6 +5,13 @@ being assessed. Read `omni-modeler.md` for the modeling role and load the releva
 knowledge modules, not every reference. Source specialists still own source
 extraction; independent QA and SMEs still own acceptance.
 
+Apply [targeted context](agent-context.md) at the host dispatch boundary: the
+coordinator prepares the gold/metric/security slice and only selected knowledge
+modules for a fresh task context. Do not preload the parent workflow or send raw
+and staging code unless a specific lineage question requires it. Keep the
+existing Omni projection and runner contracts; a context packet is an additional
+handoff, not a substitute for their pins, disclosure or result validation.
+
 ## Prepare and invoke
 
 `plan_specialists.py --semantic-target omni --warehouse snowflake` adds an explicit

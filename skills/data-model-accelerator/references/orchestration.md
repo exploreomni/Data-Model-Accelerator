@@ -2,6 +2,11 @@
 
 Use this workflow for existing dbt, Coalesce, Snowflake, Looker, Power BI, Tableau, Hex and Sigma projects, including mixed repositories. Existing source frameworks are inputs, not implicit target choices. Preserve sound existing models and propose the smallest justified changes.
 
+The coordinator reads this workflow. Delegated workers use the selected role's
+contract through [targeted context](agent-context.md), not this entire document.
+Inventory once, preserve verified extraction, and send only relevant evidence
+and instructions in a bounded packet. Do not fork the full parent conversation.
+
 ## 1. Inventory and plan
 
 Resolve script paths against the skill directory. Run the bounded, read-only planner against the selected repository and write its output to a new folder outside that repository:
@@ -20,9 +25,16 @@ Apply [sensitive-data.md](sensitive-data.md) before dispatch. Stage only approve
 
 Use the host's actual subagent/delegation mechanism when available. Do not stop after generating the plan: invoke each runnable task with its source-specific prompt and bounded input scope, wait for its result, and verify the returned files. Only the primary orchestrator writes the integrated model or placement plan. Source agents write only their assigned result file/work folder outside the input repository.
 
+The coordinator captures/hashes full sources and runs approved deterministic
+parsers before dispatch. Source workers interpret selected findings and excerpts;
+an excerpt-only assignment stays partial unless verified complete extraction
+evidence accounts for the full assigned asset. For Looker, the coordinator
+attaches the retained canonical dashboard contract during reconciliation. Do
+not ask an excerpt-only worker to reopen originals or recompute omitted bytes.
+
 - Reuse a matching live specialist for the same task/snapshot. Never dispatch duplicate work because its first result is slow.
 - Use the host's configured model. Start no more than two extraction specialists concurrently by default; adapt to actual limits and task size. Partition large projects by dependency closure, not arbitrary token-length chunks.
-- Each task receives the inventory hash, exact asset IDs/paths/hashes, selected format guidance, the result schema below, and an output location. Include necessary shared dependencies as explicitly read-only context; request expansion when a required asset is outside the assignment. Do not allow a specialist to browse unrelated source trees or external accounts.
+- Each task receives the inventory hash, exact asset IDs/paths/hashes, selected format guidance, the result schema below, and an output location in its context packet. Provide relevant excerpts or a bounded approved source projection, not the full inventory file or repository. Include necessary shared dependencies as explicitly read-only context; request expansion with the specific missing asset/locator and blocked question. Do not allow a specialist to browse unrelated source trees or external accounts. The planner groups projects; the coordinator must select coherent dependency slices when a group exceeds the packet budget, retaining complete assigned-asset coverage across subtasks and one reconciled result for the original planned task.
 - Preserve local source-language constructs. DAX, LookML, Tableau LOD/table calculations and notebook dependencies carry semantics that can be lost in an early SQL rewrite. Extract first; interpret placement after source findings are reconciled.
 - Maintain `run-state.json`: task ID, inventory hash, actual host agent/run identifier, attempt, execution mode, status, output path/hash, error/gap. States: planned, running, returned, verified, partial, failed. Persist before a retry. Resume matching verified results only when source and applicable skill/parser versions still match.
 - After a result, run its contract checks. One bounded correction request may resolve a missing field or reference. If it still fails, record the task as partial/failed and continue independent work. Do not hide failure by fabricating an empty successful extraction.
@@ -115,7 +127,7 @@ named review role cannot satisfy that execution observation. Its completion
 receipt does not authenticate native acceptance or independent reasoning. Use
 the existing analyst/security/release roles for those separate obligations.
 
-Give both architects the selected naming and semantic contracts as shared context. For Snowflake, [naming-and-modeling.md](naming-and-modeling.md) separates documented Snowflake behavior, phData recommendations and the exercise's chosen convention; preserve existing namespaces unless a rename is justified. For Looker-to-Omni work, [looker-omni-contract.md](looker-omni-contract.md) covers native expressions, filters, physical mappings, measures, keys, joins and access-filter syntax. These references do not replace source/catalogue evidence or prove native target validation. The [E2E exercise](looker-omni-e2e.md) is a bounded local simulation with optional dependencies, not a requirement to adopt its schema or an external deployment step.
+Give each architect only the relevant naming and semantic contract sections in its packet, with cross-layer interfaces and unresolved placements shared. For Snowflake, [naming-and-modeling.md](naming-and-modeling.md) separates documented Snowflake behavior, phData recommendations and the exercise's chosen convention; preserve existing namespaces unless a rename is justified. For Looker-to-Omni work, [looker-omni-contract.md](looker-omni-contract.md) covers native expressions, filters, physical mappings, measures, keys, joins and access-filter syntax. These references do not replace source/catalogue evidence or prove native target validation. The [E2E exercise](looker-omni-e2e.md) is a bounded local simulation with optional dependencies, not a requirement to adopt its schema or an external deployment step.
 
 Both roles produce findings keyed by the same rule IDs and explain the required tests. Neither can erase the other's concerns. The orchestrator records agreement, competing placements, missing evidence and the decision owner in `placement-plan.json`. Do not resolve substantive disagreement by majority vote, code length, or confidence score. Escalate only the affected rules; continue unambiguous ones.
 
@@ -127,9 +139,9 @@ Use [semantic-placement.md](semantic-placement.md). Every rule gets an explicit 
 
 For dbt implementation, continue with the [paired engineering/analyst workflow](analytics-engineering.md). Source extraction tasks remain read-only; do not repurpose their execution records as evidence of code implementation. The refactoring planner assigns domain ownership separately, and the analyst freezes acceptance expectations before the engineer authors a candidate.
 
-An independent QA role receives the source evidence, normalized graph, proposed placements, test plan and candidate code. It checks source coverage, unresolved bindings, loss of context, double application, aggregation/fanout/security behavior, and code/docs/ERD agreement. It must report unresolved or untested cases even when both architects agree. The implementation author cannot supply the sole oracle or self-approve its output.
+An independent QA role receives scoped original evidence, relevant graph/placement slices, independent expectations and the candidate diff, with exact pointers to additional evidence. It checks source coverage, unresolved bindings, loss of context, double application, aggregation/fanout/security behavior, and code/docs/ERD agreement. It must report unresolved or untested cases even when both architects agree. The implementation author cannot supply the sole oracle or self-approve its output. Do not send the full repository, every previous draft or the coordinator's working memory. Follow the bounded design/correction loop in [agent-context.md](agent-context.md); subsequent review targets changed IDs and impacted dependencies while retaining unresolved findings.
 
-QA also receives the model inventory, complete dictionary, ERD layer views and all three layer documents. Compare their object/column coverage against parsed code and source metadata, then review definitions, grain, keys, null/type/units, lineage, history, security, refresh and ownership statements. Run the review checker with the required documentation associations. Missing or stale artifacts block complete review status; declared coverage and nonempty prose alone do not establish semantic accuracy.
+The coordinator retains the complete model inventory, dictionary, ERD layer views and all three layer documents; QA receives their relevant slices and coverage-check results. Compare complete object/column coverage against parsed code and source metadata deterministically, then review affected definitions, grain, keys, null/type/units, lineage, history, security, refresh and ownership statements. The aggregate review assignments must cover the selected scope, including cross-domain relationships. Run the review checker with the required documentation associations. Missing or stale artifacts block complete review status; declared coverage and nonempty prose alone do not establish semantic accuracy.
 
 Generate warehouse artifacts and semantic artifacts as separate outputs from the same accepted placement version. Each field/rule must trace through source → placement → target → tests → approval. The semantic contract should name the physical relations it expects and the warehouse contract should name exposed fields/grain; a warehouse table alone does not complete a semantic migration.
 

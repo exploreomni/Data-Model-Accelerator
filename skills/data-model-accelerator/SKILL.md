@@ -17,6 +17,25 @@ content reaches an agent; a later export scan cannot undo earlier disclosure.
 
 Resolve supporting paths relative to this SKILL.md, not the input repository. Core planning, catalogue and review helpers plus the SQLite demonstrator use Python 3.9 or newer and the standard library. Optional E2E exercises use Python 3.12: Looker dependencies are in `scripts/requirements-e2e.txt`, and Hex adds `scripts/requirements-hex-e2e.txt`. Examples are local development fixtures, not customer evidence.
 
+## Delegate with targeted context
+
+The coordinator loads this workflow once per active context and owns intake,
+inventory, stage gates and reconciliation. Before delegating, follow
+[agent-context.md](references/agent-context.md): prepare a bounded task briefing
+with a summary, exact scope, relevant pinned evidence, selected instructions,
+output contract and stop conditions. Use `scripts/agent_context.py` to check
+packet size, integrity and disclosure. Specialists do not reload this entire
+skill, parent conversation or every source layer. Use fresh task context when
+supported; reuse a worker already running that same assignment.
+
+Extract once and reuse verified results through the saved-task freshness rules.
+Workers request specific missing dependencies instead of widening their search.
+Keep independent reviewers grounded in original evidence, not only a designer's
+summary. Default to one design review and one targeted correction review; carry
+open findings forward and stop unproductive loops. Record packet sizes and
+attempts as operational evidence; host telemetry owns actual token and cost
+attribution. Context reduction never weakens approval or validation gates.
+
 ## Start with the engagement
 
 Start new engagements with entity/table design and its review package. Read

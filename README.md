@@ -57,6 +57,13 @@ Asset filters help inspect the entities tied to a report or dashboard; filtering
 does not silently change approved scope or exported files. Existing warehouse
 models are compared before proposing reuse, extension, creation or replacement.
 
+The coordinator gives each specialist a concise task summary and relevant pinned
+evidence, rather than the full conversation or repository. Bounded context packets,
+targeted dependency requests and delta reviews reduce repeated ingestion while
+preserving independent source checks. See [context-efficient orchestration](skills/data-model-accelerator/references/agent-context.md).
+Packet sizes and attempts are operational evidence; actual usage and charges
+remain the agent host's responsibility.
+
 A model delivery maintains an ERD, complete dictionary and documentation for every scoped layer. One current entry page offers **Overview, Design and Implementation**, with detailed evidence available on demand. The selected ZIP opens offline:
 
 ```text

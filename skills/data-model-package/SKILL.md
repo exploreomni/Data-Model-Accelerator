@@ -5,7 +5,12 @@ description: Package a Data Model Accelerator design proposal or selected comple
 
 # Package the current work
 
-Load the complete sibling [Data Model Accelerator](../data-model-accelerator/SKILL.md)
+Delegated workers consume the coordinator's bounded task packet and selected
+contracts under [targeted context](../data-model-accelerator/references/agent-context.md).
+They do not recursively load the full workflow or repeat intake. The coordinator
+retains responsibility for stage gates, approvals and complete coverage.
+
+When coordinating this stage directly, load the sibling [Data Model Accelerator](../data-model-accelerator/SKILL.md)
 and its [staged workflow](../data-model-accelerator/references/staged-engagement.md).
 Require the complete main skill. Resume the same engagement and reuse the selected
 audience, deliverables and current stage records.

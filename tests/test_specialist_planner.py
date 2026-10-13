@@ -132,6 +132,12 @@ class SpecialistPlannerTests(unittest.TestCase):
             self.assertIn("Never modify sources", prompt)
             self.assertIn(plan["source_snapshot_sha256"], prompt)
             self.assertIn(str(output / task["result_path"]), prompt)
+            if task['source_type'] == 'looker':
+                self.assertIn('looker_source.py', prompt)
+            else:
+                self.assertNotIn('looker_source.py', prompt)
+            self.assertNotIn('raw-csv-source-contract.md', prompt)
+            self.assertNotIn('references/omni-modeler.md', prompt)
 
     def test_generic_sql_and_data_formats_do_not_prove_vendor(self):
         self.write("snowflake_query.sql", "SELECT DATE_TRUNC('month', created_at) FROM orders;")
