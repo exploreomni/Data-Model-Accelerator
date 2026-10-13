@@ -421,14 +421,17 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
                 and 'generation' in f.get('blocks', ['generation'])]
     if state['inputs']['catalogue'] is None:
         blockers.append({'id': 'capture_catalogue', 'summary': 'No physical catalogue has been supplied.',
-                         'next_action': 'Supply a nonsecret physical catalogue with assess --catalogue PATH. Static assessment can continue while it is missing.'})
+                         'next_action': 'Supply a nonsecret physical catalogue with assess --catalogue PATH for physical verification. Continue assessment or explicitly requested provisional code while it is missing.'})
     elif not state['inputs']['catalogue']['available']:
         blockers.append({'id': 'restore_catalogue', 'summary': 'Previously recorded catalogue is unavailable.',
                          'next_action': 'Restore the recorded catalogue or explicitly supply its replacement.'})
     complete = platform.get('coverage', {}).get('complete') is True and fingerprint.get('complete') is True
     capable = platform.get('capabilities', {}).get('generation', {}).get('status') == 'agent_assisted'
     generation_ready = not missing and complete and capable and not blockers
+    provisional_available = not missing and complete and capable and all(
+        item['id'] in {'capture_catalogue', 'restore_catalogue'} for item in blockers)
     state['readiness'] = {'interview_complete': not missing, 'generation_ready': generation_ready,
+                          'provisional_generation_available': provisional_available,
                           'assessment_allowed': True, 'execution_authorized': False,
                           'missing_answers': missing, 'questions': questions, 'platform': platform,
                           'assessed_at': _now(),
@@ -646,6 +649,10 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
             stages.record_responses(state, document)
         elif action == 'review-bindings':
             state['workflow']['review_request'] = stages.review_bindings(state, entities)
+        elif action == 'draft-bindings':
+            state['workflow']['draft_request_bindings'] = stages.draft_bindings(state, entities)
+        elif action == 'request-draft':
+            stages.record_draft_request(state, entities, document)
         elif action == 'approve-design':
             if document is not None:
                 _require(policy is None and attestation is None, 'Choose human review recording or signed review, not both')
@@ -687,7 +694,7 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
-    stage_commands = ('migrate-stages', 'import-design', 'answer-decisions', 'review-bindings',
+    stage_commands = ('migrate-stages', 'import-design', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'stage')
     for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence') + stage_commands:
         p = sub.add_parser(command)
@@ -712,9 +719,9 @@ def main(argv=None):
         if command == 'record-evidence':
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
-        if command in ('import-design', 'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task'):
+        if command in ('import-design', 'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'request-draft'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
-        if command in ('review-bindings', 'approve-design', 'stage'):
+        if command in ('review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft'):
             p.add_argument('--entities', nargs='+', required=True)
         if command == 'approve-design':
             p.add_argument('--document', type=Path, help='Exact-scope human decision attributed by the trusted host; never an approval inferred from input files.')

@@ -4,6 +4,11 @@ Start by understanding the engagement and the result the user wants. Use short i
 
 Complete the meaningful choices before generating dependent target models, code, diagrams or delivery exports, and before executing them. A user who already supplied those choices has completed this part of discovery; summarize them and proceed within the existing authorization. Do not add a ceremonial confirmation. Read-only inventory, profiling and evidence collection may continue while an answer is pending.
 
+If the user explicitly asks for code with evidence still missing, use
+[provisional generation](provisional-generation.md). Generate supported files
+with visible unresolved bindings instead of stopping at documents. Do not
+invent facts or treat the draft request as approval of the model or execution.
+
 ## Round 1: intent, outcome and audience
 
 - Is this a **migration**, a **refactor** of the existing implementation, a **new model**, or a **blind test**? Reuse an explicit description instead of asking for the label again.
@@ -44,7 +49,7 @@ Selecting deliverables does not authorize executing their code, publishing a rep
 
 Record confirmed selections, stated authority, unknown facts, unresolved decisions, and which outputs depend on each gap. A lightweight selection record is described in [delivery-experience.md](delivery-experience.md); it is separate from the evidence/authority contracts.
 
-- **Decision missing:** ask the smallest question that changes the result. Hold its dependent deliverables or execution; continue independent read-only work.
+- **Decision missing:** ask the smallest question that changes the result. Preserve the gap in explicitly requested draft code; hold reviewed promotion or dependent execution. Continue independent work.
 - **Fact unavailable:** produce a bounded assessment showing the evidence and gap. Mark affected model branches provisional or blocked; do not fill them with plausible business meaning.
 - **Answers already supplied:** proceed within the chosen scope. Do not repeat the interview or turn routine implementation choices into new approvals.
 - **Scope changes:** update the selections and affected specification, preserve the previous version, and invalidate affected evidence. Retain still-valid answers and permissions.
@@ -52,7 +57,7 @@ Record confirmed selections, stated authority, unknown facts, unresolved decisio
 ## Evidence needed by stage
 
 - **Assessment:** source inventory, parse/coverage status, known outputs and explicit gaps. Code alone can support this stage.
-- **Candidate model:** scoped raw catalogue and actual object/column bindings, plus evidenced grains and explicit proposals. Without a catalogue, deliver assessment hypotheses and the collection request rather than claiming a physically grounded model. Missing history cannot be recovered by assertion.
+- **Candidate model:** scoped raw catalogue and actual object/column bindings, plus evidenced grains and explicit proposals. Without a catalogue, deliver assessment hypotheses or explicitly requested provisional code, plus the collection request. Do not claim a physically grounded model. Missing history cannot be recovered by assertion.
 - **Local semantic tests:** representative sanitized/synthetic data, independently specified expectations and stated limits.
 - **Target validation:** exact generated revision, target/compiler versions, authorized development scope, source watermarks, actual execution records and applicable access probes.
 - **Business approval:** selected definitions, known discrepancies, aligned evidence, exact model/code/docs versions and the actual human decision.

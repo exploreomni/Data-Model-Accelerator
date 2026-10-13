@@ -22,7 +22,11 @@ The trusted host coordinator stages reviewed pre-sanitized input, authenticates
 its disclosure authorization and calls `omni_modeler.prepare_task`. Its arguments
 are the run ID, projection, classification, disclosure policy, intent, warehouse,
 selected objects and operations. New/refactor/migration/repair candidate inputs
-include an exact `model_context`. A missing catalogue allows assessment only.
+include an exact `model_context`. Without a catalogue, physical verification
+remains blocked. An explicit [provisional code request](provisional-generation.md)
+permits drafts against documented proposed gold interfaces; keep their grounding
+unverified and preserve unknowns. Never fabricate catalogue/acceptance evidence
+to satisfy model-context or native-validation checks.
 The portable policy gate accepts approved PUBLIC/INTERNAL projections without
 sensitive categories. It does not authenticate approval declarations or sandbox
 a host. Protected source inputs remain unavailable on this route, including

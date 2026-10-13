@@ -24,6 +24,13 @@ Independent metadata exports are reconciled against the full physical scope, the
 
 ## End-to-end workflow
 
+Explicit [provisional code requests](../skills/data-model-accelerator/references/provisional-generation.md)
+permit supported warehouse and semantic draft files while catalogue evidence or
+design review is pending. Requested stage/entity coverage stays visible; design
+documents do not satisfy a code request. This does not create approval, verified
+bindings or execution authority. Changed evidence requires reconciliation, and
+unknowns remain placeholders or gaps.
+
 | Capability | Implemented behavior | Limit or prerequisite |
 | --- | --- | --- |
 | Guided discovery | Short interview, separate framework/warehouse/semantic choices, retained answers, revisions and resume | Missing facts remain unknown; saved answers are not deployment approval |

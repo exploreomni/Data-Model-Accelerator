@@ -435,16 +435,74 @@ def approved_entities(state, *, stage='implementation', _cache=None):
     return set().union(*(scope for _, scope in _current_reviews(state, stage=stage, _cache=_cache)))
 
 
+def draft_bindings(state, selected):
+    """Bind an explicit draft request without creating a design approval."""
+    return {**review_bindings(state, selected), 'operation': 'provisional_code_generation'}
+
+
+def record_draft_request(state, selected, request):
+    fields(request, {'schema_version', 'kind', 'requester', 'request_reference', 'request_text', 'bindings'})
+    require(type(request['schema_version']) is int and request['schema_version'] == 1
+            and request['kind'] == 'provisional_code_request', 'Invalid provisional code request')
+    for key in ('requester', 'request_reference', 'request_text'):
+        text(request[key])
+    require(state['readiness'].get('provisional_generation_available'),
+            'Resolve discovery, source coverage or unsupported-platform blockers before drafting')
+    require(request['bindings'] == draft_bindings(state, selected), 'Draft request is stale or has different scope')
+    records = workflow(state).setdefault('draft_requests', [])
+    digest = hash_json(request)
+    require(all(record['request_sha256'] != digest for record in records), 'Draft request already recorded')
+    records.append({'request': copy.deepcopy(request), 'request_sha256': digest,
+                    'assurance': 'host_reported_user_request',
+                    'qualification': 'Provisional files only; not design approval, physical verification or execution authority.'})
+
+
+def draft_entities(state, stage='implementation'):
+    """Return scope with a current attributable request; source claims confer none."""
+    if stage not in {'implementation', 'semantic'} or not state['readiness'].get('provisional_generation_available'):
+        return set()
+    result = set()
+    for record in workflow(state).get('draft_requests', []):
+        try:
+            request = record['request']
+            require(record['request_sha256'] == hash_json(request), 'Draft request changed')
+            require(request['kind'] == 'provisional_code_request', 'Wrong request kind')
+            for field in ('requester', 'request_reference', 'request_text'):
+                text(request[field])
+            pins = request['bindings']
+            require(pins['operation'] == 'provisional_code_generation', 'Not a draft request')
+            current = draft_bindings(state, list(pins['entities']))
+            require(all(pins[k] == current[k] for k in ('engagement_id', 'design_id', 'target_sha256', 'discovery_sha256')),
+                    'Draft request context changed')
+            for key in pins['entities']:
+                parents = closure({e['id']: e['depends_on'] for e in design(state)['entities']}, [key])
+                if all(pins['stage_entities'][stage].get(p) == current['stage_entities'][stage].get(p) for p in parents):
+                    result.add(key)
+        except (ValueError, OSError, KeyError, TypeError):
+            continue
+    return result
+
+
+def generation_mode(state, stage, scope, approved=None):
+    if stage not in {'implementation', 'semantic'}:
+        return 'reviewed_candidate'
+    approved = approved if approved is not None else approved_entities(state, stage=stage)
+    reviewed = (state['readiness']['generation_ready'] and set(scope) <= approved
+                and not _design_gaps(state, scope, stage))
+    return 'provisional' if not reviewed and set(scope) <= draft_entities(state, stage) else 'reviewed_candidate'
+
+
 def require_stage(state, stage, selected, *, _planning=False, _approved=None):
     require(stage in STAGES, 'Unknown stage')
     doc = design(state)
     scope = closure({e['id']: e['depends_on'] for e in doc['entities']}, ids(selected, [e['id'] for e in doc['entities']], True))
     if stage not in {'design', 'packaging'}:
-        require(state['readiness']['generation_ready'], 'Discovery or physical prerequisites are incomplete')
         approved = _approved if _approved is not None else approved_entities(state, stage=stage)
-        require(set(scope) <= approved, 'Current recorded human or signed design review is required for this scope')
-        gaps = _design_gaps(state, scope, stage)
-        require(not gaps, '; '.join(gaps))
+        if generation_mode(state, stage, scope, approved) != 'provisional':
+            require(state['readiness']['generation_ready'], 'Discovery or physical prerequisites are incomplete; an explicit user draft request may allow provisional code')
+            require(set(scope) <= approved, 'Current recorded human or signed design review is required for this scope')
+            gaps = _design_gaps(state, scope, stage)
+            require(not gaps, '; '.join(gaps))
     if stage == 'semantic':
         require(state['answers'].get('semantic_target') not in (None, 'none'), 'Semantic delivery is not selected')
     if stage in {'semantic', 'validation'} and not _planning:
@@ -452,11 +510,32 @@ def require_stage(state, stage, selected, *, _planning=False, _approved=None):
         require(wf.get('artifact_root') and wf['tasks'], 'Record physical implementation or reused-binding tasks before ' + stage)
         plan = plan_tasks(state, wf['artifact_root'])
         bound = {e for task in plan['tasks'] if task['stage'] == 'implementation' and task['action'] == 'reuse'
+                 and (stage != 'validation' or task.get('generation_mode') != 'provisional')
                  for e in task['entity_ids']}
         require(set(scope) <= bound, 'Current physical implementation or reused-binding outputs are required before ' + stage)
     if stage == 'deployment':
         raise ValueError('Use the separate signed deployment workflow; stage selection does not authorize execution')
     return scope
+
+
+def _code_artifacts(state, task):
+    """Minimum native file presence, not syntax, semantics or execution proof."""
+    if task['stage'] not in {'implementation', 'semantic'}:
+        return []
+    if task['stage'] == 'implementation':
+        entities = {entity['id']: entity for entity in design(state)['entities']}
+        reuse_only = all(entities[key]['disposition'] == 'reuse' for key in task['entity_ids'])
+        framework = state['answers'].get('framework')
+        suffixes = ({'.json', '.yaml', '.yml'} if framework == 'coalesce'
+                    else {'.sql', '.py', '.yaml', '.yml'} if framework == 'dbt'
+                    else {'.sql', '.sqlx', '.py'})
+        if reuse_only:
+            suffixes = suffixes | {'.json'}  # Explicit existing-model binding record.
+    else:
+        suffixes = {'.yaml', '.yml'} if state['answers'].get('semantic_target') == 'omni' else {'.yaml', '.yml', '.json', '.sql', '.lkml'}
+    paths = [path for path in task['outputs'] if Path(path).suffix.lower() in suffixes]
+    require(paths, task['stage'] + ' tasks require native code artifacts or explicit reuse bindings; documents alone do not fulfill code requests')
+    return paths
 
 
 def register_tasks(state, request):
@@ -485,6 +564,7 @@ def register_tasks(state, request):
         if task['stage'] == 'design':
             require(all(Path(p).suffix.lower() in {'.json', '.md', '.svg', '.html', '.csv'} for p in task['outputs']),
                     'Design tasks cannot own implementation code')
+        _code_artifacts(state, task)
     by_id = {t['id']: t for t in request['tasks']}
     waves({t['id']: t['depends_on'] for t in request['tasks']})
     for task in request['tasks']:
@@ -522,10 +602,14 @@ def plan_tasks(state, artifact_root):
         task = by_id[key]
         reason, fingerprint = None, None
         try:
+            _code_artifacts(state, task)
             require_stage(state, task['stage'], task['entity_ids'], _planning=True, _approved=approved[task['stage']])
             material = entity_bindings(state, task['entity_ids'], presentation=task['stage'] in {'design', 'packaging'}, stage=task['stage'], _cache=cache)
             parts = set(task['components']) | {'workflow', task['stage']}
+            scope = closure({e['id']: e['depends_on'] for e in design(state)['entities']}, task['entity_ids'])
+            mode = generation_mode(state, task['stage'], scope, approved[task['stage']])
             fingerprint = hash_json({'task': task, 'entities': material,
+                'generation_mode': mode,
                 'components': {p: versions[p] for p in sorted(parts)},
                 'target': state['inputs']['target'],
                 'discovery': state['inputs']['discovery'],
@@ -555,6 +639,7 @@ def plan_tasks(state, artifact_root):
                 except (ValueError, OSError):
                     reason = 'Recorded output is missing or changed'
         results[key] = {'id': key, 'stage': task['stage'], 'entity_ids': task['entity_ids'], 'action': action,
+                        'generation_mode': mode if fingerprint is not None else None,
                         'reason': reason, 'fingerprint': fingerprint, 'original_run_id': original['run_id'] if original else None,
                         'outputs': original['outputs'] if original else None}
     return {'schema_version': 1, 'kind': 'stage_execution_plan', 'tasks': list(results.values()),
@@ -572,9 +657,13 @@ def record_task(state, artifact_root, request):
     require(request['fingerprint'] == task['fingerprint'], 'Task input binding changed')
     specification = next(t for t in workflow(state)['tasks'] if t['id'] == request['task_id'])
     outputs = _output_hashes(artifact_root, specification['outputs'])
+    from deployment_workflow import _stable_bytes
+    for path in _code_artifacts(state, specification):
+        require(_stable_bytes(Path(artifact_root) / path).strip(), 'Native code artifact is empty: ' + path)
     require(request['outputs'] == outputs, 'Output manifest does not match generated files')
     import guided_workflow as guided
     workflow(state)['runs'].append({**copy.deepcopy(request), 'recorded_at': guided._now(),
+        'generation_mode': task['generation_mode'],
         'assurance': 'host_reported_file_integrity', 'qualification': 'Output registration is not native validation or deployment approval.'})
     workflow(state)['last_plan'] = plan_tasks(state, artifact_root)
 
@@ -636,6 +725,70 @@ def refresh(state):
         except (ValueError, OSError, KeyError, TypeError) as error:
             wf['effort_freshness'] = {'status': 'stale', 'overall': {'status': 'stale', 'category': None,
                 'confidence': 'low'}, 'packages': [], 'qualification': str(error)}
+
+
+def _requested_progress(state, result):
+    """Requested deliverables, not the registered task subset, define remaining work."""
+    doc = workflow(state)['design']
+    if not doc:
+        return
+    graph = {e['id']: e['depends_on'] for e in doc['entities']}
+    expected = set(graph)
+    selections = set(state['answers'].get('deliverables', []))
+    code_selected = 'implementation' in selections
+    required = ['implementation'] if code_selected else []
+    if (code_selected and state['answers'].get('semantic_target') not in (None, 'none', 'retain_existing')
+            and state['answers'].get('migration_scope') != 'model_only'):
+        required.append('semantic')
+    if code_selected or 'validation' in selections:
+        required.append('validation')
+    tasks = result.get('task_plan', {}).get('tasks', [])
+    rows = {row['id']: row for row in result['stages']}
+    result['requested_stages'] = required
+    result['delivery_status'] = 'requested_outputs_pending'
+    if not required and any(task['stage'] == 'design' and task['action'] != 'reuse' for task in tasks):
+        result['delivery_status'] = 'design_proposal_pending'
+        return
+    provisional = False
+    for stage in required:
+        selected = [task for task in tasks if task['stage'] == stage]
+        finished = [task for task in selected if task['action'] == 'reuse']
+        # A semantic/validation task may own a fact together with its dependency interfaces.
+        covered = set().union(*(set(closure(graph, task['entity_ids'])) if stage != 'implementation'
+                                else set(task['entity_ids']) for task in finished))
+        missing = sorted(expected - covered)
+        provisional = provisional or any(task.get('generation_mode') == 'provisional' for task in finished)
+        row = rows[stage]
+        stage_provisional = any(task.get('generation_mode') == 'provisional' for task in finished)
+        if stage_provisional:
+            row['status'] = 'provisional_outputs_recorded' if not missing else 'partial_provisional_outputs'
+        if not missing:
+            continue
+        planned = set().union(*(set(closure(graph, task['entity_ids'])) if stage != 'implementation'
+                               else set(task['entity_ids']) for task in selected))
+        unplanned = sorted(expected - planned)
+        label = 'implementation code' if stage == 'implementation' else 'semantic code' if stage == 'semantic' else 'independent validation'
+        if unplanned:
+            row['status'] = 'partial_provisional_outputs' if stage_provisional else 'partial_outputs_recorded' if finished else 'not_planned'
+            row['next_action'] = 'Plan requested ' + label + ' for: ' + ', '.join(unplanned) + '. Design documents do not fulfill code requests.'
+        elif selected:
+            row['next_action'] = 'Finish requested ' + label + ' for: ' + ', '.join(missing) + '. ' + row['next_action']
+        if stage_provisional:
+            row['next_action'] += ' Recorded code remains provisional; physical bindings or design decisions are unverified.'
+        if stage in {'implementation', 'semantic'} and not finished:
+            eligible_drafts = draft_entities(state, stage)
+            if expected <= eligible_drafts:
+                row['next_action'] += ' The explicit user request permits provisional files with unverified bindings; it grants no execution authority.'
+            elif not approved_entities(state, stage=stage):
+                row['next_action'] += ' Record scoped design review, or the user\'s explicit request for provisional code.'
+        if stage == 'validation' and provisional:
+            row['status'] = 'blocked'
+            row['next_action'] = 'Provisional code is recorded. Obtain missing catalogue/binding evidence and design review, then reconcile the drafts before claiming independent validation. Drafts may be packaged with these limits.'
+            result['delivery_status'] = 'provisional_code_generated'
+        result.update(current_stage=stage, next_action=row['next_action'])
+        return
+    result.update(current_stage='packaging', delivery_status='design_proposal' if not required else 'provisional_code_generated' if provisional else 'requested_stage_outputs_recorded',
+                  next_action='Package the selected artifacts with their recorded evidence and limits. File registration does not establish native validation or acceptance.')
 
 
 def public_view(state, *, _refresh=True):
@@ -721,4 +874,5 @@ def public_view(state, *, _refresh=True):
                 'assumptions': package['assumptions'], 'dependencies': package['depends_on'],
                 'rationale': '; '.join(current['reasons']) or 'Bounded factors and evidence are recorded.',
                 'dimensions': [{'name': d['factor'], 'level': d['level'], 'rationale': d['rationale']} for d in package['drivers']]})
+    _requested_progress(state, result)
     return result

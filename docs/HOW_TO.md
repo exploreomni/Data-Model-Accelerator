@@ -68,6 +68,19 @@ dashboard migration as well. Reuse a choice already supplied. If you choose a
 full dashboard migration, topic files alone cannot complete it: tile, filter,
 listener, layout, interaction and access evidence remain in scope.
 
+To receive code before a catalogue or final design review is available, say:
+
+> Generate the requested dbt and Omni files from the evidence available now. Label unresolved physical bindings and business definitions as provisional, list what must be reconciled, and do not execute or deploy them. Keep code that is still missing visible in the progress report.
+
+The agent records that instruction; you do not need to prepare an approval file.
+It should generate supported code or clearly identified scaffolds where necessary,
+not substitute another design document. File-only lint and structural checks can
+still run when their inputs are available; they do not prove warehouse accuracy.
+See [provisional generation](../skills/data-model-accelerator/references/provisional-generation.md).
+Keep the initial design review concise, then develop code and its documentation
+together for one domain before expanding. Full documentation remains part of the
+final selected delivery.
+
 Before giving source content to any agent, establish the classification and
 approved input boundary with the [sensitive-data guide](../skills/data-model-accelerator/references/sensitive-data.md).
 Unknown fields require review; labels such as PII or PHI do not themselves mask

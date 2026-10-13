@@ -51,6 +51,14 @@ authenticated review system. No signing service is required. Teams can optionall
 use external signed design review. Neither path authorizes SQL execution or
 deployment; the governed release workflow retains its separate authority checks.
 
+If you request code while the catalogue or design review is pending, the agent
+can produce **provisional dbt/native and semantic files** from available evidence.
+It records your request, labels unresolved bindings and leaves physical validation
+and deployment pending. You do not need to approve an unknown design just to see
+draft code. See [requested provisional code](skills/data-model-accelerator/references/provisional-generation.md).
+Requested code stays pending until its scoped outputs are recorded; finishing
+design documents alone does not complete an implementation request.
+
 Replanning saved tasks shows what can be reused, regenerated or is blocked
 when source slices, decisions, outputs or relevant accelerator components change.
 Asset filters help inspect the entities tied to a report or dashboard; filtering

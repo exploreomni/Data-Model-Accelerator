@@ -2,7 +2,12 @@
 
 The raw/replicated warehouse layer is required model-design context alongside repository evidence. A repository describes authored logic; it does not prove which physical data is present. Collect a scoped, timestamped catalogue from Snowflake, Databricks, Google Cloud BigQuery, Amazon Redshift, ClickHouse or MotherDuck and bind the proposed model inputs to it. For other Google Cloud sources, identify the service and collection contract explicitly; a BigQuery inventory does not inventory all Cloud Storage objects or application databases.
 
-Code-only work can produce an assessment and provisional hypotheses. Without catalogue context, mark physical modeling and target generation blocked for affected sources. Do not fabricate tables/columns or call generated references deployable. Continue independently evidenced scope.
+Code-only work can produce an assessment and provisional hypotheses. Without
+catalogue context, keep physical verification blocked. When the user explicitly
+requests code, follow [provisional generation](provisional-generation.md) and
+author supported draft files from available source evidence. Preserve unverified
+bindings/placeholders; do not fabricate tables/columns or call references
+deployable. Continue independently evidenced scope.
 
 ## Collect and preserve
 

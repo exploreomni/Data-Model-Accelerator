@@ -5,6 +5,14 @@ description: Generate the selected semantic layer from a reviewed warehouse desi
 
 # Model the semantic layer
 
+If the user explicitly requests code with catalogue evidence or design review
+pending, use [provisional generation](../data-model-accelerator/references/provisional-generation.md).
+Author supported draft files against the proposed physical interfaces, with
+unverified bindings and definitions visible. Require recorded implementation
+dependencies as below; the exception does not establish validation or authorize
+target execution or publication.
+Otherwise follow the reviewed path below.
+
 Delegated workers consume the coordinator's bounded task packet and selected
 contracts under [targeted context](../data-model-accelerator/references/agent-context.md).
 They do not recursively load the full workflow or repeat intake. The coordinator

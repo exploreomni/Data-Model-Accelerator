@@ -1,5 +1,11 @@
 # Independent stages, one engagement
 
+An explicit request for code despite missing catalogue evidence or pending design
+review uses the separate [provisional authoring path](provisional-generation.md).
+It opens draft implementation/semantic tasks, not approval or execution. Track
+all requested outputs against the design scope; a finished task subset must not
+advance past omitted code. Design-only selections can still stop at review.
+
 Start with the entity/table design. Iterate on the design and its decisions,
 record scoped review, then generate warehouse code and semantic files in separate
 stages. The stages share one saved engagement, source/catalogue bindings, design
