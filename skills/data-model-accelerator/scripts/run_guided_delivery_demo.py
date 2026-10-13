@@ -89,6 +89,7 @@ def run(output):
                           'audiences':audiences,'requires':requires or [],'description':'Synthetic UX example; no target execution.'})
     for layer in ('bronze','silver','gold'):
         add(layer+'-guide','docs/'+layer+'.md','# '+layer.title()+' — synthetic model\n\nOrders and customers retain their source identities.\n\nGrain, keys and lineage appear in the model inventory. Runtime types, refresh/history, access policies and recovery are not qualified in this UX exercise. Existing project conventions must be retained in a real refactor.\n', 'documentation',['reviewer','engineer'])
+    add('design-guide','docs/design.md','# Synthetic sales model design\n\nPurpose: retain order and customer identities while separating source cleanup from reusable business products. Bronze retains source context, silver refines identity, and gold serves analysis. The proposed customer join must preserve order grain; refunded revenue remains an unresolved business decision.\n\nThis is a synthetic design illustration. The SQL is a placement example, not a complete project. Native execution, security and business acceptance remain open.\n\nLayer detail: [Bronze](bronze.md), [Silver](silver.md), [Gold](gold.md).\n','documentation',['reviewer','engineer'])
     add('run-guide','docs/implementation.md','# Synthetic implementation example\n\nThe included dbt SQL illustrates ref/source placement. It is not a complete deployable project: raw source declarations, actual models, adapter/profile, environment and benchmarks must come from the real engagement. Do not paste dbt Jinja into a SQL editor. No scripts were executed.\n','documentation',['engineer'])
     add('dictionary','docs/dictionary.json',json.dumps({'origin':'synthetic','models':models},indent=2),'dictionary',['reviewer','engineer'])
     add('diagram','docs/model.svg',model_svg(models,relationships),'diagrams',['reviewer','engineer'])
@@ -97,6 +98,7 @@ def run(output):
     review={'schema_version':1,'title':'Sales model · guided review','description':'Synthetic walkthrough of the shared workflow. This is a UX example, not customer or warehouse acceptance.',
             'source_fingerprint':source_fingerprint(state),'context_sha256':context_fingerprint(state),
             'target':{'framework':'dbt','warehouse':'bigquery'},'models':models,'relationships':relationships,'changes':changes,
+            'handoff':{'design_artifact_id':'design-guide','implementation_guide_artifact_id':'run-guide'},
             'decisions':[{'id':'refund-definition','question':'Should refunded orders retain the original amount or report net revenue?','status':'unresolved',
                           'answer':'Synthetic question: preserve both source behavior and the proposed definition until the business owner decides.'}],
             'validation':[{'id':'order-grain','label':'One row per order','scope':'warehouse','status':'pending','expected':'Unique order_id','actual':None,'details':'No warehouse execution in this UX exercise.'},
@@ -109,7 +111,7 @@ def run(output):
     state=resume_engagement(run_dir)
     if state['status']!='handoff_prepared' or state['readiness']['execution_authorized']:
         raise ValueError('Prepared handoff must survive resume without execution authority')
-    render_engagement(state,output/'REVIEW.html',review)
+    render_engagement(state,run_dir/'START_HERE.html',review)
     package_checks=[]
     for audience in ('engineer','reviewer'):
         review['disclosure'] = synthetic_disclosure(artifacts, audience)

@@ -38,6 +38,11 @@ The review is JSON schema version 1 with:
 - `decisions`: `{id, question, status, answer}`. These display recorded statements; use existing typed authority evidence for acceptance.
 - `validation`: `{id, label, scope, status, expected, actual, details, evidence_id}`. Scope is static/local/warehouse/semantic/business/operational; status is pass/fail/pending/skipped/not_applicable. Results are always **reported**, not authenticated by the viewer. Human approval cannot be represented as a passing test. Keep every required case, including missing/failing ones, and link its exact existing evidence ID.
 - `artifacts`: `{id, path, sha256, category, audiences, requires: [], description}`. Paths are relative to the selected artifact root; record actual hashes. Categories are documentation/diagrams/dictionary/implementation/validation/sample_data/technical_audit. Audiences are reviewer/engineer/audit. `requires` lists other artifact IDs that must be selected together. Document externally supplied prerequisites explicitly; do not silently omit seed/configuration dependencies.
+- Optional `handoff`: `{design_artifact_id, implementation_guide_artifact_id}`. Point to one maintained design narrative and one setup guide from the existing artifact inventory. Omit an unrequested role. IDs must be distinct; the design is `documentation`, the guide is `documentation` or `implementation`, and both use `.md` or `.txt`. They are navigation references, not an additional readiness record. The export drops references whose files are excluded by audience or category. Legacy reviews without these references still work; the page never guesses a primary document from a filename.
+
+The same offline page now starts with Overview, Design and Implementation, with supporting sections behind a detail control. Its readiness summary derives from the current included files, scoped model, decisions and reported checks. It keeps local checks, native verification and business acceptance distinct; missing evidence and omitted exports never imply completion. The maintained design and setup guide can be read directly in their respective sections. Detailed dictionaries, evidence, file selection and audit remain secondary paths.
+
+Each working export has one generated root `START_HERE.html`. Register design/setup documents under their own names: additional `START_HERE.html`, `.md` or `.txt` basenames are rejected case-insensitively, including in subdirectories. Separate audit exports may preserve historical Markdown/text starters; active HTML remains unsupported as an input artifact. This rule does not rewrite or invalidate older frozen ZIPs.
 
 Only explicitly registered files are included. Registered audience labels express the preparer's sharing selection, not verified redaction or authorization. Curate prose, filenames, decision summaries and documentation for the intended audience before registration. The helper rejects known credential paths, active SVG, symlinks, traversal, nested archives and unregistered file types; this is not a universal secret scanner. Source and target credentials must stay outside packages.
 
@@ -49,7 +54,7 @@ Markdown links are verified against the **exported** path, including category pr
 
 ```sh
 python scripts/delivery_portal.py render --state /absolute/engagement/state.json \
-  --review /absolute/review-content.json --output /absolute/engagement/REVIEW.html
+  --review /absolute/review-content.json --output /absolute/engagement/START_HERE.html
 python scripts/delivery_portal.py package --state /absolute/engagement/state.json \
   --review /absolute/review-content.json --artifacts /absolute/candidate \
   --audience engineer --include implementation,documentation,diagrams,dictionary,validation \

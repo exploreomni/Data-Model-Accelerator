@@ -57,16 +57,18 @@ Asset filters help inspect the entities tied to a report or dashboard; filtering
 does not silently change approved scope or exported files. Existing warehouse
 models are compared before proposing reuse, extension, creation or replacement.
 
-A model delivery maintains an ERD, complete dictionary and documentation for every scoped layer. The selected ZIP opens offline:
+A model delivery maintains an ERD, complete dictionary and documentation for every scoped layer. One current entry page offers **Overview, Design and Implementation**, with detailed evidence available on demand. The selected ZIP opens offline:
 
 ```text
-START_HERE.html               Guided review, decisions, evidence and files
+START_HERE.html               One entrypoint: status, design and implementation
 01_Model/                    ERDs, dictionary, layer guides and AI context
 02_Implementation/           Selected code, semantic files and runbook
 03_Validation/               Selected test results and unresolved checks
 ```
 
 Choose `model_only`, `model_semantic` or `full_dashboard` during discovery. Dashboard migration requires behavior and effective-access evidence in addition to topics. Existing projects receive a scoped patch and impact mapping; new models receive a coherent candidate. Source rows and credentials are not automatically exported.
+
+Keep one maintained design narrative and setup guide; register them through the optional `handoff` references in the [review contract](skills/data-model-accelerator/references/review-surface.md). The overview derives readiness from existing records, without treating generated files or local passes as native validation or acceptance. Chat updates report meaningful progress and blockers; full receipts stay in the separate technical audit. Prior exports remain immutable.
 
 To see a small synthetic guided package without warehouse credentials:
 
