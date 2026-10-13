@@ -555,17 +555,31 @@ def validate_review(state, review):
     require(bool(source_fingerprint(state)), 'Engagement has no source fingerprint; run assessment first')
     require(review.get('source_fingerprint') == source_fingerprint(state), 'Review is stale: source fingerprint differs')
     require(review.get('context_sha256') == context_fingerprint(state), 'Review is stale: input, catalogue, target or runtime context differs')
+    current_design = state.get('workflow', {}).get('design')
+    if current_design:
+        binding = {key:current_design[key] for key in ('id', 'revision', 'sha256')}
+        require(review.get('design_binding') == binding,
+                'Review is stale or unbound: design_binding must match the current design id, revision and sha256')
     answers = state.get('answers', {})
     target = review.get('target', {})
     require(all(target.get(k) == answers.get(k) and target.get(k) for k in ('framework', 'warehouse')),
             'Review target differs from the engagement selection')
-    for name in ('models', 'relationships', 'changes', 'decisions', 'validation', 'artifacts'):
+    for name in ('models', 'relationships', 'changes', 'decisions', 'validation', 'artifacts', 'assets'):
         values = review.get(name, [])
         require(isinstance(values, list) and len(values) <= MAX_REVIEW_ITEMS and all(isinstance(x, dict) for x in values),
                 'Invalid or oversized review collection: ' + name)
     models = review.get('models', [])
     ids = [m.get('id') for m in models]
     require(all(isinstance(i, str) and i for i in ids) and len(set(ids)) == len(ids), 'Model IDs must be unique')
+    asset_ids = [a.get('id') for a in review.get('assets', [])]
+    require(all(isinstance(i, str) and i and i != '__unmapped__' for i in asset_ids)
+            and len(set(asset_ids)) == len(asset_ids), 'Asset IDs must be unique and not reserved')
+    for collection in ('models', 'changes', 'decisions'):
+        for item in review.get(collection, []):
+            for key, known in (('asset_ids', asset_ids), ('model_ids', ids), ('depends_on', ids)):
+                values = item.get(key, [])
+                require(isinstance(values, list) and all(isinstance(v, str) and v in known for v in values),
+                        'Unknown or invalid ' + key + ' association; retain unresolved mappings explicitly')
     for model in models:
         require(model.get('layer') in LAYERS, 'Model layer must be bronze, silver or gold')
         require(isinstance(model.get('columns', []), list) and all(isinstance(c, dict) and c.get('name') for c in model.get('columns', [])),
@@ -959,7 +973,7 @@ def _presentation(state, review=None, audience='engineer'):
         data['deployment'] = deployment
     if review:
         validate_review(state, review)
-        data['review']=json.loads(json.dumps({k:review.get(k, [] if k not in ('title','description') else '') for k in ('title','description','models','relationships','changes','decisions','validation')}))
+        data['review']=json.loads(json.dumps({k:review.get(k, [] if k not in ('title','description') else '') for k in ('title','description','models','relationships','changes','decisions','validation','assets')}))
         if review.get('quality_checks'):
             data['review']['quality_checks'] = [dict(_quality_data(row), **{key:row[key]
                 for key in ('context_sha256', 'evidence_artifact_id', 'sha256')}) for row in review['quality_checks']]
@@ -970,7 +984,62 @@ def _presentation(state, review=None, audience='engineer'):
             data['review']['validation']=[{k:v.get(k) for k in ('id','label','scope','status','details','evidence_id')} for v in review.get('validation',[])]
         if audience == 'audit':
             data['review']={}
+    if state.get('workflow') and audience != 'audit':
+        from engagement_stages import public_view
+        workflow = _workflow_presentation(public_view(state))
+        data['workflow'] = workflow
+        # A design-only status page is useful before implementation artifacts exist.
+        if not review:
+            data['review'].update({key:workflow.pop(key, []) for key in ('models', 'relationships', 'assets')})
+        else:
+            for key in ('models', 'relationships', 'assets'):
+                workflow.pop(key, None)
     return data
+
+
+def _workflow_presentation(raw):
+    """Allowlisted review prose only; never transport full state or approval receipts."""
+    def fields(value, names):
+        return {key:json.loads(json.dumps(value[key])) for key in names if isinstance(value, dict) and key in value}
+    result = fields(raw, ('schema_version', 'engagement_id', 'design_id', 'design_revision', 'design_sha256',
+                          'current_stage', 'next_action', 'qualification'))
+    result['stages'] = [fields(row, ('id', 'label', 'status', 'next_action')) for row in raw.get('stages', [])]
+    if raw.get('task_plan'):
+        result['task_plan'] = {
+            'qualification': 'Proposed work only. Reuse retains the original run and its evidence limits.',
+            'tasks': [fields(row, ('id', 'stage', 'entity_ids', 'action', 'reason', 'original_run_id'))
+                      for row in raw['task_plan'].get('tasks', [])]}
+    result['decisions'] = []
+    for row in raw.get('decisions', []):
+        item = fields(row, ('id', 'question', 'status', 'answer', 'recommendation', 'reviewer_role', 'model_ids',
+                            'asset_ids', 'blocking_stages', 'rationale', 'evidence_summary'))
+        item['options'] = [fields(option, ('id', 'label')) for option in row.get('options', [])]
+        result['decisions'].append(item)
+    if raw.get('effort'):
+        keys = ('category', 'confidence', 'readiness', 'breadth', 'summary', 'rationale', 'assumptions',
+                'prerequisites', 'dependencies', 'included_work', 'excluded_work', 'uncertainty', 'dimensions')
+        result['effort'] = fields(raw['effort'], keys)
+        result['effort']['work_packages'] = [fields(row, ('id', 'name', 'model_ids', *keys))
+                                            for row in raw['effort'].get('work_packages', [])]
+    # Used only for status pages without a separately supplied review contract.
+    result['models'] = []
+    for row in raw.get('models', raw.get('entities', [])):
+        item = fields(row, ('id', 'name', 'layer', 'domain', 'grain', 'asset_ids', 'depends_on', 'mapping_status', 'disposition'))
+        item['columns'] = [fields(column, ('name', 'type', 'key', 'description')) for column in row.get('columns', [])]
+        result['models'].append(item)
+    result['assets'] = [fields(row, ('id', 'name', 'kind', 'mapping_status')) for row in raw.get('assets', [])]
+    result['relationships'] = [fields(row, ('from', 'to', 'kind', 'label', 'predicate', 'cardinality', 'role', 'status', 'evidence'))
+                               for row in raw.get('relationships', [])]
+    return result
+
+
+def _trim_workflow_details(data):
+    """A code-only subset must not retain unselected design narratives or decisions."""
+    for key in ('assets', 'models', 'relationships', 'decisions', 'changes'):
+        data.get('review', {}).pop(key, None)
+    if data.get('workflow'):
+        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan'):
+            data['workflow'].pop(key, None)
 
 
 def _html(data):
@@ -1007,8 +1076,8 @@ def render_engagement(state, output_path, review=None):
     _select_quality_evidence(data, [])
     _select_metadata_evidence(data, [])
     _select_omni_evidence(data, [])
-    if review and review.get('models'):
-        data['diagrams']=diagram_views(review['models'],review.get('relationships',[]))
+    if data['review'].get('models'):
+        data['diagrams']=diagram_views(data['review']['models'],data['review'].get('relationships',[]))
     rendered = _html(data).encode('utf-8')
     _check_disclosure_bytes(rendered, 'START_HERE.html')
     _atomic_write(output_path,rendered,overwrite=True)
@@ -1045,7 +1114,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     _select_omni_evidence(data, selected, state=state, review=review, root=artifact_root)
     # Data-heavy views must also obey deliverable selection, not just file omission.
     if not set(include)&{'documentation','dictionary','diagrams'}:
-        data['review'].pop('models',None); data['review'].pop('relationships',None)
+        _trim_workflow_details(data)
     elif 'dictionary' not in include:
         for model in data['review'].get('models',[]):
             model.pop('columns',None)

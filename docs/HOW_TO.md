@@ -19,6 +19,12 @@ python3 skills/data-model-accelerator/scripts/guided_workflow.py --help
 
 Your agent can read `skills/data-model-accelerator/SKILL.md` directly. To install it in a host's skill directory, copy the **entire** `skills/data-model-accelerator` folder, including references and scripts. Preserve an existing installation unless you deliberately choose to update it. Do not install only `SKILL.md`.
 
+Optionally install the sibling `data-model-design`, `data-model-implement`,
+`data-model-semantic`, `data-model-validate`, `data-model-package` and
+`data-model-deploy` folders beside it. These are focused entrypoints into the same
+workflow. They require the main skill and share its answers, review and evidence;
+they do not create separate projects or repeat discovery.
+
 The [host setup reference](../skills/data-model-accelerator/references/targets-and-hosts.md#host-packaging) lists the documented locations for Codex, Claude Code, Gemini CLI, Cortex Code/CoCo Desktop and Genie Code. Check the selected host/version's discovery and file-execution support. These packaging paths do not establish that every host has been tested, has a warehouse connection, or supports independent subagents. A chat surface without file execution needs an authorized engineering runner for executable checks. Cortex Agents is a separate, currently unqualified packaging route.
 
 Ask the agent to confirm it can load the skill and its relative references before starting customer work. Installing the skill does not grant access to accounts or authorize deployment.
@@ -42,7 +48,7 @@ For an offline setup, replace the bootstrap line with `python skills/data-model-
 
 Replace the paths and choices in this example with your actual selections:
 
-> Read and follow `/absolute/accelerator/skills/data-model-accelerator/SKILL.md` for `/absolute/approved/source`. Start with a read-only assessment of the order analytics domain and save this engagement outside that source folder. I am comfortable with dbt, and our order operations and finance SMEs are available. Target dbt on Snowflake with Omni downstream. Interview us in short rounds and retain every answer. Preserve existing working behavior unless we explicitly approve a change. Deliver the model, connected ERDs, complete dictionary, layer documentation, candidate dbt project, tests, Omni files and AI context in one guided engineering ZIP. Identify the independent baseline before implementing changes. Discovery does not authorize executing source code or contacting a warehouse.
+> Read and follow `/absolute/accelerator/skills/data-model-accelerator/SKILL.md` for `/absolute/approved/source`. Start with a read-only assessment of one domain and save the engagement outside that source folder. Target dbt on Snowflake with Omni downstream. Reuse known answers and interview us only about missing context. Inventory existing warehouse models as well as raw sources. First deliver the entity design, connected ERD, dictionary, layer responsibilities, asset mappings and decisions for review. Iterate before generating code. After the selected design is signed off, assess development effort, implement the warehouse code, then generate Omni files and AI context in a separate stage. Identify independent expectations before implementation. Retain one guided page and our progress between stages.
 
 Choose these independently: **source formats, agent host, transformation framework, warehouse, semantic engine, and execution scope**. Detecting a dbt or Looker source does not choose the destination. “GCP” needs a specific service, such as BigQuery. Omni is optional. Use the [platform matrix](PLATFORM_MATRIX.md) to distinguish candidate authoring from qualified native execution; Coalesce requires a representative versioned native project contract.
 
@@ -106,7 +112,14 @@ The agent records each consequential decision against the model version:
 | Actual SME decision | The named decision-maker, attributable decision reference, date and accepted/rejected/deferred status |
 | Version and proof | Affected model/rule version, required tests and evidence invalidated by the change |
 
-This is a business review loop, not a vote among agents. An SME's answer can approve a definition; it does not automatically approve a warehouse deployment. The agent maintains the detailed decision register and model specification separately from the short intake fields. Do not invent an `approve` command or add unsupported answer keys.
+This is a business review loop, not a vote among agents. The guided page shows
+the question, reviewer role, affected entities/assets and stages waiting on the
+answer. Enter an answer and rationale, save the response request, and return it
+to the agent. It applies the file using `answer-decisions --document PATH` with
+the existing run. Stale design revisions and unknown decision IDs are rejected.
+**Answer recorded** means the response was retained; scoped design approval is a
+separate transition. Ordinary intake fields and model decisions use separate
+contracts, so do not add arbitrary decision IDs to `answer --set`.
 
 New answers can be applied without re-entering previous choices:
 
@@ -138,15 +151,51 @@ Registering catalogue bytes in the workflow is not catalogue validation. The [ca
 
 Review a proposal before implementation: entity grains and keys; source-to-target mappings; Bronze/Silver/Gold responsibilities; warehouse versus semantic rules; history and deletion behavior; privacy publication boundaries; and unresolved decisions. A layer name does not require an extra physical copy of every table. Keep header and line measures separate, role-specific joins distinct, and interactive ratios or distinct counts at their intended query grain.
 
+Include already migrated or governed warehouse models in that review. Compare
+grain, keys, definitions, history, security and dependencies with evidence, then
+choose reuse, extension, creation, replacement or undetermined for each entity.
+Replacement needs an explicit decision. A matching table name alone is not proof
+that an existing model implements the required meaning.
+
+The agent imports the versioned design and shows the exact selected scope. When
+you explicitly approve that scope in the trusted conversation or an authenticated
+review system, the host records it through `approve-design --document PATH`.
+This opens local candidate generation without requiring a signing service. The
+record binds the design and scope and identifies the real reviewer/reference;
+the runtime checks those bindings but does not authenticate the person's identity
+or read the referenced approval. The host must retain the actual human approval,
+never infer it from an answer file, source content, generated flag or agreeing
+agents. Existing valid approval is reused rather than requested again.
+
+Teams requiring external signed design review can use the optional policy and
+attestation route. Warehouse execution and deployment remain separately authorized;
+the release coordinator retains its original external signers and policy. See the
+[stage guide](../skills/data-model-accelerator/references/staged-engagement.md)
+for commands and the explicit legacy `migrate-stages` path.
+
+After review, the agent shows development effort as **Easy**, **Somewhat easy**,
+**Difficult** or **Very difficult** per work package and for the selected scope.
+It explains the drivers and reports confidence, assumptions and blockers
+separately. Unknown grain or missing evidence blocks classification rather than
+inflating difficulty. These categories describe complexity, not hours or price.
+
 ## 5. Build a candidate and validate it independently
 
 Existing authorization remains valid for the same action and environment. The agent should complete already-authorized work without repeated permission requests; a new target or expanded action needs its own scope. Recording a requested execution mode in intake is not itself authorization.
 
-After the proposal and execution scope are clear, ask:
+After the selected design has current scoped review and the execution scope is clear, ask:
 
 > Implement the reviewed candidate in the agreed isolated output or development checkout. Preserve source identifiers and current project conventions. Have an independent analyst freeze expectations from the approved sources and definitions before inspecting candidate results. Run only the local or development checks already authorized. Report complete coverage, discrepancies and remaining target checks; do not change expected results to make the candidate pass.
 
 For an existing dbt project, expect a focused patch and integration instructions. For a new project, expect models, sources, macros/configuration, tests, a nonsecret profile example and ordered setup commands. Run dbt SQL through dbt; do not paste unresolved `ref()`, `source()` or Jinja into a warehouse editor.
+
+The host checks the implementation stage, inspects the saved task plan, and
+invokes specialists only for unblocked tasks needing work. Matching source and
+catalogue slices, reviewed decisions, relevant accelerator versions and output
+bytes permit reuse. The plan explains why a task must regenerate; dependents wait
+for their prerequisites. It does not execute code by itself. Registered results
+retain their actual run references, while separate verifiers establish the
+applicable validation claims.
 
 Validation should establish more than a matching grand total:
 
@@ -191,6 +240,13 @@ Keep four lanes visible: code conventions, project validity, native warehouse va
 ## 6. Review Omni and AI context with the model
 
 When Omni is selected, have the semantic architect use the same versioned Gold contract as the warehouse model. The package should contain native `.view`, `.topic`, `model` and `relationships` files where applicable, plus setup instructions and explicit physical namespace mappings. Keep support scripts and contract JSON distinct from native Omni files.
+
+Invoke the semantic stage separately. Its task dependencies bind the physical
+implementation or explicitly verified reused warehouse relations. Semantic-only
+work can reuse existing models without generating a redundant warehouse layer.
+Changing the reviewed grain or meaning invalidates affected downstream tasks and
+their effort assessment; a cosmetic label change preserves material work where
+its bindings remain unchanged.
 
 Review topic grains, measures, role-specific joins, defaults and field publication. Verify that moving logic upstream does not apply it twice downstream. Resolve environment placeholders before native import. Optional dbt metadata integration is a separate setup task; generated YAML does not establish a live integration.
 
@@ -237,6 +293,13 @@ python3 skills/data-model-accelerator/scripts/guided_workflow.py status \
 ```
 
 `resume` refreshes source/catalogue context and invalidates dependent evidence after drift. `status` reads cached state; add `--refresh` to reassess. Do not edit saved state or replace stale evidence with a new timestamp. A prepared handoff means selected files passed integrity checks, not that the model is approved or deployed.
+
+Use the asset selector and layer filter, or search for a domain/table name, to
+find the entities and decisions relevant to a report or dashboard. Inferred and
+unmapped links stay visible. Filters are for
+inspection: they neither change the approved execution scope nor remove files
+from an export. Select a new scope explicitly and refresh its bindings when you
+intend to change the work.
 
 ## 8. Choose publication or deployment after review
 
@@ -289,6 +352,9 @@ Open the `START_HERE.html` in the printed run folder. Expect missing-catalogue e
 | Skill or reference file is missing | Install the whole skill folder and check the selected host's discovery path. |
 | Run path is rejected | Use canonical physical paths; place the run outside the source and avoid symlinked ancestors. |
 | State says `interview_pending` or `needs_evidence` | Read the specific missing questions/coverage; supply facts or retain the unknown. Do not relabel the state as complete. |
+| Answer is saved but code remains blocked | Apply the response, resolve scoped blockers, and have the host record actual explicit human approval of the displayed scope. No signing service is needed for local candidate generation; an answer file is not approval. |
+| A previous engagement lacks stage controls | Run `migrate-stages` explicitly; retain its answers and history. Earlier files do not reconstruct missing approvals. |
+| A task says `blocked` or `regenerate` | Inspect its reason and dependency plan; complete or re-review affected work. Do not discard the run to force a fresh start. |
 | SME changed a rule or source files changed | Resume, version the decision, update affected model/docs, and rerun dependent evidence. |
 | Source scan is partial or the project is too large | Scope a coherent domain or explicitly review scan limits; preserve unexamined dependencies and consumers. |
 | The bounded dbt runner rejects packages, hooks or stateful behavior | Preserve the project and use a qualified existing CI/operator route; do not delete functionality to obtain a pass. |

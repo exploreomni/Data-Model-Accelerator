@@ -27,6 +27,11 @@ Independent metadata exports are reconciled against the full physical scope, the
 | Capability | Implemented behavior | Limit or prerequisite |
 | --- | --- | --- |
 | Guided discovery | Short interview, separate framework/warehouse/semantic choices, retained answers, revisions and resume | Missing facts remain unknown; saved answers are not deployment approval |
+| Independent stages | One durable engagement with design, implementation, semantic, validation, packaging and separate deployment routing; optional thin skill entrypoints | Stage helpers gate and plan; actual generation uses the available host and specialist contracts |
+| Scoped design review | Versioned entities and decisions; exact-scope host-recorded human approval for local candidates, with optional external signed review | Host must observe explicit human approval; runtime checks bindings without authenticating reviewer identity/reference contents. Deployment retains separate external authority |
+| Incremental task planning | Reuse/regenerate/blocked plan from scoped inputs, decisions, relevant components, dependency results and output bytes | Registered file integrity is not native validation; incomplete bindings remain blocked and unsupported behavior retains its existing limits |
+| Development effort | Evidence-backed Easy, Somewhat easy, Difficult and Very difficult classifications with separate confidence, assumptions and blockers | Complexity assessment only; no duration, price or productivity prediction |
+| Existing-model reconciliation | Evidence-bearing grain/key/definition/history/security/dependency comparisons; reuse, extend, create, replace or undetermined dispositions | Name matching is insufficient; the host must inventory existing warehouse evidence and resolve unknown compatibility |
 | Repository readiness | Bounded read-only inventory, hashes, mixed-source detection, dependency warnings and raw CSV metadata | Excluded, oversized, inaccessible and dynamic content remain coverage gaps |
 | Raw catalogue | Six provider profiles, metadata query templates, canonical catalogue/binding checks and freshness/hash verification | Collection needs scoped access or dated exports; metadata does not prove row quality or effective permissions |
 | Source specialists | Source-specific instructions and structured handoffs; actual host delegation when available | Host supplies agents and tools; sequential passes must disclose independence limits |
@@ -34,9 +39,9 @@ Independent metadata exports are reconciled against the full physical scope, the
 | Modeling | Explicit entity grain, keys, relationships, fact/dimension design, layer allocation and publication boundaries | History, CDC, tenancy and business meaning require evidence; they are not inferred from names alone |
 | Analytics engineering | Scoped refactor plan, candidate code, dependency/consumer closure and versioned model contracts | Existing packages, hooks and stateful behavior may exceed the bundled executor's contract |
 | Independent analysis | Source-derived frozen expectations, row/value and dimensional comparisons, deliberate defect controls | Generated tests are not an independent oracle; a trusted business reference may still be absent |
-| SME decisions | Questions tied to concrete conflicting rules, impacted models and versioned accepted corrections | Agents cannot act as the approving business owner |
+| SME decisions | Version-bound response requests/import, reviewer role, affected entities/assets and blocking stages; distinct answer-recorded and resolved states | Stale requests are rejected; responses do not replace explicit scoped human review |
 | Documentation | Connected ERDs, complete dictionary, Bronze/Silver/Gold contracts, lineage and unresolved decisions | Completeness and hash checks do not establish prose correctness or business acceptance |
-| Guided delivery | Offline HTML, searchable model/files, code previews, selected ZIPs and integrity manifests | The browser page cannot execute SQL, approve a release or authenticate reported results |
+| Guided delivery | Offline HTML, staged progress, entity/asset filters, searchable model/files, code previews, selected ZIPs and integrity manifests | View filters do not change approval/export scope; the browser cannot execute SQL, approve a release or authenticate reported results |
 | Release coordination | Exact plans, external authority, current quality evidence, typed adapters and durable operation/acceptance records | Requires a provisioned runner, destinations, credentials and independent signers; see [deployment](DEPLOYMENT.md) |
 
 ## Source formats
