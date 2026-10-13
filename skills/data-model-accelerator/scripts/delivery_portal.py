@@ -41,6 +41,39 @@ QUALITY_SCOPES = {'code_conventions':'static', 'project_validity':'framework',
 QUALITY_COUNTS = ('checked', 'failed', 'skipped', 'unsupported', 'pending', 'unknown', 'not_applicable')
 QUALITY_FIELDS = ('id', 'status', 'scope', 'unit', *QUALITY_COUNTS, 'total', 'summary', 'next_action', 'gaps')
 QUALITY_STATUSES = {'pass', 'fail', 'pending', 'unknown', 'skipped', 'unsupported', 'not_applicable'}
+HANDOFF_ROLES = {'design_artifact_id': {'documentation'},
+                 'implementation_guide_artifact_id': {'documentation', 'implementation'}}
+
+
+def _validate_handoff(review):
+    """Choose one maintained narrative per role, without creating status claims."""
+    handoff = review.get('handoff', {})
+    require(isinstance(handoff, dict) and set(handoff) <= set(HANDOFF_ROLES),
+            'Handoff supports only a design document and an implementation guide')
+    seen = set()
+    for role, identifier in handoff.items():
+        require(isinstance(identifier, str) and identifier and identifier not in seen,
+                'Handoff artifact IDs must be nonempty and distinct')
+        seen.add(identifier)
+        matches = [item for item in review.get('artifacts', []) if item.get('id') == identifier]
+        require(len(matches) == 1, 'Handoff must reference one uniquely registered artifact')
+        artifact = matches[0]
+        require(artifact.get('category') in HANDOFF_ROLES[role]
+                and _relative(artifact.get('path')).suffix.lower() in {'.md', '.txt'},
+                'Handoff roles require a registered design document or setup guide in Markdown or text')
+    return handoff
+
+
+def _select_handoff(data, selected):
+    """Navigation follows the same audience/selection boundaries as payloads."""
+    identifiers = {item['id'] for item in selected}
+    if 'handoff' in data.get('review', {}):
+        data['review']['handoff'] = {role: identifier for role, identifier in data['review']['handoff'].items()
+                                     if identifier in identifiers}
+
+
+def _competing_entrypoint(path):
+    return PurePosixPath(path).name.casefold() in {'start_here.html', 'start_here.md', 'start_here.txt'}
 
 
 def _native_omni_artifact(path):
@@ -599,6 +632,7 @@ def validate_review(state, review):
     _validate_quality_checks(state, review)
     _validate_metadata_reference(review)
     _validate_omni_reference(review)
+    _validate_handoff(review)
     return review
 
 
@@ -626,6 +660,8 @@ def select_artifacts(review, root, audience, include):
         if record['category'] not in include or audience not in record['audiences']:
             continue
         relative = _relative(record.get('path'))
+        require(record['category'] == 'technical_audit' or not _competing_entrypoint(str(relative)),
+                'One Start Here entrypoint per handoff; register the maintained design or setup guide instead')
         native_omni = _native_omni_artifact(relative)
         require(relative.suffix.lower() in SUFFIXES or native_omni,
                 'Unsupported artifact type; nested archives and active documents are excluded')
@@ -980,6 +1016,7 @@ def _presentation(state, review=None, audience='engineer'):
         if 'metadata' in review:
             data['review']['metadata'] = dict(review['metadata'])
         if 'omni' in review:data['review']['omni']=dict(review['omni'])
+        if 'handoff' in review:data['review']['handoff']=dict(review['handoff'])
         if audience == 'reviewer':
             data['review']['validation']=[{k:v.get(k) for k in ('id','label','scope','status','details','evidence_id')} for v in review.get('validation',[])]
         if audience == 'audit':
@@ -1073,6 +1110,7 @@ def render_engagement(state, output_path, review=None):
         destination=_path(output_path); source_root=_path(source)
         require(destination != source_root and source_root not in destination.parents, 'Review output must stay outside the source repository')
     data=_presentation(state,review)
+    _select_handoff(data, [])
     _select_quality_evidence(data, [])
     _select_metadata_evidence(data, [])
     _select_omni_evidence(data, [])
@@ -1108,6 +1146,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     selected=select_artifacts(review,artifact_root,audience,include)
     require(selected, 'No artifacts match this audience and selection')
     data=_presentation(state,review,audience)
+    _select_handoff(data, selected)
     _select_deployment_evidence(data, selected)
     _select_quality_evidence(data, selected)
     _select_metadata_evidence(data, selected)

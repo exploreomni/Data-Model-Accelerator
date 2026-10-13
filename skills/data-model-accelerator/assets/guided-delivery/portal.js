@@ -49,6 +49,7 @@ async function checkedSubsetFiles(inventory,selection,categories){
     if(!registered||JSON.stringify(file)!==JSON.stringify(registered)||ids.has(file.id)||!subsetPath(file.path)||paths.has(file.path.toLowerCase())||
        !categories.has(file.category)||!Number.isSafeInteger(file.size)||file.size<0||typeof file.sha256!=='string'||!/^[a-f0-9]{64}$/.test(file.sha256)||
        !Array.isArray(file.requires)||file.requires.some(id=>typeof id!=='string'))throw new Error('The selected inventory is invalid. Ask the agent to repackage.');
+    if(file.category!=='technical_audit'&&/^start_here\.(html|md|txt)$/i.test(file.path.split('/').pop()))throw new Error('One Start Here entrypoint per handoff. Ask the agent to register the maintained document instead.');
     const body=bytes(file.base64);total+=body.length;
     if(body.length!==file.size||await sha256(body)!==file.sha256||total>50*1024*1024)throw new Error('Selected file integrity or size check failed. Ask the agent to repackage.');
     ids.add(file.id);paths.add(file.path.toLowerCase());entries.push([file.path,body]);
@@ -71,6 +72,37 @@ async function browserSubsetManifest(snapshot,audience,categories,entries){
   return manifest;
 }
 // END PORTABLE ASSURANCE HELPERS
+// BEGIN COMPACT HANDOFF HELPERS
+// Derive the front page from the current projection, never a second status record.
+function trimHandoff(snapshot,selected){
+  const ids=new Set(selected.map(file=>file.id));
+  if(snapshot.review?.handoff)for(const role of Object.keys(snapshot.review.handoff))if(!ids.has(snapshot.review.handoff[role]))delete snapshot.review.handoff[role];
+}
+function compactHandoff(snapshot){
+  const r=snapshot.review||{},inventory=snapshot.files||[],workflow=snapshot.workflow||{};
+  const cases=r.validation||[],local=cases.filter(c=>['static','local'].includes(c.scope));
+  const native=cases.filter(c=>['warehouse','semantic'].includes(c.scope));
+  const quality=(r.quality_checks||[]).filter(c=>c.evidence_state==='selected');
+  const localQuality=quality.filter(c=>['code_conventions','project_validity'].includes(c.id));
+  const negative=[...local,...localQuality];
+  const status=negative.some(c=>c.status==='fail')?'fail':negative.some(c=>['pending','skipped','unknown','unsupported'].includes(c.status))?'pending':negative.some(c=>c.status==='pass')?'reported_pass':'unknown';
+  const decisionRows=[...new Map([...(r.decisions||[]),...(workflow.decisions||[])].map(d=>[d.id,d])).values()];
+  const primary=role=>inventory.find(file=>file.id===r.handoff?.[role])||null;
+  const implementation=inventory.filter(file=>file.category==='implementation');
+  const evidenceGaps=[...quality.filter(c=>['fail','pending','skipped','unknown','unsupported'].includes(c.status)).map(c=>({id:c.id,status:c.status,label:c.id.replaceAll('_',' ')})),
+    ...(snapshot.engagement?.delivery_assurance?.checks||[]).filter(c=>['failed','stale','unsupported'].includes(c.status)).map(c=>({id:c.lane,status:c.status,label:c.lane.replaceAll('_',' ')}))];
+  const stages=[
+    {id:'design',label:'Design',status:(r.models||[]).length||primary('design_artifact_id')?'documented':'not_included',detail:'Design content in this view; approval is separate.'},
+    {id:'implementation',label:'Code',status:implementation.length?'included':'not_included',detail:implementation.length?`${implementation.length} implementation files in this export; candidates and templates still need their recorded prerequisites.`:'No implementation files in this view. An omitted export is not evidence of missing or completed work.'},
+    {id:'local',label:'Local checks',status,detail:`${local.length} reported cases and ${localQuality.length} selected quality lanes. These inventories have separate scopes; a reported pass does not establish complete coverage.`},
+    {id:'native',label:'Native checks',status:native.some(c=>c.status==='fail')||quality.some(c=>c.id==='warehouse_validation'&&c.status==='fail')?'fail':'unverified',detail:`${native.length} reported warehouse or semantic cases. Verify execution and scope in the actual target environment.`},
+    {id:'acceptance',label:'Business acceptance',status:'not_established',detail:'Use the version-bound human decision record; this offline page cannot authenticate acceptance.'}
+  ];
+  return{stages,evidenceGaps,blockers:{decisions:decisionRows.filter(d=>!['resolved','accepted'].includes(d.status)).length,
+    failed:cases.filter(c=>c.status==='fail').length,pending:cases.filter(c=>c.status==='pending').length,skipped:cases.filter(c=>c.status==='skipped').length},
+    primary:{design:primary('design_artifact_id'),implementation:primary('implementation_guide_artifact_id')}};
+}
+// END COMPACT HANDOFF HELPERS
 // BEGIN WORKFLOW HELPERS — display selection never changes execution or export scope.
 function assetSelection(modelRows, edges, assetId){
   const all=new Set(modelRows.map(m=>m.id)), direct=new Set(), unknown=new Set();
@@ -126,8 +158,9 @@ function bytes(b64){return Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
 function card(parent,title,value,note){const c=make('article',undefined,'card');c.append(make('h3',title),make('strong',value),make('p',note));parent.append(c);}
 function table(id,columns,rows,pageSize=30){let page=0;const draw=()=>{const target=clear(id);if(!rows.length){target.append(make('p','No matching records.','empty'));return;}const wrap=make('div',undefined,'table-scroll'),t=make('table'),head=make('tr');columns.forEach(c=>head.append(make('th',c[0])));const thead=make('thead');thead.append(head);t.append(thead);const body=make('tbody');rows.slice(page*pageSize,(page+1)*pageSize).forEach(row=>{const tr=make('tr');columns.forEach(c=>{const td=make('td'),v=c[1](row);td.append(v instanceof Node?v:make('span',v));tr.append(td);});body.append(tr);});t.append(body);wrap.append(t);target.append(wrap);const pager=make('div',undefined,'pager'),prev=make('button','Previous','secondary'),next=make('button','Next','secondary');prev.disabled=page===0;next.disabled=(page+1)*pageSize>=rows.length;prev.onclick=()=>{page--;draw();};next.onclick=()=>{page++;draw();};pager.append(prev,make('span',`${page*pageSize+1}–${Math.min((page+1)*pageSize,rows.length)} of ${rows.length}`),next);target.append(pager);};draw();}
 const reviewSections=['overview','readiness','changes','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[])];
-function navigate(){const id=location.hash.slice(1)||'overview';const valid=reviewSections.includes(id)?id:'overview';document.querySelectorAll('[data-section]').forEach(s=>s.hidden=s.id!==valid);document.querySelectorAll('[data-nav]').forEach(n=>{n.classList.toggle('active',n.dataset.nav===valid);if(n.dataset.nav===valid)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});}
+function navigate(){const id=location.hash.slice(1)||'overview';const valid=reviewSections.includes(id)?id:'overview';document.querySelectorAll('[data-section]').forEach(s=>s.hidden=s.id!==valid);document.querySelectorAll('[data-nav]').forEach(n=>{n.classList.toggle('active',n.dataset.nav===valid);if(n.dataset.nav===valid)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});if(!['overview','model','delivery'].includes(valid))el('supporting-navigation').open=true;}
 addEventListener('hashchange',navigate);navigate();
+el('implementation-nav').hidden=data.audience!=='engineer';el('files-nav').hidden=data.audience==='engineer';
 el('page-title').textContent=review.title||'Your modeling engagement';
 el('subtitle').textContent=review.description||'A guided path from the current repository to a model you can inspect, test and adopt.';
 Object.values(eng.target||{}).filter(Boolean).forEach(v=>el('target-tags').append(make('span',pretty(v),'pill')));
@@ -145,12 +178,26 @@ const actions=eng.next_actions||[],first=actions[0];
 el('next-title').textContent=first?.title||({discovery:'Complete the next discovery step',generation:'Review the model prerequisites',readiness:'Resolve the readiness findings',catalogue:'Ground the model in your raw data'}[first?.scope])||'Review readiness and outstanding decisions';
 const nextSection=reviewSections.includes(first?.section)?first.section:eng.delivery?.status==='prepared'?'delivery':'readiness';
 el('next-link').href='#'+nextSection;el('next-link').textContent=nextSection==='delivery'?'Inspect handoff →':'Review next step →';
-if(eng.delivery?.status==='prepared'){el('handoff-summary').hidden=false;el('handoff-summary').textContent=`Recorded handoff: ${eng.delivery.artifact_count} registered files prepared; this export may include a subset. ${eng.delivery.qualification||'File integrity only; native runtime, business approval and deployment remain separate.'}`;}
+if(eng.delivery?.status==='prepared'){el('handoff-summary').hidden=false;el('handoff-summary').textContent=`${files.length?files.length+' registered files are included in this export.':'A prepared handoff is recorded; this status page has no embedded files.'} ${eng.delivery.qualification||'File integrity only; native runtime, business approval and deployment remain separate.'}`;}
 el('next-detail').textContent=typeof first==='object'?(first.action||first.detail||first.description||first.reason||''): first||'The agent retains your decisions and evidence. Continue with the outstanding item before claiming the next stage.';
 function effortPackageDetails(row){const box=make('div');box.append(make('p',row.rationale||row.summary||'No rationale supplied.'));const detail=make('details');detail.append(make('summary','Factors and prerequisites'));for(const item of row.dimensions||[])detail.append(make('p',`${pretty(item.name)} · ${pretty(item.level)}: ${item.rationale||'No rationale supplied.'}`));for(const key of ['assumptions','prerequisites','dependencies','included_work','excluded_work'])if(row[key]?.length)detail.append(make('p',`${pretty(key)}: ${row[key].join('; ')}`));box.append(detail);return box;}
 const workflow=data.workflow||null;
 const models=review.models||[],changes=review.changes||[],cases=review.validation||[];
 const decisions=[...new Map([...(review.decisions||[]),...(workflow?.decisions||[])].map(d=>[d.id,d])).values()];
+const handoff=compactHandoff(data);
+table('delivery-stages',[['Stage',s=>s.label],['Recorded status',s=>pretty(s.status)],['What it means',s=>s.detail]],handoff.stages,5);
+el('handoff-blockers').textContent=`${handoff.blockers.decisions} unresolved decisions · ${handoff.blockers.failed} failed, ${handoff.blockers.pending} pending and ${handoff.blockers.skipped} skipped reported cases. Missing evidence remains unverified; these counts are not a completion score.`;
+for(const gap of handoff.evidenceGaps)el('handoff-evidence-gaps').append(make('li',`${gap.label}: ${pretty(gap.status)}`));
+function primaryGuide(id,file,label){
+  const target=clear(id);
+  if(!file){target.append(make('p',`No ${label.toLowerCase()} is included in this view. Ask the agent to select the maintained document when packaging.`,'muted'));return;}
+  target.append(make('h3',label),make('p',file.description||file.path,'muted'));
+  const detail=make('details'),summary=make('summary','Read '+label.toLowerCase()),body=bytes(file.base64),preview=make('pre',body.length>2*1024*1024?'Preview is limited to 2 MiB. Download the complete document.':new TextDecoder().decode(body),'guide-preview');
+  const button=make('button','Download document','secondary');button.type='button';button.onclick=()=>download(file.path.split('/').pop(),body);
+  detail.append(summary,preview,button);target.append(detail);
+}
+primaryGuide('design-guide',handoff.primary.design,'Design document');
+primaryGuide('implementation-guide',handoff.primary.implementation,'Implementation guide');
 let assetId='',selection=assetSelection(models,review.relationships||[],assetId);
 if(workflow){
   if(workflow.qualification){el('workflow-qualification').hidden=false;el('workflow-qualification').textContent=workflow.qualification;}
@@ -318,6 +365,7 @@ el('download-package').onclick=async()=>{
     next.export_review={origin:'browser_subset',status:'candidate',content_scan:'not_run_in_browser',disclosure_policy:'not_revalidated_in_browser',acceptance_ready:false,deployment_authorized:false};
     trimMetadataEvidence(next,selected);
     trimOmniEvidence(next,selected);
+    trimHandoff(next,selected);
     trimWorkflowDetails(next,chosen);
     if(next.deployment){
       const selectedIds=new Set(selected.map(f=>f.id));
