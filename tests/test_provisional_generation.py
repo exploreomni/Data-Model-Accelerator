@@ -154,6 +154,17 @@ class ProvisionalGenerationTests(unittest.TestCase):
         task['outputs'] = ['node.yml']
         self.assertEqual(stages._code_artifacts(state, task), ['node.yml'])
 
+    def test_omni_native_filenames_are_valid_code_artifacts(self):
+        self.request_draft()
+        for name in ('orders.view', 'orders.query.view', 'orders.topic', 'model',
+                     'relationships', 'orders.view.yaml', 'orders.topic.yml'):
+            with self.subTest(name=name):
+                tasks = self.tasks()
+                task = tasks['tasks'][-1]
+                task['outputs'] = ['omni/' + name]
+                self.assertEqual(stages._code_artifacts(self.h.state, task), task['outputs'])
+                self.h.plan(tasks)
+
     def test_tampered_retained_request_is_not_valid(self):
         self.request_draft()
         state = copy.deepcopy(self.h.state)

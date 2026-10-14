@@ -522,6 +522,7 @@ def _code_artifacts(state, task):
     """Minimum native file presence, not syntax, semantics or execution proof."""
     if task['stage'] not in {'implementation', 'semantic'}:
         return []
+    native_names = set()
     if task['stage'] == 'implementation':
         entities = {entity['id']: entity for entity in design(state)['entities']}
         reuse_only = all(entities[key]['disposition'] == 'reuse' for key in task['entity_ids'])
@@ -532,8 +533,12 @@ def _code_artifacts(state, task):
         if reuse_only:
             suffixes = suffixes | {'.json'}  # Explicit existing-model binding record.
     else:
-        suffixes = {'.yaml', '.yml'} if state['answers'].get('semantic_target') == 'omni' else {'.yaml', '.yml', '.json', '.sql', '.lkml'}
-    paths = [path for path in task['outputs'] if Path(path).suffix.lower() in suffixes]
+        if state['answers'].get('semantic_target') == 'omni':
+            suffixes = {'.yaml', '.yml', '.view', '.topic'}
+            native_names = {'model', 'relationships'}
+        else:
+            suffixes = {'.yaml', '.yml', '.json', '.sql', '.lkml'}
+    paths = [path for path in task['outputs'] if Path(path).suffix.lower() in suffixes or Path(path).name in native_names]
     require(paths, task['stage'] + ' tasks require native code artifacts or explicit reuse bindings; documents alone do not fulfill code requests')
     return paths
 
