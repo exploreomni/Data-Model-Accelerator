@@ -1039,12 +1039,12 @@ def _workflow_presentation(raw):
     def fields(value, names):
         return {key:json.loads(json.dumps(value[key])) for key in names if isinstance(value, dict) and key in value}
     result = fields(raw, ('schema_version', 'engagement_id', 'design_id', 'design_revision', 'design_sha256',
-                          'current_stage', 'next_action', 'qualification'))
+                          'current_stage', 'next_action', 'qualification', 'delivery_status', 'requested_stages'))
     result['stages'] = [fields(row, ('id', 'label', 'status', 'next_action')) for row in raw.get('stages', [])]
     if raw.get('task_plan'):
         result['task_plan'] = {
             'qualification': 'Proposed work only. Reuse retains the original run and its evidence limits.',
-            'tasks': [fields(row, ('id', 'stage', 'entity_ids', 'action', 'reason', 'original_run_id'))
+            'tasks': [fields(row, ('id', 'stage', 'entity_ids', 'action', 'reason', 'original_run_id', 'generation_mode'))
                       for row in raw['task_plan'].get('tasks', [])]}
     result['decisions'] = []
     for row in raw.get('decisions', []):

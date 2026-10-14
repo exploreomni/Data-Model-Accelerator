@@ -5,6 +5,12 @@ have established the scoped model specification. This adds implementation and
 independent acceptance work to the existing extraction workflow; it does not
 replace source discovery, catalogue verification or the model review package.
 
+Use [targeted context](agent-context.md) for each engineering/analyst assignment.
+The coordinator retains complete snapshots; workers receive the scoped design,
+dependency interfaces, selected evidence and output contract. They request exact
+missing dependencies rather than re-inventorying every layer. Independent analyst
+expectations come from source/business evidence before candidate interpretation.
+
 For existing-project refactoring engagements, finish with the mandatory composite gate in
 [engagement-validation.md](engagement-validation.md). It adds physical metadata,
 explicit preserved-source-value cases, dependency/consumer coverage, catalogue
@@ -17,8 +23,9 @@ original-project or legacy-baseline evidence required by the refactor contract.
 
 ## Analytics engineering agent
 
-Inputs: a versioned model specification, source graph and catalogue bindings,
-the original project snapshot, a domain task, and the agreed target environment.
+Inputs: the task's versioned model specification, source-graph/catalogue slices,
+owned original files, necessary shared interfaces, snapshot pins, domain task
+and agreed target environment. The full source snapshot stays with the coordinator.
 Read the dbt specialist guidance for resource paths, macros and materializations.
 
 Own only the task's declared files. Preserve sound existing models. Implement
@@ -242,6 +249,10 @@ persist the returned `event_sha256` in the protected host record. Events include
 list on success. Repairs name their owner task and change the candidate hash.
 The allowed sequence is validation failure → repair → validation, with at most
 three repairs. A pass closes that run; new code starts a new validation run.
+
+Each repair handoff contains the failed cases, changed paths and affected
+dependencies, not another full source/design briefing. Keep failure history and
+repair allowances across worker restarts; a new worker is not a new allowance.
 
 Keep every failed benchmark. Repair evidence is a JSON record with
 `kind: repair_change`, `candidate_sha256`, `task_id` and nonempty `changed_paths`

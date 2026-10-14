@@ -24,6 +24,13 @@ Independent metadata exports are reconciled against the full physical scope, the
 
 ## End-to-end workflow
 
+Explicit [provisional code requests](../skills/data-model-accelerator/references/provisional-generation.md)
+permit supported warehouse and semantic draft files while catalogue evidence or
+design review is pending. Requested stage/entity coverage stays visible; design
+documents do not satisfy a code request. This does not create approval, verified
+bindings or execution authority. Changed evidence requires reconciliation, and
+unknowns remain placeholders or gaps.
+
 | Capability | Implemented behavior | Limit or prerequisite |
 | --- | --- | --- |
 | Guided discovery | Short interview, separate framework/warehouse/semantic choices, retained answers, revisions and resume | Missing facts remain unknown; saved answers are not deployment approval |
@@ -35,6 +42,7 @@ Independent metadata exports are reconciled against the full physical scope, the
 | Repository readiness | Bounded read-only inventory, hashes, mixed-source detection, dependency warnings and raw CSV metadata | Excluded, oversized, inaccessible and dynamic content remain coverage gaps |
 | Raw catalogue | Six provider profiles, metadata query templates, canonical catalogue/binding checks and freshness/hash verification | Collection needs scoped access or dated exports; metadata does not prove row quality or effective permissions |
 | Source specialists | Source-specific instructions and structured handoffs; actual host delegation when available | Host supplies agents and tools; sequential passes must disclose independence limits |
+| Targeted agent context | Scanned 32 KiB default task packets with coordinator summary, exact evidence excerpts, hashes and delta bindings; dependency-scoped engineering prompts | Host must perform actual dispatch and context isolation; byte counts do not measure provider tokens, charges or semantic completeness |
 | Logic placement | Preserve, move upstream, retain semantic/presentation, split or propose consolidation/retirement | Similar formulas may represent intentionally different definitions |
 | Modeling | Explicit entity grain, keys, relationships, fact/dimension design, layer allocation and publication boundaries | History, CDC, tenancy and business meaning require evidence; they are not inferred from names alone |
 | Analytics engineering | Scoped refactor plan, candidate code, dependency/consumer closure and versioned model contracts | Existing packages, hooks and stateful behavior may exceed the bundled executor's contract |

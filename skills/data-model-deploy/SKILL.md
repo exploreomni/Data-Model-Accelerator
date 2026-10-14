@@ -5,7 +5,12 @@ description: Prepare or carry out separately authorized publication and deployme
 
 # Release the reviewed delivery
 
-Load the complete sibling [Data Model Accelerator](../data-model-accelerator/SKILL.md),
+Delegated workers consume the coordinator's bounded task packet and selected
+contracts under [targeted context](../data-model-accelerator/references/agent-context.md).
+They do not recursively load the full workflow or repeat intake. The coordinator
+retains responsibility for stage gates, approvals and complete coverage.
+
+When coordinating this stage directly, load the sibling [Data Model Accelerator](../data-model-accelerator/SKILL.md),
 the [staged workflow](../data-model-accelerator/references/staged-engagement.md) and
 the [deployment contract](../data-model-accelerator/references/deployment.md).
 Require the complete shared runtime and resume the existing engagement.

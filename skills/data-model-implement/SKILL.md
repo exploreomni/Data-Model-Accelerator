@@ -5,7 +5,18 @@ description: Generate warehouse or framework code for an already reviewed Data M
 
 # Implement the reviewed design
 
-Load the complete sibling [Data Model Accelerator](../data-model-accelerator/SKILL.md)
+If the user explicitly requests code with catalogue evidence or design review
+pending, use [provisional generation](../data-model-accelerator/references/provisional-generation.md).
+Record the actual request and author supported draft files now. Keep missing
+bindings/definitions visible; the exception is file authoring, not approval or
+execution. Otherwise follow the reviewed path below.
+
+Delegated workers consume the coordinator's bounded task packet and selected
+contracts under [targeted context](../data-model-accelerator/references/agent-context.md).
+They do not recursively load the full workflow or repeat intake. The coordinator
+retains responsibility for stage gates, approvals and complete coverage.
+
+When coordinating this stage directly, load the sibling [Data Model Accelerator](../data-model-accelerator/SKILL.md)
 and its [staged workflow](../data-model-accelerator/references/staged-engagement.md).
 Require that shared folder and runtime; do not recreate missing contracts. Resume
 the existing engagement and reuse its answers and current design.

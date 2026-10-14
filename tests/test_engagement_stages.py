@@ -222,7 +222,7 @@ class StageTests(unittest.TestCase):
 
     def test_semantic_entrypoint_requires_actual_physical_outputs_and_current_guidance(self):
         self.approve()
-        self.assertIn('Assess development effort', self.state['next_actions'][-1]['action'])
+        self.assertIn('implementation code', self.state['next_actions'][-1]['action'])
         with self.assertRaisesRegex(ValueError, 'physical implementation'):
             self.action('stage', entities=['orders'], stage='semantic')
         self.plan(self.tasks())
@@ -232,8 +232,9 @@ class StageTests(unittest.TestCase):
         self.complete('build-orders')
         self.action('stage', entities=['orders'], stage='semantic')
         self.complete('build-products'); self.complete('semantic')
-        self.assertEqual(stages.public_view(self.state)['current_stage'], 'validation')
-        self.assertIn('independent validation', self.state['next_actions'][-1]['action'])
+        self.assertEqual(stages.public_view(self.state)['current_stage'], 'semantic')
+        self.assertIn('products', stages.public_view(self.state)['next_action'])
+        self.assertIn('semantic code', self.state['next_actions'][-1]['action'])
 
     def test_component_changes_and_per_plan_source_cache(self):
         self.approve()

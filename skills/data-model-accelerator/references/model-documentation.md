@@ -4,6 +4,14 @@ For new warehouse metadata deliveries, use the [version-2 metadata contract and 
 
 Every model delivery includes an ERD, a complete data dictionary and documentation for bronze, silver and gold. These are maintained deliverables, not optional appendices or a substitute for generated code. Cover existing/reused objects as well as proposed ones within the selected source-to-gold scope. A stage implemented by an existing platform still needs its contract documented; do not create unnecessary physical tables merely to fill a layer.
 
+Apply depth progressively. Initial design review needs the compact entity/grain,
+key, relationship, mapping and decision view plus available dictionary facts.
+Complete physical documentation alongside actual implementation, deriving it
+from the same canonical model and updating only changed sections. Do not spend
+successive passes polishing full implementation prose before requested code
+exists. A provisional delivery retains explicit unknowns and cannot claim final
+documentation or verification completeness; see [provisional generation](provisional-generation.md).
+
 ## Deliverables and content
 
 | Deliverable | Required content |

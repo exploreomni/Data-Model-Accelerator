@@ -17,6 +17,25 @@ content reaches an agent; a later export scan cannot undo earlier disclosure.
 
 Resolve supporting paths relative to this SKILL.md, not the input repository. Core planning, catalogue and review helpers plus the SQLite demonstrator use Python 3.9 or newer and the standard library. Optional E2E exercises use Python 3.12: Looker dependencies are in `scripts/requirements-e2e.txt`, and Hex adds `scripts/requirements-hex-e2e.txt`. Examples are local development fixtures, not customer evidence.
 
+## Delegate with targeted context
+
+The coordinator loads this workflow once per active context and owns intake,
+inventory, stage gates and reconciliation. Before delegating, follow
+[agent-context.md](references/agent-context.md): prepare a bounded task briefing
+with a summary, exact scope, relevant pinned evidence, selected instructions,
+output contract and stop conditions. Use `scripts/agent_context.py` to check
+packet size, integrity and disclosure. Specialists do not reload this entire
+skill, parent conversation or every source layer. Use fresh task context when
+supported; reuse a worker already running that same assignment.
+
+Extract once and reuse verified results through the saved-task freshness rules.
+Workers request specific missing dependencies instead of widening their search.
+Keep independent reviewers grounded in original evidence, not only a designer's
+summary. Default to one design review and one targeted correction review; carry
+open findings forward and stop unproductive loops. Record packet sizes and
+attempts as operational evidence; host telemetry owns actual token and cost
+attribution. Context reduction never weakens approval or validation gates.
+
 ## Start with the engagement
 
 Start new engagements with entity/table design and its review package. Read
@@ -25,6 +44,11 @@ only for a scope with current recorded human design review; a requested final ZI
 complete migration does not collapse the design, code and semantic stages into
 one unreviewed pass. Reuse an already reviewed scope without repeating intake.
 The optional sibling stage skills use this same engine and saved engagement.
+If the user explicitly requests code before catalogue verification or design
+approval, follow [provisional generation](references/provisional-generation.md).
+Record that request separately and generate the supported draft files now;
+never convert it into model approval or execution authority. A completed design
+package does not fulfill requested warehouse or semantic code.
 
 For local candidate generation, record actual explicit human approval of the
 displayed scope from the current trusted conversation or an authenticated review
@@ -52,7 +76,7 @@ Read [discovery.md](references/discovery.md) before target deliverable generatio
 - For migration, the trusted comparison reports and their population/filter/currency/history/security contracts, behavior to retain versus intentionally change, affected consumers, and cutover scope.
 - Requested outputs and audience, plus mode: assessment; selected candidate artifacts; authorized development validation; or separately authorized deployment handoff. Use [delivery-experience.md](references/delivery-experience.md) to record selections and package the result. Selecting code or tests does not authorize their execution.
 
-Confirm missing meaningful decisions with the user before generating dependent target deliverables or executing them. A proposed default is not an answer, and elapsed time is not confirmation. Do not ask again about choices or permissions already supplied. With unknown facts, continue a bounded assessment and independent evidence collection; identify what blocks the affected model, comparison, or execution. Do not invent source tables, keys, CDC metadata, user permissions, metric authority, or customer acceptance. A synthetic demonstration is always labeled synthetic.
+Confirm missing meaningful decisions with the user before treating dependent deliverables as reviewed or executing them. An explicit request for provisional code permits supported draft files while those decisions remain unresolved; follow [provisional generation](references/provisional-generation.md). A proposed default is not an answer, and elapsed time is not confirmation. Do not ask again about choices or permissions already supplied. With unknown facts, continue independent work and identify what blocks verification or execution. Do not invent source tables, keys, CDC metadata, user permissions, metric authority, or customer acceptance. A synthetic demonstration is always labeled synthetic.
 
 ## Platform quality checks
 
@@ -104,7 +128,7 @@ Create the evidence and output records described in [contracts.md](references/co
 
 Read [raw-catalogue.md](references/raw-catalogue.md) and the selected platform section of [catalogue-providers.md](references/catalogue-providers.md). Collect a scoped Snowflake, Databricks, Google Cloud BigQuery, Amazon Redshift, ClickHouse or MotherDuck metadata inventory through authorized read-only tools, or consume a dated operator export. Use a warehouse-catalogue specialist alongside repository specialists. Record physical objects/columns/nested types, available descriptions/constraints/ownership/security/replication/statistics, collecting identity, namespace/location, hashes, freshness and visibility gaps. A repository inventory does not substitute for this catalogue.
 
-Bind every proposed physical input and required column to the catalogue with evidence; preserve missing/ambiguous references. Pass relevant catalogue context and the same binding version to both architects. Run `scripts/verify_catalogue.py` before treating physical modeling as grounded. Missing catalogue access permits a bounded assessment; affected model/code remains provisional and cannot pass review completeness. Metadata keys, counts and timestamps do not prove grain, quality, access enforcement or replication behavior; obtain bounded profiling/operational evidence separately. Refresh affected catalogue scopes and invalidate dependent evidence when source metadata changes.
+Bind every proposed physical input and required column to the catalogue with evidence; preserve missing/ambiguous references. Pass relevant catalogue context and the same binding version to both architects. Run `scripts/verify_catalogue.py` before treating physical modeling as grounded. Missing catalogue access permits a bounded assessment or explicitly requested provisional code; affected physical bindings remain unverified. Metadata keys, counts and timestamps do not prove grain, quality, access enforcement or replication behavior; obtain bounded profiling/operational evidence separately. Refresh affected catalogue scopes and invalidate dependent evidence when source metadata changes.
 
 ## Orchestrate source specialists
 

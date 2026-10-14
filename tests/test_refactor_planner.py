@@ -54,6 +54,19 @@ class RefactorPlannerTests(unittest.TestCase):
         self.assertEqual(plan['specification_sha256'], common.hash_json(self.spec))
         self.assertTrue(all(task['execution_mode'] == 'planned' for task in plan['tasks']))
 
+    def test_prompt_keeps_transitive_inputs_but_excludes_unrelated_domains(self):
+        self.spec['models'].append(model('stg_stock', 'stock', depends_on=['source.raw.stock']))
+        self.spec['external_dependencies'].append('source.raw.stock')
+        self.spec['shared_paths']['macros/stock.sql'] = 'stock'
+        plan = self.plan()
+        task = next(item for item in plan['tasks'] if item['domain'] == 'finance')
+        payload = json.loads(task['prompt'].split('```json\n', 1)[1].split('\n```', 1)[0])
+        self.assertEqual(payload['external_dependencies'], ['source.raw.orders'])
+        self.assertEqual(payload['upstream_model_ids'], ['int_orders', 'stg_orders'])
+        self.assertNotIn('macros/stock.sql', payload['shared_paths'])
+        self.assertIn('macros/keys.sql', payload['shared_paths'])
+        self.assertEqual(len(plan['models']), 4)  # Complete coordinator inventory remains intact.
+
     def test_task_order_independent_of_model_list_order(self):
         spec = copy.deepcopy(self.spec)
         spec['models'].reverse()

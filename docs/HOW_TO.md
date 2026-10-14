@@ -29,6 +29,16 @@ The [host setup reference](../skills/data-model-accelerator/references/targets-a
 
 Ask the agent to confirm it can load the skill and its relative references before starting customer work. Installing the skill does not grant access to accounts or authorize deployment.
 
+The coordinator should load the workflow and give workers only a short task
+briefing and relevant evidence. Do not configure every worker to preload the
+complete accelerator, all stage skills or a growing run transcript. For Claude
+Code, use isolated task delegation rather than conversation-inheriting forks,
+while retaining required workspace instructions and permissions. The
+[context guide](../skills/data-model-accelerator/references/agent-context.md)
+explains bounded packets, targeted evidence requests and delta reviews. Update
+the host's installed copy deliberately before testing these changes; updating a
+Git checkout alone does not update an already installed skill.
+
 ### Optional full validation environment
 
 For the complete local regression suite, create a separate Python 3.12 environment and install the pinned development requirements. Hex schema validation also needs an explicit publisher download; it is not bundled or downloaded by the parser:
@@ -57,6 +67,19 @@ Also select the completion scope: `model_only` for the warehouse model,
 dashboard migration as well. Reuse a choice already supplied. If you choose a
 full dashboard migration, topic files alone cannot complete it: tile, filter,
 listener, layout, interaction and access evidence remain in scope.
+
+To receive code before a catalogue or final design review is available, say:
+
+> Generate the requested dbt and Omni files from the evidence available now. Label unresolved physical bindings and business definitions as provisional, list what must be reconciled, and do not execute or deploy them. Keep code that is still missing visible in the progress report.
+
+The agent records that instruction; you do not need to prepare an approval file.
+It should generate supported code or clearly identified scaffolds where necessary,
+not substitute another design document. File-only lint and structural checks can
+still run when their inputs are available; they do not prove warehouse accuracy.
+See [provisional generation](../skills/data-model-accelerator/references/provisional-generation.md).
+Keep the initial design review concise, then develop code and its documentation
+together for one domain before expanding. Full documentation remains part of the
+final selected delivery.
 
 Before giving source content to any agent, establish the classification and
 approved input boundary with the [sensitive-data guide](../skills/data-model-accelerator/references/sensitive-data.md).

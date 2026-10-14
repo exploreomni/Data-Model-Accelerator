@@ -51,11 +51,26 @@ authenticated review system. No signing service is required. Teams can optionall
 use external signed design review. Neither path authorizes SQL execution or
 deployment; the governed release workflow retains its separate authority checks.
 
+If you request code while the catalogue or design review is pending, the agent
+can produce **provisional dbt/native and semantic files** from available evidence.
+It records your request, labels unresolved bindings and leaves physical validation
+and deployment pending. You do not need to approve an unknown design just to see
+draft code. See [requested provisional code](skills/data-model-accelerator/references/provisional-generation.md).
+Requested code stays pending until its scoped outputs are recorded; finishing
+design documents alone does not complete an implementation request.
+
 Replanning saved tasks shows what can be reused, regenerated or is blocked
 when source slices, decisions, outputs or relevant accelerator components change.
 Asset filters help inspect the entities tied to a report or dashboard; filtering
 does not silently change approved scope or exported files. Existing warehouse
 models are compared before proposing reuse, extension, creation or replacement.
+
+The coordinator gives each specialist a concise task summary and relevant pinned
+evidence, rather than the full conversation or repository. Bounded context packets,
+targeted dependency requests and delta reviews reduce repeated ingestion while
+preserving independent source checks. See [context-efficient orchestration](skills/data-model-accelerator/references/agent-context.md).
+Packet sizes and attempts are operational evidence; actual usage and charges
+remain the agent host's responsibility.
 
 A model delivery maintains an ERD, complete dictionary and documentation for every scoped layer. One current entry page offers **Overview, Design and Implementation**, with detailed evidence available on demand. The selected ZIP opens offline:
 

@@ -16,6 +16,13 @@ separate stages after scoped design review. Optional `data-model-design`,
 `data-model-package` and `data-model-deploy` entrypoints all require the complete
 main skill beside them and resume the same engagement.
 
+An explicit request for code with missing catalogue evidence or pending design
+review uses the [provisional generation route](../skills/data-model-accelerator/references/provisional-generation.md).
+The agent prepares `draft-bindings` and `request-draft` records from the actual
+conversation, then authors supported files. No extra design approval is inferred.
+Requested warehouse and semantic outputs remain pending until recorded for the
+design scope, even if all registered design tasks have finished.
+
 ## The agent's first action
 
 Resolve the script path relative to the installed skill; use a run directory outside the source repository:

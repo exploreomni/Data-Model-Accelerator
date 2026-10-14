@@ -5,6 +5,13 @@ being assessed. Read `omni-modeler.md` for the modeling role and load the releva
 knowledge modules, not every reference. Source specialists still own source
 extraction; independent QA and SMEs still own acceptance.
 
+Apply [targeted context](agent-context.md) at the host dispatch boundary: the
+coordinator prepares the gold/metric/security slice and only selected knowledge
+modules for a fresh task context. Do not preload the parent workflow or send raw
+and staging code unless a specific lineage question requires it. Keep the
+existing Omni projection and runner contracts; a context packet is an additional
+handoff, not a substitute for their pins, disclosure or result validation.
+
 ## Prepare and invoke
 
 `plan_specialists.py --semantic-target omni --warehouse snowflake` adds an explicit
@@ -15,7 +22,11 @@ The trusted host coordinator stages reviewed pre-sanitized input, authenticates
 its disclosure authorization and calls `omni_modeler.prepare_task`. Its arguments
 are the run ID, projection, classification, disclosure policy, intent, warehouse,
 selected objects and operations. New/refactor/migration/repair candidate inputs
-include an exact `model_context`. A missing catalogue allows assessment only.
+include an exact `model_context`. Without a catalogue, physical verification
+remains blocked. An explicit [provisional code request](provisional-generation.md)
+permits drafts against documented proposed gold interfaces; keep their grounding
+unverified and preserve unknowns. Never fabricate catalogue/acceptance evidence
+to satisfy model-context or native-validation checks.
 The portable policy gate accepts approved PUBLIC/INTERNAL projections without
 sensitive categories. It does not authenticate approval declarations or sandbox
 a host. Protected source inputs remain unavailable on this route, including
