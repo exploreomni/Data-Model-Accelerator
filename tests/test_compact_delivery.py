@@ -221,8 +221,13 @@ class CompactDeliveryTests(unittest.TestCase):
 
     def test_exactly_three_primary_links_secondary_details_closed(self):
         nav = Navigation()
-        nav.feed((portal.ASSETS / 'portal.html').read_text())
-        primary = [link for link in nav.links if not link['secondary']]
+        template = (portal.ASSETS / 'portal.html').read_text()
+        nav.feed(template)
+        primary_nav = Navigation()
+        primary_nav.feed('<nav id="primary-navigation"' + template.split('<nav id="primary-navigation"', 1)[1].split('</nav>', 1)[0] + '</nav>')
+        primary = primary_nav.links
+        self.assertEqual({link['href'] for link in nav.links if not link['secondary']} - {link['href'] for link in primary},
+                         {'#architecture', '#lineage', '#implementation-code', '#replacement-map'})
         self.assertEqual([link['href'] for link in primary], ['#overview', '#model', '#delivery'])
         self.assertEqual([re.sub(r'^\s*\d+\s*', '', link['text']).strip() for link in primary],
                          ['Overview', 'Design', 'Implementation'])
@@ -470,7 +475,8 @@ if(INPUT.payload.audience==='engineer'){
   inspectGuide('implementation-guide',INPUT.guide);
   assert.equal(el('implementation-nav').hidden,false);assert.equal(el('files-nav').hidden,true);
 }else{
-  assert.equal(el('implementation-nav').hidden,true);assert.equal(el('files-nav').hidden,false);
+  assert.equal(el('implementation-nav').hidden,false);assert.equal(el('files-nav').hidden,true);
+  assert.match(el('implementation-state').textContent,/excluded from reviewer/);
   assert.equal(children(el('implementation-guide'),'details').length,0);
   assert.ok(el('implementation-guide').children.some(n=>n.textContent.includes('No implementation guide is included')));
 }
@@ -482,7 +488,7 @@ Promise.all(blobs.map(b=>b.text())).then(bodies=>{
 }).catch(error=>{console.error(error);process.exitCode=1});
 """
                 result = subprocess.run([shutil.which('node'), '-e', harness + '\n' +
-                                         (portal.ASSETS / 'portal.js').read_text() + assertions],
+                                         (portal.ASSETS / 'portal.js').read_text().rsplit('})();', 1)[0] + assertions + '\n})();'],
                                         capture_output=True, text=True, timeout=15)
                 self.assertEqual(result.returncode, 0, result.stderr)
 

@@ -237,6 +237,9 @@ class MetadataPortalTests(unittest.TestCase):
             portal.verify_delivery(self.rewrite(path, mutate, remove))
         def omit(data):
             mutate(data)
+            data['file_count'] = len(data['files'])
+            data['projection']['selected_artifact_count'] = len(data['files'])
+            data['projection']['excluded_artifact_count'] += 1
             data['review']['metadata'] = portal._metadata_omitted(data['review']['metadata'])
         reduced = self.rewrite(path, omit, remove)
         self.assertEqual(portal.verify_delivery(reduced)['status'], 'integrity_verified')

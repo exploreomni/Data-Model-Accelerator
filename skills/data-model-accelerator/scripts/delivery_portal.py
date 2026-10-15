@@ -453,6 +453,7 @@ def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
     data['review']['omni']={'artifact_id':ref['artifact_id'],'sha256':ref['sha256'],'evidence_state':'selected',
         'status':'candidate','candidate_sha256':pins['model_candidate_sha256'],'static_status':summary['static_status'],
         'topics':copy_quality(summary['topics']),'metrics':copy_quality(summary['metrics']),
+        'views':copy_quality(summary['views']),
         'query_views':copy_quality(summary['query_views']),'dependencies':copy_quality(summary['dependencies']),
         'decisions':copy_quality(summary['decisions']),'unknowns':copy_quality(summary['unknowns']),
         'next_actions':copy_quality(summary['next_actions']),
@@ -1003,12 +1004,16 @@ def _select_deployment_evidence(data, selected):
 
 
 def _presentation(state, review=None, audience='engineer'):
-    data={'engagement':_summary(state),'audience':audience,'review':{},'files':[]}
+    data={'engagement':_summary(state),'audience':audience,'review':{},'files':[],
+          'page_mode':'status','selected_categories':[],'file_count':0,
+          'projection':{'selected_artifact_count':0,'excluded_artifact_count':0,
+                        'qualification':'Status projection only. Registered artifact bytes are not read or embedded.'}}
     deployment = _deployment_presentation(state, audience)
     if deployment:
         data['deployment'] = deployment
     if review:
         validate_review(state, review)
+        data['projection']['excluded_artifact_count'] = len(review.get('artifacts', []))
         data['review']=json.loads(json.dumps({k:review.get(k, [] if k not in ('title','description') else '') for k in ('title','description','models','relationships','changes','decisions','validation','assets')}))
         if review.get('quality_checks'):
             data['review']['quality_checks'] = [dict(_quality_data(row), **{key:row[key]
@@ -1082,7 +1087,13 @@ def _trim_workflow_details(data):
 def _html(data):
     template=(ASSETS/'portal.html').read_text(encoding='utf-8')
     encoded=json.dumps(data,ensure_ascii=True,allow_nan=False).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
-    return template.replace('/*__PORTAL_CSS__*/',(ASSETS/'portal.css').read_text(encoding='utf-8')).replace('/*__PORTAL_JS__*/',(ASSETS/'portal.js').read_text(encoding='utf-8')).replace('/*__PORTAL_DATA__*/',encoded)
+    rendered = (template.replace('/*__PORTAL_CSS__*/',(ASSETS/'portal.css').read_text(encoding='utf-8'))
+                .replace('/*__PORTAL_SVG_JS__*/',(ASSETS/'portal-svg.js').read_text(encoding='utf-8'))
+                .replace('/*__PORTAL_JS__*/',(ASSETS/'portal.js').read_text(encoding='utf-8'))
+                .replace('/*__PORTAL_DATA__*/',encoded))
+    from portal_checks import validate_page
+    validate_page(rendered, expected_data=data)
+    return rendered
 
 
 def _atomic_write(path, content, overwrite=False):
@@ -1146,6 +1157,10 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     selected=select_artifacts(review,artifact_root,audience,include)
     require(selected, 'No artifacts match this audience and selection')
     data=_presentation(state,review,audience)
+    data.update(page_mode='package', selected_categories=sorted(set(include)), file_count=len(selected))
+    data['projection']={'selected_artifact_count':len(selected),
+                        'excluded_artifact_count':len(review.get('artifacts',[]))-len(selected),
+                        'qualification':'Only selected audience-permitted artifact bytes are embedded. Excluded artifacts remain outside this package.'}
     _select_handoff(data, selected)
     _select_deployment_evidence(data, selected)
     _select_quality_evidence(data, selected)
@@ -1169,6 +1184,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
                               'sha256':artifact['sha256'],'size':len(artifact['content']),
                               'base64':base64.b64encode(artifact['content']).decode()})
     files['START_HERE.html']=_html(data).encode('utf-8')
+    from portal_checks import validate_page
+    validate_page(files['START_HERE.html'], expected_files={a['destination']:a['content'] for a in selected})
     scans = {name: _check_disclosure_bytes(body, name) for name, body in files.items()}
     manifest={'schema_version':1,'kind':'portable_delivery_integrity','engagement_id':state['engagement_id'],
               'export_origin': 'agent_packager',
@@ -1260,6 +1277,11 @@ def verify_delivery(path):
                     evidence.append({'id':item['id'],'sha256':_sha(body),'content':body})
                 before=json.dumps(ref,sort_keys=True)
                 _select_omni_evidence(embedded,evidence)
+                # Frozen pages predating the explicit page-mode contract did not
+                # project the curated view inventory. Preserve that exact legacy
+                # shape, while comparing any supplied/new view inventory in full.
+                if 'page_mode' not in embedded and 'views' not in ref:
+                    embedded['review']['omni'].pop('views', None)
                 require(json.dumps(embedded['review']['omni'],sort_keys=True)==before,
                         'Omni evidence is absent or differs from the package summary')
             if embedded.get('review', {}).get('metadata'):
@@ -1283,8 +1305,36 @@ def verify_delivery(path):
                 _select_metadata_evidence(embedded, evidence)
                 require(json.dumps(embedded['review']['metadata'], sort_keys=True) == before,
                         'Metadata evidence is absent or differs from the package summary')
+            # Keep the established evidence gates and their actionable diagnostics
+            # first, then check every displayed payload against the archive.
+            from portal_checks import validate_page
+            validate_page(archive.read('START_HERE.html'),
+                          expected_files={item['path']:archive.read(item['path']) for item in declared
+                                          if item['path'] != 'START_HERE.html'},
+                          require_current=embedded.get('page_mode') is not None)
     return {'status':'integrity_verified','files':len(declared),'context_sha256':context,
             'authority':'Integrity only; does not verify frozen benchmark authority or target execution.'}
+
+
+def check_page(path, javascript=False):
+    """Explicit self-check of saved HTML or a relocated portable ZIP.
+
+    Node is optional and is invoked only with javascript=True. No target code is
+    executed; the normal Python render/package workflow has no Node dependency.
+    """
+    from portal_checks import check_javascript, validate_page
+    path = _path(path)
+    if path.suffix.lower() == '.zip':
+        verify_delivery(path)
+        with zipfile.ZipFile(path) as archive:
+            page = archive.read('START_HERE.html')
+    else:
+        require(path.stat().st_size <= MAX_PACKAGE_BYTES*3, 'Page exceeds size limit')
+        page = path.read_bytes()
+    result = validate_page(page)
+    if javascript:
+        result['javascript'] = check_javascript(page)
+    return result
 
 
 def main(argv=None):
@@ -1296,9 +1346,12 @@ def main(argv=None):
             p.add_argument('--artifacts',required=True); p.add_argument('--audience',choices=sorted(AUDIENCES),default='reviewer')
             p.add_argument('--include',help='Comma-separated deliverable categories')
     p=sub.add_parser('verify'); p.add_argument('package')
+    p=sub.add_parser('check-page',help='Check a generated page or ZIP; JavaScript checks are opt-in')
+    p.add_argument('page'); p.add_argument('--javascript',action='store_true',help='Also check every executable inline script with Node')
     args=parser.parse_args(argv)
     try:
         if args.command=='verify': result=verify_delivery(args.package)
+        elif args.command=='check-page': result=check_page(args.page,args.javascript)
         else:
             # Durable state is verified and current inputs are reassessed before handoff.
             from guided_workflow import assess_engagement

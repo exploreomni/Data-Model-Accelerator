@@ -1,6 +1,9 @@
 /* Local review only. No network, native execution, or approval mutation. */
 'use strict';
+(function bootPortal(){
+if(document.documentElement.__dmaPortalBooted)return;
 const originalShell = '<!doctype html>\n' + document.documentElement.outerHTML;
+document.documentElement.__dmaPortalBooted=true;
 const data = JSON.parse(document.getElementById('delivery-data').textContent);
 const eng = data.engagement, review = data.review || {}, files = data.files || [];
 // BEGIN PORTABLE ASSURANCE HELPERS — these functions never authenticate evidence.
@@ -131,18 +134,85 @@ function trimWorkflowDetails(snapshot,categories){
   for(const key of ['assets','models','relationships','decisions','changes'])delete snapshot.review?.[key];
   for(const key of ['decisions','effort','models','relationships','assets','task_plan'])delete snapshot.workflow?.[key];
 }
-function filteredModelSvg(modelRows,edges,dependencyIds,omittedEdges=0){
+// One normalized graph for both diagram entry points. No physical bindings are guessed.
+function modelGraph(modelRows,relationships,omni){
+  const nodes=modelRows.map(m=>({...m,object_kind:'warehouse',full_name:m.name||m.id})),edges=[];
+  // Retain every authored interpretation, including conflicting cardinality/status/evidence.
+  const addEdge=e=>edges.push(e);
+  relationships.forEach(e=>addEdge({...e}));
+  const lineagePairs=new Set(edges.filter(e=>e.kind==='lineage').map(e=>JSON.stringify([e.from,e.to])));
+  modelRows.forEach(m=>(m.depends_on||[]).forEach(id=>{const pair=JSON.stringify([id,m.id]);if(!lineagePairs.has(pair)){addEdge({from:id,to:m.id,kind:'lineage',label:'Recorded model dependency'});lineagePairs.add(pair);}}));
+  const known=new Set(nodes.map(m=>m.id)),semanticIds=new Map();
+  const semanticId=name=>{if(!semanticIds.has(name)){let id='omni:'+name;while(known.has(id))id='omni:'+id;semanticIds.set(name,id);known.add(id);}return semanticIds.get(name);};
+  if(omni?.evidence_state==='selected'){
+    const names=new Set([...Object.keys(omni.views||{}),...Object.keys(omni.query_views||{})]);
+    // An authoritative registry must never turn an unresolved endpoint into an existing view.
+    if(!Object.hasOwn(omni,'views')){
+      (omni.dependencies||[]).forEach(e=>{names.add(e.from);names.add(e.to);});
+      (omni.topics||[]).forEach(t=>{if(t.base_view)names.add(t.base_view);(t.scope?.views||[]).forEach(v=>names.add(v));});
+    }
+    [...names].sort().forEach(name=>nodes.push({id:semanticId(name),name,full_name:name,layer:'semantic',object_kind:'semantic',grain:Object.hasOwn(omni,'views')?'Semantic grain requires its model definition':'Legacy reference; complete semantic inventory unavailable',semantic_kind:omni.views?.[name]?.kind||omni.query_views?.[name]?.kind||'view'}));
+    (omni.dependencies||[]).forEach(e=>addEdge({...e,from:semanticId(e.from),to:semanticId(e.to),kind:['query_dependency','field_dependency','inheritance'].includes(e.kind)?'lineage':'relationship',label:e.kind}));
+  }
+  const byId=new Map(nodes.map(m=>[m.id,m])),up=new Map(nodes.map(m=>[m.id,new Set()])),down=new Map(nodes.map(m=>[m.id,new Set()]));let unresolved=0;
+  for(const e of edges){if(!byId.has(e.from)||!byId.has(e.to)){unresolved++;continue;}if(e.kind==='lineage'){up.get(e.to).add(e.from);down.get(e.from).add(e.to);}}
+  nodes.sort((a,b)=>(a.object_kind==='warehouse'?0:1)-(b.object_kind==='warehouse'?0:1)||a.full_name.localeCompare(b.full_name)||a.id.localeCompare(b.id));
+  return{nodes,edges,byId,up,down,unresolved};
+}
+function walkLineage(start,adjacency){const visited=new Set(start),pending=[...start];while(pending.length){for(const id of adjacency.get(pending.pop())||[])if(!visited.has(id)){visited.add(id);pending.push(id);}}return visited;}
+function selectLineage(graph,options={}){
+  let focused=new Set(graph.nodes.map(m=>m.id));
+  if(options.focus){focused=new Set();if(graph.byId.has(options.focus)){focused.add(options.focus);if(options.direction!=='downstream')for(const id of walkLineage([options.focus],graph.up))focused.add(id);if(options.direction!=='upstream')for(const id of walkLineage([options.focus],graph.down))focused.add(id);}}
+  const query=(options.search||'').trim().toLowerCase();
+  const selected=new Set(graph.nodes.filter(m=>focused.has(m.id)&&(!options.allowed||options.allowed.has(m.id))&&(!options.layer||m.layer===options.layer)&&(!options.newOnly||m.disposition==='create')&&(!query||(m.full_name+' '+m.id).toLowerCase().includes(query))).map(m=>m.id));
+  const visible=new Set(selected);
+  if(options.context)for(const id of walkLineage(selected,graph.up))if(!options.allowed||options.allowed.has(id))visible.add(id);
+  const dependencies=new Set([...visible].filter(id=>!selected.has(id)));
+  return{selected,visible,dependencies,nodes:graph.nodes.filter(m=>visible.has(m.id)),edges:graph.edges.filter(e=>visible.has(e.from)&&visible.has(e.to)&&(options.joins||e.kind==='lineage')),hidden:graph.nodes.length-visible.size};
+}
+function graphPages(selection,maximum=36,preferred=[]){
+  const groups=[],assigned=new Set(),byId=new Map(selection.nodes.map(n=>[n.id,n]));
+  // Preserve the existing domain/density partitions from the packager, even after filters.
+  for(const view of preferred){const rows=(view.model_ids||[]).filter(id=>byId.has(id)&&!assigned.has(id)).map(id=>byId.get(id));rows.forEach(n=>assigned.add(n.id));if(rows.length)groups.push({label:view.label||'Model view',nodes:rows});}
+  const remaining=selection.nodes.filter(n=>!assigned.has(n.id)),domains=new Map();
+  for(const node of remaining){const domain=node.object_kind==='semantic'?'Semantic objects':node.domain||'All layers';if(!domains.has(domain))domains.set(domain,[]);domains.get(domain).push(node);}
+  for(const [label,nodes]of domains)groups.push({label,nodes});
+  const pages=[];
+  for(const group of groups)for(let start=0;start<group.nodes.length;start+=maximum){
+    const nodes=group.nodes.slice(start,start+maximum),ids=new Set(nodes.map(n=>n.id)),edges=selection.edges.filter(e=>ids.has(e.from)&&ids.has(e.to));
+    pages.push({label:`${group.label}${group.nodes.length>maximum?' · view '+(Math.floor(start/maximum)+1):''} · ${nodes.length} objects`,model_ids:nodes.map(n=>n.id),nodes,edges:edges.slice(0,120),omitted_graph_connections:Math.max(0,edges.length-120),cross_view_connections:selection.edges.filter(e=>ids.has(e.from)!==ids.has(e.to)).length});
+  }return pages;
+}
+function filteredModelSvg(modelRows,edges,dependencyIds=new Set(),omittedEdges=0){
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
-  const layers=['bronze','silver','gold'],positions=new Map(),counts=[0,0,0],width=1200;
-  for(const m of modelRows){const column=Math.max(0,layers.indexOf(m.layer));positions.set(m.id,{x:35+column*390,y:80+counts[column]++*175});}
-  const bottom=100+Math.max(1,...counts)*175,height=bottom+edges.length*42+50;
-  const parts=[`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img"><title>Filtered model and required dependencies</title><desc>Filtered view only. ${omittedEdges} additional connectors are omitted from this image; the guided review retains the full relationship ledger.</desc><rect width="1200" height="${height}" fill="#f4f7fb"/><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#537080"/></marker></defs>`];
-  layers.forEach((layer,i)=>parts.push(`<text x="${35+i*390}" y="35" font-family="sans-serif" font-size="20" fill="#172e43">${layer} · ${counts[i]}</text>`));
-  edges.forEach((edge,i)=>{const a=positions.get(edge.from),b=positions.get(edge.to);if(!a||!b)return;const color=edge.kind==='lineage'?'#076d66':'#7658a7',same=a.x===b.x;const lane=same?a.x+330+(i%5)*7:(a.x+b.x)/2+170+(i%5)*5;const path=`M ${a.x+325} ${a.y+50} H ${lane} V ${b.y+50} H ${same?b.x+325:b.x}`;parts.push(`<path d="${path}" fill="none" stroke="${color}" stroke-width="2" marker-end="url(#arrow)"/><text x="${a.x+330}" y="${a.y+45}" font-family="sans-serif" font-size="10" fill="${color}">E${i+1}</text>`);});
-  for(const m of modelRows){const p=positions.get(m.id),title=m.name||m.id,subtitle=dependencyIds.has(m.id)?'Required dependency':m.mapping_status==='inferred'?'Inferred asset mapping':'Selected model';parts.push(`<g><title>${esc(title)} · ${esc(m.grain||'Grain unresolved')}</title><rect x="${p.x}" y="${p.y}" width="325" height="145" rx="9" fill="white" stroke="#9aabba"/><text x="${p.x+12}" y="${p.y+23}" font-family="sans-serif" font-size="14" font-weight="700" fill="#172e43">${esc(title.slice(0,38))}</text><text x="${p.x+12}" y="${p.y+44}" font-family="sans-serif" font-size="10" fill="#546779">${esc(subtitle)}</text><text x="${p.x+12}" y="${p.y+64}" font-family="sans-serif" font-size="10" fill="#546779">${esc((m.grain||'Grain unresolved').slice(0,51))}</text>`);(m.columns||[]).slice(0,3).forEach((c,i)=>parts.push(`<text x="${p.x+12}" y="${p.y+87+i*17}" font-family="monospace" font-size="11" fill="#172e43">${esc(((c.key?c.key+' ':'')+c.name+' · '+(c.type||'unknown')).slice(0,44))}</text>`));parts.push('</g>');}
-  edges.forEach((edge,i)=>parts.push(`<text x="35" y="${bottom+i*42}" font-family="sans-serif" font-size="11" fill="#172e43">E${i+1} · ${esc(edge.from)} → ${esc(edge.to)}</text><text x="35" y="${bottom+i*42+17}" font-family="sans-serif" font-size="10" fill="#546779">${esc([edge.kind,edge.predicate,edge.cardinality,edge.role,edge.status||'Not validated'].filter(Boolean).join(' · ').slice(0,180))}</text>`));
-  if(omittedEdges)parts.push(`<text x="35" y="${height-18}" font-family="sans-serif" font-size="11" fill="#546779">${omittedEdges} additional connectors omitted from this image. See the complete guided-review ledger.</text>`);
-  parts.push('</svg>');return parts.join('');
+  const order=['bronze','silver','gold','semantic'],layers=order.filter(l=>modelRows.some(m=>m.layer===l));
+  const grouped=layers.map(l=>modelRows.filter(m=>m.layer===l)),index=new Map(),positions=new Map(),incidents=new Map(modelRows.map(m=>[m.id,[]]));
+  grouped.forEach((rows,i)=>rows.forEach(m=>index.set(m.id,i)));
+  edges=edges.filter(e=>incidents.has(e.from)&&incidents.has(e.to));
+  const lanes=layers.map(()=>[]),skips=[];
+  edges.forEach((e,i)=>{const a=index.get(e.from),b=index.get(e.to);incidents.get(e.from).push(i+'from');incidents.get(e.to).push(i+'to');if(Math.abs(a-b)===1)lanes[Math.min(a,b)].push(i);else if(a===b)lanes[a].push(i);else{lanes[a].push(i);lanes[b].push(i);skips.push(i);}});
+  const cw=440,ch=Math.max(190,60+20*Math.max(0,...[...incidents.values()].map(v=>v.length))),gutters=lanes.map(v=>Math.max(170,50+v.length*16)),xs=[34];
+  for(let i=1;i<layers.length;i++)xs.push(xs[i-1]+cw+gutters[i-1]);
+  const top=115+skips.length*20;grouped.forEach((rows,i)=>rows.forEach((m,j)=>positions.set(m.id,{x:xs[i],y:top+j*(ch+48)})));
+  const bottom=top+Math.max(1,...grouped.map(g=>g.length))*(ch+48),width=Math.max(1080,(xs.at(-1)||34)+cw+(gutters.at(-1)||170)+34),height=bottom+edges.length*60+65;
+  const parts=[`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img"><title>Layered model and declared dependencies</title><desc>Full names are selectable using the model name controls. ${omittedEdges} connectors omitted from this image; see the complete relationship ledger.</desc><style>.model-name { font-weight: 700; fill: #172e43; } .model-note { fill: #546779; }</style><rect width="${width}" height="${height}" fill="#f4f7fb"/><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#537080"/></marker></defs>`];
+  layers.forEach((l,i)=>parts.push(`<text x="${xs[i]}" y="35" font-family="sans-serif" font-size="22" fill="#172e43">${l} · ${grouped[i].length}</text>`));
+  const port=(id,i,end)=>{const p=positions.get(id),items=incidents.get(id);return p.y+28+(items.indexOf(i+end)+.5)*(ch-56)/items.length;};
+  const lane=(l,i)=>xs[l]+cw+24+lanes[l].indexOf(i)*16;
+  edges.forEach((e,i)=>{const a=index.get(e.from),b=index.get(e.to),p=positions.get(e.from),q=positions.get(e.to),y1=port(e.from,i,'from'),y2=port(e.to,i,'to');let points;
+    if(Math.abs(a-b)===1)points=[[p.x+(a<b?cw:0),y1],[lane(Math.min(a,b),i),y1],[lane(Math.min(a,b),i),y2],[q.x+(b<a?cw:0),y2]];
+    else if(a===b)points=[[p.x+cw,y1],[lane(a,i),y1],[lane(a,i),y2],[q.x+cw,y2]];
+    else points=[[p.x+cw,y1],[lane(a,i),y1],[lane(a,i),70+skips.indexOf(i)*20],[lane(b,i),70+skips.indexOf(i)*20],[lane(b,i),y2],[q.x+cw,y2]];
+    const status=e.status||e.implementation_status,color=e.kind==='lineage'?'#0c827e':status==='authored'?'#7658a7':status==='proposed'?'#9b641c':'#53697f',dash=e.kind==='lineage'||status==='authored'?'':` stroke-dasharray="${status==='proposed'?'7 4':'2 4'}"`;
+    parts.push(`<path d="M ${points.map(p=>p.join(' ')).join(' L ')}" fill="none" stroke="${color}" stroke-width="2"${dash} marker-end="url(#arrow)"><title>${esc(e.label||e.kind)}</title></path><text x="${points[0][0]+5}" y="${y1-5}" font-family="sans-serif" font-size="13" fill="${color}">E${i+1}</text>`);
+  });
+  for(const m of modelRows){const p=positions.get(m.id);if(!p)continue;const title=m.full_name||m.name||m.id,subtitle=dependencyIds.has(m.id)?'Required dependency context':m.mapping_status==='inferred'?'Inferred asset mapping':m.object_kind==='semantic'?'Semantic object':'Selected model';
+    parts.push(`<g><title>${esc(title)} · ${esc(m.grain||'Grain unresolved')}</title><rect x="${p.x}" y="${p.y}" width="${cw}" height="${ch}" rx="10" fill="white" stroke="#9aabba"/><text data-model-id="${esc(m.id)}" data-model-name="${esc(title)}" class="model-name" x="${p.x+14}" y="${p.y+28}" font-family="sans-serif" font-size="18" fill="#172e43">${esc(title.length>38?title.slice(0,38)+'…':title)}</text><text class="model-note" x="${p.x+14}" y="${p.y+52}" font-family="sans-serif" font-size="15" fill="#546779">${esc(subtitle)}</text><text x="${p.x+14}" y="${p.y+76}" font-family="sans-serif" font-size="15" fill="#546779">${esc((m.grain||'Grain unresolved').slice(0,50))}</text>`);
+    [...(m.columns||[])].sort((a,b)=>Number(Boolean(b.key))-Number(Boolean(a.key))).slice(0,4).forEach((c,i)=>parts.push(`<text x="${p.x+14}" y="${p.y+102+i*20}" font-family="monospace" font-size="15" fill="#172e43">${esc(((c.key?c.key+' ':'')+c.name+' · '+(c.type||'unknown')).slice(0,44))}</text>`));parts.push('</g>');
+  }
+  edges.forEach((e,i)=>parts.push(`<text x="34" y="${bottom+i*60}" font-family="sans-serif" font-size="16" fill="#172e43">E${i+1} · ${esc(e.from)} → ${esc(e.to)}</text><text x="34" y="${bottom+i*60+23}" font-family="sans-serif" font-size="15" fill="#546779">${esc([e.label||e.kind,e.predicate,e.cardinality,e.role,e.status||'Not validated'].filter(Boolean).join(' · ').slice(0,140))}</text>`));
+  if(omittedEdges)parts.push(`<text x="34" y="${height-20}" font-size="16" fill="#546779">${omittedEdges} connectors omitted from this image. See the complete relationship ledger.</text>`);
+  return parts.join('')+'</svg>';
 }
 // END WORKFLOW HELPERS
 const labels = {publish_pr:'Publish a pull request',deploy_development:'Deploy to development',promote:'Promote a tested version',handoff_prepared:'Prepared handoff',dbt:'dbt',coalesce:'Coalesce',native_sql:'Native SQL',snowflake:'Snowflake',databricks:'Databricks',bigquery:'BigQuery',redshift:'Amazon Redshift',clickhouse:'ClickHouse',motherduck:'MotherDuck',gcp:'GCP — service unresolved',documentation:'Model documentation',diagrams:'Connected diagrams',dictionary:'Data dictionary',implementation:'Implementation files',validation:'Validation evidence',sample_data:'Sample data',technical_audit:'Technical audit',reviewer:'Reviewer package',engineer:'Engineering package',audit:'Technical audit'};
@@ -158,9 +228,18 @@ function bytes(b64){return Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
 function card(parent,title,value,note){const c=make('article',undefined,'card');c.append(make('h3',title),make('strong',value),make('p',note));parent.append(c);}
 function table(id,columns,rows,pageSize=30){let page=0;const draw=()=>{const target=clear(id);if(!rows.length){target.append(make('p','No matching records.','empty'));return;}const wrap=make('div',undefined,'table-scroll'),t=make('table'),head=make('tr');columns.forEach(c=>head.append(make('th',c[0])));const thead=make('thead');thead.append(head);t.append(thead);const body=make('tbody');rows.slice(page*pageSize,(page+1)*pageSize).forEach(row=>{const tr=make('tr');columns.forEach(c=>{const td=make('td'),v=c[1](row);td.append(v instanceof Node?v:make('span',v));tr.append(td);});body.append(tr);});t.append(body);wrap.append(t);target.append(wrap);const pager=make('div',undefined,'pager'),prev=make('button','Previous','secondary'),next=make('button','Next','secondary');prev.disabled=page===0;next.disabled=(page+1)*pageSize>=rows.length;prev.onclick=()=>{page--;draw();};next.onclick=()=>{page++;draw();};pager.append(prev,make('span',`${page*pageSize+1}–${Math.min((page+1)*pageSize,rows.length)} of ${rows.length}`),next);target.append(pager);};draw();}
 const reviewSections=['overview','readiness','changes','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[])];
-function navigate(){const id=location.hash.slice(1)||'overview';const valid=reviewSections.includes(id)?id:'overview';document.querySelectorAll('[data-section]').forEach(s=>s.hidden=s.id!==valid);document.querySelectorAll('[data-nav]').forEach(n=>{n.classList.toggle('active',n.dataset.nav===valid);if(n.dataset.nav===valid)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});if(!['overview','model','delivery'].includes(valid))el('supporting-navigation').open=true;}
+const sectionRoutes={architecture:'model',lineage:'model','implementation-code':'delivery','replacement-map':'delivery'};
+function navigate(){
+  const requested=location.hash.slice(1)||'overview',parent=sectionRoutes[requested]||requested,valid=reviewSections.includes(parent)?parent:'overview';
+  document.querySelectorAll('[data-section]').forEach(s=>s.hidden=s.id!==valid);
+  document.querySelectorAll('[data-nav]').forEach(n=>{const active=n.dataset.nav===requested||n.dataset.nav===valid;n.classList.toggle('active',active);if(active)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});
+  if(!['overview','model','delivery'].includes(valid))el('supporting-navigation').open=true;
+  const target=sectionRoutes[requested]?el(requested):el(valid);target?.focus?.({preventScroll:true});target?.scrollIntoView?.({block:'start'});checkLayout();
+}
 addEventListener('hashchange',navigate);navigate();
-el('implementation-nav').hidden=data.audience!=='engineer';el('files-nav').hidden=data.audience==='engineer';
+// Repeated clicks on the same fragment still reveal its parent and focus the anchor.
+document.querySelectorAll('[data-nav]').forEach(link=>{link.onclick=()=>{if(location.hash==='#'+link.dataset.nav)navigate();};});
+el('implementation-nav').hidden=false;el('files-nav').hidden=true;
 el('page-title').textContent=review.title||'Your modeling engagement';
 el('subtitle').textContent=review.description||'A guided path from the current repository to a model you can inspect, test and adopt.';
 Object.values(eng.target||{}).filter(Boolean).forEach(v=>el('target-tags').append(make('span',pretty(v),'pill')));
@@ -292,7 +371,13 @@ table('deployment-receipts',[['Action',r=>pretty(r.action)],['Reported result',r
 el('save-deployment-request').onclick=()=>{const choice=deploymentChoice();if(!deployment?.current||!choice?.available)return notice('Refresh the deployment review before requesting this action.');const plan=concreteDeploymentPlan(choice.id),request={schema_version:1,kind:'deployment_request',intent:plan?'reviewed_plan_request':'prepare_plan',action:choice.id,context_sha256:eng.context_sha256,handoff_manifest_sha256:deployment.handoff.manifest_sha256,target:deployment.target,plan_id:plan?.id||null,plan_sha256:plan?.sha256||null,request_only:true,created_at:new Date().toISOString()};download('deployment-request-'+choice.id+'.json',JSON.stringify(request,null,2),'application/json');el('deployment-request-result').textContent='Request saved. Give this JSON file to the agent. It is not authorization, a signed approval, or an execution receipt.';};
 updateDeploymentAction();
 function modelLink(model){const n=make('div');n.append(make('strong',model.name||model.id),make('small',`${model.layer} · ${model.grain||'Grain unresolved'}`));if(model.artifact_id&&files.some(f=>f.id===model.artifact_id)){const b=make('button','Open code','secondary');b.type='button';b.onclick=()=>openArtifact(model.artifact_id);n.append(b);}return n;}
-function changeTable(){const q=el('change-search').value.toLowerCase();table('changes-table',[['Existing',r=>r.source],['Proposed',r=>{const file=files.find(f=>f.path.endsWith('/'+r.target));if(!file)return r.target;const b=make('button',r.target,'secondary');b.type='button';b.onclick=()=>openArtifact(file.id);return b;}],['Disposition',r=>pretty(r.disposition)],['Why / affected consumers',r=>{const n=make('div');n.append(make('strong',r.rationale),make('small',(r.consumers||[]).join(', ')||'Consumer coverage unresolved'));return n;}],['Decision',r=>r.decision||'Unresolved']],changes.filter(r=>matchesAsset(r,selection,assetId)&&JSON.stringify(r).toLowerCase().includes(q)));}el('change-search').oninput=changeTable;changeTable();
+function changeTable(){
+  const q=el('change-search').value.toLowerCase(),columns=[['Existing',r=>r.source||'Unresolved source'],['Proposed',r=>{const matches=files.filter(f=>f.path===r.target||f.path.endsWith('/'+r.target));const file=matches.length===1?matches[0]:null;if(!file)return r.target||'Unresolved target';const b=make('button',r.target,'secondary');b.type='button';b.onclick=()=>openArtifact(file.id);return b;}],['Disposition',r=>pretty(r.disposition)],['Why / affected consumers',r=>{const n=make('div');n.append(make('strong',r.rationale||'Not supplied'),make('small',(r.consumers||[]).join(', ')||'Consumer coverage unresolved'));return n;}],['Decision',r=>r.decision||'Unresolved']];
+  const rows=changes.filter(r=>matchesAsset(r,selection,assetId));
+  table('changes-table',columns,rows.filter(r=>JSON.stringify(r).toLowerCase().includes(q)));
+  table('replacement-table',columns,rows);
+  if(!rows.length)empty('replacement-table','No source-to-target replacements are included in this view. New-model work may have no legacy replacements; excluded or unresolved mappings must be reviewed with the agent.');
+}el('change-search').oninput=changeTable;changeTable();
 const decisionInputs=new Map();
 function canAnswerDecisions(){return Boolean(workflow?.design_id&&Number.isInteger(workflow.design_revision)&&/^[a-f0-9]{64}$/.test(workflow.design_sha256||''));}
 el('decision-binding').textContent=canAnswerDecisions()?`Answers will bind design ${workflow.design_id}, revision ${workflow.design_revision}. The agent checks freshness before recording them.`:'A current design binding is needed to export answers. Ask the agent to refresh this review; legacy decision statements remain readable.';
@@ -320,17 +405,88 @@ function decisionList(){
 function updateDecisionButton(){const selected=[...decisionInputs.values()].filter(v=>v.selected).length;el('save-decisions').disabled=!canAnswerDecisions()||!selected;el('save-decisions').textContent=`Save selected decision answers${selected?' ('+selected+')':''}`;}
 el('save-decisions').onclick=()=>{try{const answers=[...decisionInputs].filter(([,v])=>v.selected).map(([decision_id,v])=>({decision_id,answer:v.answer,option_id:v.option_id,rationale:v.rationale}));const result=decisionResponseDocument(workflow,eng.engagement_id,answers);download('decision-responses.json',JSON.stringify(result,null,2),'application/json');el('decision-receipt').textContent=`Saved ${answers.length} responses for design revision ${workflow.design_revision}. Give the file to the agent in this engagement. The file does not approve a design or authorize deployment; the agent will confirm whether each answer was recorded.`;}catch(error){notice(error.message);}};
 decisionList();
-const views=data.diagrams||(data.diagram?[{label:'All layers',base64:data.diagram,model_ids:models.map(m=>m.id)}]:[]);
-let shownViews=[],currentDiagram=null;
-function buildViews(){
-  if(!assetId)shownViews=views;
-  else{const filtered=models.filter(m=>selection.visible.has(m.id));shownViews=[];for(let offset=0;offset<filtered.length;offset+=36){const page=filtered.slice(offset,offset+36),ids=new Set(page.map(m=>m.id)),edges=(review.relationships||[]).filter(r=>ids.has(r.from)&&ids.has(r.to)),svg=filteredModelSvg(page,edges.slice(0,120),selection.dependencies,Math.max(0,edges.length-120));shownViews.push({omitted_graph_connections:Math.max(0,edges.length-120),label:`Selected assets · view ${shownViews.length+1}`,svg,model_ids:page.map(m=>m.id),cross_view_connections:(review.relationships||[]).filter(r=>selection.visible.has(r.from)&&selection.visible.has(r.to)&&ids.has(r.from)!==ids.has(r.to)).length});}}
-  const select=clear('diagram-view');shownViews.forEach((v,i)=>{const option=make('option',v.label);option.value=String(i);select.append(option);});showDiagram();
+const graph=modelGraph(models,review.relationships||[],review.omni);
+const diagramEnabled=data.page_mode==='status'||!Array.isArray(data.selected_categories)||data.selected_categories.includes('diagrams');
+const lineageOptions={focus:'',direction:'both',search:'',layer:'',newOnly:false,context:false,joins:true};
+let shownViews=[],currentDiagram=null,lineageSelection=selectLineage(graph),diagramZoom=1,lineageZoom=1;
+for(const id of ['architecture-model','lineage-model']){
+  for(const model of graph.nodes){const option=make('option',`${model.object_kind==='warehouse'?'Warehouse':'Semantic'} · ${model.full_name} (${model.layer})`);option.value=model.id;el(id).append(option);}
 }
-function showDiagram(){const view=shownViews[Number(el('diagram-view').value)||0];currentDiagram=view||null;el('diagram-download').disabled=!view;el('diagram-view').hidden=!shownViews.length;if(view){const img=make('img');img.src=view.svg?'data:image/svg+xml;base64,'+btoa(Array.from(new TextEncoder().encode(view.svg),byte=>String.fromCharCode(byte)).join('')):'data:image/svg+xml;base64,'+view.base64;img.alt='Layered architecture with table blocks, key columns and declared connectors';clear('diagram').append(img);el('diagram-coverage').textContent=`${view.model_ids?.length||0} of ${assetId?selection.visible.size:models.length} visible model objects in this view · ${view.cross_view_connections||0} connections continue in other views. ${view.omitted_graph_connections?view.omitted_graph_connections+' additional connectors omitted from this image to keep it readable. ':''}All visible declared connections remain in the ledger below.`;}else{empty('diagram',assetId?'No model objects match this asset. Mapping coverage remains unresolved.':'The agent will add a connected diagram when the model inventory is available.');el('diagram-coverage').textContent='No diagram is available for this display selection.';}}
-el('diagram-view').onchange=showDiagram;
-el('diagram-download').onclick=()=>{if(currentDiagram)download(assetId?'filtered-model-architecture.svg':'model-architecture.svg',currentDiagram.svg||bytes(currentDiagram.base64),'image/svg+xml');};
-function relationshipTable(){table('relationships',[['From',r=>r.from],['To',r=>r.to],['Predicate / cardinality / role',r=>[r.label||r.kind,r.predicate&&`Predicate: ${r.predicate}`,r.cardinality&&`Cardinality: ${r.cardinality}`,r.role&&`Role: ${r.role}`].filter(Boolean).join(' · ')],['Declared implementation',r=>r.status||r.implementation_status||'Not specified'],['Evidence',r=>r.evidence||'Unresolved']],(review.relationships||[]).filter(r=>selection.visible.has(r.from)&&selection.visible.has(r.to)),10);}
+el('lineage-joins').checked=true;
+function buildViews(){
+  let allowed;
+  if(assetId){allowed=new Set(selection.visible); // Unmapped semantic objects are not silently attributed to an asset.
+    if(assetId==='__unmapped__')for(const node of graph.nodes)if(node.object_kind==='semantic')allowed.add(node.id);
+  }
+  lineageSelection=selectLineage(graph,{...lineageOptions,allowed});
+  shownViews=diagramEnabled?graphPages(lineageSelection,36,data.diagrams||[]):[];
+  const prior=Number(el('diagram-view').value)||0;
+  for(const id of ['diagram-view','lineage-view']){const select=clear(id);shownViews.forEach((v,i)=>{const option=make('option',v.label);option.value=String(i);select.append(option);});select.value=String(Math.min(prior,Math.max(0,shownViews.length-1)));}
+  el('lineage-summary').textContent=diagramEnabled?`${lineageSelection.selected.size} selected + ${lineageSelection.dependencies.size} dependency-context objects of ${graph.nodes.length} included objects. ${lineageSelection.hidden} hidden by filters; ${graph.unresolved} unresolved endpoint references. Warehouse-to-semantic bindings are shown only when recorded. ${assetId?'The asset filter also applies; semantic objects without asset mappings remain in the unmapped view.':''}`:'Diagrams were not selected for this package. Ask the agent for a diagram-inclusive export.';
+  showDiagram();relationshipTable();
+}
+function copyText(value,fallback,message){
+  return Promise.resolve().then(()=>{if(!globalThis.navigator?.clipboard?.writeText)throw new Error('Clipboard unavailable');return navigator.clipboard.writeText(value);}).then(()=>notice(message)).catch(()=>{
+    if(fallback?.select){fallback.focus?.();fallback.select();}
+    else if(fallback&&document.createRange&&globalThis.getSelection){const range=document.createRange();range.selectNodeContents(fallback);const selected=getSelection();selected.removeAllRanges();selected.addRange(range);}
+    notice('Clipboard access is unavailable. The complete text is selected; use your normal Copy shortcut.');
+  });
+}
+function diagramCopyControls(prefix,view){
+  const target=clear(prefix+'-copy');if(!view)return;
+  const label=make('label','Select a full model name to copy'),select=make('select'),input=make('input'),button=make('button','Copy full name','secondary');
+  select.setAttribute('aria-label','Model name to copy');input.setAttribute('aria-label','Full model name');input.readOnly=true;button.type='button';
+  for(const model of view.nodes){const option=make('option',model.full_name||model.name||model.id);option.value=model.id;select.append(option);}
+  select.value=view.nodes[0]?.id||'';
+  const update=()=>{const model=graph.byId.get(select.value);input.value=model?.full_name||'';};select.onchange=update;update();
+  button.onclick=()=>copyText(input.value,input,'Full model name copied.');label.append(select);target.append(label,input,button);
+  return id=>{if(view.model_ids.includes(id)){select.value=id;update();}};
+}
+function drawDiagram(containerId,prefix,view){
+  const target=clear(containerId),selectName=diagramCopyControls(prefix,view);
+  if(!view){target.append(make('p',diagramEnabled?'No model objects match this selection. Clear filters or review the inventory.':'Diagrams are outside this export selection.','empty'));return;}
+  if(!view.svg)view.svg=filteredModelSvg(view.nodes,view.edges,lineageSelection.dependencies,view.omitted_graph_connections);
+  try{
+    if(typeof PortalSvg==='undefined')throw new Error('SVG parser unavailable');
+    const svg=PortalSvg.sanitize(view.svg,'dma-'+prefix);target.append(svg);
+    svg.querySelectorAll('[data-model-id]').forEach(label=>{const id=label.getAttribute('data-model-id');label.onclick=()=>selectName?.(id);});
+    target.oncopy=event=>{
+      const selected=globalThis.getSelection?.();if(!selected?.rangeCount||!String(selected)||!event.clipboardData)return;
+      const names=new Set();svg.querySelectorAll('[data-model-id]').forEach(label=>{for(let i=0;i<selected.rangeCount;i++){if(selected.getRangeAt(i).intersectsNode(label)){const model=graph.byId.get(label.getAttribute('data-model-id'));if(model)names.add(model.full_name);}}});
+      if(names.size){event.clipboardData.setData('text/plain',[...names].join('\n'));event.preventDefault();}
+    };
+    // Download the reconstructed display SVG, never unsanitized imported markup.
+    if(typeof XMLSerializer!=='undefined')view.downloadSvg=new XMLSerializer().serializeToString(svg);
+  }catch(error){
+    // This fallback is exclusively our escaped, deterministic graph output. Imported SVG is never used.
+    const img=make('img');img.src='data:image/svg+xml;base64,'+btoa(Array.from(new TextEncoder().encode(view.svg),byte=>String.fromCharCode(byte)).join(''));img.alt='Layered model diagram. Use the full-name selector to copy names.';target.replaceChildren(img);target.oncopy=null;
+    target.append(make('p','Selectable SVG is unavailable here. The generated image and full-name copy controls remain available.','muted'));
+  }
+  applyDiagramZoom(containerId,prefix,prefix==='diagram'?diagramZoom:lineageZoom);
+}
+function applyDiagramZoom(containerId,prefix,value){
+  const target=el(containerId),graphic=target.querySelector?.('svg, img');el(prefix+'-zoom').textContent=Math.round(value*100)+'%';
+  if(graphic){const width=Number(graphic.getAttribute?.('width'))||graphic.naturalWidth||Number(currentDiagram?.svg?.match(/width="([\d.]+)"/)?.[1]);const height=Number(graphic.getAttribute?.('height'))||graphic.naturalHeight||Number(currentDiagram?.svg?.match(/height="([\d.]+)"/)?.[1]);if(width&&height){graphic.style.width=width*value+'px';graphic.style.height=height*value+'px';}}
+}
+function showDiagram(){
+  const view=shownViews[Number(el('diagram-view').value)||0];currentDiagram=view||null;
+  for(const prefix of ['diagram','lineage']){el(prefix+'-download').disabled=!view;el(prefix+'-view').hidden=!shownViews.length;}
+  drawDiagram('diagram','diagram',view);drawDiagram('lineage-diagram','lineage',view);
+  el('diagram-coverage').textContent=view?`${view.model_ids.length} of ${lineageSelection.visible.size} visible objects in this view · ${view.cross_view_connections} connections continue in other views. ${view.omitted_graph_connections} additional connectors omitted from this image. The ledger retains every selected connection.`:'No diagram is available for this selection.';
+}
+for(const prefix of ['diagram','lineage']){
+  el(prefix+'-view').onchange=()=>{const value=el(prefix+'-view').value;el('diagram-view').value=value;el('lineage-view').value=value;showDiagram();};
+  el(prefix+'-download').onclick=()=>{if(currentDiagram)download('model-architecture.svg',currentDiagram.downloadSvg||currentDiagram.svg,'image/svg+xml');};
+  for(const [action,delta]of [['in',.25],['out',-.25],['reset',0]])el(prefix+'-zoom-'+action).onclick=()=>{let value=prefix==='diagram'?diagramZoom:lineageZoom;value=delta?Math.max(.25,Math.min(3,value+delta)):1;if(prefix==='diagram')diagramZoom=value;else lineageZoom=value;applyDiagramZoom(prefix==='diagram'?'diagram':'lineage-diagram',prefix,value);};
+}
+function syncLineage(){for(const prefix of ['architecture','lineage']){el(prefix+'-model').value=lineageOptions.focus;el(prefix+'-direction').value=lineageOptions.direction;}buildViews();}
+for(const prefix of ['architecture','lineage']){el(prefix+'-model').onchange=()=>{lineageOptions.focus=el(prefix+'-model').value;syncLineage();};el(prefix+'-direction').onchange=()=>{lineageOptions.direction=el(prefix+'-direction').value;syncLineage();};}
+let lineageSearchTimer;
+el('lineage-search').oninput=()=>{clearTimeout(lineageSearchTimer);lineageSearchTimer=setTimeout(()=>{lineageOptions.search=el('lineage-search').value;buildViews();},160);};
+el('lineage-layer').onchange=()=>{lineageOptions.layer=el('lineage-layer').value;buildViews();};
+for(const [id,key]of [['lineage-new','newOnly'],['lineage-context','context'],['lineage-joins','joins']])el(id).onchange=()=>{lineageOptions[key]=el(id).checked;buildViews();};
+el('lineage-clear').onclick=()=>{clearTimeout(lineageSearchTimer);Object.assign(lineageOptions,{focus:'',direction:'both',search:'',layer:'',newOnly:false,context:false,joins:true});el('lineage-search').value='';el('lineage-layer').value='';el('lineage-new').checked=false;el('lineage-context').checked=false;el('lineage-joins').checked=true;syncLineage();};
+function relationshipTable(){const unresolved=graph.edges.filter(r=>(!graph.byId.has(r.from)||!graph.byId.has(r.to))&&(lineageSelection.visible.has(r.from)||lineageSelection.visible.has(r.to)));table('relationships',[['From',r=>graph.byId.get(r.from)?.full_name||r.from],['To',r=>graph.byId.get(r.to)?.full_name||r.to],['Predicate / cardinality / role',r=>[r.label||r.kind,r.predicate&&`Predicate: ${r.predicate}`,r.cardinality&&`Cardinality: ${r.cardinality}`,r.role&&`Role: ${r.role}`].filter(Boolean).join(' · ')],['Declared implementation',r=>r.status||r.implementation_status||'Not specified'],['Evidence',r=>!graph.byId.has(r.from)||!graph.byId.has(r.to)?'Unresolved model endpoint: '+[r.from,r.to].filter(id=>!graph.byId.has(id)).join(', '):r.evidence||'Unresolved']],[...lineageSelection.edges,...unresolved],10);}
 function dictionary(){const q=el('model-search').value.toLowerCase(),layer=el('layer-filter').value,rows=[];models.filter(m=>selection.visible.has(m.id)&&(!layer||m.layer===layer)).forEach(m=>(m.columns?.length?m.columns:[{name:'Columns not included',description:'See the separately selected dictionary.'}]).forEach(c=>{const r={model:m,column:c};if(JSON.stringify({id:m.id,name:m.name,grain:m.grain,layer:m.layer,domain:m.domain,column:c}).toLowerCase().includes(q))rows.push(r);}));table('dictionary',[['Table / grain',r=>modelLink(r.model)],['Column',r=>r.column.name],['Type / key',r=>`${r.column.type||'Unresolved'} ${r.column.key||''}`],['Definition',r=>r.column.description||'Not supplied']],rows);}
 el('model-search').oninput=dictionary;el('layer-filter').onchange=dictionary;
 for(const asset of review.assets||[]){const option=make('option',`${asset.name||asset.id} · ${asset.kind||'asset'} · ${asset.mapping_status||'mapping unverified'}`);option.value=asset.id;el('asset-filter').append(option);}
@@ -349,8 +505,12 @@ function updateExport(){const selected=selectedFiles(),ids=new Set(selected.map(
 if(!files.length){empty('export-choices',eng.delivery?.status==='prepared'?'No files are embedded in this status page. Ask the agent to export the prepared artifacts for your selected audience and deliverables.':'No files are embedded in this status page. Ask the agent to generate and package the selected deliverables after discovery.');}
 let activeFile=null;
 function showFile(file){activeFile=file;el('file-title').textContent=file.path;el('file-note').textContent=(file.description||'')+(file.category==='implementation'?' dbt models belong in their project; native SQL follows the selected platform’s run order.':'');const body=bytes(file.base64);el('file-content').textContent=body.length>2*1024*1024?'Preview limited to 2 MiB. Download the complete file to inspect it.':new TextDecoder().decode(body);el('copy-code').disabled=body.length>2*1024*1024;el('download-file').disabled=false;document.querySelectorAll('#file-list button').forEach(b=>b.classList.toggle('active',b.dataset.file===file.id));}
-function fileList(){const q=el('file-search').value.toLowerCase(),cat=el('file-category').value,target=clear('file-list');const found=files.filter(f=>(!cat||f.category===cat)&&(f.path+' '+f.description).toLowerCase().includes(q));found.slice(0,200).forEach(f=>{const b=make('button',f.path);b.type='button';b.dataset.file=f.id;b.onclick=()=>showFile(f);target.append(b);});if(found.length>200)target.append(make('p',`${found.length} matches. Narrow the search to view more.`,'muted'));if(!found.length)target.append(make('p','No matching files.','empty'));}el('file-search').oninput=fileList;el('file-category').onchange=fileList;fileList();
-el('copy-code').onclick=async()=>{try{await navigator.clipboard.writeText(el('file-content').textContent);notice('File text copied.');}catch{const range=document.createRange();range.selectNodeContents(el('file-content'));const selection=getSelection();selection.removeAllRanges();selection.addRange(range);notice('Clipboard access is unavailable. The file text is selected; use your normal Copy shortcut.');}};
+function fileList(){const q=el('file-search').value.toLowerCase(),cat=el('file-category').value,target=clear('file-list');const found=files.filter(f=>(!cat||f.category===cat)&&(f.path+' '+f.description).toLowerCase().includes(q));found.slice(0,200).forEach(f=>{const b=make('button',f.path);b.type='button';b.dataset.file=f.id;b.onclick=()=>showFile(f);target.append(b);});if(found.length>200)target.append(make('p',`${found.length} matches. Narrow the search to view more.`,'muted'));if(!found.length)target.append(make('p','No matching files.','empty'));}el('file-search').oninput=fileList;el('file-category').onchange=fileList;
+const implementationFiles=files.filter(f=>f.category==='implementation');
+if(implementationFiles.length){el('file-category').value='implementation';showFile(implementationFiles[0]);}
+fileList();
+el('implementation-state').textContent=implementationFiles.length?`${implementationFiles.length} implementation files included. Review the selected code and its validation evidence before deployment.`:data.page_mode==='status'||!files.length?'This is a status page with no embedded code. Ask the agent to package the registered engineering deliverables; if code is still pending, generate and register the requested candidates first.':data.audience==='reviewer'?'Implementation code is excluded from reviewer packages. Ask the agent for an engineering package to inspect generated code.':!data.selected_categories?.includes('implementation')?'Implementation was not selected for this export. Request an engineering package with implementation included if code is needed.':'No implementation files are included. The requested code is still pending or unavailable; this page does not establish completion.';
+el('copy-code').onclick=()=>copyText(el('file-content').textContent,el('file-content'),'File text copied.');
 el('download-file').onclick=()=>activeFile&&download(activeFile.path.split('/').pop(),bytes(activeFile.base64));
 // Stored ZIP format keeps offline exports independent of CDNs and native tools.
 function crc32(array){let crc=0xffffffff;for(const byte of array){crc^=byte;for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}return(crc^0xffffffff)>>>0;}
@@ -361,6 +521,8 @@ el('download-package').onclick=async()=>{
     if(!crypto.subtle)throw new Error('This browser cannot check file hashes here. Use the original package or ask the agent to export your selected categories.');
     const selected=selectedFiles(),entries=await checkedSubsetFiles(files,selected,chosen),next=structuredClone(data);
     next.files=selected;
+    next.page_mode='package';next.selected_categories=[...chosen].sort();next.file_count=selected.length;
+    next.projection={...(next.projection||{}),selected_artifact_count:selected.length,excluded_artifact_count:(data.projection?.excluded_artifact_count||0)+files.length-selected.length};
     next.engagement.delivery_assurance=portableAssurance(eng);
     next.export_review={origin:'browser_subset',status:'candidate',content_scan:'not_run_in_browser',disclosure_policy:'not_revalidated_in_browser',acceptance_ready:false,deployment_authorized:false};
     trimMetadataEvidence(next,selected);
@@ -392,3 +554,13 @@ el('download-package').onclick=async()=>{
     notice('Candidate subset created with checked file hashes. No new content scan or disclosure approval was performed; return this exact ZIP to the agent before sharing.');
   }catch(error){notice(error.message);}
 };
+
+// Real layout is checked only when the page is opened; a stub DOM cannot establish geometry.
+function assertPortalLayout(){
+  const sidebar=document.querySelector?.('.sidebar');if(!sidebar?.getBoundingClientRect||typeof getComputedStyle!=='function')return;
+  const fixed=getComputedStyle(sidebar).position==='fixed',edge=sidebar.getBoundingClientRect().right;
+  for(const section of document.querySelectorAll('.review-section')){if(!section.getClientRects().length)continue;const rect=section.getBoundingClientRect();if(fixed&&rect.left<edge-1)throw new Error('Review layout error: '+section.id+' overlaps the fixed sidebar.');}
+}
+function checkLayout(){try{assertPortalLayout();}catch(error){notice(error.message);}}
+addEventListener('resize',checkLayout);checkLayout();
+})();
