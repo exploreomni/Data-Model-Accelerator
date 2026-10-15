@@ -80,3 +80,73 @@ The package verifier checks an exhaustive inventory, byte lengths and SHA-256 ha
 Review collections have an explicit 20,000-item ceiling; packaging permits 5,000 registered artifacts, 20 MiB per file and 100 MiB of selected source payloads. Rendered packages are bounded separately. Exceeding limits fails with a partitioning instruction; no truncation produces a complete badge. Use coherent domain waves and retain complete cross-domain scope/denominators. File preview is limited to 2 MiB without altering downloaded bytes. Tables paginate and files filter. Diagrams partition by domain, at most 36 objects, and connection density; cross-view connections retain explicit counts and the full page ledger. Reserved gutters route connectors outside unrelated table blocks; parallel roles use separate ports and lanes. Teal shows lineage, violet authored joins, dashed amber proposed joins, and dotted grey other/unspecified joins. Large diagrams scroll at a readable scale instead of shrinking every label to fit the page. Inspect rendered output for the actual inventory before delivery.
 
 An unsupported output format is a recorded generation request for the host, not a target label switch. Extending a platform requires its reviewed model, artifact, metadata and execution contracts plus qualification. The UI needs no platform-specific rewrite.
+
+## Offline navigation and lineage
+
+The sidebar retains Overview, Design and Implementation as the primary routes.
+Architecture & relationships (`#architecture`) and Explore lineage (`#lineage`)
+open within Design. Code & SQL (`#implementation-code`) and Replacement map
+(`#replacement-map`) open within Implementation, including on the first click
+or a direct fragment link. All sections share the responsive review layout.
+
+Implementation remains discoverable for every audience. A status page contains
+no artifact payloads; ask the agent to export the registered engineering handoff.
+Reviewer exports explain that implementation is excluded, without embedding it.
+Engineering packages open the first included implementation file automatically.
+A requested, missing or excluded artifact never becomes a completion claim.
+
+Both diagram panels use the same renderer, model picker and filter state. The
+picker includes all available warehouse objects first, then selected curated
+Omni views, including views with dimensions only. Layer, name, direction and
+new-model filters combine with the existing asset filter. `disposition: create`
+is the only basis for “new models only”; missing dispositions stay unknown.
+Dependency context outside name/layer/new filters is an explicit option.
+Asset filtering never attributes unmapped semantic objects to a report.
+
+Upstream/downstream traversal follows recorded `depends_on` and lineage edges;
+joins do not become transformation dependencies. Declared joins are a separate
+optional overlay. Semantic dependencies come from the included curated semantic
+handoff. Missing warehouse-to-semantic bindings remain missing; names do not
+establish them. Graph traversal precedes view pagination, handles cycles, and
+retains counts for hidden objects and connectors continuing in another view.
+The full selected relationship ledger remains accessible below Architecture.
+
+Diagrams open at their natural size in a scroll box with independent zoom and
+reset controls. Validated inline SVG supports selectable labels; diagram-label
+copy and the full-name selector use complete inventory names. If the clipboard
+is unavailable, select the full text and use the normal Copy shortcut. A failed
+inline parser falls back only to the generator's escaped image, with a visible
+notice. Display SVG reconstruction preserves a constrained safe CSS vocabulary,
+local markers and fonts while stripping active content and external references.
+It does not alter registered source artifact bytes or weaken their validation.
+No runtime library, font, script or network service is downloaded.
+
+## Page self-checks
+
+Every new render checks unique IDs, shared classes, parent routes, sidebar links,
+parsed page data and embedded file integrity. ZIP verification also compares the
+embedded file inventory against actual selected archive bytes. Original and
+reduced exports retain audience, disclosure and approval boundaries. Repeated
+unchanged renders are deterministic; repeated script initialization adds no
+second set of controls or listeners. Frozen historical packages are not rewritten.
+
+Run the explicit page check on HTML or a ZIP:
+
+```sh
+python scripts/delivery_portal.py check-page /absolute/engineering-handoff.zip --javascript
+python -m unittest discover -s tests -p 'test_portal_*.py' -v
+```
+
+The first command checks every emitted executable script using `node --check`;
+the JSON payload is parsed as data. Node is needed for this optional JavaScript
+check and the developer smoke tests, never for ordinary Python rendering.
+The tests exercise emitted scripts in a stub DOM, hostile SVG inputs, counts,
+first-click routes, repeat initialization and offline subset exports. These are
+structural/control-flow checks, not browser rendering or native acceptance.
+
+After generation, a browser review still needs to check sidebar overlap at wide,
+sub-1000px and sub-700px widths; every sidebar link and direct fragment; diagram
+colors, readable labels, scrolling and zoom; visible code and replacement map;
+full-name/code copy and clipboard fallback; and reopening the reduced ZIP offline.
+A live geometry guard reports sidebar overlap when the page is opened, but it
+cannot prove layout before a browser has actually rendered the page.
