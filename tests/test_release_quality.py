@@ -72,6 +72,29 @@ class ReleaseQualityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Lint evidence changed'):
             deployment._current(plan, case.policy_path)
 
+    def test_authoring_observations_bind_to_release_and_cannot_be_tampered(self):
+        from authoring_quality import evaluate
+        from test_authoring_evidence import contract
+        reference = self.prepare_quality()
+        case = self.case
+        expected = contract()
+        expected['models'][0].update(path='models/orders.sql', columns=['order_id'], depends_on=[])
+        report = evaluate(case.candidate, case.source, expected,
+                          ['models/orders.sql', 'macros/identity.sql'], 'snowflake')
+        contract_path, report_path = case.root / 'authoring-contract.json', case.root / 'authoring-report.json'
+        contract_path.write_text(json.dumps(expected)); report_path.write_text(json.dumps(report))
+        reference['authoring'] = {'contract_path': str(contract_path), 'report_path': str(report_path),
+                                  'source_root': str(case.source)}
+        plan = deployment.create_plan(case.run, dict(case.request, quality=reference), case.policy_path,
+                                      case.root / 'authoring-plan.json')
+        self.assertEqual(plan['quality']['authoring']['mode'], 'provisional')
+        self.assertNotEqual(plan['quality']['authoring']['status'], 'passed')
+        deployment._current(plan, case.policy_path)
+        report['status'] = 'passed'
+        report_path.write_text(json.dumps(report))
+        with self.assertRaisesRegex(ValueError, 'Authoring evidence differs'):
+            deployment._current(plan, case.policy_path)
+
     def test_portable_quality_summary_discloses_real_style_exceptions(self):
         reference = self.prepare_quality(style_exception=True)
         case = self.case

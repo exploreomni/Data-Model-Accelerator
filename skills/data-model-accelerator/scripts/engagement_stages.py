@@ -25,6 +25,12 @@ COMPONENT_FILES = {
     'packaging': ('scripts/delivery_portal.py', 'scripts/finalize_delivery.py', 'assets/guided-delivery/portal.js',
                   'assets/guided-delivery/portal.css', 'assets/guided-delivery/portal.html'),
     'deployment': ('scripts/deployment_workflow.py', 'scripts/deployment_authority.py'),
+    # Diagnostic changes refresh evidence; they do not rewrite unchanged SQL.
+    'authoring_checks': ('scripts/authoring_evidence.py', 'scripts/authoring_provenance.py',
+                         'scripts/authoring_conformance.py', 'scripts/authoring_quality.py',
+                         'scripts/authoring_release.py', 'references/authoring-quality.md'),
+    'execution_observations': ('scripts/agent_execution.py', 'scripts/agent_benchmark.py',
+                               'references/agent-benchmark.md'),
     'dbt_runtime': ('scripts/dbt_runtime.py', 'scripts/dbt_compatibility.py',
                     'scripts/dbt_feature_delivery.py', 'scripts/dbt_information_schema.py',
                     'scripts/dbt_native_lint.py', 'scripts/run_dbt_project.py',
@@ -230,6 +236,8 @@ def component_versions():
     result = {name: hash_json({path: hashlib.sha256((root / path).read_bytes()).hexdigest()
                             if (root / path).is_file() else 'unavailable' for path in paths})
             for name, paths in COMPONENT_FILES.items()}
+    from authoring_quality import checker_version
+    result['authoring_checks'] = hash_json({'core': result['authoring_checks'], 'runtime': checker_version()})
     classified = {path for paths in COMPONENT_FILES.values() for path in paths}
     # Unknown impact (parser, generator, security policy or prompt changes) is
     # conservative. Explicit presentation-only files stay in packaging's pin.
@@ -618,6 +626,8 @@ def plan_tasks(state, artifact_root):
             require_stage(state, task['stage'], task['entity_ids'], _planning=True, _approved=approved[task['stage']])
             material = entity_bindings(state, task['entity_ids'], presentation=task['stage'] in {'design', 'packaging'}, stage=task['stage'], _cache=cache)
             parts = set(task['components']) | {'workflow', task['stage']}
+            if task['stage'] == 'validation':
+                parts.add('authoring_checks')
             if task['stage'] != 'design' and state['answers'].get('dbt_runtime'):
                 parts.add('dbt_runtime')
             scope = closure({e['id']: e['depends_on'] for e in design(state)['entities']}, task['entity_ids'])
@@ -666,7 +676,7 @@ def plan_tasks(state, artifact_root):
 
 
 def record_task(state, artifact_root, request):
-    fields(request, {'task_id', 'run_id', 'plan_sha256', 'fingerprint', 'outputs', 'evidence_reference'})
+    fields(request, {'task_id', 'run_id', 'plan_sha256', 'fingerprint', 'outputs', 'evidence_reference'}, {'authoring_contract', 'execution'})
     identifier(request['run_id']); text(request['evidence_reference'])
     require(all(r['run_id'] != request['run_id'] for r in workflow(state)['runs']), 'Run ID already recorded')
     plan = plan_tasks(state, artifact_root)
@@ -680,8 +690,26 @@ def record_task(state, artifact_root, request):
     for path in _code_artifacts(state, specification):
         require(_stable_bytes(Path(artifact_root) / path).strip(), 'Native code artifact is empty: ' + path)
     require(request['outputs'] == outputs, 'Output manifest does not match generated files')
+    execution = None
+    if 'execution' in request:
+        from agent_execution import record_execution
+        fields(request['execution'], {'packet_dir', 'request'})
+        host = request['execution']['request']
+        require(host.get('task_id') == request['task_id'] and host.get('run_id') == request['run_id'],
+                'Host execution belongs to a different task or run')
+        execution = record_execution(Path(request['execution']['packet_dir']), host)
+        require(execution['context_bindings'].get('task_fingerprint') == request['fingerprint'],
+                'Execution packet is not bound to the current task fingerprint')
     import guided_workflow as guided
-    workflow(state)['runs'].append({**copy.deepcopy(request), 'recorded_at': guided._now(),
+    if specification['stage'] in {'implementation', 'semantic'}:
+        from authoring_quality import observe_task
+        observe_task(state, artifact_root, specification, task['generation_mode'],
+                     observation_id='checks-' + hash_json(request['run_id'])[:32], run_id=request['run_id'],
+                     contract=request.get('authoring_contract'))
+    recorded = {key: copy.deepcopy(value) for key, value in request.items() if key not in {'authoring_contract', 'execution'}}
+    if execution is not None:
+        recorded['execution_observation'] = execution
+    workflow(state)['runs'].append({**recorded, 'recorded_at': guided._now(),
         'generation_mode': task['generation_mode'],
         'assurance': 'host_reported_file_integrity', 'qualification': 'Output registration is not native validation or deployment approval.'})
     workflow(state)['last_plan'] = plan_tasks(state, artifact_root)
@@ -894,4 +922,6 @@ def public_view(state, *, _refresh=True):
                 'rationale': '; '.join(current['reasons']) or 'Bounded factors and evidence are recorded.',
                 'dimensions': [{'name': d['factor'], 'level': d['level'], 'rationale': d['rationale']} for d in package['drivers']]})
     _requested_progress(state, result)
+    from authoring_quality import summaries
+    result['authoring_checks'] = summaries(state)
     return result

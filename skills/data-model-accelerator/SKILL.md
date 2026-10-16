@@ -36,6 +36,15 @@ open findings forward and stop unproductive loops. Record packet sizes and
 attempts as operational evidence; host telemetry owns actual token and cost
 attribution. Context reduction never weakens approval or validation gates.
 
+Preserve configured model and effort defaults. Record requested and observed
+execution separately; unknown telemetry stays unknown. Use the
+[controlled comparison](references/agent-benchmark.md) before changing routing.
+For every code batch follow [authoring evidence](references/authoring-quality.md):
+bind assumptions, provenance and expected structure, retain failed/unsupported
+checks, and recheck changed scope before another authoring pass. These diagnostics
+must not block explicitly requested provisional files or impersonate production
+qualification.
+
 The coordinator also owns final delivery assembly. A completed specialist task,
 `handoff_prepared` state or cheaper run does not prove that a usable handoff exists.
 Use the deterministic finalizer below; do not delegate another source review to

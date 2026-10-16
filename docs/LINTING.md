@@ -35,6 +35,12 @@ The guided review keeps four lanes independent:
 
 No successful lint result fills the other lanes. Missing, skipped and unsupported checks remain visible. The real integration tests include a syntactically clean model that returns the wrong value against a frozen independent expectation.
 
+[Authoring evidence](../skills/data-model-accelerator/references/authoring-quality.md)
+adds contextual provenance and design conformance beside linting. It is diagnostic
+by default and preserves provisional authoring. A qualified external runner can
+enable `require_authoring_quality` for live promotion; its exact-byte recheck
+does not replace native, data, security or approval gates.
+
 Fix authored style issues first. When source names, projection order or framework formatting must be preserved, the manifest can record a narrow exact-file/rule/reason exception bound to the file hash. All rules still run; raw findings and exception counts remain visible in the report and guided review. Unknown, unused or forged exceptions fail validation. Parser, coverage, runtime and data failures cannot be waived this way. A reported policy pass is not necessarily a zero-finding result.
 
 Native Omni `.view`, `.topic`, `model` and `relationships` files belong in the inspected inventory. The extensionless `model` file carries model-level AI context and must not disappear from lint or packaging merely because it has no YAML suffix.

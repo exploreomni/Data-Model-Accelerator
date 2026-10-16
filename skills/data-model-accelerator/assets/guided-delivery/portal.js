@@ -646,6 +646,18 @@ el('asset-controls').hidden=!models.length&&!(review.assets||[]).length;
 function filterAssets(){assetId=el('asset-filter').value;selection=assetSelection(models,review.relationships||[],assetId);el('asset-filter-note').textContent=`${selection.visible.size} of ${models.length} entities visible; ${selection.dependencies.size} required dependencies retained. ${selection.unknown.size} entities have missing or unverified asset mappings. Unmapped decisions and changes remain visible.`;buildViews();relationshipTable();dictionary();changeTable();decisionList();}
 el('asset-filter').onchange=filterAssets;filterAssets();
 card(el('validation-counts'),'Reported passes',cases.filter(c=>c.status==='pass').length,`${cases.length} total declared cases; scope is shown per case.`);
+const authoringChecks=workflow?.authoring_checks||[];
+el('authoring-boundary').textContent=authoringChecks.length?'Reported static authoring observations for the included model scope. Unresolved, unsupported and stale checks remain visible. These observations do not prove native validity, business accuracy or deployment approval.':'Authoring evidence is not included for this scope. Ask the agent to recheck the retained code; no regeneration is needed for a checker-only update.';
+table('authoring-checks',[
+  ['Task',r=>r.task_id],['Mode',r=>pretty(r.mode)],['Reported status',r=>pretty(r.status)],
+  ['Scope',r=>(r.model_ids||[]).join(', ')],
+  ['Check counts',r=>Object.entries(r.counts||{}).map(([key,value])=>`${value} ${pretty(key)}`).join(' · ')],
+  ['Open assumptions',r=>String(r.unresolved_assumptions??'Unknown')],
+  ['Next action',r=>({stale:'Recheck the retained files.',failed:'Repair the affected findings, then recheck.',unsupported:'Validate unsupported constructs with the target-native tools.',not_run:'Supply missing evidence; retain provisional scope.',passed:'Continue independent native, data and access validation.'})[r.status]||'Ask the agent to inspect the missing evidence.']
+],authoringChecks);
+table('authoring-findings',[
+  ['Task',r=>r.task_id],['Model',r=>r.model_id||'Task scope'],['Finding',r=>pretty(r.code)],['Status',r=>pretty(r.status)]
+],authoringChecks.flatMap(row=>(row.findings||[]).map(f=>({...f,task_id:row.task_id}))));
 card(el('validation-counts'),'Failures',cases.filter(c=>c.status==='fail').length,'Unexplained mismatches remain visible.');
 card(el('validation-counts'),'Pending or skipped',cases.filter(c=>['pending','skipped'].includes(c.status)).length,'Missing checks cannot count as passing evidence.');
 function validation(){const filter=el('validation-filter').value;table('validation-cases',[['Case',r=>r.label||r.id],['Scope',r=>pretty(r.scope)],['Reported status',r=>make('strong',pretty(r.status),r.status)],['Expected → observed',r=>data.audience==='reviewer'?'Values omitted from reviewer export':`${text(r.expected)} → ${text(r.actual)}`],['Evidence / interpretation',r=>`${r.evidence_id||'No evidence association'} · ${r.details||'No explanation supplied'}`]],cases.filter(c=>!filter||c.status===filter));}el('validation-filter').onchange=validation;validation();
@@ -792,6 +804,7 @@ el('download-package').onclick=async()=>{
       next.review.quality_checks=next.review.quality_checks.map(q=>selectedIds.has(q.evidence_artifact_id)?q:qualityOmitted(q.id));
     }
     if(!chosen.has('validation'))delete next.review.validation;
+    if(next.workflow&&(!chosen.has('validation')||!['documentation','diagrams','dictionary'].some(x=>chosen.has(x))))delete next.workflow.authoring_checks;
     if(!['documentation','diagrams','dictionary'].some(x=>chosen.has(x))){delete next.review.models;delete next.review.relationships;}
     else if(!chosen.has('dictionary')){
       (next.review.models||[]).forEach(m=>delete m.columns);

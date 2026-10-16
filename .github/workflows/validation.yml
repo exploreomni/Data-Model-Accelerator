@@ -75,6 +75,10 @@ jobs:
       - run: python -m unittest discover -s tests -p 'test_lint*.py' -v
       - run: python -m unittest discover -s tests -p 'test_release_quality.py' -v
       - run: python -m unittest discover -s tests -p 'test_platform_matrix.py' -v
+      - name: Authoring provenance, conformance and protected promotion
+        run: python -m unittest discover -s tests -p 'test_authoring*.py' -v
+      - name: Context observations and controlled comparison
+        run: python -m unittest discover -s tests -p 'test_agent*.py' -v
   metadata-contracts:
     runs-on: ubuntu-latest
     steps:

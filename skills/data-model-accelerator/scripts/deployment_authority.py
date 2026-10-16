@@ -76,6 +76,7 @@ def load_policy(path, *, excluded_roots=()):
             'Unsupported runner policy')
     require(isinstance(policy.get('runner_id'), str) and policy['runner_id'], 'Runner identity is required')
     require(policy.get('mode') in {'simulation', 'live'}, 'Runner mode must be simulation or live')
+    require(type(policy.get('require_authoring_quality', False)) is bool, 'Authoring promotion policy must be boolean')
     require(type(policy.get('allowed_actions')) is list and bool(policy['allowed_actions'])
             and set(policy['allowed_actions']) <= ACTIONS, 'Invalid allowed actions')
     require(type(policy.get('destinations')) is dict and bool(policy['destinations']), 'No configured destinations')

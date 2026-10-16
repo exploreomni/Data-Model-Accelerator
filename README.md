@@ -73,6 +73,13 @@ preserving independent source checks. See [context-efficient orchestration](skil
 Packet sizes and attempts are operational evidence; actual usage and charges
 remain the agent host's responsibility.
 
+Code batches also record [authoring evidence](skills/data-model-accelerator/references/authoring-quality.md):
+scoped assumptions, literal provenance, structural conformance and honest coverage
+gaps. Checker-only updates can recheck retained code without another generation
+pass. Provisional output remains available. Model defaults stay unchanged until
+a [controlled comparison](skills/data-model-accelerator/references/agent-benchmark.md)
+supports a reviewed routing decision. Static passes never establish production readiness.
+
 A model delivery maintains an ERD, complete dictionary and documentation for every scoped layer. One current entry page opens to a **Data model** workspace, with **Code & files** and **Validation** alongside it. Inspect the ERD, select a table for its columns, keys, joins and linked code, and filter new versus reused tables. Supporting context stays available on demand. Diagram coverage is checked against the included model inventory; it does not establish business acceptance. The selected ZIP opens offline:
 
 ```text

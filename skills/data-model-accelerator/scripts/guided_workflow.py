@@ -679,7 +679,7 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
                 stages.approve_design(state, entities, policy, attestation)
         elif action == 'assess-effort':
             stages.assess_development(state, document)
-        elif action in ('plan-tasks', 'record-task'):
+        elif action in ('plan-tasks', 'record-task', 'check-task'):
             root = _path(artifact_root)
             _outside(root, _path(state['inputs']['source']['path']))
             _require(root != run_dir and root not in run_dir.parents and run_dir not in root.parents,
@@ -690,6 +690,9 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
             state['workflow']['artifact_root'] = str(root)
             if action == 'record-task':
                 stages.record_task(state, root, document)
+            elif action == 'check-task':
+                from authoring_quality import recheck_task
+                recheck_task(state, root, document)
             else:
                 state['workflow']['last_plan'] = stages.plan_tasks(state, root)
         elif action == 'stage':
@@ -710,7 +713,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
     stage_commands = ('migrate-stages', 'import-design', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
-                      'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'stage')
+                      'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage')
     for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence') + stage_commands:
         p = sub.add_parser(command)
         p.add_argument('--run', type=Path, required=True, help='Local engagement folder outside the input repository.')
@@ -734,7 +737,7 @@ def main(argv=None):
         if command == 'record-evidence':
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
-        if command in ('import-design', 'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'request-draft'):
+        if command in ('import-design', 'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
         if command in ('review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft'):
             p.add_argument('--entities', nargs='+', required=True)
@@ -742,7 +745,7 @@ def main(argv=None):
             p.add_argument('--document', type=Path, help='Exact-scope human decision attributed by the trusted host; never an approval inferred from input files.')
             p.add_argument('--policy', type=Path)
             p.add_argument('--attestation', type=Path)
-        if command in ('plan-tasks', 'record-task'):
+        if command in ('plan-tasks', 'record-task', 'check-task'):
             p.add_argument('--artifact-root', type=Path, required=True)
         if command == 'stage':
             from engagement_stages import STAGES

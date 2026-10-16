@@ -38,4 +38,9 @@ Register or reuse scoped tasks, show the reuse/regenerate/blocked plan, then inv
 the host's actual engineering specialists for runnable tasks. Preserve existing
 framework conventions, source identifiers, shared-file ownership and independent
 baseline ownership. Record current output hashes and actual execution references.
+Supply the scoped [authoring contract](../data-model-accelerator/references/authoring-quality.md)
+with explicit model/file bindings, proposed or unresolved definitions, source
+provenance and independently established expression expectations. `record-task`
+records automatic checks; repair affected findings without suppressing explicitly
+requested provisional outputs. Preserve configured model/effort defaults.
 Code generation does not authorize project execution, semantic generation or deployment.

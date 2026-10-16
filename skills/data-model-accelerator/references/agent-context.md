@@ -185,3 +185,31 @@ run's charge. Use [Claude Code cost diagnostics](https://code.claude.com/docs/en
 for host attribution. Do not add guessed cost dashboards or promise a savings
 percentage from packet size. Development effort remains a separate model-build
 complexity assessment.
+
+### Record requested versus observed execution
+
+Preserve the host's configured model and effort by default. A role label, packet
+size or self-description cannot establish which model ran or justify a silent
+downgrade. Record an observed model only from attributable host telemetry;
+otherwise leave it null. Do not infer isolated context from a request for it.
+
+`agent_execution.record_execution(packet_dir, request)` checks the actual
+`TASK.md` and `CONTEXT_RECEIPT.json` bytes. Its versioned request keeps task/run
+IDs, both file hashes, requested/observed model and effort, context mode and an
+optional host reference separate. Optional token counts need their own usage
+reference; omit unavailable counts rather than estimating them. The receipt
+labels these observations host-reported, never authenticated execution or
+isolation. It does not launch an agent, choose a model, or calculate a bill.
+
+Attach this evidence when recording a task with optional
+`execution: {packet_dir, request}`. The coordinator checks matching task/run IDs
+and requires the packet's `bindings.task_fingerprint` to match the current task
+plan. It retains the observation with the original generation run. Old task records
+without telemetry remain valid and unknown. Reusing files or rechecking them
+does not create new generation usage.
+
+Checker and telemetry-helper versions are separate from generation components.
+An updated checker can invalidate its own observation and validation task while
+retaining unchanged generated files. Use `check-task` to refresh evidence; never
+invent a new authoring run to make an older receipt look current. Material source,
+design, target or generator changes retain the existing conservative reuse rules.

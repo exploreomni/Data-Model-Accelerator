@@ -50,6 +50,16 @@ assert.equal(el('replacement-table').children.length>0,true);
 location.hash='#overview';listeners.hashchange[0]();assert.equal(el('overview').hidden,false);
 """,second_boot=True)
 
+    def test_authoring_observations_render_in_existing_validation_route(self):
+        data = self.payload()
+        data['workflow'] = guided_tests.workflow_view()
+        self.page(data, """
+location.hash='#validation';listeners.hashchange[0]();assert.equal(el('validation').hidden,false);
+assert.equal(authoringChecks.length,1);assert.equal(authoringChecks[0].mode,'provisional');
+assert.match(el('authoring-boundary').textContent,/do not prove native validity/);
+assert.ok(el('authoring-checks').children.length);assert.ok(el('authoring-findings').children.length);
+""")
+
     def test_independent_erd_lineage_controls_filters_and_export_selection(self):
         self.page(self.payload(),"""
 const initial=[...chosen];assert.equal(graph.nodes.length,3);
