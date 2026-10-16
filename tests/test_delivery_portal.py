@@ -52,6 +52,18 @@ class DeliveryPortalTests(unittest.TestCase):
         portal.package_delivery(self.state,self.review,self.root,path,**kwargs)
         return path
 
+    def legacy_layout(self, entries, manifest):
+        """Build a pre-layout fixture rather than stripping a new contract's context."""
+        match=re.search(r'<script id="delivery-data" type="application/json">(.*?)</script>',entries['START_HERE.html'].decode(),re.S)
+        data=json.loads(match[1])
+        for item in data.pop('generated_deliverables',[]):entries.pop(item['path'])
+        data.pop('package_layout_version',None);entries.pop('README.md',None)
+        manifest.pop('package_layout_version',None)
+        entries['START_HERE.html']=re.sub(r'(<script id="delivery-data" type="application/json">).*?(</script>)',
+            lambda value:value[1]+json.dumps(data)+value[2],entries['START_HERE.html'].decode(),flags=re.S).encode()
+        manifest['files']=[{'path':name,'sha256':hashlib.sha256(body).hexdigest(),'bytes':len(body)}
+                           for name,body in sorted(entries.items()) if name!='DELIVERY_MANIFEST.json']
+
     def artifact(self, path, body, category='documentation', audiences=None):
         body=body.encode() if isinstance(body,str) else body
         dest=self.root/path;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(body)
@@ -292,7 +304,7 @@ assert.equal(concreteDeploymentPlan('promote'), null);
         path=self.package(audience='engineer',include=['implementation'])
         with zipfile.ZipFile(path) as z:
             self.assertEqual(z.read('02_Implementation/models/gold.sql'),b'select 1 as id')
-            self.assertEqual(len(z.namelist()),3)
+            self.assertEqual(set(z.namelist()),{'02_Implementation/models/gold.sql','README.md','START_HERE.html','DELIVERY_MANIFEST.json'})
             page=z.read('START_HERE.html')
             self.assertNotIn(b'PRIVATE_VALUE_MARKER',page)
             self.assertNotIn(b'Clean identifiers',page)
@@ -489,6 +501,7 @@ Footnote[^1].
         with zipfile.ZipFile(bad,'w') as z:
             for n,body in entries.items():z.writestr(n,body)
         with self.assertRaisesRegex(ValueError,'workflow context differs'):portal.verify_delivery(bad)
+        self.legacy_layout(entries,manifest)
         del manifest['context_sha256'];entries['DELIVERY_MANIFEST.json']=json.dumps(manifest).encode()
         legacy=self.root/'legacy.zip'
         with zipfile.ZipFile(legacy,'w') as z:
@@ -498,7 +511,7 @@ Footnote[^1].
     def test_legacy_verification_retains_integrity_only_link_behavior(self):
         path=self.package()
         with zipfile.ZipFile(path) as z:entries={n:z.read(n) for n in z.namelist()}
-        manifest=json.loads(entries['DELIVERY_MANIFEST.json']);del manifest['context_sha256']
+        manifest=json.loads(entries['DELIVERY_MANIFEST.json']);self.legacy_layout(entries,manifest);del manifest['context_sha256']
         name='01_Model/docs/model.md';entries[name]=b'[Legacy unresolved reference](absent.md)'
         record=next(f for f in manifest['files'] if f['path']==name)
         record.update(sha256=hashlib.sha256(entries[name]).hexdigest(),bytes=len(entries[name]))
@@ -527,7 +540,7 @@ Footnote[^1].
     def test_integrity_verifies_after_relocation_and_detects_substitution(self):
         path=self.package();other=self.root/'other';other.mkdir();moved=other/'package.zip';shutil.move(str(path),str(moved))
         shutil.rmtree(self.root/'docs')
-        self.assertEqual(portal.verify_delivery(moved)['files'],2)
+        self.assertEqual(portal.verify_delivery(moved)['files'],7)
         with zipfile.ZipFile(moved) as z:entries={n:z.read(n) for n in z.namelist()}
         entries['01_Model/docs/model.md']=b'tampered'
         with zipfile.ZipFile(moved,'w') as z:
@@ -572,7 +585,7 @@ Footnote[^1].
         self.state['answers']['deliverables']=['documentation']
         path=self.package(audience='engineer')
         with zipfile.ZipFile(path) as z:
-            self.assertEqual(set(z.namelist()),{'01_Model/docs/model.md','START_HERE.html','DELIVERY_MANIFEST.json'})
+            self.assertEqual(set(z.namelist()),{'01_Model/docs/model.md','README.md','START_HERE.html','DELIVERY_MANIFEST.json'})
 
     def test_pass_cannot_fabricate_human_approval(self):
         self.review['validation'][0].update(scope='business',status='pass')

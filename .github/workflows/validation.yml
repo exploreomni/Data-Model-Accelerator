@@ -15,6 +15,9 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: python skills/data-model-accelerator/scripts/run_guided_delivery_demo.py --output "$RUNNER_TEMP/guided-delivery"
       - run: python skills/data-model-accelerator/scripts/delivery_portal.py verify "$RUNNER_TEMP/guided-delivery/engineer-example.zip"
+      - name: Build the first-use model review handoff
+        run: python skills/data-model-accelerator/scripts/run_model_review_demo.py --output "$RUNNER_TEMP/model-review"
+      - run: python skills/data-model-accelerator/scripts/delivery_portal.py check-page "$RUNNER_TEMP/model-review/commerce-model-review.zip" --javascript
       - name: Check every offline portal script
         run: python skills/data-model-accelerator/scripts/delivery_portal.py check-page "$RUNNER_TEMP/guided-delivery/engineer-example.zip" --javascript
   synthetic:

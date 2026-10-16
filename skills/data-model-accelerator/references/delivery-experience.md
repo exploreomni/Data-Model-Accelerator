@@ -32,11 +32,13 @@ Reuse the engagement's existing `START_HERE.html`, or its selected `START_HERE.m
 
 Offer at most three primary choices, appropriate to the selected stage and audience:
 
-- **Overview:** outcome, current scope and readiness, material decisions or blockers, and the next action.
-- **Design:** the maintained design document and connected model views, with deeper inventory and dictionary links available on demand.
-- **Implementation:** the selected patch or native code, integration prerequisites and run instructions, when included for that audience.
+- **Data model:** the connected ERD, visible searchable table list, new/reused status, table details and exact code links. Keep the project/target and candidate status visible on first open. Offer Fit model, Actual size and Expand; keep every scoped object discoverable across dense diagram pages.
+- **Code & files:** the selected implementation, supporting configuration/tests, integration guide and file index. Default to a table-linked file; classify an unmapped file as supporting/unmapped rather than guessing which model it implements. Reviewer packages show explicit code omission. File-index selections scroll to the selected preview. Generated SVGs and dictionaries open visually with an original-source toggle; copy and download retain original file text/bytes.
+- **Validation:** concise readiness and next actions, with full required evidence and outside-scope checks available on demand. Failed, unsupported or stale evidence remains visible in the opening summary.
 
-Use progressive disclosure for the full inventory, detailed validation, dependency ledgers and technical audit. Keep material failures and blockers visible in Overview; moving evidence behind a detail link must not hide its effect on readiness. These choices organize navigation, not exporter categories or approval scope. Do not expose code in reviewer exports or link to files excluded from a smaller package.
+Use the same sidebar to reach feedback, dictionary, lineage and supporting details. Table-specific feedback is a request, bound to the exact page/context. Check `review_feedback.py --page /absolute/current/START_HERE.html --responses /absolute/model-review-feedback.json` before the host reconciles corrections into canonical records. Reject stale or unknown-table feedback; never treat a response as design approval or deployment authorization.
+
+Use progressive disclosure for the full inventory, detailed validation, dependency ledgers and technical audit. Keep material failures and blockers visible in the opening review summary; moving evidence behind a detail link must not hide its effect on readiness. These choices organize navigation, not exporter categories or approval scope. Do not expose code in reviewer exports or link to files excluded from a smaller package.
 
 Maintain one current human-readable design document, bound to the canonical design identity and revision. Link its domain/layer detail, complete dictionary and required evidence rather than creating competing executive summaries, model guides or design narratives. Required internal documentation remains complete. Record durable decisions, rationale, evidence and affected scope in the existing canonical design/decision and stage records; chat and rendered pages are projections, not alternative sources of authority.
 
@@ -105,3 +107,9 @@ The final response gives one primary link to the current entrypoint, the deliver
 ## Reusable implementation
 
 The shared [guided workflow](guided-workflow.md), [platform adapters](platform-adapters.md) and [review renderer/exporter](review-surface.md) implement this presentation path for all selected frameworks and warehouses. Use them instead of cloning a fixture-specific portal. The agent supplies the actual model/code and authoritative evidence through existing contracts.
+
+## First-use acceptance
+
+The recipient receives one named current ZIP and one extracted handoff location. Keep work files, screenshots, superseded immutable exports and technical audit outside it; never overwrite frozen exports to clean the view. The generated root README is an extraction/file index, not another design narrative. Selected dictionaries ship as CSV and Markdown; selected diagrams ship as SVG views plus editable model source. Generated projections are identified separately from immutable registered files in the manifest, and must match the selected inventory. No diagram filter changes export scope.
+
+Before handoff, run page/package integrity, JavaScript syntax and stub-DOM checks, then inspect the actual extracted HTML in a browser. Check initial context, all scoped tables, responsive inspector/back behavior, table-to-code mapping, download/copy, first-click navigation, feedback freshness and code/readiness omissions. Test smaller exports and legacy packages as well. A fresh reviewer must complete open → model → table → code → readiness → feedback without chat history. Report browser limitations honestly and retain the observations outside the customer package. Synthetic usability exercises cannot establish native or business validation.

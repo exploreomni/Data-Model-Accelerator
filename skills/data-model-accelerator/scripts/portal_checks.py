@@ -7,21 +7,231 @@ import base64
 import hashlib
 from html.parser import HTMLParser
 import json
+import math
+import re
 import shutil
 import subprocess
+import xml.etree.ElementTree as ET
 
 from ae_common import require
 
 
 REQUIRED_SECTIONS = ('architecture', 'lineage', 'implementation-code', 'replacement-map')
 SECTION_PARENTS = {'architecture': 'model', 'lineage': 'model',
-                   'implementation-code': 'delivery', 'replacement-map': 'delivery'}
+                   'implementation-code': 'delivery', 'replacement-map': 'delivery',
+                   'table-dictionary': 'model', 'review-feedback': None}
 VOID_ELEMENTS = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta',
                  'param', 'source', 'track', 'wbr'}
 SCRIPT_TYPES = {'', 'module', 'application/ecmascript', 'application/javascript',
                 'application/x-ecmascript', 'application/x-javascript', 'text/ecmascript',
                 'text/javascript', 'text/jscript', 'text/livescript', 'text/x-ecmascript',
                 'text/x-javascript', *('text/javascript1.' + str(version) for version in range(6))}
+DIAGRAM_QUALIFICATION = 'Model identity and table bounds only; not visual rendering, relationship correctness or acceptance.'
+UNVERIFIED_DIAGRAM_QUALIFICATION = 'No diagram_model_ids scope was declared. File integrity does not establish model coverage.'
+_NUMBER = r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?'
+
+
+def model_inventory(models, relationships=None):
+    """Validate the warehouse graph before layout; never silently drop a layer."""
+    require(isinstance(models, list) and len(models) <= 20000, 'Diagram models must be a bounded list')
+    identifiers = []
+    for model in models:
+        require(isinstance(model, dict), 'Diagram model must be an object')
+        identifier = model.get('id')
+        require(isinstance(identifier, str) and identifier.strip() == identifier and identifier
+                and not any(ord(char) < 32 or ord(char) == 127 for char in identifier),
+                'Diagram model ID must be nonempty text without surrounding whitespace or control characters')
+        identifiers.append(identifier)
+        require(isinstance(model.get('layer'), str) and model['layer'] in {'bronze', 'silver', 'gold'},
+                'Diagram model layer must be bronze, silver or gold')
+        columns = model.get('columns', [])
+        require(isinstance(columns, list) and all(isinstance(column, dict)
+                and isinstance(column.get('name'), str) and column['name'] for column in columns),
+                'Diagram model columns must have nonempty text names')
+    require(len(identifiers) == len(set(identifiers)), 'Diagram model IDs must be unique')
+    if relationships is not None:
+        require(isinstance(relationships, list) and len(relationships) <= 20000,
+                'Diagram relationships must be a bounded list')
+        known = set(identifiers)
+        for edge in relationships:
+            require(isinstance(edge, dict) and isinstance(edge.get('from'), str) and isinstance(edge.get('to'), str)
+                    and edge['from'] in known and edge['to'] in known,
+                    'Diagram relationship references an absent model')
+            require(isinstance(edge.get('kind'), str) and edge['kind'] in {'lineage', 'relationship'},
+                    'Diagram relationship kind must be lineage or relationship')
+    return identifiers
+
+
+def _diagram_ids(value):
+    require(isinstance(value, list) and value and all(isinstance(identifier, str) and identifier
+            and identifier.strip() == identifier and not any(ord(char) < 32 or ord(char) == 127 for char in identifier)
+            for identifier in value) and len(value) == len(set(value)),
+            'Diagram scope model IDs must be a nonempty unique list')
+    return value
+
+
+def _numbers(text):
+    require(isinstance(text, str) and re.fullmatch(r'\s*' + _NUMBER + r'(?:[ ,]+' + _NUMBER + r')*\s*', text),
+            'Diagram geometry requires finite numeric coordinates')
+    values = [float(value) for value in re.findall(_NUMBER, text)]
+    require(all(math.isfinite(value) for value in values), 'Diagram geometry requires finite numeric coordinates')
+    return values
+
+
+def _matrix_product(left, right):
+    a, b, c, d, e, f = left
+    g, h, i, j, k, l = right
+    return (a*g+c*h, b*g+d*h, a*i+c*j, b*i+d*j, a*k+c*l+e, b*k+d*l+f)
+
+
+def _svg_transform(text):
+    result, cursor = (1, 0, 0, 1, 0, 0), 0
+    for match in re.finditer(r'(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)', text):
+        require(not text[cursor:match.start()].strip(' ,\t\r\n'), 'Diagram transform is unsupported')
+        name, values = match.group(1), _numbers(match.group(2))
+        if name == 'matrix' and len(values) == 6:
+            matrix = tuple(values)
+        elif name == 'translate' and len(values) in {1, 2}:
+            matrix = (1, 0, 0, 1, values[0], values[1] if len(values) == 2 else 0)
+        elif name == 'scale' and len(values) in {1, 2}:
+            matrix = (values[0], 0, 0, values[-1], 0, 0)
+        elif name == 'rotate' and len(values) in {1, 3}:
+            angle = math.radians(values[0]); cosine, sine = math.cos(angle), math.sin(angle)
+            matrix = (cosine, sine, -sine, cosine, 0, 0)
+            if len(values) == 3:
+                x, y = values[1:]
+                matrix = _matrix_product(_matrix_product((1, 0, 0, 1, x, y), matrix), (1, 0, 0, 1, -x, -y))
+        elif name in {'skewX', 'skewY'} and len(values) == 1:
+            tangent = math.tan(math.radians(values[0]))
+            matrix = (1, 0, tangent, 1, 0, 0) if name == 'skewX' else (1, tangent, 0, 1, 0, 0)
+        else:
+            raise ValueError('Diagram transform is unsupported')
+        result = _matrix_product(result, matrix); cursor = match.end()
+    require(not text[cursor:].strip(' ,\t\r\n') and all(math.isfinite(value) for value in result),
+            'Diagram transform is unsupported or nonfinite')
+    return result
+
+
+def _svg_suppressed(node, parents):
+    """Reject obvious nondrawing contexts without claiming computed pixel visibility."""
+    nondrawing = {'defs', 'marker', 'clippath', 'mask', 'pattern', 'lineargradient',
+                  'radialgradient', 'symbol', 'title', 'desc', 'metadata'}
+    while node is not None:
+        if node.tag.split('}')[-1].lower() in nondrawing:
+            return True
+        if node.get('display', '').strip().lower() == 'none' or node.get('visibility', '').strip().lower() in {'hidden', 'collapse'}:
+            return True
+        opacity = node.get('opacity', '').strip()
+        if re.fullmatch(_NUMBER + r'%?', opacity) and float(opacity.rstrip('%')) <= 0:
+            return True
+        node = parents.get(node)
+    return False
+
+
+def _svg_has_label(block, parents):
+    for label in block.iter():
+        if label.tag.split('}')[-1] != 'text':
+            continue
+        for node in label.iter():
+            if (node.text or '').strip() and not _svg_suppressed(node, parents):
+                return True
+            # A tail belongs to its parent, so a hidden tspan need not hide it.
+            if node is not label and (node.tail or '').strip() and not _svg_suppressed(parents[node], parents):
+                return True
+    return False
+
+
+def svg_model_coverage(content, model_ids):
+    """Count exact table groups and check their rectangular geometry, not pixels."""
+    _diagram_ids(model_ids)
+    from delivery_portal import _validate_svg
+    _validate_svg(content)  # Preserve the existing inert-artifact gate unchanged.
+    root = ET.fromstring(content)
+    def number(value):
+        values = _numbers(value)
+        return values[0] if len(values) == 1 else None
+    if 'viewBox' in root.attrib:
+        bounds = _numbers(root.attrib['viewBox'])
+        require(len(bounds) == 4, 'Diagram viewBox must contain four coordinates')
+        left, top, width, height = bounds
+    else:
+        left, top = 0, 0
+        width, height = number(root.get('width', '0')), number(root.get('height', '0'))
+    require(width is not None and height is not None and width > 0 and height > 0,
+            'Diagram bounds must have positive width and height')
+    parents = {child: parent for parent in root.iter() for child in parent}
+    blocks = [node for node in root.iter() if node.tag.split('}')[-1] == 'g' and 'data-model-id' in node.attrib]
+    actual = [node.attrib['data-model-id'] for node in blocks]
+    require(len(actual) == len(set(actual)), 'Diagram table groups contain duplicate model IDs')
+    require(set(actual) == set(model_ids), 'Diagram table groups differ from the declared model IDs')
+    for block in blocks:
+        require(not _svg_suppressed(block, parents), 'Diagram model table group has a nondrawing or hidden context')
+        ancestor = parents.get(block)
+        while ancestor is not None:
+            require(ancestor not in blocks, 'Diagram model table groups cannot be nested')
+            ancestor = parents.get(ancestor)
+        require(_svg_has_label(block, parents),
+                'Diagram model table group must contain a nonempty text label outside hidden contexts')
+        rectangles = [node for node in block.iter() if node.tag.split('}')[-1] == 'rect']
+        require(rectangles, 'Diagram model table group must contain a table rectangle')
+        for rectangle in rectangles:
+            require(not _svg_suppressed(rectangle, parents), 'Diagram table rectangle has a nondrawing or hidden context')
+            x, y = number(rectangle.get('x', '0')), number(rectangle.get('y', '0'))
+            w, h = number(rectangle.get('width', '0')), number(rectangle.get('height', '0'))
+            require(None not in (x, y, w, h) and w > 0 and h > 0, 'Diagram table rectangle must have positive numeric dimensions')
+            chain, ancestor = [], rectangle
+            while ancestor is not None:
+                chain.append(ancestor); ancestor = parents.get(ancestor)
+            matrix = (1, 0, 0, 1, 0, 0)
+            for ancestor in reversed(chain):
+                matrix = _matrix_product(matrix, _svg_transform(ancestor.get('transform', '')))
+            a, b, c, d, e, f = matrix
+            points = [(a*px+c*py+e, b*px+d*py+f) for px, py in ((x, y), (x+w, y), (x, y+h), (x+w, y+h))]
+            require(abs(a*d-b*c) > 1e-12, 'Diagram table rectangle transform collapses its dimensions')
+            require(all(math.isfinite(px) and math.isfinite(py) and left-1e-6 <= px <= left+width+1e-6
+                        and top-1e-6 <= py <= top+height+1e-6 for px, py in points),
+                    'Diagram table rectangle is outside the SVG bounds')
+    return {'model_count': len(actual), 'model_ids': sorted(actual)}
+
+
+def diagram_coverage(data, decoded_files=None):
+    """Derive claims solely from included models and selected SVG bytes."""
+    models = data.get('review', {}).get('models', [])
+    identifiers = model_inventory(models)
+    pages = data.get('diagrams', [])
+    require(isinstance(pages, list), 'Diagram pages must be a list')
+    seen = []
+    for page in pages:
+        require(isinstance(page, dict), 'Diagram page must be an object')
+        scope = _diagram_ids(page.get('model_ids'))
+        try:
+            content = base64.b64decode(page.get('base64', ''), validate=True)
+        except (ValueError, TypeError) as error:
+            raise ValueError('Diagram page has invalid base64') from error
+        require(len(content) <= 20*1024*1024, 'Diagram page exceeds its byte limit')
+        svg_model_coverage(content, scope)
+        seen.extend(scope)
+    if pages:
+        require(len(seen) == len(set(seen)) and set(seen) == set(identifiers),
+                'Diagram pages must cover every included model exactly once')
+    elif identifiers and (data.get('page_mode') == 'status' or 'diagrams' in data.get('selected_categories', [])):
+        raise ValueError('Diagram pages are missing for the included model inventory')
+    generated = {'status': 'verified' if pages else 'not_included', 'model_count': len(seen), 'page_count': len(pages)}
+    registered = []
+    for file in data.get('files', []):
+        if not file.get('path', '').lower().endswith('.svg'):
+            continue
+        record = {'artifact_id': file['id'], 'sha256': file['sha256']}
+        if 'diagram_model_ids' in file:
+            scope = _diagram_ids(file['diagram_model_ids'])
+            content = decoded_files[file['path']] if decoded_files is not None else base64.b64decode(file['base64'], validate=True)
+            measured = svg_model_coverage(content, scope)
+            record.update(status='verified_declared_scope', model_ids=measured['model_ids'],
+                          model_count=measured['model_count'], qualification=DIAGRAM_QUALIFICATION)
+        else:
+            record.update(status='unverified', qualification=UNVERIFIED_DIAGRAM_QUALIFICATION)
+        registered.append(record)
+    return {'generated': generated, 'registered': registered}
 
 
 class PageContract(HTMLParser):
@@ -117,14 +327,18 @@ def validate_page(page, *, expected_files=None, expected_data=None, require_curr
                 and all(isinstance(value, str) for value in data['selected_categories'])
                 and data['selected_categories'] == sorted(set(data['selected_categories'])),
                 'Page selected categories must be a sorted unique list')
-        for identifier in REQUIRED_SECTIONS:
+        required_sections = REQUIRED_SECTIONS + (('table-dictionary',) if data.get('diagram_contract_version') == 1 else ())
+        if data.get('package_layout_version') == 1:
+            required_sections += ('review-feedback',)
+        for identifier in required_sections:
             node = parsed.nodes.get(identifier, {})
             attrs = node.get('attrs', {})
-            require(node.get('tag') == 'section' and 'review-section' in attrs.get('class', '').split()
-                    and 'data-section' not in attrs, 'Page review section is missing or invalid: ' + identifier)
             parent = SECTION_PARENTS[identifier]
-            require(node.get('parents', ())[-1:] == (('section', parent),)
-                    and 'data-section' in parsed.nodes.get(parent, {}).get('attrs', {}),
+            require(node.get('tag') == 'section' and 'review-section' in attrs.get('class', '').split()
+                    and ('data-section' in attrs) == (parent is None), 'Page review section is missing or invalid: ' + identifier)
+            require((parent is None and not any(tag == 'section' for tag, _ in node.get('parents', ())))
+                    or (parent is not None and node.get('parents', ())[-1:] == (('section', parent),)
+                    and 'data-section' in parsed.nodes.get(parent, {}).get('attrs', {})),
                     'Page review section has an invalid parent route: ' + identifier)
             require(any(nav['attrs'].get('data-nav') == identifier for nav in parsed.navigation),
                     'Page review section has no navigation: ' + identifier)
@@ -173,9 +387,22 @@ def validate_page(page, *, expected_files=None, expected_data=None, require_curr
                 and projection['excluded_artifact_count'] >= 0, 'Page projection counts are inconsistent')
         if data['page_mode'] == 'status':
             require(not files and not data['selected_categories'], 'Status page cannot embed artifact payloads')
+    if 'diagram_contract_version' in data:
+        require(type(data['diagram_contract_version']) is int and data['diagram_contract_version'] == 1,
+                'Unsupported diagram coverage contract version')
+        coverage = diagram_coverage(data, decoded)
+        require(data.get('diagram_coverage') == coverage, 'Page diagram coverage differs from its included SVGs and models')
+    else:
+        coverage = {'status': 'unverified_legacy',
+                    'qualification': 'This frozen page has no diagram coverage contract; integrity does not establish coverage.'}
+    if 'package_layout_version' in data:
+        from delivery_portal import validate_generated_deliverables
+        require(data.get('page_mode') == 'package', 'Portable deliverable payloads require a package page')
+        validate_generated_deliverables(data)
     return {'status': 'page_contract_verified', 'page_mode': data.get('page_mode', 'legacy'),
             'files': len(files), 'sections': len([node for node in parsed.nodes.values()
                                                if 'data-section' in node['attrs']]),
+            'diagram_coverage': coverage,
             'authority': 'Structure and embedded file integrity only; not execution or acceptance.'}
 
 

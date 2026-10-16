@@ -6,8 +6,10 @@ Python 3.9+, standard library; source artifacts never change.
 """
 import argparse
 import base64
+import csv
 import hashlib
 import html
+import io
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -17,7 +19,7 @@ import stat
 import sys
 import tempfile
 import textwrap
-from urllib.parse import unquote, urlsplit
+from urllib.parse import quote, unquote, urlsplit
 import zipfile
 
 from ae_common import load_json, require, _json_bytes
@@ -43,6 +45,9 @@ QUALITY_FIELDS = ('id', 'status', 'scope', 'unit', *QUALITY_COUNTS, 'total', 'su
 QUALITY_STATUSES = {'pass', 'fail', 'pending', 'unknown', 'skipped', 'unsupported', 'not_applicable'}
 HANDOFF_ROLES = {'design_artifact_id': {'documentation'},
                  'implementation_guide_artifact_id': {'documentation', 'implementation'}}
+MODEL_SOURCE_QUALIFICATION = 'Editable presentation source; not implementation or approval.'
+DICTIONARY_FIELDS = ('model_id', 'model_name', 'layer', 'domain', 'grain',
+                     'column_name', 'data_type', 'key', 'description')
 
 
 def _validate_handoff(review):
@@ -684,6 +689,13 @@ def select_artifacts(review, root, audience, include):
         _check_disclosure_bytes(content, str(relative))
         if relative.suffix.lower() == '.svg':
             _validate_svg(content)
+        if 'diagram_model_ids' in record:
+            require(relative.suffix.lower() == '.svg', 'diagram_model_ids requires a registered SVG artifact')
+            from portal_checks import _diagram_ids, svg_model_coverage
+            scope = _diagram_ids(record['diagram_model_ids'])
+            require(set(scope) <= {model['id'] for model in review.get('models', [])},
+                    'Registered diagram scope references a model outside this review')
+            svg_model_coverage(content, scope)
         total += len(content)
         require(total <= MAX_PACKAGE_BYTES, 'Package size limit exceeded; split by domain')
         dest = FOLDERS[record['category']] + '/' + str(relative)
@@ -795,6 +807,8 @@ def _diagram_layout(models, relationships):
 
 def model_svg(models, relationships):
     """Connected table blocks plus a visible, complete relationship label ledger."""
+    from portal_checks import model_inventory
+    model_inventory(models, relationships)
     if not models:
         return ''
     layout = _diagram_layout(models, relationships)
@@ -828,7 +842,7 @@ def model_svg(models, relationships):
     for model in models:
         x, y = positions[model['id']]
         name, grain = str(model.get('name', model['id'])), str(model.get('grain', 'Grain unresolved'))
-        parts.append(f'<g><title>{e(name)} — {e(grain)}</title><rect x="{x}" y="{y}" width="{card_width}" height="{card_height}" rx="10" fill="white" stroke="#9aabba"/>')
+        parts.append(f'<g data-model-id="{e(model["id"])}"><title>{e(name)} — {e(grain)}</title><rect x="{x}" y="{y}" width="{card_width}" height="{card_height}" rx="10" fill="white" stroke="#9aabba"/>')
         parts.append(f'<text x="{x+14}" y="{y+25}" font-family="sans-serif" font-size="15" font-weight="700" fill="#18324a">{e(name[:38] + ("…" if len(name) > 38 else ""))}</text>')
         parts.append(f'<text x="{x+14}" y="{y+44}" font-family="sans-serif" font-size="11" fill="#53697f">{e(grain[:48] + ("…" if len(grain) > 48 else ""))}</text>')
         columns = sorted(model.get('columns', []), key=lambda c: not bool(c.get('key')))
@@ -847,6 +861,9 @@ def model_svg(models, relationships):
 
 def diagram_views(models, relationships, maximum=36):
     """Partition by domain/node and edge density, retaining cross-view accounting."""
+    from portal_checks import model_inventory
+    model_inventory(models, relationships)
+    require(type(maximum) is int and maximum > 0, 'Diagram page size must be a positive integer')
     if not models:
         return []
     groups = []
@@ -1096,6 +1113,13 @@ def _html(data):
     return rendered
 
 
+def _set_diagram_coverage(data):
+    """Bind new output to its included graph; never relabel frozen legacy pages."""
+    from portal_checks import diagram_coverage
+    data['diagram_contract_version'] = 1
+    data['diagram_coverage'] = diagram_coverage(data)
+
+
 def _atomic_write(path, content, overwrite=False):
     path=_path(path)
     require(path.parent.is_dir(), 'Output parent must exist')
@@ -1127,6 +1151,7 @@ def render_engagement(state, output_path, review=None):
     _select_omni_evidence(data, [])
     if data['review'].get('models'):
         data['diagrams']=diagram_views(data['review']['models'],data['review'].get('relationships',[]))
+    _set_diagram_coverage(data)
     rendered = _html(data).encode('utf-8')
     _check_disclosure_bytes(rendered, 'START_HERE.html')
     _atomic_write(output_path,rendered,overwrite=True)
@@ -1147,6 +1172,153 @@ def resolve_selection(state, audience='reviewer', include=None):
     return include
 
 
+def _dictionary_rows(models):
+    rows = []
+    for model in models:
+        for column in model.get('columns', []) or [{}]:
+            values = (model['id'], model.get('name', model['id']), model['layer'], model.get('domain'),
+                      model.get('grain'), column.get('name'), column.get('type'), column.get('key'),
+                      column.get('description', 'Column definitions not supplied.' if not column else ''))
+            rows.append(['' if value is None else str(value) for value in values])
+    return rows
+
+
+def _csv_cell(value):
+    # Spreadsheet applications must not execute a model name or description.
+    return "'" + value if value.lstrip().startswith(('=', '+', '-', '@')) or value.startswith(('\t', '\r')) else value
+
+
+def _markdown_cell(value):
+    value = html.escape(str(value), quote=False).replace('\\', '\\\\')
+    return re.sub(r'([`*_[\]()!|])', r'\\\1', value).replace('\r\n', '\n').replace('\r', '\n').replace('\n', '<br>')
+
+
+def generated_deliverables(data):
+    """Portable projections of the selected review, never registered source edits."""
+    from portal_checks import model_inventory
+    review = data.get('review', {})
+    models, relationships = review.get('models', []), review.get('relationships', [])
+    model_inventory(models, relationships)
+    if data.get('audience') == 'audit' or not models:
+        return []
+    selected, records = set(data.get('selected_categories', [])), []
+    def add(identifier, path, category, description, body, model_ids=None):
+        require(len(body) <= MAX_ARTIFACT_BYTES, 'Generated deliverable exceeds size limit; partition explicitly')
+        record = {'id': identifier, 'path': path, 'category': category, 'description': description,
+                  'requires': [], 'origin': 'review_projection', 'sha256': _sha(body), 'size': len(body),
+                  'base64': base64.b64encode(body).decode()}
+        if model_ids is not None:
+            record['diagram_model_ids'] = list(model_ids)
+        records.append(record)
+    if 'diagrams' in selected:
+        for index, page in enumerate(data.get('diagrams', []), 1):
+            add(f'generated:erd:{index:03d}', f'01_Model/ERD/model-{index:03d}.svg', 'diagrams',
+                f'Model view {index}; part of the complete included table inventory.',
+                base64.b64decode(page['base64'], validate=True), page['model_ids'])
+        source = {'schema_version': 1, 'kind': 'portable_model_source',
+                  'qualification': MODEL_SOURCE_QUALIFICATION, 'models': models, 'relationships': relationships}
+        add('generated:erd-source', '01_Model/ERD/model-source.json', 'diagrams',
+            'Editable model source with every included table and declared connection, including cross-view connections.',
+            (json.dumps(source, indent=2, ensure_ascii=False, sort_keys=True) + '\n').encode())
+    if 'dictionary' in selected:
+        rows = _dictionary_rows(models)
+        stream = io.StringIO(newline='')
+        writer = csv.writer(stream, lineterminator='\n', quoting=csv.QUOTE_ALL)
+        writer.writerow(DICTIONARY_FIELDS)
+        writer.writerows([_csv_cell(value) for value in row] for row in rows)
+        add('generated:dictionary-csv', '01_Model/Dictionary/data-dictionary.csv', 'dictionary',
+            'All supplied column definitions for the included table inventory; spreadsheet formulas are escaped.',
+            stream.getvalue().encode())
+        lines = ['# Data dictionary', '',
+                 'Generated from the selected review inventory. Missing definitions remain unspecified; this is not native validation.', '',
+                 '| ' + ' | '.join(DICTIONARY_FIELDS) + ' |', '| ' + ' | '.join(['---'] * len(DICTIONARY_FIELDS)) + ' |']
+        lines.extend('| ' + ' | '.join(_markdown_cell(value) for value in row) + ' |' for row in rows)
+        add('generated:dictionary-markdown', '01_Model/Dictionary/data-dictionary.md', 'dictionary',
+            'Readable dictionary with the same table and column inventory as the CSV.', ('\n'.join(lines) + '\n').encode())
+    return records
+
+
+def validate_generated_deliverables(data):
+    """Check generated inventory, selected scope and bytes; SVG layout may differ."""
+    from portal_checks import svg_model_coverage
+    require(type(data.get('package_layout_version')) is int and data['package_layout_version'] == 1,
+            'Unsupported portable package layout version')
+    actual = data.get('generated_deliverables')
+    require(isinstance(actual, list), 'Generated deliverables must be a list')
+    expected = generated_deliverables(data)
+    require(len(actual) == len(expected), 'Generated deliverable inventory differs from selected review')
+    by_path = {record['path']: record for record in expected}
+    identifiers = {record['id'] for record in data.get('files', [])}
+    paths = {record['path'].casefold() for record in data.get('files', [])}
+    decoded = {}
+    for record in actual:
+        require(isinstance(record, dict), 'Generated deliverable must be an object')
+        path, identifier = record.get('path'), record.get('id')
+        require(isinstance(path, str) and path in by_path and path.casefold() not in paths,
+                'Generated deliverable path is unexpected or collides with a registered file')
+        wanted = by_path[path]
+        require(identifier == wanted['id'] and identifier not in identifiers,
+                'Generated deliverable ID is unexpected or collides with a registered artifact')
+        require(all(record.get(key) == wanted.get(key) for key in ('category', 'requires', 'origin', 'diagram_model_ids')),
+                'Generated deliverable category or model scope differs from selected review')
+        paths.add(path.casefold()); identifiers.add(identifier)
+        try:
+            body = base64.b64decode(record.get('base64', ''), validate=True)
+        except (ValueError, TypeError) as error:
+            raise ValueError('Generated deliverable has invalid base64') from error
+        require(len(body) <= MAX_ARTIFACT_BYTES and type(record.get('size')) is int and len(body) == record['size']
+                and _sha(body) == record.get('sha256'), 'Generated deliverable bytes differ: ' + path)
+        expected_body = base64.b64decode(wanted['base64'])
+        if path.endswith('.svg'):
+            svg_model_coverage(body, record['diagram_model_ids'])
+        elif path.endswith('.json'):
+            require(json.loads(body) == json.loads(expected_body), 'Editable model source differs from selected review')
+        elif path.endswith('.csv'):
+            require(list(csv.reader(io.StringIO(body.decode()))) == list(csv.reader(io.StringIO(expected_body.decode()))),
+                    'Dictionary inventory differs from selected review')
+        else:
+            require(body == expected_body, 'Readable dictionary differs from selected review')
+        decoded[path] = body
+    require(len(paths) <= MAX_ARTIFACTS, 'Package file count limit exceeded; split by domain')
+    return decoded
+
+
+def package_readme(data):
+    """A compact index to one Start Here page and the selected portable files."""
+    engagement = data.get('engagement', {})
+    registered, generated = data.get('files', []), data.get('generated_deliverables', [])
+    target = engagement.get('target', {})
+    lines = ['# Delivery package', '', 'Open [START_HERE.html](START_HERE.html) for the guided review.', '',
+             'Audience: ' + _markdown_cell(data.get('audience', 'unresolved')) + '.',
+             'Target: ' + _markdown_cell(target.get('framework') or 'unresolved') + ' / ' + _markdown_cell(target.get('warehouse') or 'unresolved') + '.',
+             'Selected categories: ' + ', '.join(_markdown_cell(value) for value in sorted(data.get('selected_categories', []))) + '.',
+             f'Registered files: {len(registered)}. Generated review deliverables: {len(generated)}.', '',
+             '## Readiness', '',
+             'Candidate review only. File generation and package integrity do not establish native validation, business acceptance or deployment authority.',
+             'Use the selected validation evidence and guided review for reported checks, unresolved decisions and the next action.', '',
+             '## Selected files', '']
+    for record in sorted(registered + generated, key=lambda row: row['path']):
+        origin = 'generated review projection' if record.get('origin') == 'review_projection' else 'registered artifact; original bytes'
+        lines.append(f"- [{_markdown_cell(record['path'])}]({quote(record['path'], safe='/')}) — {record['category']}; {origin}.")
+    if any(record['category'] == 'diagrams' for record in generated):
+        lines.extend(['', 'ERD pages collectively cover the included tables. The editable model source retains all declared connections, including those crossing pages.'])
+    if any(record['category'] == 'dictionary' for record in generated):
+        lines.extend(['', 'Dictionary files contain supplied definitions only.'])
+    return ('\n'.join(lines) + '\n').encode()
+
+
+def package_file_inventory(data, files):
+    roles = {'START_HERE.html': {'role': 'entrypoint', 'embedded': False},
+             'README.md': {'role': 'index', 'embedded': False}}
+    for key, role in (('files', 'registered_artifact'), ('generated_deliverables', 'generated_deliverable')):
+        for record in data.get(key, []):
+            require(record['path'].casefold() not in {path.casefold() for path in roles},
+                    'Root README.md, package entrypoint or another deliverable collides with a selected file')
+            roles[record['path']] = {'role': role, 'embedded': True, 'category': record['category']}
+    require(set(files) == set(roles), 'Package inventory differs from its registered and generated deliverables')
+    return [dict(path=path, sha256=_sha(body), bytes=len(body), **roles[path]) for path, body in sorted(files.items())]
+
+
 def package_delivery(state, review, artifact_root, output_path, audience='reviewer', include=None):
     validate_review(state,review)
     include=resolve_selection(state,audience,include)
@@ -1155,9 +1327,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         destination=_path(output_path); source_root=_path(source)
         require(destination != source_root and source_root not in destination.parents, 'Package output must stay outside the source repository')
     selected=select_artifacts(review,artifact_root,audience,include)
-    require(selected, 'No artifacts match this audience and selection')
     data=_presentation(state,review,audience)
-    data.update(page_mode='package', selected_categories=sorted(set(include)), file_count=len(selected))
+    data.update(page_mode='package', package_layout_version=1, selected_categories=sorted(set(include)), file_count=len(selected))
     data['projection']={'selected_artifact_count':len(selected),
                         'excluded_artifact_count':len(review.get('artifacts',[]))-len(selected),
                         'qualification':'Only selected audience-permitted artifact bytes are embedded. Excluded artifacts remain outside this package.'}
@@ -1176,18 +1347,30 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         data['review'].pop('validation',None)
     if 'diagrams' in include and data['review'].get('models'):
         data['diagrams']=diagram_views(data['review']['models'],data['review'].get('relationships',[]))
-    disclosure = _check_share_policy(state, review, selected, data, audience)
     files={a['destination']:a['content'] for a in selected}
     for artifact in selected:
         data['files'].append({'id':artifact['id'],'path':artifact['destination'],'category':artifact['category'],
                               'description':artifact.get('description',''),'requires':artifact.get('requires',[]),
                               'sha256':artifact['sha256'],'size':len(artifact['content']),
                               'base64':base64.b64encode(artifact['content']).decode()})
+        if 'diagram_model_ids' in artifact:
+            data['files'][-1]['diagram_model_ids'] = sorted(artifact['diagram_model_ids'])
+    _set_diagram_coverage(data)
+    data['generated_deliverables'] = generated_deliverables(data)
+    require(selected or data['generated_deliverables'], 'No artifacts or model deliverables match this audience and selection')
+    generated = validate_generated_deliverables(data)
+    require(not ({path.casefold() for path in files} & {path.casefold() for path in generated}),
+            'Generated deliverable path collides with a registered artifact')
+    files.update(generated)
+    require('readme.md' not in {path.casefold() for path in files}, 'Root README.md collides with a selected file')
+    files['README.md'] = package_readme(data)
+    disclosure = _check_share_policy(state, review, selected, data, audience)
     files['START_HERE.html']=_html(data).encode('utf-8')
     from portal_checks import validate_page
     validate_page(files['START_HERE.html'], expected_files={a['destination']:a['content'] for a in selected})
     scans = {name: _check_disclosure_bytes(body, name) for name, body in files.items()}
     manifest={'schema_version':1,'kind':'portable_delivery_integrity','engagement_id':state['engagement_id'],
+              'package_layout_version':1,
               'export_origin': 'agent_packager',
               'disclosure_scans': scans,
               'migration_scope': state.get('answers', {}).get('migration_scope'),
@@ -1197,14 +1380,16 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
               'source_fingerprint':source_fingerprint(state),'context_sha256':context_fingerprint(state),
               'target':review['target'],'audience':audience,
               'deliverables':sorted(include),'authority':'File integrity only; not execution, business approval or deployment.',
-              'files':[{'path':name,'sha256':_sha(body),'bytes':len(body)} for name,body in sorted(files.items())]}
+              'files':package_file_inventory(data, files)}
     files['DELIVERY_MANIFEST.json']=json.dumps(manifest,indent=2,sort_keys=True).encode()+b'\n'
     require(sum(map(len,files.values())) <= MAX_PACKAGE_BYTES*3, 'Rendered package exceeds size limit')
-    import io
     stream=io.BytesIO()
     with zipfile.ZipFile(stream,'w',compression=zipfile.ZIP_DEFLATED) as archive:
         for name,body in sorted(files.items()):
-            archive.writestr(name,body)
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = (stat.S_IFREG | 0o644) << 16
+            archive.writestr(info,body)
     payload = stream.getvalue()
     _check_disclosure_bytes(payload, 'delivery.zip')
     _atomic_write(output_path,payload)
@@ -1213,9 +1398,11 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
 
 def verify_delivery(path):
     """Verify a relocated ZIP in memory. Does not trust paths or extract archives."""
+    coverage = {'status':'unverified_legacy',
+                'qualification':'This frozen package has no checked diagram coverage contract; integrity does not establish coverage.'}
     with zipfile.ZipFile(_path(path)) as archive:
         infos=archive.infolist()
-        require(len(infos) <= MAX_ARTIFACTS+2, 'Too many package entries')
+        require(len(infos) <= MAX_ARTIFACTS+3, 'Too many package entries')
         require(sum(i.file_size for i in infos) <= MAX_PACKAGE_BYTES*3, 'Package expands beyond limit')
         names=[i.filename for i in infos]
         require(len(set(n.casefold() for n in names)) == len(names), 'Duplicate package entry')
@@ -1226,6 +1413,8 @@ def verify_delivery(path):
         manifest=json.loads(archive.read('DELIVERY_MANIFEST.json'))
         require(manifest.get('schema_version') == 1 and manifest.get('kind') == 'portable_delivery_integrity', 'Unknown manifest format')
         context = manifest.get('context_sha256')
+        require('package_layout_version' not in manifest or context is not None,
+                'Portable package layout requires its workflow context')
         if 'context_sha256' in manifest:
             require(isinstance(context, str) and re.fullmatch(r'[0-9a-f]{64}', context) is not None,
                     'Invalid workflow context_sha256 in delivery manifest')
@@ -1240,7 +1429,9 @@ def verify_delivery(path):
             match = re.search(r'<script id="delivery-data" type="application/json">(.*?)</script>',
                               archive.read('START_HERE.html').decode('utf-8'), re.S)
             if match:
-                require(not json.loads(match.group(1)).get('review', {}).get('metadata'),
+                legacy_data = json.loads(match.group(1))
+                require('package_layout_version' not in legacy_data, 'Portable package layout requires its workflow context')
+                require(not legacy_data.get('review', {}).get('metadata'),
                         'Metadata review requires a context-bound delivery manifest')
         declared=manifest.get('files',[])
         require(len({f['path'] for f in declared})==len(declared), 'Duplicate manifest path')
@@ -1249,8 +1440,6 @@ def verify_delivery(path):
             body=archive.read(item['path'])
             require(len(body)==item['bytes'] and _sha(body)==item['sha256'], 'Package bytes differ: '+item['path'])
         if context is not None:
-            _validate_markdown_links([{'id':item['path'],'destination':item['path'],'path':item['path'],
-                                       'content':archive.read(item['path'])} for item in declared])
             if embedded.get('deployment'):
                 evidence = [{'id':item['id'], 'path':item['path'].split('/', 1)[-1], 'sha256':_sha(archive.read(item['path']))}
                             for item in embedded.get('files', []) if item.get('path') in names]
@@ -1307,12 +1496,27 @@ def verify_delivery(path):
                         'Metadata evidence is absent or differs from the package summary')
             # Keep the established evidence gates and their actionable diagnostics
             # first, then check every displayed payload against the archive.
+            _validate_markdown_links([{'id':item['path'],'destination':item['path'],'path':item['path'],
+                                       'content':archive.read(item['path'])} for item in declared])
             from portal_checks import validate_page
-            validate_page(archive.read('START_HERE.html'),
-                          expected_files={item['path']:archive.read(item['path']) for item in declared
-                                          if item['path'] != 'START_HERE.html'},
+            if 'package_layout_version' in manifest or 'package_layout_version' in embedded:
+                require(type(manifest.get('package_layout_version')) is int and manifest['package_layout_version'] == 1
+                        and embedded.get('package_layout_version') == 1, 'Package layout version differs from its Start Here page')
+                generated = validate_generated_deliverables(embedded)
+                require(all(path in names and archive.read(path) == body for path, body in generated.items()),
+                        'Generated delivery inventory differs from selected archive bytes')
+                expected_inventory = package_file_inventory(embedded, {row['path']: archive.read(row['path']) for row in declared})
+                require(sorted(declared, key=lambda row: row['path']) == expected_inventory,
+                        'Manifest file roles differ from the selected package inventory')
+                registered_paths = {item['path'] for item in embedded.get('files', [])}
+            else:
+                registered_paths = {item['path'] for item in declared if item['path'] != 'START_HERE.html'}
+            page_check = validate_page(archive.read('START_HERE.html'),
+                          expected_files={path:archive.read(path) for path in registered_paths},
                           require_current=embedded.get('page_mode') is not None)
+            coverage = page_check['diagram_coverage']
     return {'status':'integrity_verified','files':len(declared),'context_sha256':context,
+            'diagram_coverage':coverage,
             'authority':'Integrity only; does not verify frozen benchmark authority or target execution.'}
 
 

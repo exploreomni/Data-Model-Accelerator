@@ -93,6 +93,7 @@ def run(output):
     add('run-guide','docs/implementation.md','# Synthetic implementation example\n\nThe included dbt SQL illustrates ref/source placement. It is not a complete deployable project: raw source declarations, actual models, adapter/profile, environment and benchmarks must come from the real engagement. Do not paste dbt Jinja into a SQL editor. No scripts were executed.\n','documentation',['engineer'])
     add('dictionary','docs/dictionary.json',json.dumps({'origin':'synthetic','models':models},indent=2),'dictionary',['reviewer','engineer'])
     add('diagram','docs/model.svg',model_svg(models,relationships),'diagrams',['reviewer','engineer'])
+    artifacts[-1]['diagram_model_ids'] = [model['id'] for model in models]
     add('model-code','models/gold/orders.sql',"-- Illustrative dbt model, not a qualified project.\nselect order_id, customer_id, order_date, amount\nfrom {{ ref('silver_orders') }}\n",'implementation',['engineer'],['run-guide'])
     add('validation-guide','validation/remaining-checks.md','# Validation remains open\n\nSynthetic review content only. Capture independent source results, validate catalogue bindings, test identity/fanout/security and run the authorized target build before claiming accuracy. No native warehouse or Coalesce execution was performed.\n','validation',['reviewer','engineer'])
     review={'schema_version':1,'title':'Sales model · guided review','description':'Synthetic walkthrough of the shared workflow. This is a UX example, not customer or warehouse acceptance.',

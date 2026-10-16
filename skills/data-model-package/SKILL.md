@@ -17,8 +17,8 @@ audience, deliverables and current stage records.
 
 Follow [delivery experience](../data-model-accelerator/references/delivery-experience.md).
 Reuse the existing `START_HERE.html` or selected Markdown fallback as the one
-authoritative working entrypoint. Offer at most three primary choices: Overview,
-Design and Implementation, showing only what the stage and audience permit.
+authoritative working entrypoint. Offer at most three primary choices: Data model,
+Code & files and Validation, showing only what the stage and audience permit.
 Place full inventory, detailed validation and audit behind progressive detail
 links; keep material blockers visible. Maintain one current design document
 bound to canonical design/decision records, with required layer documentation

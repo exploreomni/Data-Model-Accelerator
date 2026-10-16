@@ -227,14 +227,15 @@ class CompactDeliveryTests(unittest.TestCase):
         primary_nav.feed('<nav id="primary-navigation"' + template.split('<nav id="primary-navigation"', 1)[1].split('</nav>', 1)[0] + '</nav>')
         primary = primary_nav.links
         self.assertEqual({link['href'] for link in nav.links if not link['secondary']} - {link['href'] for link in primary},
-                         {'#architecture', '#lineage', '#implementation-code', '#replacement-map'})
-        self.assertEqual([link['href'] for link in primary], ['#overview', '#model', '#delivery'])
+                         set())
+        self.assertEqual([link['href'] for link in primary], ['#model', '#delivery', '#validation'])
         self.assertEqual([re.sub(r'^\s*\d+\s*', '', link['text']).strip() for link in primary],
-                         ['Overview', 'Design', 'Implementation'])
+                         ['Data model', 'Code & files', 'Validation'])
         secondary = [details for details in nav.details if details['links']]
         self.assertTrue(secondary, 'Secondary navigation needs a collapsed details group')
         self.assertTrue(all('open' not in details['attrs'] for details in secondary))
-        self.assertTrue({'#readiness', '#changes', '#validation', '#deployment'} <=
+        self.assertTrue({'#overview', '#lineage', '#readiness', '#changes', '#deployment', '#architecture',
+                         '#table-dictionary', '#implementation-code', '#replacement-map', '#review-feedback'} <=
                         {link['href'] for details in secondary for link in details['links']})
 
     def test_compact_helper_is_pure_and_has_only_five_evidence_stages(self):
@@ -487,8 +488,9 @@ Promise.all(blobs.map(b=>b.text())).then(bodies=>{
   assert.deepEqual(bodies,INPUT.payload.audience==='engineer'?[INPUT.design,INPUT.guide]:[INPUT.design]);
 }).catch(error=>{console.error(error);process.exitCode=1});
 """
-                result = subprocess.run([shutil.which('node'), '-e', harness + '\n' +
-                                         (portal.ASSETS / 'portal.js').read_text().rsplit('})();', 1)[0] + assertions + '\n})();'],
+                # Whole-page fixtures exceed Linux's per-argument limit; stream the script.
+                script = harness + '\n' + (portal.ASSETS / 'portal.js').read_text().rsplit('})();', 1)[0] + assertions + '\n})();'
+                result = subprocess.run([shutil.which('node'), '-'], input=script,
                                         capture_output=True, text=True, timeout=15)
                 self.assertEqual(result.returncode, 0, result.stderr)
 

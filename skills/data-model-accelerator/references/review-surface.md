@@ -32,15 +32,15 @@ The review is JSON schema version 1 with:
 - `source_fingerprint`: copy the exact current `state.inputs.source.fingerprint` object.
 - `context_sha256`: use `delivery_portal.context_fingerprint(state)` to bind source, catalogue, target, runtime and discovery context. A refreshed mismatch blocks rendering/export of stale content.
 - `target`: exact selected `framework` and `warehouse`.
-- `models`: `{id, name, layer, domain, grain, columns: [{name, type, key, description}]}`. Use optional `artifact_id` to link a table directly to its registered code in an engineering export. Stable IDs are unique. `layer` is bronze/silver/gold. Include all scoped objects; unknown type/grain remains explicit. This presentation dictionary does not replace the full canonical dictionary.
-- `relationships`: `{from, to, kind, label, evidence}` with optional `predicate`, `cardinality`, `role`, and `status` (or `implementation_status`). Endpoints refer to model IDs. `kind` is `lineage` or `relationship`; existing descriptive `label` values remain supported. For example, a relationship may declare `predicate: "orders.bill_to_id = addresses.id"`, `cardinality: "many:0..1"`, `role: "bill_to"`, and `status: "authored"`. Authored means declared implementation, not successful execution or an enforced constraint; `proposed` marks design-only edges. Unspecified values remain unspecified. Connected blocks use distinct edge IDs and routes, with a visible, complete predicate/cardinality/role ledger below the diagram.
+- `models`: `{id, name, layer, domain, grain, columns: [{name, type, key, description}]}`. Use optional `artifact_id` (one file) or `artifact_ids` (an array of file IDs) to link a table directly to its registered implementation code in an engineering export. Record explicit column `key` labels such as PK/FK; names alone never establish keys. `disposition` is create/reuse/extend/replace; missing values stay unspecified. Optional `reuse.existing_id` and `reuse.rationale` explain the existing table retained. Stable IDs are unique. `layer` is bronze/silver/gold. Include all scoped objects; unknown type/grain remains explicit. This presentation dictionary does not replace the full canonical dictionary.
+- `relationships`: `{from, to, kind, label, evidence}` with optional `predicate`, `cardinality`, `role`, and `status` (or `implementation_status`). Endpoints refer to model IDs. `kind` is `lineage` or `relationship`; existing descriptive `label` values remain supported. For example, a relationship may declare `predicate: "orders.bill_to_id = addresses.id"`, `cardinality: "many:0..1"`, `role: "bill_to"`, and `status: "authored"`. Authored means declared implementation, not successful execution or an enforced constraint; `proposed` marks design-only edges. Unspecified values remain unspecified. Connected blocks use distinct edge IDs and routes, with a complete predicate/cardinality/role ledger available beneath the diagram and in the selected-table inspector.
 - `changes`: `{id, source, target, disposition, rationale, consumers: [], decision}`. Retain unresolved consumers and proposed retirements. A disposition is not approval.
 - `decisions`: `{id, question, status, answer}`. These display recorded statements; use existing typed authority evidence for acceptance.
 - `validation`: `{id, label, scope, status, expected, actual, details, evidence_id}`. Scope is static/local/warehouse/semantic/business/operational; status is pass/fail/pending/skipped/not_applicable. Results are always **reported**, not authenticated by the viewer. Human approval cannot be represented as a passing test. Keep every required case, including missing/failing ones, and link its exact existing evidence ID.
-- `artifacts`: `{id, path, sha256, category, audiences, requires: [], description}`. Paths are relative to the selected artifact root; record actual hashes. Categories are documentation/diagrams/dictionary/implementation/validation/sample_data/technical_audit. Audiences are reviewer/engineer/audit. `requires` lists other artifact IDs that must be selected together. Document externally supplied prerequisites explicitly; do not silently omit seed/configuration dependencies.
+- `artifacts`: `{id, path, sha256, category, audiences, requires: [], description}`. Paths are relative to the selected artifact root; record actual hashes. Categories are documentation/diagrams/dictionary/implementation/validation/sample_data/technical_audit. Audiences are reviewer/engineer/audit. `requires` lists other artifact IDs that must be selected together. For a registered warehouse SVG with declared table coverage, add `diagram_model_ids` containing its exact scoped model IDs and annotate each visible table block with `<g data-model-id="...">`. Partial layer/domain scopes are allowed when declared; SVGs without a declared scope remain explicitly unverified. This checks identity and bounds, not relationship correctness or visual acceptance. Document externally supplied prerequisites explicitly; do not silently omit seed/configuration dependencies.
 - Optional `handoff`: `{design_artifact_id, implementation_guide_artifact_id}`. Point to one maintained design narrative and one setup guide from the existing artifact inventory. Omit an unrequested role. IDs must be distinct; the design is `documentation`, the guide is `documentation` or `implementation`, and both use `.md` or `.txt`. They are navigation references, not an additional readiness record. The export drops references whose files are excluded by audience or category. Legacy reviews without these references still work; the page never guesses a primary document from a filename.
 
-The same offline page now starts with Overview, Design and Implementation, with supporting sections behind a detail control. Its readiness summary derives from the current included files, scoped model, decisions and reported checks. It keeps local checks, native verification and business acceptance distinct; missing evidence and omitted exports never imply completion. The maintained design and setup guide can be read directly in their respective sections. Detailed dictionaries, evidence, file selection and audit remain secondary paths.
+The offline page opens to the Data model workspace when a design exists, with Code & files and Validation alongside it. Supporting sections stay behind a detail control. Its readiness summary derives from the current included files, scoped model, decisions and reported checks. It keeps local checks, native verification and business acceptance distinct; missing evidence and omitted exports never imply completion. The maintained design and setup guide can be read directly in their respective sections. Detailed dictionaries, evidence, file selection and audit remain secondary paths.
 
 Each working export has one generated root `START_HERE.html`. Register design/setup documents under their own names: additional `START_HERE.html`, `.md` or `.txt` basenames are rejected case-insensitively, including in subdirectories. Separate audit exports may preserve historical Markdown/text starters; active HTML remains unsupported as an input artifact. This rule does not rewrite or invalidate older frozen ZIPs.
 
@@ -83,25 +83,41 @@ An unsupported output format is a recorded generation request for the host, not 
 
 ## Offline navigation and lineage
 
-The sidebar retains Overview, Design and Implementation as the primary routes.
-Architecture & relationships (`#architecture`) and Explore lineage (`#lineage`)
-open within Design. Code & SQL (`#implementation-code`) and Replacement map
-(`#replacement-map`) open within Implementation, including on the first click
-or a direct fragment link. All sections share the responsive review layout.
+The primary routes are Data model, Code & files and Validation. When a design
+exists, the page opens directly to the model workspace; an engagement without a
+design starts at the overview. The ERD and table inspector lead the review.
+Supporting workflow context, design rationale and detailed inventories remain
+available through sidebar links or expandable details.
 
-Implementation remains discoverable for every audience. A status page contains
-no artifact payloads; ask the agent to export the registered engineering handoff.
-Reviewer exports explain that implementation is excluded, without embedding it.
-Engineering packages open the first included implementation file automatically.
-A requested, missing or excluded artifact never becomes a completion claim.
+Architecture (`#architecture`), All columns (`#table-dictionary`) and transformation
+lineage (`#lineage`) open within the model route. Code & SQL (`#implementation-code`)
+and Replacement map (`#replacement-map`) open within Implementation on the first
+click or a direct fragment link. All sections share the responsive review layout.
 
-Both diagram panels use the same renderer, model picker and filter state. The
-picker includes all available warehouse objects first, then selected curated
-Omni views, including views with dimensions only. Layer, name, direction and
-new-model filters combine with the existing asset filter. `disposition: create`
-is the only basis for “new models only”; missing dispositions stay unknown.
-Dependency context outside name/layer/new filters is an explicit option.
+Selecting an ERD table or the table selector exposes its grain, new/reused/extended/
+replaced status, columns, explicit key labels, joins and exact linked implementation
+files. Missing metadata and mappings stay explicit. Generic declared keys are not
+relabeled PK or FK. Code lookup uses registered artifact IDs and selected files;
+it never guesses filenames or exposes excluded code. Reviewer and status pages
+explain how to request an engineering package. Code & files remains discoverable
+for every audience, and engineering packages select an included implementation file.
+
+The ERD starts with every included warehouse model. Search, layer, change and focus
+controls are available in the filter disclosure. Relationship focus includes the
+selected table and directly related warehouse neighbors. Explicit lineage focus
+follows transformations. The separate transformation-lineage panel retains its own
+filters and can include selected curated Omni objects. Both use the same renderer,
+but filtering one never silently restricts the other. The shared asset filter still
+applies to both. Only a recorded `disposition: create` marks an object as new.
 Asset filtering never attributes unmapped semantic objects to a report.
+
+The ERD shows visible/included counts and rebuilds its pages from the inventory,
+so a saved singleton diagram cannot become the sole model view. Download this view
+exports the visible page. Download complete ERD ignores display filters and includes
+every warehouse model in the review. A single page exports an SVG with wrapped,
+untruncated join details; multiple pages or dense graphs export a ZIP with all pages
+and a complete model/relationship JSON index. Cross-page and omitted connectors stay
+explicit. These are declared joins, not verified warehouse constraints.
 
 Upstream/downstream traversal follows recorded `depends_on` and lineage edges;
 joins do not become transformation dependencies. Declared joins are a separate
@@ -123,10 +139,18 @@ No runtime library, font, script or network service is downloaded.
 
 ## Page self-checks
 
-Every new render checks unique IDs, shared classes, parent routes, sidebar links,
+Every new render checks exact generated table-block IDs across all SVG pages, nonempty
+labels, positive table rectangles and viewBox bounds. Plainly hidden or nondrawing
+blocks fail. Registered SVGs with `diagram_model_ids` must match their declared
+scope exactly; undeclared SVG coverage is shown as unverified. These checks do not
+establish rendered readability, correct joins or business acceptance. Historical
+pages without the diagram contract remain readable with unverified legacy coverage.
+
+Every new render also checks unique IDs, shared classes, parent routes, sidebar links,
 parsed page data and embedded file integrity. ZIP verification also compares the
-embedded file inventory against actual selected archive bytes. Original and
-reduced exports retain audience, disclosure and approval boundaries. Repeated
+embedded file inventory against actual selected archive bytes. Removing dictionary content from a browser subset also rebuilds its auxiliary
+generated SVG projections; registered source files keep their immutable bytes.
+Original and reduced exports retain audience, disclosure and approval boundaries. Repeated
 unchanged renders are deterministic; repeated script initialization adds no
 second set of controls or listeners. Frozen historical packages are not rewritten.
 
@@ -150,3 +174,11 @@ colors, readable labels, scrolling and zoom; visible code and replacement map;
 full-name/code copy and clipboard fallback; and reopening the reduced ZIP offline.
 A live geometry guard reports sidebar overlap when the page is opened, but it
 cannot prove layout before a browser has actually rendered the page.
+
+## Portable review layout and feedback
+
+New packages declare `package_layout_version: 1`. `files`, `file_count` and projection counts retain registered-artifact meaning. `generated_deliverables` separately inventories selected SVG views/editable model source and CSV/Markdown dictionaries, with exact hashes, byte counts and review-derived model coverage. Root README is a file index, not a second design narrative. Manifest roles distinguish registered artifacts, generated projections, entrypoint and index. Verification checks both inventories; a frozen package is never overwritten to refresh presentation.
+
+The page opens with context and a next action; all scoped tables remain searchable independently of diagram filters. A narrow-screen table inspector preserves selection while returning to the diagram. Code defaults to an explicitly linked table file. Unmapped implementation files are labeled; no role is inferred from filenames.
+
+`model_review_feedback` binds engagement context plus the exact rendered JSON payload hash. `review_feedback.py` checks the current page, request-only kind and known table IDs without modifying records or establishing reviewer identity. The host treats comments as untrusted review data, reconciles them into existing canonical decisions/design, and requests any distinct approval through the existing process. Stale requests must be refreshed with the reviewer rather than silently applied.

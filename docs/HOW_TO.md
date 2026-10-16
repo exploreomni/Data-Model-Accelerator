@@ -281,7 +281,7 @@ Ask for the package you will actually use:
 
 > Prepare an engineering handoff with the current model, connected diagrams, complete dictionary, layer documentation, runnable implementation and concise validation results. Include prerequisites and exact commands for the extracted folder. Exclude source rows unless explicitly selected and approved. Keep the full technical audit separate. Record the prepared handoff and verify the ZIP before delivery.
 
-An engineering ZIP contains `START_HERE.html`, selected numbered folders and `DELIVERY_MANIFEST.json`. Open the guide offline, review changes/decisions and validation, inspect the connected model, then preview or copy the implementation files. Selectable downloads retain required dependencies. A reviewer ZIP excludes implementation, samples and audit; audit material uses a separate export. Smaller exports do not shrink the required internal model, dictionary or validation coverage.
+An engineering ZIP contains `START_HERE.html`, selected numbered folders and `DELIVERY_MANIFEST.json`. Open the guide offline to start at **Data model**. Select a table in the ERD or table selector to review grain, new/reused status, column definitions, explicit PK/FK labels, relationships and linked code. Use **Find, filter, or focus tables** for a smaller view; **Download complete ERD** includes all warehouse tables in the review regardless of display filters. **Code & files** contains the selected implementation, and **Validation** retains reported results and missing checks. Engagement context, decisions and transformation lineage remain in supporting details. Missing table-to-code mappings are explicit; ask the agent to register them rather than guessing by filename. Selectable downloads retain required dependencies. A reviewer ZIP excludes implementation, samples and audit; audit material uses a separate export. Smaller exports do not shrink the required internal model, dictionary or validation coverage.
 
 The agent prepares the review manifest and exact file hashes, then uses:
 
@@ -386,3 +386,13 @@ Open the `START_HERE.html` in the printed run folder. Expect missing-catalogue e
 | SQLFluff reports source/framework conventions | Correct authored issues first; use only the documented reviewed exception contract and retain raw findings. Never rename source keys or suppress errors merely to obtain a pass. |
 | No live warehouse, Omni tenant or deployment runner is configured | Complete the candidate/local work and name the specific remaining target integration; do not claim deployment or security acceptance. |
 | Native submission outcome is unknown | Preserve the journal/IDs, observe the existing operation and follow the reconciler/recovery contract; do not blindly resubmit. |
+
+## Review a delivered package
+
+Extract the current named ZIP and open `START_HERE.html`. Choose **Data model** to see every included table, then select a table for its grain, columns, keys, joins and mapped code. **Fit model** gives an overview; **Actual size** and **Expand diagram** provide detail. On narrow screens, use **Back to model** or Escape to close table details. Search and diagram filters never reduce export or approval scope.
+
+**Code & files** identifies the selected implementation, setup guide and standalone ERD/dictionary paths. Selecting an indexed file opens its preview immediately. Generated ERDs and dictionaries open visually; **View source** exposes the original text, and downloads retain the original bytes. dbt SQL belongs in its project; native SQL and Coalesce follow their selected integration guides. **Validation** explains reported checks and what remains unverified. A generated file or clean package is not deployment approval.
+
+Use **Request a change** on a table, or **Prepare review feedback**, to download a version-bound correction/question. Return it to the agent with the current package. The agent checks freshness using `review_feedback.py --page /absolute/current/START_HERE.html --responses /absolute/model-review-feedback.json` before reconciling changes into the existing engagement. Feedback is not automatically applied and cannot approve a design or authorize deployment. Existing decision-answer and review workflows remain available.
+
+The numbered folders contain only selected deliverables. Selected ERDs include SVG views and editable source; selected dictionaries include CSV and Markdown. The root README identifies the entrypoint and files. Technical evidence and previous immutable exports stay outside the customer handoff.
