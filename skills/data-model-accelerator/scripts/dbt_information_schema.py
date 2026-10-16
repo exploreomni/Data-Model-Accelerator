@@ -190,6 +190,8 @@ def _decoder(duckdb, raw):
             'memory_limit': '64MB', 'threads': '1', 'max_temp_directory_size': '0B',
         })
         try:
+            # Make timestamp rendering independent of the host timezone.
+            connection.execute("SET TimeZone = 'UTC'")
             connection.execute('SET allowed_paths = ?', [[str(path)]])
             connection.execute('SET enable_external_access = false')
             connection.execute('SET lock_configuration = true')
@@ -314,8 +316,12 @@ def _read_table(duckdb, raw, table, source, budget, stage):
             'FROM parquet_metadata(?)', [selected, path]).fetchone()
         if sizes[0] > MAX_METADATA_ROWS or sizes[1] > MAX_EXPANDED_BYTES or sizes[2] > MAX_PROJECTED_BYTES:
             _fail('expanded_byte_limit')
-        # Projection contains identifiers exclusively from the static allowlist.
-        projection = ', '.join('"' + name + '"' for name in selected)
+        # DuckDB's Python TIMESTAMPTZ conversion imports optional pytz. Render
+        # those values as bounded UTC text inside the decoder instead; all
+        # identifiers still come exclusively from the static field allowlist.
+        sql_types = {name: sql_type for name, sql_type, *_ in schema}
+        projection = ', '.join('CAST("' + name + '" AS VARCHAR)' if sql_types[name] == 'TIMESTAMP WITH TIME ZONE'
+                               else '"' + name + '"' for name in selected)
         cursor = connection.execute('SELECT ' + projection + ' FROM read_parquet(?) LIMIT ?', [path, MAX_ROWS + 1])
         rows, identities = [], set()
         while True:

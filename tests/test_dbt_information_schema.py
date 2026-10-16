@@ -134,6 +134,27 @@ class InformationSchemaTests(unittest.TestCase):
         self.assertNotIn('foreign_key', json.dumps(report))
         self.assertEqual(report['coverage']['unresolved_node_ids'], [])
 
+    def test_native_timezone_timestamp_reads_without_optional_pytz(self):
+        source = self.table('dbt.models', [('unique_id', 'VARCHAR'), ('name', 'VARCHAR'),
+                                         ('ingested_at', 'TIMESTAMPTZ')], [
+            ('model.demo.customers', 'customers', '2026-10-16 01:02:03.123456+02'),
+            ('model.demo.orders', 'orders', None),
+        ])
+        before = source.read_bytes()
+        script = (
+            "import sys, json; sys.modules['pytz'] = None; sys.path.insert(0, sys.argv[1]); "
+            "from dbt_information_schema import read_information_schema; "
+            "report = read_information_schema(sys.argv[2], stage='parse'); "
+            "assert report['warehouse_validation'] == 'not_run'; "
+            "assert report['execution_performed'] is False; "
+            "print(json.dumps([row['ingested_at'] for row in report['models']]))"
+        )
+        result = subprocess.run([sys.executable, '-I', '-c', script, str(SCRIPTS), str(self.snapshot)],
+                                capture_output=True, text=True, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), ['2026-10-15 23:02:03.123456+00', None])
+        self.assertEqual(source.read_bytes(), before)
+
     def test_parse_never_exposes_compiled_or_runtime_claims(self):
         self.metadata(); self.runtime()
         report = self.read('parse')
