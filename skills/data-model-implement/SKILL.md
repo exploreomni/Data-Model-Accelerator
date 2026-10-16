@@ -29,6 +29,11 @@ default for local candidates; external signed review is optional. Do not fabrica
 reviewer identity or infer approval from a decision-answer file.
 After review, assess [development effort](../data-model-accelerator/references/development-effort.md).
 
+For dbt, use the coordinator's selected [runtime contract](../data-model-accelerator/references/dbt-runtime.md)
+and upgrade findings. Preserve existing v1 projects, pin new distribution/version
+choices, and prepare optional v2 checks/configuration as reviewable candidates.
+Do not silently enable every new feature or rescan other specialists' context.
+
 Register or reuse scoped tasks, show the reuse/regenerate/blocked plan, then invoke
 the host's actual engineering specialists for runnable tasks. Preserve existing
 framework conventions, source identifiers, shared-file ownership and independent

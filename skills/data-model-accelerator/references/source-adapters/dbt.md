@@ -12,6 +12,13 @@ packages, reads profiles, performs warehouse introspection, or acquires artifact
 Existing dbt refactor, qualification and evidence-verification workflows are
 separate and unchanged.
 
+The separate [runtime workflow](../dbt-runtime.md) adds explicit distribution and
+version assessment. For supplied Parquet `target/info_schema/v1` snapshots use
+`scripts/dbt_information_schema.py`; the UTF-8 source adapter does not parse binary
+Parquet. The coordinator attaches the bounded projection and its gaps to the
+assigned dbt task. This avoids repeated full-manifest ingestion and does not
+establish native execution or physical key relationships.
+
 The only accepted manifest schema URI is
 `https://schemas.getdbt.com/dbt/manifest/v12.json`. The adapter validates bounded
 container/identity/dependency shapes, **not the full JSON Schema**. Older versions,

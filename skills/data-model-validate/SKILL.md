@@ -25,3 +25,8 @@ Use the existing lint, native, benchmark, access and assurance contracts. Record
 actual task and output references; reuse only current matching evidence. Local
 consistency, native compilation, data accuracy, human acceptance and deployment
 remain distinct. Do not alter expectations merely to make a candidate pass.
+
+For dbt, follow the selected [runtime evidence contract](../data-model-accelerator/references/dbt-runtime.md).
+Verify executable/distribution/version separately from artifact schema. A native
+lint exit code of zero can contain violations; require complete file results.
+Keep baseline/strict analysis, metadata checks and independent data tests separate.

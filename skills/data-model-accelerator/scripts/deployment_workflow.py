@@ -112,6 +112,23 @@ def _handoff(run_dir, *, refresh=False):
     return state, pinned, bindings
 
 
+def _reviewed_dbt_runtime(state, target, action, metadata_phase=None):
+    """Bind implementation execution to the engagement's explicit runtime.
+
+    Legacy engagements do not acquire a new requirement. dbt publication plans
+    still describe the selected runtime; native SQL metadata phases are separate.
+    """
+    selected = state['answers'].get('dbt_runtime')
+    if (selected is None or state['answers'].get('framework') != 'dbt'
+            or action == 'publish_pr' and target.get('framework') != 'dbt'
+            or metadata_phase is not None and target.get('framework') == 'native_sql'):
+        return
+    from dbt_runtime import validate_selection
+    require(target.get('dbt_runtime') is not None and
+            validate_selection(target['dbt_runtime']) == validate_selection(selected),
+            'Destination differs from the reviewed dbt runtime selection')
+
+
 def create_plan(run_dir, request, policy_path, output):
     """Create an exact reviewable plan. This does not authorize or execute it."""
     from deployment_adapters import validate_target, build_plan
@@ -133,6 +150,7 @@ def create_plan(run_dir, request, policy_path, output):
     metadata_descriptor = request.get('metadata_phase')
     require((target_framework == reviewed_framework or metadata_descriptor is not None and target_framework == 'native_sql')
             and target['warehouse'] == state['answers'].get('warehouse'), 'Destination differs from the reviewed framework/warehouse')
+    _reviewed_dbt_runtime(state, target, action, metadata_descriptor)
     require(metadata_descriptor is None or action != 'publish_pr', 'Metadata execution phases cannot be publication requests')
     if action == 'deploy_development':
         require(target['environment'] in {'development', 'dev', 'test', 'staging'}, 'Development action cannot target production')
@@ -368,6 +386,7 @@ def _current(plan, policy_path):
         require(plan.get('metadata_required') is True or plan.get('metadata_phase') is not None,
                 'Selected metadata delivery requires its release gate')
     _plan_policy(plan, policy)
+    _reviewed_dbt_runtime(state, plan['target'], plan['action'], plan.get('metadata_phase'))
     require(plan.get('migration_scope') == state['answers'].get('migration_scope'), 'Migration scope changed')
     if plan.get('delivery_assurance') is not None:
         from delivery_release import current_context
@@ -679,6 +698,12 @@ def _approval(plan, policy, model_signoff, approval):
                 and preflight.get('permissions_verified') is True
                 and isinstance(preflight.get('evidence_sha256'), str) and re.fullmatch(r'[a-f0-9]{64}', preflight['evidence_sha256'])
                 and preflight.get('evidence_reference'), 'Live approval needs current native identity, permissions and artifact/commit preflight evidence')
+        if plan['target'].get('dbt_runtime') and plan['action'] != 'publish_pr':
+            from dbt_runtime import validate_selection
+            selected = validate_selection(plan['target']['dbt_runtime'])
+            require(preflight.get('observed_dbt_runtime') == selected
+                    and preflight.get('dbt_runtime_verified') is True,
+                    'Live dbt execution needs independently verified distribution, version, effective analysis mode and selected features')
     if plan['action'] == 'promote':
         qualification = plan.get('qualification')
         require(type(qualification) is dict, 'Promotion requires a qualified prior build')

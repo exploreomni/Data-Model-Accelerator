@@ -17,6 +17,13 @@ The hosted matrix follows current [dbt adapter lifecycle documentation](https://
 
 ## Metadata delivery matrix
 
+dbt distribution is a separate dimension. `get_dbt_pairing(warehouse, selection)`
+adds the versioned [runtime contract](../skills/data-model-accelerator/references/dbt-runtime.md)
+to the existing pairing without promoting static assessment to native success.
+Full dbt v2 and dbt OSS do not inherit the Core adapter's qualification. ClickHouse
+is documented **Private beta** for v2; local DuckDB is **CLI only** and does not
+establish MotherDuck compatibility. Exact tested pins live in `dbt_runtime.py`.
+
 The versioned `metadata_platforms.py` profiles distinguish implemented projections, local contract tests and live qualification. All rows share dictionary v2, explicit physical bindings, read queries, difference planning, expected-state verification and guided review. dbt property generation applies to a selected supported dbt project; adapter-specific persistence still requires native qualification.
 
 | Warehouse | Generated comments | Generated tag assignments | Remaining scope limits |

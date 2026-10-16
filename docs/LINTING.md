@@ -1,5 +1,27 @@
 # Validate the selected delivery
 
+## Optional dbt v2 native lint
+
+The existing SQLFluff report remains the release lint contract.
+`scripts/dbt_native_lint.py` provides separate full-dbt 2.0.8 evidence for bounded
+plain SQL in a generated isolated project. It never loads source project config,
+Jinja, packages or credentials. It verifies native runtime bytes, full file
+coverage and violations; exit code zero alone does not pass. Templates, inline
+overrides and suppressions remain unsupported in this lane. dbt OSS does not
+provide native lint. This check is neither warehouse SQL validation nor a build.
+
+Use the existing reviewed lint manifest and a nonsecret runtime-selection JSON:
+
+```sh
+python skills/data-model-accelerator/scripts/dbt_native_lint.py /absolute/candidate \
+  --manifest /absolute/lint-manifest.json --runtime /absolute/runtime.json \
+  --warehouse snowflake --executable /absolute/isolated-dbt/bin/dbt \
+  --output /absolute/new-native-lint.json --execute
+```
+
+Without `--execute`, the helper records `not_run`. Keep native lint and SQLFluff
+results separate; neither establishes data accuracy or business acceptance.
+
 The accelerator now runs SQLFluff against the selected warehouse dialect with explicit file and execution-unit coverage. The [operator guide](../skills/data-model-accelerator/references/linting.md) contains the manifest contract, commands, template workflow and release integration. The [platform matrix](PLATFORM_MATRIX.md) supplies separate framework and native validation recipes.
 
 The guided review keeps four lanes independent:

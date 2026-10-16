@@ -35,3 +35,52 @@ jobs:
       - run: python skills/data-model-accelerator/scripts/run_refactor_qualification.py --output "$RUNNER_TEMP/rental-refactor"
         env:
           PYTHONOPTIMIZE: '1'
+
+  native-v2-distributions:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distribution: dbt
+            requirements: requirements-dbt-v2.txt
+          - distribution: dbt_oss
+            requirements: requirements-dbt-oss.txt
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Install the exact isolated distribution
+        run: |
+          python -m venv "$RUNNER_TEMP/runtime"
+          "$RUNNER_TEMP/runtime/bin/python" -m pip install -r "skills/data-model-accelerator/scripts/${{ matrix.requirements }}"
+          "$RUNNER_TEMP/runtime/bin/python" -m pip check
+      - name: Explicitly provision the checksum-pinned public local driver
+        run: |
+          "$RUNNER_TEMP/runtime/bin/python" - <<'PY'
+          import hashlib, os, pathlib, sys, urllib.request, zstandard
+          sys.path.insert(0, 'skills/data-model-accelerator/scripts')
+          from dbt_runtime import driver_contract
+          contract = driver_contract()
+          with urllib.request.urlopen(contract['download_url'], timeout=60) as response:
+              compressed = response.read(200 * 1024 * 1024 + 1)
+          if len(compressed) > 200 * 1024 * 1024 or hashlib.sha256(compressed).hexdigest() != contract['compressed_sha256']:
+              raise SystemExit('Driver archive integrity mismatch')
+          raw = zstandard.ZstdDecompressor().decompress(compressed, max_output_size=500 * 1024 * 1024)
+          if hashlib.sha256(raw).hexdigest() != contract['sha256']:
+              raise SystemExit('Driver implementation integrity mismatch')
+          path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'duckdb-driver.so'
+          with path.open('xb') as stream:
+              stream.write(raw)
+          PY
+      - name: Require native passing and deliberately failing independent cases
+        run: |
+          "$RUNNER_TEMP/runtime/bin/python" skills/data-model-accelerator/scripts/run_dbt_runtime_qualification.py \
+            --distribution "${{ matrix.distribution }}" --dbt "$RUNNER_TEMP/runtime/bin/dbt" \
+            --driver "$RUNNER_TEMP/duckdb-driver.so" --output "$RUNNER_TEMP/qualification" --execute
+      - name: Qualify metadata checks, Information Schema and distribution-specific lint
+        run: |
+          "$RUNNER_TEMP/runtime/bin/python" skills/data-model-accelerator/scripts/run_dbt_feature_qualification.py \
+            --distribution "${{ matrix.distribution }}" --dbt "$RUNNER_TEMP/runtime/bin/dbt" \
+            --driver "$RUNNER_TEMP/duckdb-driver.so" --output "$RUNNER_TEMP/feature-qualification" --execute

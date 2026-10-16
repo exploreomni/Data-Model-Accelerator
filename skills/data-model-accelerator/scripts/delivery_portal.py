@@ -893,6 +893,25 @@ def diagram_views(models, relationships, maximum=36):
     return result
 
 
+def _dbt_runtime_summary(state):
+    """Recompute the selected contract; never project raw probes or credentials."""
+    answers = state.get('answers', {})
+    if answers.get('framework') != 'dbt':
+        return None
+    selection = answers.get('dbt_runtime')
+    if selection is None:
+        return {'selected': False, 'next_action': 'Retain the existing project and choose an exact dbt distribution/version before native execution. Design and requested draft code can continue.',
+                'observed_runtime': 'not_probed', 'native_validation': 'not_run'}
+    from dbt_runtime import runtime_contract
+    from dbt_compatibility import setup_guidance
+    contract = runtime_contract(selection, warehouse=answers.get('warehouse'))
+    return {'selected': True, 'selection': contract['selection'],
+            'qualification': contract['qualification'], 'features': contract['features'],
+            'setup': setup_guidance(selection), 'observed_runtime': 'not_probed',
+            'native_validation': 'not_run',
+            'next_action': 'Review the runtime and upgrade assessment, then request the selected native checks. Validation results remain in their independent evidence records.'}
+
+
 def _summary(state):
     answers=state.get('answers', {})
     readiness=state.get('readiness', {})
@@ -906,6 +925,7 @@ def _summary(state):
             'delivery':{key:delivery[key] for key in ('status','artifact_count','assurance','audience','deliverables','qualification') if key in delivery},
             'status':state.get('status','discovery'), 'source_fingerprint':source_fingerprint(state),
             'target':{k:answers.get(k) for k in ('framework','warehouse','semantic_target')},
+            'dbt_runtime':_dbt_runtime_summary(state),
             'engagement_type':answers.get('engagement_type',answers.get('mode','unresolved')),
             'domain':answers.get('domain',answers.get('priority_domain','Not selected')),
             'next_actions':state.get('next_actions',[]), 'readiness':{'interview_complete':readiness.get('interview_complete',False),
@@ -1300,6 +1320,15 @@ def package_readme(data):
     for record in sorted(registered + generated, key=lambda row: row['path']):
         origin = 'generated review projection' if record.get('origin') == 'review_projection' else 'registered artifact; original bytes'
         lines.append(f"- [{_markdown_cell(record['path'])}]({quote(record['path'], safe='/')}) — {record['category']}; {origin}.")
+    runtime = engagement.get('dbt_runtime')
+    if runtime:
+        lines.extend(['', '## dbt runtime', '', runtime['next_action']])
+        if runtime.get('selected'):
+            selected = runtime['selection']
+            lines.extend(['', 'Selected: ' + selected['distribution'] + ' ' + selected['version'] + '; requested analysis: ' + selected['analysis_mode'] + '.',
+                          'Selection is not an installed-runtime observation or a successful native check.', '',
+                          'Review-only setup (not installation or execution approval):', '', '```text',
+                          *runtime['setup']['commands'], '```', '', *['- ' + item for item in runtime['setup']['prerequisites']]])
     if any(record['category'] == 'diagrams' for record in generated):
         lines.extend(['', 'ERD pages collectively cover the included tables. The editable model source retains all declared connections, including those crossing pages.'])
     if any(record['category'] == 'dictionary' for record in generated):

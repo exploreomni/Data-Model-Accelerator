@@ -1,0 +1,9 @@
+# Optional isolated native dbt OSS qualification runtime. Never install alongside
+# dbt-core or dbt: all three distributions provide the `dbt` entry point.
+dbt-oss==2.0.8
+mashumaro[msgpack]==3.23
+msgpack==1.2.3
+typing_extensions==4.16.0
+PyYAML==6.0.3
+duckdb==1.5.5
+zstandard==0.25.0

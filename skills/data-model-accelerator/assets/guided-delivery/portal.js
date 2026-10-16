@@ -343,6 +343,25 @@ const questionValues={};
 if(!(eng.readiness.questions||[]).length){empty('questions','No interview questions are currently recorded. Unresolved model decisions may still appear in Review changes.');el('save-answers').hidden=true;}
 el('save-answers').onclick=()=>{const values={};for(const [k,v]of Object.entries(questionValues)){if(typeof v==='string'&&!v.trim())continue;values[k]=v;}if(!Object.keys(values).length)return notice('Enter at least one answer before saving.');download('interview-answers.json',JSON.stringify(values,null,2),'application/json');el('answer-note').textContent='Saved a request, not a workflow update. Give interview-answers.json to the agent: “Apply these answers to this engagement and refresh the review.” Existing answers are preserved.';};
 const platform=eng.readiness.platform||{},caps=platform.capabilities||{};
+const dbtRuntime=eng.dbt_runtime;
+if(dbtRuntime){
+  const r=dbtRuntime.selection;
+  const status=make('div',undefined,'panel');status.append(make('h3','dbt runtime'),
+    make('p',r?`${pretty(r.distribution)} ${r.version} · Requested analysis: ${pretty(r.analysis_mode)}`:'Not selected'),
+    make('p',r?`Selection is not a native result. ${dbtRuntime.next_action}`:dbtRuntime.next_action));
+  el('dbt-runtime-validation').append(status);
+  const box=make('details',undefined,'panel');box.append(make('summary','dbt runtime and setup'));
+  box.append(make('p',dbtRuntime.next_action));
+  if(r){
+    box.append(make('p',`Requested analysis: ${pretty(r.analysis_mode)}. Installed runtime and effective analysis must be verified separately.`));
+    box.append(make('p',dbtRuntime.qualification.reason,'muted'));
+    box.append(make('p',`Selected features: ${r.features.length?r.features.map(pretty).join(', '):'No optional features'}. Native results are tracked under Validation.`));
+    box.append(make('p','Review-only setup; these commands are not executed by this page.'));
+    const pre=make('pre');pre.append(make('code',dbtRuntime.setup.commands.join('\n')));box.append(pre);
+    const list=make('ul');dbtRuntime.setup.prerequisites.forEach(v=>list.append(make('li',v)));box.append(list);
+  }
+  el('dbt-runtime-setup').append(box);
+}
 for(const key of ['assessment','generation','execution']){const value=caps[key];card(el('capabilities'),pretty(key),typeof value==='object'?pretty(value.status):pretty(value||'not assessed'),typeof value==='object'?(value.summary||value.reason||value.note||'See findings and the selected platform contract.'):'No native validation is inferred from static inspection.');}
 const coverage=platform.coverage||{};el('coverage').append(make('p',`${coverage.scanned_files??'Unknown'} files inspected · ${coverage.scanned_bytes??'Unknown'} bytes · ${coverage.complete?'Selected static inventory complete':'Inventory gaps remain'}`));const coverageDetails=make('details');coverageDetails.append(make('summary',`${(coverage.gaps||[]).length} gaps · ${(coverage.exclusions||[]).length} exclusions`));for(const item of [...(coverage.gaps||[]),...(coverage.exclusions||[])].slice(0,100)){coverageDetails.append(make('p',`${item.path} — ${pretty(item.reason)}`,'muted'));}if((coverage.gaps||[]).length+(coverage.exclusions||[]).length>100)coverageDetails.append(make('p','First 100 entries shown. Full coverage remains in the engagement assessment.','muted'));el('coverage').append(coverageDetails);
 (platform.findings||[]).forEach(f=>{const box=make('article',undefined,'finding');box.append(make('span',pretty(f.severity||f.status||'review'),'pill'),make('h3',f.summary||f.title||f.id),make('p',f.next_action||f.remedy||f.description||'Review the recorded scope with the agent.'));if(f.paths?.length)box.append(make('code',f.paths.join(', ')));el('findings').append(box);});

@@ -14,6 +14,16 @@ Use this page to scope a customer pilot. The accelerator combines agent reasonin
 
 The repository includes the first four levels for different surfaces. **No warehouse or BI platform has blanket native qualification.** A passing example is evidence for that example and version. For exact results, read the [qualification ledger](qualification.md).
 
+## dbt runtimes and upgrades
+
+For dbt, the [runtime workflow](../skills/data-model-accelerator/references/dbt-runtime.md)
+keeps existing Core requests compatible while adding explicit full dbt v2 and
+dbt OSS selection, a read-only upgrade assessment, bounded Information Schema
+ingestion, optional metadata-check candidates and separate native lint evidence.
+The guided package includes runtime/setup context; changed runtime choices
+invalidate affected code and checks without discarding the reviewed design.
+Feature availability and warehouse support do not imply native qualification.
+
 ## Warehouse metadata delivery
 
 The shared v2 dictionary records approved descriptions, grain, units, classification, multiple key roles, exact source lineage and unresolved decisions. The dbt generator previews and safely merges owned YAML fields into a separate candidate, preserves human changes and sets `persist_docs` with explicit override reporting. Native planners generate bounded comments for all six warehouses, with informational custom tags for Snowflake and Unity Catalog where supported. Unsupported security/tag semantics stay in the dictionary or block the selected write.

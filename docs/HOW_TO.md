@@ -62,6 +62,15 @@ Replace the paths and choices in this example with your actual selections:
 
 Choose these independently: **source formats, agent host, transformation framework, warehouse, semantic engine, and execution scope**. Detecting a dbt or Looker source does not choose the destination. “GCP” needs a specific service, such as BigQuery. Omni is optional. Use the [platform matrix](PLATFORM_MATRIX.md) to distinguish candidate authoring from qualified native execution; Coalesce requires a representative versioned native project contract.
 
+For dbt, also choose whether to retain the existing distribution/version or
+evaluate an upgrade. The [runtime guide](../skills/data-model-accelerator/references/dbt-runtime.md)
+explains Core, full dbt v2 and dbt OSS. A useful instruction is: “Assess this
+project for dbt 2.0.8; keep the source unchanged, prepare only the selected
+features, and distinguish requested strict analysis from what actually ran.”
+The agent records `dbt_runtime` in the existing answers and reuses that contract.
+Runtime/setup appears under **Code & files** and **Validation**, and in the ZIP
+README. Missing runtime evidence does not stop design or requested draft code.
+
 Also select the completion scope: `model_only` for the warehouse model,
 `model_semantic` for the model and Omni semantic layer, or `full_dashboard` for
 dashboard migration as well. Reuse a choice already supplied. If you choose a

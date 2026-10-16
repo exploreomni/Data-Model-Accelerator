@@ -26,7 +26,7 @@ ANSWER_KEYS = {'engagement_type', 'priority_domain', 'framework', 'warehouse',
                'retained_behavior', 'corrected_behavior', 'host', 'environment',
                'execution_mode', 'audience', 'metadata_policy', 'naming_policy',
                'migration_scope', 'input_handling', 'security_reviewer',
-               'business_reviewer', 'catalogue_authority'}
+               'business_reviewer', 'catalogue_authority', 'dbt_runtime'}
 DELIVERABLES = {'implementation', 'diagrams', 'documentation', 'dictionary',
                 'validation', 'sample_data', 'technical_audit'}
 ENUMS = {'engagement_type': {'migration', 'refactor', 'new_model', 'blind_test'},
@@ -196,6 +196,10 @@ def _answers(answers):
         if value is None:
             result[key] = None
             continue
+        if key == 'dbt_runtime':
+            from dbt_runtime import validate_selection
+            result[key] = validate_selection(value)
+            continue
         if key in ('metadata_policy', 'naming_policy'):
             from metadata_options import validate_options, validate_naming
             result[key] = (validate_options if key == 'metadata_policy' else validate_naming)(value)
@@ -255,6 +259,8 @@ def _selection(answers):
     target['sha256'] = _digest(target)
     runtime = {key: answers.get(key) for key in ('host', 'environment', 'execution_mode')}
     runtime['execution_mode'] = runtime['execution_mode'] or 'candidate_only'
+    if 'dbt_runtime' in answers:
+        runtime['dbt_runtime'] = answers['dbt_runtime']
     runtime['sha256'] = _digest(runtime)
     discovery = {key: answers.get(key) for key in ('engagement_type', 'priority_domain', 'trusted_outputs', 'retained_behavior', 'corrected_behavior')}
     return target, runtime, {'sha256': _digest(discovery)}
@@ -329,6 +335,11 @@ def _invalidate(state):
         if item['status'] != 'current':
             continue
         changed = [key for key, value in item['dependencies'].items() if current[key] != value]
+        # A legacy assessment did not evaluate an explicitly selected engine.
+        # Keep legacy behavior until a selection is made, then require refresh.
+        if (item.get('kind') == 'static_readiness' and 'runtime' not in item['dependencies']
+                and state['inputs']['runtime'].get('dbt_runtime') is not None):
+            changed.append('runtime')
         if 'receipt' in item:
             try:
                 _, digest = _nonsecret_json(item['receipt']['path'])
@@ -401,7 +412,10 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
     state['delivery_assurance'] = pending_summary(a.get('migration_scope'))
     framework = a.get('framework') if _known(a.get('framework')) else None
     warehouse = a.get('warehouse') if _known(a.get('warehouse')) else None
-    platform = _assess_repository(repo, framework, warehouse, **options)
+    assessment_options = dict(options)
+    if 'dbt_runtime' in a:
+        assessment_options['dbt_runtime'] = a['dbt_runtime']
+    platform = _assess_repository(repo, framework, warehouse, **assessment_options)
     _require(type(platform) is dict and platform.get('schema_version') == 1, 'Readiness collector returned an unsupported schema.')
     fingerprint = platform['source_fingerprint']
     _require(re.fullmatch('[0-9a-f]{64}', fingerprint.get('value', '')) is not None, 'Readiness source fingerprint is invalid.')
@@ -462,9 +476,10 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
     _delivery_progress(state)
     _stage_progress(state)
     bindings = _bindings(state)
+    assessment_dependencies = ('source', 'target', 'runtime') if 'dbt_runtime' in a else ('source', 'target')
     state['evidence'].append({'id': 'assessment-' + uuid.uuid4().hex, 'kind': 'static_readiness',
                               'status': 'current', 'assurance': 'static_read_only', 'recorded_at': _now(),
-                              'dependencies': {key: bindings[key] for key in ('source', 'target')},
+                              'dependencies': {key: bindings[key] for key in assessment_dependencies},
                               'result_sha256': _digest(platform), 'summary': _assessment_summary(platform),
                               'result_ref': None})
     return invalidated

@@ -25,6 +25,13 @@ COMPONENT_FILES = {
     'packaging': ('scripts/delivery_portal.py', 'assets/guided-delivery/portal.js',
                   'assets/guided-delivery/portal.css', 'assets/guided-delivery/portal.html'),
     'deployment': ('scripts/deployment_workflow.py', 'scripts/deployment_authority.py'),
+    'dbt_runtime': ('scripts/dbt_runtime.py', 'scripts/dbt_compatibility.py',
+                    'scripts/dbt_feature_delivery.py', 'scripts/dbt_information_schema.py',
+                    'scripts/dbt_native_lint.py', 'scripts/run_dbt_project.py',
+                    'scripts/verify_dbt_evidence.py',
+                    'scripts/requirements-dbt-v2.txt', 'scripts/requirements-dbt-oss.txt',
+                    'scripts/requirements-dbt-metadata.txt',
+                    'references/dbt-runtime.md'),
 }
 
 
@@ -611,9 +618,16 @@ def plan_tasks(state, artifact_root):
             require_stage(state, task['stage'], task['entity_ids'], _planning=True, _approved=approved[task['stage']])
             material = entity_bindings(state, task['entity_ids'], presentation=task['stage'] in {'design', 'packaging'}, stage=task['stage'], _cache=cache)
             parts = set(task['components']) | {'workflow', task['stage']}
+            if task['stage'] != 'design' and state['answers'].get('dbt_runtime'):
+                parts.add('dbt_runtime')
             scope = closure({e['id']: e['depends_on'] for e in design(state)['entities']}, task['entity_ids'])
             mode = generation_mode(state, task['stage'], scope, approved[task['stage']])
+            # Runtime changes invalidate code and downstream work, not the
+            # reviewed entity design. Preserve old fingerprints when unselected.
+            runtime_binding = ({'dbt_runtime': state['answers']['dbt_runtime']}
+                               if task['stage'] != 'design' and 'dbt_runtime' in state['answers'] else {})
             fingerprint = hash_json({'task': task, 'entities': material,
+                **runtime_binding,
                 'generation_mode': mode,
                 'components': {p: versions[p] for p in sorted(parts)},
                 'target': state['inputs']['target'],
