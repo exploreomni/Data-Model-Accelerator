@@ -22,7 +22,7 @@ from ae_common import hash_json, load_json, require
 
 def _run(argv, work, *, timeout=30, maximum=8 * 1024 * 1024):
     env = {'PATH': '/usr/bin:/bin', 'HOME': str(work), 'XDG_CONFIG_HOME': str(work),
-           'XDG_CACHE_HOME': str(work), 'TMPDIR': str(work), 'LANG': 'C.UTF-8',
+           'XDG_CACHE_HOME': str(work / '.cache'), 'TMPDIR': str(work), 'LANG': 'C.UTF-8',
            'NO_COLOR': '1', 'DBT_DISABLE_VERSION_CHECK': 'true',
            'PYTHONNOUSERSITE': '1', 'PYTHONDONTWRITEBYTECODE': '1'}
     with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:

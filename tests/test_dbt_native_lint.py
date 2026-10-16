@@ -81,6 +81,23 @@ class NativeLintTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'inventory_changed'):
                 native.lint_native(self.root, self.manifest, V2, 'snowflake', executable='/synthetic/dbt', execute=True)
 
+    def test_clean_child_resolves_preinstalled_linux_driver_without_host_cache(self):
+        from dbt_runtime import driver_contract
+        contract = driver_contract('Linux', 'x86_64')
+        cache_path = Path(contract['cache_relative_path'])
+        installed = self.root / cache_path
+        installed.parent.mkdir(parents=True)
+        installed.write_bytes(b'synthetic-pinned-driver')
+        # Linux's cache resolver uses XDG_CACHE_HOME before HOME/.cache.
+        # Exercise that resolver in a real clean subprocess, without dbt/network.
+        resolver = ('import os,sys; from pathlib import Path; '
+                    'cache=Path(os.environ.get("XDG_CACHE_HOME", str(Path.home()/".cache"))); '
+                    'sys.stdout.buffer.write((cache/sys.argv[1]).read_bytes())')
+        with patch.dict('os.environ', {'XDG_CACHE_HOME': '/unreviewed-host-cache'}):
+            code, stdout, stderr = native._run(
+                [sys.executable, '-I', '-c', resolver, str(Path(*cache_path.parts[1:]))], self.root)
+        self.assertEqual((code, stdout, stderr), (0, b'synthetic-pinned-driver', b''))
+
 
 if __name__ == '__main__':
     unittest.main()
