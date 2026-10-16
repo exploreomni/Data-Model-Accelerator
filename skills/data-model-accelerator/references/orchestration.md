@@ -1,6 +1,6 @@
 # Source specialist orchestration
 
-Use this workflow for existing dbt, Coalesce, Snowflake, Looker, Power BI, Tableau, Hex and Sigma projects, including mixed repositories. Existing source frameworks are inputs, not implicit target choices. Preserve sound existing models and propose the smallest justified changes.
+Use this workflow for mixed repositories and the [17 source profiles](source-specialists.md): dbt, Coalesce, Snowflake, Databricks, BigQuery, Looker, Power BI, Tableau, Hex, Sigma, Periscope, Domo, WebFOCUS, Redshift, ClickHouse, MotherDuck and Fabric. Raw CSV and native Omni retain their existing specialist routes. Existing source frameworks are inputs, not implicit target choices. Preserve sound existing models and propose the smallest justified changes.
 
 The coordinator reads this workflow. Delegated workers use the selected role's
 contract through [targeted context](agent-context.md), not this entire document.
@@ -19,6 +19,23 @@ The planner produces `inventory.json`, `dispatch-plan.json` and one task prompt 
 
 Read [source-specialists.md](source-specialists.md) only for detected source types. A declared source profile is evidence of operator intent, not proof that every contained file follows that format. Binary/packaged exports and incomplete specs need an extraction path or an explicit coverage gap.
 
+For each of the 17 sources, the plan adds `context_role: source_specialist` and
+`specialist_profile` metadata (path, source, SHA-256 and bytes), without copying
+all playbooks into the task. Pass `source_type` and the profile pin as
+`bindings.specialist_profile` to `agent_context.py`; it embeds only that profile
+and rejects stale pins. Profile bytes count toward the existing packet budget.
+The result verifier also checks profile freshness for plans that carry a pin.
+Profile-bound results must echo `specialist_profile_sha256`; changing the plan's
+pin cannot validate a result written under older instructions. The extraction
+bridge supplies this field in its candidate, which is not proof of an agent
+invocation. Older plans/requests without profile metadata remain valid.
+
+Existing logical review roles remain stable. `review_context_roles` explicitly
+maps `semantic_architect` and `omni_modeler` to `semantic_modeler`, and
+`independent_qa` to `independent_reviewer`, for bounded context transport only.
+The dedicated Omni task contract, execution observation and approvals do not
+change; a role alias does not run a specialist or satisfy independent review.
+
 ## 2. Execute source specialists
 
 Apply [sensitive-data.md](sensitive-data.md) before dispatch. Stage only approved, scanned inputs with `prepare_agent_input.py`; a task prompt is not host isolation. Protected raw inputs require a separately qualified host boundary. Treat unknown classifications, denied destinations and incomplete scan coverage as blocking the affected disclosure. Preserve originals and keep generated projections in the approved retention boundary.
@@ -31,6 +48,14 @@ an excerpt-only assignment stays partial unless verified complete extraction
 evidence accounts for the full assigned asset. For Looker, the coordinator
 attaches the retained canonical dashboard contract during reconciliation. Do
 not ask an excerpt-only worker to reopen originals or recompute omitted bytes.
+
+For the versioned offline adapters, follow [source-adapters.md](source-adapters.md).
+Run `extract_specialist_task.py` for the exact assigned task and retain its
+`source_adapter_contract` during reconciliation. Its objects and expressions
+feed the same existing downstream contract; the verifier re-extracts canonical
+evidence and detects omissions, changed expressions and promoted coverage gaps.
+This is extraction, not execution of a specialist or source-observed export
+completeness. Existing Looker dashboard contracts remain required independently.
 
 - Reuse a matching live specialist for the same task/snapshot. Never dispatch duplicate work because its first result is slow.
 - Use the host's configured model. Start no more than two extraction specialists concurrently by default; adapt to actual limits and task size. Partition large projects by dependency closure, not arbitrary token-length chunks.
@@ -91,6 +116,17 @@ For each rule retain source-language expression and context: row versus aggregat
 `input_refs` carries the original source reference, status `resolved` or `unresolved`, and `object_id` when resolved. A cross-task reference may be resolved only after its object exists in another verified result and exact connection/database/schema/native binding evidence supports it. Names alone are candidates. Unresolved references must also appear in `unresolved_references`.
 
 Allowed placement candidates: `warehouse`, `semantic`, `presentation`, `split`, `unresolved`. A candidate is a specialist recommendation, not an approved placement decision. Duplicate object/rule IDs across results are a collision to resolve, not automatic deduplication.
+
+Profiles also propose an optional `context.recommended_disposition` from the
+design workflow. `move_upstream` maps to destination `warehouse`,
+`retain_semantic` to `semantic`, `retain_presentation` to `presentation`, and
+`split`/`unresolved` to themselves. `reuse_existing` identifies the evidenced
+existing layer or remains `unresolved`; `consolidate_candidate` and
+`retire_candidate` remain `unresolved` pending a design decision. Do not put the
+eight design dispositions directly into the five-value destination field.
+The verifier checks this vocabulary consistency when supplied, not correctness
+of the business recommendation. Existing results without the optional field
+remain supported.
 
 Verify returned contracts against the plan and current source files:
 

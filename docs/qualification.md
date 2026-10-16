@@ -7,6 +7,8 @@ Use [capabilities](CAPABILITIES.md) and the [platform matrix](PLATFORM_MATRIX.md
 | Area | Reproducible coverage | Remaining acceptance |
 | --- | --- | --- |
 | Source recovery | Synthetic Looker, Hex, Tableau and Power BI parsing, source identifiers, filters, bounded expression behavior and negative controls | Representative customer exports, unsupported formats and native source behavior |
+| Offline source adapters | Seventeen tool-specific format contracts, native identity/expression evidence, malformed-input controls, provenance and coordinator handoffs | Only declared subsets of supplied exports; live acquisition, full native semantics and independent export completeness remain unqualified |
+| Specialist interpretation | Seventeen pinned profiles, role-alias compatibility, unchanged legacy routes, bounded/scanned packets and an independent 17-case decision corpus with adversarial scorer tests | CI does not invoke LLMs; fresh blind host runs, free-text reasoning, native behavior and customer acceptance require separate evidence |
 | dbt refactoring | Reviewed billing, retail and rental fixtures; native dbt/DuckDB builds, independent expected rows, fanout, replay, late changes, tombstones and recovery checks | Actual target warehouse execution, scale, account permissions and operations |
 | Omni Modeler | Authored/effective inventory, scoped edits, supported core/query views, dependency impact, AI lineage, repeated answer cases and guided delivery | Native Omni compilation, query/dashboard parity, live AI answers and effective access |
 | Metadata | Versioned dictionaries, dbt YAML preservation, six warehouse comment/tag routes and readback contracts | Authenticated native drift collection and live provider execution |
@@ -22,6 +24,11 @@ Install the pinned optional dependencies and publisher schema using the [contrib
 ```sh
 # Complete regression suite.
 python -m unittest discover -s tests -v
+
+# Bounded offline adapters and existing specialist handoffs.
+python -m unittest discover -s tests -p 'test_source_*.py' -v
+python -m unittest discover -s tests -p 'test_specialist*.py' -v
+python -m unittest discover -s tests -p 'test_agent_context.py' -v
 
 # Source-specific parsing and semantic simulations.
 python skills/data-model-accelerator/scripts/run_looker_omni_e2e.py --output /absolute/new-looker-run
@@ -41,6 +48,16 @@ python tests/run_omni_operator.py --repo . --output /absolute/new-omni-run
 The source-specific and Omni exercises use bounded local interpreters; they are not native Looker, Hex, Tableau, Power BI or Omni runtimes. The dbt exercises execute with DuckDB and explicit dialect overlays. A Snowflake adapter parse does not establish execution in Snowflake. Replaying a frozen agent-authored case does not constitute a fresh blind evaluation or real SME approval.
 
 The full-dependency CI lane rejects skipped tests. Core-only runs can skip optional engines and must report those gaps. Each run creates fresh evidence; a fixture hash establishes byte integrity, not execution, identity or permission.
+
+For a fresh interpretation check, supply only the public fields of each case in
+`tests/fixtures/specialist_interpretation_cases.json` and its matching profile to
+a bounded worker. Keep `expected` private to the independent assessor. Use
+`score_answer` in `tests/test_specialist_interpretation_benchmark.py`, then review
+the rationale and context requests against original evidence. Record case/profile
+hashes and the actual host run outside the checkout. Correct only affected
+profiles and rerun changed cases plus dependencies; do not change expectations
+to match an agent's answer. This tests interpretation, not vendor execution or
+all-host isolation.
 
 ## Customer acceptance remains separate
 

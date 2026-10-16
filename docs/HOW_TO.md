@@ -162,6 +162,20 @@ If an answer is genuinely unavailable, record it as unknown and identify the aff
 
 Have the agent inventory the approved source scope, retain hashes/native IDs and resolve upstream and downstream dependencies. For a large repository, choose a domain wave with its complete dependency and consumer boundary. Preserve working models, packages, hooks, materializations and CI instead of replacing the project wholesale.
 
+For supported source formats, ask the coordinator to use the [source adapters](../skills/data-model-accelerator/references/source-adapters.md) before interpretation. The coordinator parses the approved snapshot once, keeps the complete evidence locally, and gives each source specialist only its assigned findings. The output includes unchanged expressions, native IDs, dependency candidates and explicit coverage gaps. It does not execute the source or connect to vendor accounts.
+
+Each planned source task now names one version-pinned [specialist profile](../skills/data-model-accelerator/references/source-specialists.md). Give the worker that profile, the relevant parser findings, original expressions and necessary catalogue/dependency slices. The coordinator uses the plan's `source_type` and `specialist_profile.sha256` as `source_type` and `bindings.specialist_profile` in the context request. `agent_context.py` embeds that one profile and counts it within the existing 32 KiB default budget. Do not ask all 17 workers to scan the repo; dispatch only detected, necessary sources and reuse unchanged evidence. Missing context returns a specific request, not another full discovery pass.
+
+For example, with an operator-supplied BigQuery export in a private folder:
+
+```sh
+python skills/data-model-accelerator/scripts/run_source_adapter.py --source bigquery --capabilities
+python skills/data-model-accelerator/scripts/run_source_adapter.py /absolute/approved-snapshot \
+  --source bigquery --output /absolute/existing-private-folder/bigquery-evidence.json
+```
+
+The output must be a new file outside the source folder. Exit `2` means the report was written with partial coverage or omissions; open its gaps rather than treating it as a failed run or complete support. For a planned specialist handoff use `plan_specialists.py --require-source-adapters`, then `extract_specialist_task.py` for each supported task and `verify_specialist_results.py` after reconciliation. Use `--source-profile periscope:.` (or the selected source and relative project root) when origin cannot be inferred safely. Parsing, target code generation, linting, and native execution are separate capabilities; consult the [source matrix](CAPABILITIES.md#source-formats) before choosing an export.
+
 Supply a scoped, dated raw-layer catalogue through authorized read-only access or a nonsecret operator export. Include the actual namespace, visible tables/columns/types, collection identity and visibility gaps. The agent normalizes and verifies the catalogue, binds proposed inputs to it, and separately profiles keys, nulls, duplicates, join cardinality and unmatched rows.
 
 ```sh

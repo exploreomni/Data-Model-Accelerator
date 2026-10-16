@@ -128,6 +128,62 @@ class SpecialistResultTests(unittest.TestCase):
         self.results["looker"]["rules"][0]["context"] = {"sql": "sum(value)"}
         self.assertTrue(any("evaluation context" in e for e in self.check()["errors"]))
 
+    def test_optional_disposition_cannot_conflict_with_existing_destination(self):
+        rule = self.results['dbt']['rules'][0]
+        rule['context']['recommended_disposition'] = 'move_upstream'
+        rule['placement_candidate']['destination'] = 'warehouse'
+        self.assertFalse(self.check()['errors'])
+        rule['placement_candidate']['destination'] = 'semantic'
+        self.assertTrue(any('Disposition conflicts' in e for e in self.check()['errors']))
+        rule['context']['recommended_disposition'] = 'retire_candidate'
+        rule['placement_candidate']['destination'] = 'unresolved'
+        self.assertFalse(self.check()['errors'])
+
+    def test_profile_freshness_is_checked_only_when_plan_binds_profile(self):
+        from specialist_profiles import profile_binding
+        self.plan['tasks'][0]['specialist_profile'] = profile_binding('dbt')
+        self.assertTrue(any('result specialist profile pin' in e for e in self.check()['errors']))
+        self.results['dbt']['specialist_profile_sha256'] = self.plan['tasks'][0]['specialist_profile']['sha256']
+        self.assertFalse(self.check()['errors'])
+        self.plan['tasks'][0]['specialist_profile']['sha256'] = '0' * 64
+        self.assertTrue(any('profile changed' in e for e in self.check()['errors']))
+        del self.plan['tasks'][0]['specialist_profile']
+        self.assertFalse(self.check()['errors'])
+
+    def test_rebound_profile_cannot_reuse_old_result_with_same_source_snapshot(self):
+        from unittest.mock import patch
+        from specialist_profiles import profile_binding
+        binding = profile_binding('dbt')
+        self.results['dbt']['specialist_profile_sha256'] = binding['sha256']
+        changed = dict(binding, sha256='b' * 64)
+        self.plan['tasks'][0]['specialist_profile'] = changed
+        with patch.object(checker, 'profile_binding', return_value=changed):
+            self.assertTrue(any('result specialist profile pin' in e for e in self.check()['errors']))
+            self.results['dbt']['specialist_profile_sha256'] = changed['sha256']
+            self.assertFalse(self.check()['errors'])
+
+    def test_malformed_adapter_objects_rules_and_refs_report_errors_without_crashing(self):
+        from extract_specialist_task import extract
+        import copy
+        self.assets[0]['path'] = 'orders.sql'
+        (self.repo / 'orders.sql').write_text((self.repo / 'dbt.txt').read_text())
+        self.inventory_path.write_text(json.dumps(self.inventory))
+        self.plan['source_snapshot_sha256'] = checker.digest(self.inventory_path)
+        for result in self.results.values():
+            result['source_snapshot_sha256'] = self.plan['source_snapshot_sha256']
+        self.check()
+        candidate = extract(self.plan_path, 'dbt')
+        for field, malformed in [('objects', [None]), ('objects', [{'object_id': []}]),
+                                 ('rules', [None]), ('rules', [{'rule_id': []}])]:
+            with self.subTest(field=field, malformed=malformed):
+                self.results['dbt'] = copy.deepcopy(candidate)
+                self.results['dbt'][field] = malformed
+                self.assertTrue(self.check()['errors'])
+        self.results['dbt'] = copy.deepcopy(candidate)
+        self.assertTrue(candidate['rules'])
+        self.results['dbt']['rules'][0]['input_refs'] = [None, {'reference': []}]
+        self.assertTrue(self.check()['errors'])
+
     def test_id_collision_is_not_silently_deduplicated(self):
         self.results["looker"]["objects"][0]["object_id"] = "dbt:object"
         self.results["looker"]["rules"][0]["output_object_id"] = "dbt:object"

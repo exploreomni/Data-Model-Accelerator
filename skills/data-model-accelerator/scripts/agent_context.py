@@ -14,20 +14,18 @@ import tempfile
 
 from ae_common import _path, hash_json, load_json, require, write_json
 from prepare_agent_input import prepare
+from specialist_profiles import ROLES, context_role, load_profile
 
 
 DEFAULT_BYTES = 32768
 MAX_BYTES = 65536
 SUMMARY_BYTES = 8192
 SHA = re.compile(r'[0-9a-f]{64}')
-ROLES = {'source_specialist', 'catalogue_specialist', 'warehouse_architect',
-         'analytics_engineer', 'semantic_modeler', 'validation_analyst',
-         'independent_reviewer', 'documentation_specialist'}
 BRIEF_FIELDS = {'objective', 'scope_ids', 'summary', 'decisions', 'unknowns',
                 'constraints', 'output_contract', 'stop_conditions'}
 REQUEST_FIELDS = {'schema_version', 'kind', 'task_id', 'role', 'bindings', 'brief',
                   'evidence', 'policy', 'classification', 'mode'}
-OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta'}
+OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta', 'source_type'}
 
 
 def _text(value, label):
@@ -51,11 +49,15 @@ def _validate(request):
     require(type(request['schema_version']) is int and request['schema_version'] == 1
             and request['kind'] == 'agent_context_request', 'Unsupported context request')
     _text(request['task_id'], 'task_id')
-    require(type(request['role']) is str and request['role'] in ROLES, 'Unsupported specialist role')
+    role = context_role(request['role'])
     require(type(request['bindings']) is dict and bool(request['bindings']), 'Version bindings required')
     for name, pin in request['bindings'].items():
         _text(name, 'binding name')
         _sha(pin)
+    if 'source_type' in request:
+        require(role == 'source_specialist', 'Source profile requires source_specialist role')
+        require(isinstance(request['source_type'], str), 'Source profile requires a source name')
+        _sha(request['bindings'].get('specialist_profile'))
     brief = request['brief']
     require(type(brief) is dict and set(brief) == BRIEF_FIELDS, 'Invalid briefing fields')
     for key in ('objective', 'summary', 'output_contract'):
@@ -106,6 +108,10 @@ def _validate(request):
 def build_packet(root, request, output):
     """Return a private receipt; reject stale, denied or oversized inputs atomically."""
     limit = _validate(request)
+    profile = load_profile(request['source_type']) if 'source_type' in request else None
+    if profile:
+        require(profile['sha256'] == request['bindings']['specialist_profile'],
+                'Specialist profile changed; review and rebind the scoped task')
     root, output = _path(root), _path(output, must_exist=False)
     require(root.is_dir() and output.parent.is_dir() and not output.exists(), 'New output directory required')
     require(root != output and root not in output.parents, 'Packet must be outside the evidence root')
@@ -135,6 +141,11 @@ def build_packet(root, request, output):
                 provenance.append(record)
                 excerpts.append({**record, 'text': excerpt})
         data = {key: request[key] for key in ('task_id', 'role', 'bindings', 'mode', 'brief')}
+        data['role'] = context_role(request['role'])
+        if data['role'] != request['role']:
+            data['requested_role'] = request['role']
+        if profile:
+            data['specialist_profile'] = profile
         if 'delta' in request:
             data['delta'] = request['delta']
         data['evidence'] = excerpts
@@ -174,7 +185,7 @@ def build_packet(root, request, output):
         generated = temporary / 'generated'; generated.mkdir(mode=0o700)
         (generated / 'TASK.md').write_bytes(packet)
         receipt = {'schema_version': 1, 'kind': 'agent_context_receipt',
-                   'task_id': request['task_id'], 'role': request['role'], 'mode': request['mode'],
+                   'task_id': request['task_id'], 'role': context_role(request['role']), 'mode': request['mode'],
                    'request_sha256': hash_json(request), 'packet_sha256': packet_hash,
                    'bindings': request['bindings'], 'evidence': provenance, 'file_coverage': coverage,
                    'input_classifications': [item['classification'] for item in request['evidence']],
@@ -185,6 +196,10 @@ def build_packet(root, request, output):
                    'host_context_mode': 'fresh_requested_not_verified', 'specialist_executed': False,
                    'host_isolation_verified': False,
                    'assurance': 'Byte counts measure this packet only, not host tokens, cost, semantic completeness or approval.'}
+        if receipt['role'] != request['role']:
+            receipt['requested_role'] = request['role']
+        if profile:
+            receipt['specialist_profile'] = {key: value for key, value in profile.items() if key != 'text'}
         published = False
         try:
             # Scan the entire generated briefing too, including coordinator prose.

@@ -115,6 +115,24 @@ class PlatformReadinessTests(unittest.TestCase):
         self.assertEqual({q['id'] for q in result['questions']}, {'framework', 'warehouse'})
         self.assertEqual(result['capabilities']['generation']['status'], 'needs_selection')
 
+    def test_readiness_exposes_source_parser_availability_without_invoking_it(self):
+        self.write('cdt/dashboards/revenue.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/revenue.yaml',
+                   'display_name: Revenue\ndashboard_preferences: {settings: {owner: synthetic}}')
+        self.write('workbook.twb', '<workbook version="26.1"/>')
+        result = self.assess(None, None)
+        self.assertEqual({v['source'] for v in result['source_adapters']}, {'periscope', 'tableau'})
+        self.assertTrue(all(v['status'] == 'available_not_run' for v in result['source_adapters']))
+        self.assertFalse(result['native_semantics_parsed'])
+        self.assertFalse(result['execution_performed'])
+        self.assertEqual(result['selection'], {'framework': None, 'warehouse': None})
+
+    def test_fabric_dotfile_is_read_for_discovery_without_selecting_a_target(self):
+        self.write('Sales.SemanticModel/.platform', json.dumps({'$schema': 'https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json', 'config': {'version': '2.0', 'logicalId': '11111111-2222-3333-4444-555555555555'}, 'metadata': {'type': 'SemanticModel', 'displayName': 'Sales'}}))
+        result = self.assess(None, None)
+        self.assertIn('fabric', {v['source'] for v in result['source_adapters']})
+        self.assertEqual(result['selection'], {'framework': None, 'warehouse': None})
+        self.assertFalse(result['execution_performed'])
+
     def test_gcp_is_question_not_bigquery_alias(self):
         self.write('query.sql', 'select 1')
         result = self.assess('native_sql', 'gcp')

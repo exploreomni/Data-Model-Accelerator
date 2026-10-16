@@ -1,0 +1,532 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "bigquery-latest-order",
+      "source": "bigquery",
+      "evidence": "Synthetic parsed view V17 reads raw.order_events. SQL: SELECT * FROM raw.order_events WHERE is_deleted = FALSE QUALIFY ROW_NUMBER() OVER (PARTITION BY tenant_id, order_id ORDER BY updated_at DESC, ingestion_seq DESC) = 1. The documented intent is the latest NON-DELETED event per tenant/order; deletion is filtered before ranking. Two reports independently run this exact window. The selected architecture permits one shared warehouse model. Tenant access is separately enforced by a row access policy and must survive. No uniqueness test or tie-free ordering receipt was supplied.",
+      "question": "Choose the placement of the shared latest-event transformation. Identify its conditional grain, filter order, dependency and security obligations; distinguish declared intent from verified uniqueness. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "move_upstream",
+        "required_facts": [
+          "bigquery.01",
+          "bigquery.03",
+          "bigquery.05",
+          "bigquery.06",
+          "bigquery.07"
+        ],
+        "forbidden_claims": [
+          "bigquery.02",
+          "bigquery.04",
+          "bigquery.08"
+        ]
+      },
+      "facts": {
+        "bigquery.01": "The transformation belongs in a shared upstream model used by both reports.",
+        "bigquery.02": "Filtering deletion after ranking preserves the supplied latest-non-deleted behavior.",
+        "bigquery.03": "ROW_NUMBER yields at most one row per tenant/order partition; which tied event wins remains unverified.",
+        "bigquery.04": "The row access policy can be replaced by each report tenant selector.",
+        "bigquery.05": "raw.order_events and source view V17 must remain traceable through the move.",
+        "bigquery.06": "is_deleted = FALSE must apply before the window; moving it changes the business result.",
+        "bigquery.07": "Tenant policy enforcement must be preserved independently of report filters.",
+        "bigquery.08": "The view definition proves unique order_id across all tenants."
+      }
+    },
+    {
+      "id": "periscope-shared-margin",
+      "source": "periscope",
+      "evidence": "Synthetic chart chart-42 calls snippet snip-7 for net_line_amount = quantity * unit_price - discount_amount on sales.order_lines, declared line grain (tenant_id, order_id, line_id). Five charts use the same expression. This chart then groups by displayed week, applies the viewer date_range parameter, and shows week-over-week percent change relative to visible ordered weeks. Its query also applies a required tenant entitlement join; the date parameter is not an entitlement. The target design supports a shared line model and report-level comparison logic.",
+      "question": "Choose the combined treatment of reusable line arithmetic and this chart comparison. Preserve source IDs and identify which filters and ordering cannot be collapsed into a row calculation. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "split",
+        "required_facts": [
+          "periscope.02",
+          "periscope.03",
+          "periscope.05",
+          "periscope.06",
+          "periscope.07"
+        ],
+        "forbidden_claims": [
+          "periscope.01",
+          "periscope.04",
+          "periscope.08"
+        ]
+      },
+      "facts": {
+        "periscope.01": "The visible week comparison is a per-line attribute independent of selected dates.",
+        "periscope.02": "Shared line arithmetic can move upstream while the visible-week comparison remains presentation-context logic.",
+        "periscope.03": "The date_range parameter and ordered visible-week partition affect the percent-change result.",
+        "periscope.04": "Five charts using a snippet prove that the entitlement join is redundant.",
+        "periscope.05": "The line-grain declaration includes tenant, order and line IDs; it is not order grain.",
+        "periscope.06": "Preserve chart-42, snip-7, sales.order_lines and the tenant entitlement dependency.",
+        "periscope.07": "Keep the required entitlement enforcement separate from the optional date control.",
+        "periscope.08": "Retire snip-7 immediately because an upstream candidate exists."
+      }
+    },
+    {
+      "id": "looker-fanout-reuse",
+      "source": "looker",
+      "evidence": "Synthetic Explore orders joins order_items on tenant_id/order_id, relationship one_to_many. Measure m_orders is count_distinct(order_id) within tenant scope; gross_sales is an order-header sum protected against item fanout by the supplied symmetric-aggregate behavior. access_filter tenant_id is mandatory. A reviewed existing topic orders_governed has the same header grain, exact sources, one-to-many item join, count-distinct/header measures and tenant enforcement; a supplied parity receipt covers both item-filtered and unfiltered queries. Another topic orders_flat sums repeated header values. Request is to choose the model/topic for migration, with no source deletion authorized.",
+      "question": "Choose between reuse and a new model. Account for fanout, item filters, required access, and the exact reviewed topic rather than matching by name. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "reuse_existing",
+        "required_facts": [
+          "looker.02",
+          "looker.03",
+          "looker.04",
+          "looker.06",
+          "looker.07"
+        ],
+        "forbidden_claims": [
+          "looker.01",
+          "looker.05",
+          "looker.08"
+        ]
+      },
+      "facts": {
+        "looker.01": "orders_flat is equivalent because its name and columns resemble the Explore.",
+        "looker.02": "The item join can multiply header rows, so plain header SUM is not automatically equivalent.",
+        "looker.03": "Reuse orders_governed under the supplied scoped parity evidence.",
+        "looker.04": "Mandatory tenant access_filter behavior must remain enforced.",
+        "looker.05": "Replace m_orders with COUNT(*) after the order_items join.",
+        "looker.06": "Preserve Explore/measure IDs, header/item dependencies and the item-filter behavior.",
+        "looker.07": "The order-header grain and one-to-many join must remain explicit.",
+        "looker.08": "Parity in the supplied query set proves every possible future query and permission context."
+      }
+    },
+    {
+      "id": "tableau-visible-table-calculation",
+      "source": "tableau",
+      "evidence": "Synthetic worksheet W9 displays one mark per month and region after a dashboard date filter. Calculation calc-8 is WINDOW_AVG(SUM([Revenue]), -2, 0), addressing month in ascending display order and restarting for each region. It therefore averages up to three visible marks, not all calendar months. A separate published-data-source tenant filter is mandatory. The migration target can reproduce the same visible-mark partition and ordering in its report calculation. Underlying sales transactions and calculation/worksheet IDs are available; no calendar-fill rule was supplied.",
+      "question": "Choose placement for calc-8 and state the context that must remain attached. Do not infer absent months or treat a report control as security. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "retain_presentation",
+        "required_facts": [
+          "tableau.01",
+          "tableau.03",
+          "tableau.05",
+          "tableau.06",
+          "tableau.08"
+        ],
+        "forbidden_claims": [
+          "tableau.02",
+          "tableau.04",
+          "tableau.07"
+        ]
+      },
+      "facts": {
+        "tableau.01": "The window averages the current and preceding two visible monthly marks within each region.",
+        "tableau.02": "Materialize calc-8 as a static value on each sales transaction.",
+        "tableau.03": "Retain the calculation with display partition, ascending month order and dashboard-filter semantics.",
+        "tableau.04": "Missing calendar months should automatically be inserted as zero revenue.",
+        "tableau.05": "The data-source tenant filter remains an independent mandatory control.",
+        "tableau.06": "Preserve calc-8, worksheet W9 and underlying sales-transaction lineage.",
+        "tableau.07": "A dashboard date filter proves tenant isolation.",
+        "tableau.08": "Displayed month/region marks are an aggregate grain, not evidence of source transaction uniqueness."
+      }
+    },
+    {
+      "id": "powerbi-selected-denominator",
+      "source": "powerbi",
+      "evidence": "Synthetic measure measure-21: DIVIDE([Net Revenue], CALCULATE([Net Revenue], ALLSELECTED(Product[Category]))). In a category matrix it reports share within the externally selected category set; changing a slicer changes the denominator. Date has a one-to-many relationship to Sales; Product filters Sales. Role TenantReader restricts Sales[TenantId], independently of slicers. Target semantic calculations support equivalent selected-set context and mandatory tenant policy. No evidence authorizes changing relationship direction or removing RLS. Measure, relationship and role IDs were retained.",
+      "question": "Choose placement for measure-21. Explain the denominator context and distinguish semantic filter behavior from enforced security and source grain. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "retain_semantic",
+        "required_facts": [
+          "powerbi.02",
+          "powerbi.03",
+          "powerbi.04",
+          "powerbi.06",
+          "powerbi.07"
+        ],
+        "forbidden_claims": [
+          "powerbi.01",
+          "powerbi.05",
+          "powerbi.08"
+        ]
+      },
+      "facts": {
+        "powerbi.01": "ALLSELECTED permits ignoring the selected category set and dividing by a fixed lifetime total.",
+        "powerbi.02": "The selected-set denominator needs query-time semantic context.",
+        "powerbi.03": "Preserve external category/date selections and the category-matrix evaluation context.",
+        "powerbi.04": "TenantReader RLS must survive independently of slicers.",
+        "powerbi.05": "The measure can be a fixed scalar column on every Sales row.",
+        "powerbi.06": "Retain measure-21, role and relationship IDs plus Product/Date/Sales dependencies.",
+        "powerbi.07": "Keep supplied relationship direction/cardinality; the measure does not justify changing it.",
+        "powerbi.08": "A tenant slicer is an equivalent replacement for TenantReader."
+      }
+    },
+    {
+      "id": "hex-sql-and-python",
+      "source": "hex",
+      "evidence": "Synthetic project hex-P has SQL cell sql-11 producing line-level net revenue from governed.order_lines using amount - tax; its filter is status = paid and declared key is (tenant_id, order_id, line_id). A governed tenant policy applies to the source. Python cell py-12 consumes that dataframe, a slider confidence_level, and a fitted model file to create a forecast interval. Notebook outputs are cached. The model file, dependency versions and random seed were not exported. The target architecture supports a reusable paid-line warehouse model, but no replacement for the Python inference has been qualified.",
+      "question": "Choose treatment of the SQL and Python portions together. Identify the reusable part and what additional context blocks forecast equivalence. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "split",
+        "required_facts": [
+          "hex.02",
+          "hex.03",
+          "hex.04",
+          "hex.05",
+          "hex.08"
+        ],
+        "forbidden_claims": [
+          "hex.01",
+          "hex.06",
+          "hex.07"
+        ]
+      },
+      "facts": {
+        "hex.01": "Cached notebook outputs prove that the target forecast currently executes correctly.",
+        "hex.02": "Move reusable paid-line arithmetic upstream while retaining Python as an unresolved separate runtime component.",
+        "hex.03": "Keep the paid filter, declared composite line key and governed tenant policy.",
+        "hex.04": "Preserve hex-P/sql-11/py-12 and the dataframe-to-forecast dependency.",
+        "hex.05": "The slider, fitted model file, dependency versions and seed affect forecast qualification.",
+        "hex.06": "Rewrite the Python output as SUM(net_revenue) without further evidence.",
+        "hex.07": "A cached dataframe proves order_id alone is unique.",
+        "hex.08": "No supplied artifact establishes forecast runtime parity."
+      }
+    },
+    {
+      "id": "domo-as-of-history",
+      "source": "domo",
+      "evidence": "Synthetic Magic ETL flow flow-31 joins order lines to customer_history on tenant_id/customer_id and order_time >= valid_from AND order_time < valid_to. The history key is (tenant_id, customer_id, valid_from); supplied boundary fixtures show one matching history row per order line. Filtering current_flag = true would lose historical region assignment. The flow also rejects test orders before computing line net amount. Three datasets reuse this exact logic. A PDP policy controls tenant visibility in consuming datasets. The chosen warehouse can implement effective-dated joins; no customer approval to discard history exists.",
+      "question": "Choose placement for reusable flow logic. Preserve its as-of cardinality, filter and source/security dependencies; do not confuse current dimension state with event-time state. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "move_upstream",
+        "required_facts": [
+          "domo.02",
+          "domo.03",
+          "domo.04",
+          "domo.05",
+          "domo.07"
+        ],
+        "forbidden_claims": [
+          "domo.01",
+          "domo.06",
+          "domo.08"
+        ]
+      },
+      "facts": {
+        "domo.01": "Use current_flag = true in place of the supplied effective-dated join.",
+        "domo.02": "Implement the reusable transformation upstream while preserving event-time history semantics.",
+        "domo.03": "The intended join is one history match per line, with composite tenant/customer/time bounds retained.",
+        "domo.04": "Keep the test-order exclusion before the line calculation.",
+        "domo.05": "Retain flow-31, order-line/history source IDs and equivalent tenant PDP enforcement.",
+        "domo.06": "The migration authorizes collapsing all historical customer versions to one row.",
+        "domo.07": "Boundary fixtures support the tested as-of cases, not universal native validation.",
+        "domo.08": "Dataset PDP can be replaced by a dashboard region filter."
+      }
+    },
+    {
+      "id": "sigma-exact-topic-and-window",
+      "source": "sigma",
+      "evidence": "Synthetic workbook wb-6 uses source element e-orders at (tenant_id, order_id) grain, then aggregates monthly revenue by region. date_range and include_returns controls filter that source before aggregation. Rank([Monthly Revenue], \"desc\") is evaluated among visible regions within each displayed month after those controls; its partition and ordering are explicit. Mandatory tenant policy is separate. Existing topic sales_exact has the identical governed order source, return treatment, joins, grain and base revenue measure; supplied comparison fixtures confirm both control settings and rank after filtering. Topic sales_monthly_cached omits return-level control. The target can retain workbook controls and post-filter ranking on sales_exact. No extra physical model is required by these fixtures.",
+      "question": "Choose the topic/model action and preserve the workbook evaluation order. Determine whether exact-topic reuse is justified; do not invent a topic from the workbook title or move control-sensitive rank to an order row. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "reuse_existing",
+        "required_facts": [
+          "sigma.02",
+          "sigma.03",
+          "sigma.05",
+          "sigma.06",
+          "sigma.07"
+        ],
+        "forbidden_claims": [
+          "sigma.01",
+          "sigma.04",
+          "sigma.08"
+        ]
+      },
+      "facts": {
+        "sigma.01": "Reuse sales_monthly_cached because both topics contain monthly revenue.",
+        "sigma.02": "Reuse the evidenced exact topic sales_exact instead of creating another order model.",
+        "sigma.03": "date_range and include_returns must filter before monthly aggregation and visible-region ranking.",
+        "sigma.04": "Rank is a static per-order attribute and can be materialized before the controls.",
+        "sigma.05": "Keep rank partitioned by displayed month and ordered by revenue across visible regions.",
+        "sigma.06": "Preserve wb-6/e-orders, exact-topic lineage, declared order grain and mandatory tenant policy.",
+        "sigma.07": "The supplied fixtures support exact reuse for the tested scope, not all future controls or security contexts.",
+        "sigma.08": "The workbook tenant control may replace the mandatory tenant policy."
+      }
+    },
+    {
+      "id": "webfocus-define-versus-compute",
+      "source": "webfocus",
+      "evidence": "Synthetic procedure rpt-7 reads Master SALES and its Access File binding to warehouse.sales_lines. DEFINE NET/D12.2 = GROSS - DISCOUNT runs for each input line. TABLE FILE SALES then SUM NET COST BY REGION and COMPUTE MARGIN_PCT = (NET - COST) / NET * 100; this COMPUTE uses the summarized region values. WHERE TEST_ORDER EQ N is applied to input rows. A mandatory tenant selection is supplied by a server security context, distinct from a user region prompt. BY REGION also drives report grouping; no source-key declaration or uniqueness test was supplied.",
+      "question": "Choose treatment of DEFINE, COMPUTE and report grouping. Identify which logic is row-level versus aggregate-context and what remains unknown about grain. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "split",
+        "required_facts": [
+          "webfocus.01",
+          "webfocus.03",
+          "webfocus.04",
+          "webfocus.06",
+          "webfocus.07"
+        ],
+        "forbidden_claims": [
+          "webfocus.02",
+          "webfocus.05",
+          "webfocus.08"
+        ]
+      },
+      "facts": {
+        "webfocus.01": "Move reusable DEFINE arithmetic upstream; preserve COMPUTE as a ratio of region-level sums.",
+        "webfocus.02": "Average line-level margin percentages to reproduce the COMPUTE result.",
+        "webfocus.03": "Keep TEST_ORDER exclusion before aggregation and mandatory tenant context separate from the region prompt.",
+        "webfocus.04": "Retain rpt-7, Master/Access File mapping and warehouse.sales_lines dependency.",
+        "webfocus.05": "BY REGION proves REGION is a unique key in the physical source.",
+        "webfocus.06": "Physical source grain remains unverified despite region-level report output.",
+        "webfocus.07": "Display grouping and prompts must remain attached to the report behavior.",
+        "webfocus.08": "Replace the server tenant context with a user-editable region prompt."
+      }
+    },
+    {
+      "id": "snowflake-dynamic-table-gap",
+      "source": "snowflake",
+      "evidence": "Synthetic DDL defines dynamic table D.S.NET with TARGET_LAG = 5 minutes, a warehouse, and SELECT o.tenant_id, o.order_id, o.amount - r.refund_amount FROM raw.orders o LEFT JOIN raw.refunds r ON tenant_id/order_id. Refunds can contain several events per order; no preaggregation appears. A PRIMARY KEY declaration exists on a separate standard ORDERS table, with no uniqueness results. A row access policy name is recorded but effective memberships and target mappings are absent. No refresh history, intended output grain or accepted net-refund definition was supplied.",
+      "question": "Decide whether the dynamic table can be reused or translated as an accepted order-grain model now. Identify blocking cardinality, refresh and security evidence. Select only supported candidate IDs from facts, and request missing context.",
+      "expected": {
+        "disposition": "unresolved",
+        "required_facts": [
+          "snowflake.01",
+          "snowflake.03",
+          "snowflake.05",
+          "snowflake.06",
+          "snowflake.08"
+        ],
+        "forbidden_claims": [
+          "snowflake.02",
+          "snowflake.04",
+          "snowflake.07"
+        ]
+      },
+      "facts": {
+        "snowflake.01": "The join can produce multiple rows per order and repeat the order amount.",
+        "snowflake.02": "TARGET_LAG guarantees every refresh completes within five minutes.",
+        "snowflake.03": "Intended net/refund grain and an aggregation decision are missing.",
+        "snowflake.04": "The standard-table primary-key declaration proves observed uniqueness.",
+        "snowflake.05": "Preserve D.S.NET, both source dependencies, dynamic-table properties and policy declarations.",
+        "snowflake.06": "Refresh history and effective policy/membership mapping require separate evidence.",
+        "snowflake.07": "A policy name alone proves identical effective target access.",
+        "snowflake.08": "Keep placement unresolved until the stated grain, refresh and security gaps are answered."
+      }
+    },
+    {
+      "id": "redshift-shared-computation-candidate",
+      "source": "redshift",
+      "evidence": "Synthetic views finance.balance_v1 and ops.balance_v2 have identical SQL: posted ledger rows grouped by tenant_id/account_id with SUM(debit-credit). Source dependency is core.ledger. The supplied SQL comparison establishes common computation, but finance and operations grant lists differ, consumer inventories are incomplete, and the views have separate source IDs. A recorded architecture rule permits proposing one underlying reusable computation while preserving both governed entry points until permission and consumer review. No drop, grant change or deployment is authorized.",
+      "question": "Choose the strongest warranted disposition for the duplicated computation. Distinguish a consolidation proposal from safe retirement or security equivalence. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "consolidate_candidate",
+        "required_facts": [
+          "redshift.02",
+          "redshift.03",
+          "redshift.04",
+          "redshift.05",
+          "redshift.07"
+        ],
+        "forbidden_claims": [
+          "redshift.01",
+          "redshift.06",
+          "redshift.08"
+        ]
+      },
+      "facts": {
+        "redshift.01": "Identical SQL authorizes dropping ops.balance_v2 immediately.",
+        "redshift.02": "Propose shared underlying computation while keeping both governed entry points pending review.",
+        "redshift.03": "Preserve posted-row filtering and tenant/account aggregation grain.",
+        "redshift.04": "The two grant lists and incomplete consumer inventory block automatic replacement or retirement.",
+        "redshift.05": "Retain both view IDs and core.ledger lineage in the proposal.",
+        "redshift.06": "Same values imply the finance and operations access surfaces are equivalent.",
+        "redshift.07": "This is a consolidation candidate, not an approved deployment or permission change.",
+        "redshift.08": "Remove tenant_id from GROUP BY because account_id is guaranteed globally unique."
+      }
+    },
+    {
+      "id": "clickhouse-distinct-state",
+      "source": "clickhouse",
+      "evidence": "Synthetic table agg.daily_users stores AggregateFunction(uniq, UInt64) user_state at tenant_id/day/channel grain using AggregatingMergeTree. Query measure users-4 uses uniqMerge(user_state) across selected days and channels. A user can appear on multiple days/channels. Sorting/primary-key metadata describes storage ordering, not an enforced uniqueness constraint. Tenant visibility is controlled by a row policy; date/channel controls are analytic filters. The target design retains the state table and supports an equivalent query-time merge/finalization operator. No deduplication by storage key has been authorized.",
+      "question": "Choose placement for users-4 and describe how filter selection and state merging affect correctness. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "retain_semantic",
+        "required_facts": [
+          "clickhouse.02",
+          "clickhouse.03",
+          "clickhouse.05",
+          "clickhouse.06",
+          "clickhouse.07"
+        ],
+        "forbidden_claims": [
+          "clickhouse.01",
+          "clickhouse.04",
+          "clickhouse.08"
+        ]
+      },
+      "facts": {
+        "clickhouse.01": "SUM of finalized daily distinct counts is equivalent across selected days.",
+        "clickhouse.02": "Retain query-time distinct-state merge/finalization over the selected rows.",
+        "clickhouse.03": "A user may span days/channels, so daily finalized counts are not additive.",
+        "clickhouse.04": "The storage PRIMARY KEY proves one physical row per tenant/day/channel.",
+        "clickhouse.05": "Preserve tenant policy and selected date/channel filter context independently.",
+        "clickhouse.06": "Keep users-4, user_state type and agg.daily_users dependency; do not treat state as a scalar count.",
+        "clickhouse.07": "AggregatingMergeTree storage ordering is not evidence of enforced uniqueness.",
+        "clickhouse.08": "Drop tenant policy because channel is available as a dashboard filter."
+      }
+    },
+    {
+      "id": "motherduck-external-binding",
+      "source": "motherduck",
+      "evidence": "Synthetic supplied SQL file q-5: SELECT customer_id, SUM(amount) FROM read_parquet('./exports/orders/*.parquet') WHERE status = 'paid' GROUP BY customer_id. A local DuckDB screenshot shows a result, but the files, snapshot version, tenant semantics and cloud attachment/permissions are absent. A separate duckdb_tables row names alias shared_db but does not authenticate its MotherDuck destination. No primary key, business grain or target reuse comparison is provided. The adapter did not read the files or execute SQL.",
+      "question": "Choose whether to reuse or move this result now. Identify external-resource, tenant/grain and native-context gaps without inferring physical tables from the path or attachment alias. Select only supported candidate IDs from facts and request missing context.",
+      "expected": {
+        "disposition": "unresolved",
+        "required_facts": [
+          "motherduck.02",
+          "motherduck.03",
+          "motherduck.05",
+          "motherduck.06",
+          "motherduck.07"
+        ],
+        "forbidden_claims": [
+          "motherduck.01",
+          "motherduck.04",
+          "motherduck.08"
+        ]
+      },
+      "facts": {
+        "motherduck.01": "The parquet path is a proven catalogue relation named exports.orders.",
+        "motherduck.02": "The result declares customer-level aggregation after the paid filter, not verified tenant-safe business grain.",
+        "motherduck.03": "External file snapshot/schema and MotherDuck attachment/access bindings must be established.",
+        "motherduck.04": "The local DuckDB screenshot proves MotherDuck native runtime parity.",
+        "motherduck.05": "Preserve q-5, exact path, paid filter and read_parquet dependency as unresolved resource evidence.",
+        "motherduck.06": "Tenant semantics and physical grain cannot be invented from customer_id or shared_db.",
+        "motherduck.07": "Keep placement unresolved pending the missing bindings and intended-grain evidence.",
+        "motherduck.08": "The alias shared_db authenticates the remote workspace and effective permissions."
+      }
+    },
+    {
+      "id": "databricks-stateful-deduplication",
+      "source": "databricks",
+      "evidence": "Synthetic Lakeflow stream stage st-8 filters event_kind = purchase, uses event_time watermark 2 hours, then dropDuplicatesWithinWatermark([tenant_id,event_id]). The current architecture assigns this stateful normalization to a governed upstream streaming pipeline and retains raw events for replay. Events outside the accepted watermark can require a separately designed backfill; no target replay or late-arrival test receipt is supplied. The source has a tenant policy and downstream reports select business dates. The declared event key is scoped by tenant; it is not evidence of forever-global uniqueness.",
+      "question": "Choose the locus of this transformation while preserving its state/window boundary. Distinguish a placement decision from native qualification, and keep date controls separate from stream state and security. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "move_upstream",
+        "required_facts": [
+          "databricks.02",
+          "databricks.03",
+          "databricks.05",
+          "databricks.06",
+          "databricks.07"
+        ],
+        "forbidden_claims": [
+          "databricks.01",
+          "databricks.04",
+          "databricks.08"
+        ]
+      },
+      "facts": {
+        "databricks.01": "A semantic DISTINCT query over current rows reproduces watermark and state behavior.",
+        "databricks.02": "Keep stateful normalization upstream in the governed streaming pipeline.",
+        "databricks.03": "Preserve purchase filtering, the two-hour event-time watermark and tenant/event deduplication key.",
+        "databricks.04": "The event key proves duplicates can never occur outside the watermark horizon.",
+        "databricks.05": "Retain st-8/raw-event lineage, replay capability and mandatory tenant enforcement.",
+        "databricks.06": "Late-arrival/backfill behavior needs separate target execution evidence.",
+        "databricks.07": "Report date filters cannot substitute for stream state or the tenant policy.",
+        "databricks.08": "Successful static parsing proves the target streaming deployment meets the two-hour behavior."
+      }
+    },
+    {
+      "id": "dbt-incremental-reuse",
+      "source": "dbt",
+      "evidence": "Synthetic manifest v12 model.shop.orders has depends_on.nodes = [source.shop.raw.orders] and a compiled incremental branch; the supplied authored file has the same raw bytes. The established warehouse model orders_incremental already implements the reviewed source logic: unique_key [tenant_id,order_id], merge strategy, updated_at lookback of seven days, paid-order filtering and a required grants hook. A supplied model-to-source review approves reuse of that implementation, preserving its IDs and current behavior. No receipt proves backfill of corrections older than seven days, compiled-to-current-environment parity, or effective grant membership. Request is placement/reuse, not a build.",
+      "question": "Choose reuse versus rebuilding the transformation. Preserve incremental/filter/security contracts and separate exact authored bytes from compiled runtime qualification. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "reuse_existing",
+        "required_facts": [
+          "dbt.01",
+          "dbt.03",
+          "dbt.05",
+          "dbt.06",
+          "dbt.07"
+        ],
+        "forbidden_claims": [
+          "dbt.02",
+          "dbt.04",
+          "dbt.08"
+        ]
+      },
+      "facts": {
+        "dbt.01": "Reuse orders_incremental under the supplied implementation review.",
+        "dbt.02": "Matching raw bytes authenticates compiled SQL for the current environment and grants.",
+        "dbt.03": "Preserve the tenant/order key, merge strategy, seven-day lookback and paid filter.",
+        "dbt.04": "Corrections older than seven days are proven to be captured automatically.",
+        "dbt.05": "Keep model.shop.orders, source.shop.raw.orders and the required grants-hook behavior traceable.",
+        "dbt.06": "Backfill and effective grants remain qualification gaps, not reasons to invent new behavior.",
+        "dbt.07": "Compiled evidence and exact raw-byte binding do not establish current runtime parity.",
+        "dbt.08": "A unique_key config proves physically enforced uniqueness and authorizes removing tenant_id."
+      }
+    },
+    {
+      "id": "coalesce-history-and-current-view",
+      "source": "coalesce",
+      "evidence": "Synthetic Git node node-H is an SCD Type 2 customer history node. Columns have native (stepCounter,columnCounter) IDs; customer key is tenant_id/customer_id, versions use valid_from/valid_to and current_flag. Source mapping depends on RAW.CUSTOMERS and a source column ID, while a custom NodeType supplies surrogate-key/history templates. Consuming report report-C only shows current customers via current_flag = true. The migration design requires retaining history for as-of reporting and a separate governed current-customer semantic view. Config declares a tenant policy. Templates and environment storage mappings have not been executed or physically verified.",
+      "question": "Choose treatment of history production and the current-only consuming view. Preserve native lineage and identify unverified generation/security assumptions. Select only supported candidate IDs from facts.",
+      "expected": {
+        "disposition": "split",
+        "required_facts": [
+          "coalesce.02",
+          "coalesce.03",
+          "coalesce.04",
+          "coalesce.06",
+          "coalesce.07"
+        ],
+        "forbidden_claims": [
+          "coalesce.01",
+          "coalesce.05",
+          "coalesce.08"
+        ]
+      },
+      "facts": {
+        "coalesce.01": "Move current_flag = true into the history producer and discard older versions.",
+        "coalesce.02": "Retain history upstream and express current-only selection in the consuming semantic view.",
+        "coalesce.03": "Declared history grain includes tenant/customer/version; the current report has a different intended grain.",
+        "coalesce.04": "Preserve node-H/report-C, native column IDs, RAW.CUSTOMERS mapping and NodeType dependency.",
+        "coalesce.05": "Custom templates and storage mappings prove the target history behavior has executed correctly.",
+        "coalesce.06": "Keep the current_flag filter on the current view and preserve mandatory tenant-policy intent.",
+        "coalesce.07": "Surrogate-key generation, environment bindings and effective security need native qualification.",
+        "coalesce.08": "A sourceMapping name proves customer_id is globally unique."
+      }
+    },
+    {
+      "id": "fabric-logical-versus-service-identity",
+      "source": "fabric",
+      "evidence": "Synthetic Fabric Git .platform identifies SemanticModel M with logicalId 11111111-1111-1111-1111-111111111111. Its saved TMDL defines Revenue = SUM(Sales[Amount]) and role TenantReader; source Direct Lake binding metadata is incomplete. A pipeline notebook reference instead contains service itemId 22222222-2222-2222-2222-222222222222 and a workspace ID. No receipt maps that service item to M or proves its notebook creates Sales. A lakehouse definition includes a data-access role declaration but omits effective Entra memberships. Notebook outputs are historical. No source key or exact existing-topic comparison is supplied.",
+      "question": "Choose whether the supplied items justify model reuse or moving Revenue into the notebook now. Separate Git and service identities, missing lineage/cardinality, saved expressions and effective access. Select only supported candidate IDs from facts and request missing context.",
+      "expected": {
+        "disposition": "unresolved",
+        "required_facts": [
+          "fabric.02",
+          "fabric.04",
+          "fabric.05",
+          "fabric.06",
+          "fabric.08"
+        ],
+        "forbidden_claims": [
+          "fabric.01",
+          "fabric.03",
+          "fabric.07"
+        ]
+      },
+      "facts": {
+        "fabric.01": "Git logicalId and pipeline service itemId are interchangeable identifiers.",
+        "fabric.02": "Preserve M, its logicalId, Revenue expression, TenantReader role and the distinct pipeline service reference.",
+        "fabric.03": "The notebook is a proven producer of Sales because both appear in the export.",
+        "fabric.04": "Service-to-Git mapping, Direct Lake source lineage and Sales grain are unresolved.",
+        "fabric.05": "Role declarations and historical outputs do not establish current effective access or execution.",
+        "fabric.06": "Keep reuse/placement unresolved until identity, lineage, grain and security context are supplied.",
+        "fabric.07": "Lakehouse role metadata proves all Entra memberships and replaces TenantReader semantics.",
+        "fabric.08": "A SUM measure does not prove Sales has one row per business transaction."
+      }
+    }
+  ]
+}

@@ -64,6 +64,18 @@ The request is JSON:
   `catalogue_specialist`, `warehouse_architect`, `analytics_engineer`,
   `semantic_modeler`, `validation_analyst`, `independent_reviewer` or
   `documentation_specialist`.
+- For a planned source task with `specialist_profile`, add `source_type` and
+  `bindings.specialist_profile` using that plan's profile SHA-256. The builder
+  loads only the matching installed profile, verifies the pin, scans it with
+  the rest of the packet, and includes its bytes within the same budget. A
+  changed profile requires review/rebinding of the affected task, not silent
+  reuse. Other source types and legacy requests can continue without this
+  optional extension. The receipt records profile metadata, not all profiles.
+- Legacy logical role names `semantic_architect`, `independent_qa` and
+  `omni_modeler` are accepted aliases for context roles `semantic_modeler`,
+  `independent_reviewer` and `semantic_modeler`, respectively. The packet and
+  receipt preserve `requested_role` when an alias is used. This does not replace
+  the dedicated Omni workflow or establish an actual host invocation.
 - `bindings`: named SHA-256 pins for the applicable source, catalogue, design,
   decisions and instruction/component versions. These are supplied associations,
   not authenticated approvals or a replacement for the saved stage checks.

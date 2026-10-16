@@ -21,8 +21,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from raw_csv_source import inspect_csv
 from platform_matrix import adapter_registry
 from looker_source import is_looker_dashboard
+from source_adapters.registry import SOURCES as ADAPTER_SOURCES
+from specialist_profiles import context_role, profile_binding
 
-SOURCE_TYPES = set(adapter_registry()["sources"]) | {"looker", "powerbi", "tableau", "hex", "sigma", "omni", "unknown"}
+SOURCE_TYPES = set(adapter_registry()["sources"]) | set(ADAPTER_SOURCES) | {"omni", "unknown"}
 REVIEW_ROLES = ["warehouse_architect", "semantic_architect", "independent_qa"]
 IGNORED_DIRS = {
     ".git", ".hg", ".svn", "node_modules", "vendor", ".venv", "venv",
@@ -30,7 +32,7 @@ IGNORED_DIRS = {
     "dist", "build", "dbt_packages", ".terraform", ".next", ".cache",
 }
 BINARY_SUFFIXES = {".pbix", ".pbit", ".twbx", ".tdsx", ".hyper", ".zip", ".gz", ".bz2", ".7z", ".tar", ".parquet", ".xlsx", ".xls", ".png", ".jpg", ".jpeg", ".pdf", ".sqlite", ".db"}
-CONTEXT_SUFFIXES = {".sql", ".sqlx", ".js", ".yml", ".yaml", ".json", ".j2", ".csv", ".md", ".py", ".ipynb", ".tmdl", ".pbism", ".pbir", ".pbip", ".lkml", ".lookml", ".twb", ".tds", ".pbix", ".pbit", ".twbx", ".tdsx", ".hyper"}
+CONTEXT_SUFFIXES = {".sql", ".sqlx", ".js", ".yml", ".yaml", ".json", ".j2", ".csv", ".md", ".py", ".r", ".fex", ".mas", ".acx", ".platform", ".ipynb", ".bim", ".tmdl", ".pbism", ".pbir", ".pbip", ".lkml", ".lookml", ".twb", ".tds", ".pbix", ".pbit", ".twbx", ".tdsx", ".hyper"}
 ADMIN_NAMES = {".gitignore", ".gitattributes", ".editorconfig", "license", "license.md", "license.txt", "notice", "codeowners"}
 SECRET_NAME = re.compile(r"(?:^|[._-])(?:credentials?|secrets?|service[._-]?account|serviceaccount|private[._-]?key)(?:[._-]|$)", re.I)
 SKILL_ROOT = Path(__file__).resolve().parents[1]
@@ -258,7 +260,7 @@ def under(relative, root):
 
 def classify(assets, texts, profiles, gaps):
     paths = {a["path"] for a in assets}
-    anchors, direct = {}, {}
+    anchors, direct, native_project_roots = {}, {}, set()
 
     def add(relative, source_type, root, signature):
         evidence = {"kind": "native_marker", "signature": signature, "path": relative}
@@ -272,7 +274,7 @@ def classify(assets, texts, profiles, gaps):
         content = texts.get(relative, "")
         root = path.parent.as_posix()
         obj = None
-        if suffix == ".json" or name in {"definition.pbir", "definition.pbism"} or suffix == ".pbip":
+        if suffix == ".json" or name in {"definition.pbir", "definition.pbism", ".platform"} or suffix == ".pbip":
             try:
                 obj = json.loads(content)
             except (ValueError, TypeError):
@@ -288,6 +290,16 @@ def classify(assets, texts, profiles, gaps):
             if any(is_omni_file(p, texts[p]) for p in native_siblings):
                 add(relative, "omni", root, "Omni support-file shape corroborated by a structurally recognized native sibling; routing is not semantic validation")
         if isinstance(obj, dict):
+            if name == '.platform' and obj.get('$schema') in (
+                    'https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json',
+                    'https://developer.microsoft.com/json-schemas/fabric/platform/platformProperties.json'):
+                add(relative, 'fabric', root, 'Fabric native .platform schema marker; identity/version and item bodies require extraction')
+                native_project_roots.add(('fabric', root))
+            definition = obj.get('definition')
+            if isinstance(definition, dict) and isinstance(definition.get('parts'), list) and definition['parts'] and all(
+                    isinstance(part, dict) and all(key in part for key in ('path', 'payload', 'payloadType'))
+                    for part in definition['parts']):
+                add(relative, 'fabric', root, 'Fabric definition.parts export shape; item identity and native type remain unverified')
             if is_looker_dashboard(obj):
                 add(relative, "looker", root, "Looker dashboard API JSON structural contract; export completeness requires independent evidence")
             metadata = obj.get("metadata")
@@ -295,10 +307,33 @@ def classify(assets, texts, profiles, gaps):
                 add(relative, "dbt", root, "versioned dbt manifest metadata with nodes and sources")
             if all(key in obj for key in ("dataModelId", "documentVersion", "schemaVersion", "pages")) and isinstance(obj["pages"], list):
                 add(relative, "sigma", root, "Sigma data-model spec field combination; workbook coverage not implied")
-        if name == "data.yml" and re.search(r"(?m)^\s*fileVersion\s*:", content) and re.search(r"(?m)^\s*platformKind\s*:", content):
+            if obj.get('kind') in ('bigquery#table', 'bigquery#routine') and isinstance(obj.get('tableReference', obj.get('routineReference')), dict):
+                add(relative, 'bigquery', root, 'BigQuery REST resource kind and native reference; completeness not implied')
+            if obj.get('contentType') == 'domo/dataflow-actions' and isinstance(obj.get('data'), list):
+                add(relative, 'domo', root, 'Domo Magic ETL clipboard discriminator; provisional action declarations only')
+        if suffix == '.yaml' and 'dashboards' in path.parts:
+            index = path.parts.index('dashboards')
+            tail = path.parts[index + 1:]
+            if (len(tail) == 2 and re.fullmatch(r'.+\.[A-Za-z0-9]{32}', tail[0])
+                    and name == tail[0].rsplit('.', 1)[0].lower() + '.yaml'
+                    and re.search(r'(?m)^display_name\s*:', content)
+                    and re.search(r'(?m)^dashboard_preferences\s*:', content)):
+                project = PurePosixPath(*path.parts[:index]).as_posix()
+                add(relative, 'periscope', project, 'CDT Git dashboard token path and settings keys; schema interpretation requires extraction')
+                native_project_roots.add(('periscope', project))
+        coalesce_project = (re.search(r"(?m)^\s*fileVersion\s*:", content) and re.search(r"(?m)^\s*platformKind\s*:", content)) or (
+            re.search(r"(?m)^fileVersion\s*:\s*3\s*(?:#.*)?$", content) and re.search(r"(?m)^defaultStorageMapping\s*:\s*\S", content))
+        if name == "data.yml" and coalesce_project:
             prefix = "" if root == "." else root + "/"
             if prefix + "locations.yml" in paths or any(p.startswith(prefix + "nodes/") for p in paths):
-                add(relative, "coalesce", root, "Coalesce data.yml fileVersion/platformKind plus locations.yml or nodes/")
+                add(relative, "coalesce", root, "Coalesce data.yml version/storage or platform markers plus locations.yml or nodes/")
+        if suffix in {'.yml', '.yaml'} and 'nodes' in path.parts and all(re.search(pattern, content) for pattern in (
+                r'(?m)^fileVersion\s*:\s*1\s*(?:#.*)?$', r'(?m)^type\s*:\s*Node\s*(?:#.*)?$',
+                r'(?m)^id\s*:\s*\S', r'(?m)^operation\s*:')):
+            index = path.parts.index('nodes')
+            project = PurePosixPath(*path.parts[:index]).as_posix()
+            add(relative, 'coalesce', project, 'Coalesce versioned Git Node YAML under nodes/; native interpretation requires extraction')
+            native_project_roots.add(('coalesce', project))
         if suffix == ".sql" and re.search(r"@id\b", content) and re.search(r"@nodeType\b", content) and "nodes" in path.parts:
             index = path.parts.index("nodes")
             add(relative, "coalesce", PurePosixPath(*path.parts[:index]).as_posix(), "Coalesce V2 nodes SQL with @id and @nodeType")
@@ -324,10 +359,14 @@ def classify(assets, texts, profiles, gaps):
             add(relative, "tableau", root, "Tableau native artifact suffix; packages/extracts remain unsupported")
         if name.endswith(".hex.yaml"):
             add(relative, "hex", root, "Hex native .hex.yaml export suffix")
+        if suffix in {'.fex', '.mas', '.acx'}:
+            add(relative, 'webfocus', root, 'WebFOCUS procedure or metadata filename; interpreted subset requires adapter extraction')
 
     # Prefer the outer native project marker for related native files. Preserve
     # nested explicit projects of the same source when they have their own marker.
     project_markers = {}
+    for source_type, root in native_project_roots:
+        project_markers.setdefault(source_type, set()).add(root)
     for (source_type, root), evidence in anchors.items():
         for entry in evidence:
             name = PurePosixPath(entry["path"]).name.lower()
@@ -352,7 +391,24 @@ def classify(assets, texts, profiles, gaps):
     for asset in assets:
         relative = asset["path"]
         explicit = [(p["source_type"], p["project_root"], p["evidence"]) for p in profiles if under(relative, p["project_root"])]
-        records = direct.get(relative, []) + explicit
+        # A selected project root overrides inferred roots for that same tool.
+        # Keep distinct tool assignments for reconciliation, but never dispatch
+        # one asset twice merely because its native marker is in a subfolder.
+        selected_explicit = {}
+        for record in explicit:
+            previous = selected_explicit.get(record[0])
+            if previous is None or len(PurePosixPath(record[1]).parts) > len(PurePosixPath(previous[1]).parts):
+                selected_explicit[record[0]] = record
+        records = [record for record in direct.get(relative, []) if record[0] not in selected_explicit]
+        records += list(selected_explicit.values())
+        # A native Fabric item owns its semantic-model parts. Its adapter reuses
+        # Power BI parsing once; retain an explicitly requested separate route.
+        fabric_roots = [r for r in project_markers.get('fabric', ()) if under(relative, r)]
+        if fabric_roots and 'powerbi' not in selected_explicit and any(r[0] == 'powerbi' for r in records):
+            records = [r for r in records if r[0] != 'powerbi']
+            if not any(r[0] == 'fabric' for r in records):
+                item_root = max(fabric_roots, key=lambda r: (len(PurePosixPath(r).parts), len(r)))
+                records.append(('fabric', item_root, {'kind': 'project_context', 'marker_paths': [('' if item_root == '.' else item_root + '/') + '.platform']}))
         if not records and PurePosixPath(relative).suffix.lower() in CONTEXT_SUFFIXES:
             possible = [(source_type, root, {"kind": "project_context", "marker_paths": sorted({e["path"] for e in evidence})})
                         for (source_type, root), evidence in contexts.items() if under(relative, root)]
@@ -417,17 +473,29 @@ def specialist_prompt(task, inventory, snapshot_hash, run_root):
                     "Report metadata scope separately from partial/unknown semantic coverage. A dbt-owned CSV "
                     "remains with its dbt specialist; a CSV snapshot is not a dbt project or trusted report baseline.\n\n")
     }.get(task['source_type'], '')
+    if task['source_type'] in ADAPTER_SOURCES:
+        source_guidance += ("The coordinator can run scripts/extract_specialist_task.py for this exact planned task on approved staged inputs. "
+                            "Retain source_adapter_contract in the reconciled result; its canonical extraction is verified against the pinned source. "
+                            "The coordinator includes needed format boundaries from references/source-adapters/" + task['source_type'] + ".md. "
+                            "A source adapter is separate from target generation, linting and native validation. "
+                            "Do not replace a parser gap with a claim of complete interpretation.\n\n")
+        if task.get('source_adapter_contract_required'):
+            source_guidance += "This plan requires source_adapter_contract. A result omitting canonical extraction is invalid.\n\n"
     payload = {"task_id": task["task_id"], "source_type": task["source_type"],
                "project_root": task["project_root"], "repository_root": inventory["repository"]["selected_root"],
                "source_snapshot_sha256": snapshot_hash,
                "run_root": str(run_root), "absolute_result_path": str(run_root / task["result_path"]),
                "assets": [{key: asset[key] for key in ("asset_id", "path", "sha256", "size_bytes", "status", "source_types")} for asset in assets]}
+    if 'specialist_profile' in task:
+        payload['specialist_profile'] = task['specialist_profile']
     return ("# Source specialist assessment task\n\n"
             "This is a planned task, not evidence that any specialist has executed.\n\n"
             "The coordinator prepares a bounded TASK.md using scripts/agent_context.py before dispatch. "
-            "Use fresh task context without parent history where supported. Read only the selected source "
-            "section in " + str(SKILL_ROOT / "references/source-specialists.md") +
-            " as supplied in that packet. Consult the specialist result contract section of " +
+            "Use fresh task context without parent history where supported. For a task with specialist_profile, "
+            "set source_type and bindings.specialist_profile (the plan's profile SHA-256) on the context request. "
+            "The packet builder embeds only that pinned profile within its existing byte budget. "
+            "For other sources, include only the relevant section of " + str(SKILL_ROOT / "references/source-specialists.md") +
+            " in the packet. Consult the specialist result contract section of " +
             str(SKILL_ROOT / "references/orchestration.md") + " only if the supplied schema is insufficient. "
             "The coordinator owns semantic-placement.md; do not reload the full workflow. "
             "If a required contract is unavailable, report the exact gap and stop dependent interpretation.\n\n"
@@ -455,6 +523,7 @@ def specialist_prompt(task, inventory, snapshot_hash, run_root):
             "and exact locator, and grain with status observed/inferred/unknown and description. Rules require "
             "rule_id, kind, language, original expression, output_object_id, input_refs, context, evidence, "
             "and placement_candidate. Preserve unresolved references in both input_refs and unresolved_references. "
+            "For profile-bound tasks, echo specialist_profile.sha256 as top-level specialist_profile_sha256 in the result. "
             "Request only missing contract fields or evidence slices; empty arrays do not imply complete extraction.\n\n"
             "```json\n" + json.dumps({"schema_version": 1, "task_id": task["task_id"], "source_snapshot_sha256": snapshot_hash,
                 "asset_coverage": [{"asset_id": "assigned asset ID", "status": "partial", "reason": "actual evidence limitation"}],
@@ -465,7 +534,7 @@ def specialist_prompt(task, inventory, snapshot_hash, run_root):
 
 def plan_repository(repo, output, source_profiles=(), max_files=2000, max_file_bytes=1048576,
                     max_total_bytes=33554432, inspect_git=True, include_paths=(),
-                    semantic_target=None, warehouse=None):
+                    semantic_target=None, warehouse=None, require_source_adapters=False):
     repo = Path(repo).expanduser().absolute()
     if repo.is_symlink() or not repo.is_dir():
         raise PlanningError("Input must be an existing directory, not a symlink")
@@ -510,6 +579,11 @@ def plan_repository(repo, output, source_profiles=(), max_files=2000, max_file_b
         tasks.append({"task_id": task_id, "source_type": source_type, "project_root": project_root,
                       "asset_ids": sorted(asset_ids), "prompt_path": "tasks/" + task_id + ".md",
                       "result_path": "results/" + task_id + ".json"})
+        tasks[-1]['context_role'] = 'source_specialist'
+        if source_type in ADAPTER_SOURCES:
+            tasks[-1]['specialist_profile'] = profile_binding(source_type)
+        if require_source_adapters and source_type in ADAPTER_SOURCES:
+            tasks[-1]['source_adapter_contract_required'] = True
     assigned = {asset_id for task in tasks for asset_id in task["asset_ids"]}
     selected = {asset["asset_id"] for asset in assets}
     if selected != assigned:
@@ -532,6 +606,7 @@ def plan_repository(repo, output, source_profiles=(), max_files=2000, max_file_b
         from omni_modeler import plan_request
         plan['target_tasks'] = [plan_request(snapshot_hash, warehouse=warehouse)]
         plan['review_roles'] = ['warehouse_architect', 'omni_modeler', 'independent_qa']
+    plan['review_context_roles'] = {role: context_role(role) for role in plan['review_roles']}
     output.mkdir(parents=True, exist_ok=True)
     if any(output.iterdir()):
         raise PlanningError("Output became nonempty; refusing to overwrite")
@@ -561,13 +636,15 @@ def main(argv=None):
     parser.add_argument("--max-file-bytes", type=int, default=1048576)
     parser.add_argument("--max-total-bytes", type=int, default=33554432)
     parser.add_argument("--no-git", action="store_true", help="Skip optional Git metadata inspection")
+    parser.add_argument("--require-source-adapters", action="store_true", help="Require retained canonical extraction for supported source tasks; legacy plans remain compatible")
     parser.add_argument("--semantic-target", choices=('omni', 'none', 'retain_existing'))
     parser.add_argument("--warehouse", choices=('snowflake', 'databricks', 'bigquery', 'redshift', 'clickhouse', 'motherduck'))
     args = parser.parse_args(argv)
     try:
         plan = plan_repository(args.repo, args.output, args.source_profile, args.max_files,
                                args.max_file_bytes, args.max_total_bytes, not args.no_git, args.include_path,
-                               semantic_target=args.semantic_target, warehouse=args.warehouse)
+                               semantic_target=args.semantic_target, warehouse=args.warehouse,
+                               require_source_adapters=args.require_source_adapters)
     except (PlanningError, OSError) as exc:
         print("ERROR: " + str(exc), file=sys.stderr)
         return 1
