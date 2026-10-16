@@ -488,8 +488,9 @@ Promise.all(blobs.map(b=>b.text())).then(bodies=>{
   assert.deepEqual(bodies,INPUT.payload.audience==='engineer'?[INPUT.design,INPUT.guide]:[INPUT.design]);
 }).catch(error=>{console.error(error);process.exitCode=1});
 """
-                result = subprocess.run([shutil.which('node'), '-e', harness + '\n' +
-                                         (portal.ASSETS / 'portal.js').read_text().rsplit('})();', 1)[0] + assertions + '\n})();'],
+                # Whole-page fixtures exceed Linux's per-argument limit; stream the script.
+                script = harness + '\n' + (portal.ASSETS / 'portal.js').read_text().rsplit('})();', 1)[0] + assertions + '\n})();'
+                result = subprocess.run([shutil.which('node'), '-'], input=script,
                                         capture_output=True, text=True, timeout=15)
                 self.assertEqual(result.returncode, 0, result.stderr)
 
