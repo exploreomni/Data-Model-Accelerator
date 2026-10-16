@@ -67,7 +67,7 @@ the full native node denominator, original results, and evidence-verifier output
 It has no arbitrary customer-project execution option.
 
 The runner verifies the bundled candidates and expected-data files against their
-existing review-package pins before invoking dbt. This detects fixture drift;
+maintained fixture pins before invoking dbt. This detects fixture drift;
 those local files remain part of the trusted checkout, not an authenticated
 publisher or an arbitrary-code sandbox.
 
