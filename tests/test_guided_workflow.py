@@ -435,6 +435,19 @@ class GuidedWorkflowTests(unittest.TestCase):
         native=next(c for c in state['delivery_assurance']['checks'] if c['lane']=='native_model')
         self.assertEqual(native['status'],'pending')
 
+    def test_failed_page_refresh_returns_incomplete_without_losing_saved_state(self):
+        self.start(BASE)
+        import delivery_portal
+        errors = io.StringIO()
+        with patch.object(delivery_portal, 'render_engagement', side_effect=OSError('synthetic rendering failure')), \
+                redirect_stdout(io.StringIO()), redirect_stderr(errors):
+            self.assertEqual(workflow.main(['resume', '--run', str(self.run)]), 2)
+        self.assertIn('Handoff incomplete', errors.getvalue())
+        self.assertTrue((self.run / 'state.json').is_file())
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(workflow.main(['resume', '--run', str(self.run)]), 0)
+        self.assertTrue((self.run / 'START_HERE.html').is_file())
+
     def test_cli_start_answer_status_resume_and_late_renderer(self):
         args = self.root / 'answers.json'
         args.write_text(json.dumps(BASE))

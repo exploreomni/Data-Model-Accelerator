@@ -113,3 +113,10 @@ The shared [guided workflow](guided-workflow.md), [platform adapters](platform-a
 The recipient receives one named current ZIP and one extracted handoff location. Keep work files, screenshots, superseded immutable exports and technical audit outside it; never overwrite frozen exports to clean the view. The generated root README is an extraction/file index, not another design narrative. Selected dictionaries ship as CSV and Markdown; selected diagrams ship as SVG views plus editable model source. Generated projections are identified separately from immutable registered files in the manifest, and must match the selected inventory. No diagram filter changes export scope.
 
 Before handoff, run page/package integrity, JavaScript syntax and stub-DOM checks, then inspect the actual extracted HTML in a browser. Check initial context, all scoped tables, responsive inspector/back behavior, table-to-code mapping, download/copy, first-click navigation, feedback freshness and code/readiness omissions. Test smaller exports and legacy packages as well. A fresh reviewer must complete open → model → table → code → readiness → feedback without chat history. Report browser limitations honestly and retain the observations outside the customer package. Synthetic usability exercises cannot establish native or business validation.
+
+Use the [finalizer](review-surface.md#finalize-the-selected-handoff) for the final
+selected delivery. It checks actual files and creates the ZIP plus extracted
+handoff together. The coordinator must not substitute a source clone, candidate
+folder, status-only page or `handoff_prepared` message for that result. Explain that
+`01_Model/` is the design folder. Missing outputs require repair or an explicit
+incomplete status, not another full model run or a silent reduced selection.

@@ -22,7 +22,7 @@ COMPONENT_FILES = {
     'implementation': ('references/analytics-engineering.md', 'scripts/plan_refactor.py'),
     'semantic': ('scripts/omni_modeler.py', 'references/omni-modeler.md'),
     'validation': ('references/modeling-and-validation.md', 'scripts/verify_refactor_run.py'),
-    'packaging': ('scripts/delivery_portal.py', 'assets/guided-delivery/portal.js',
+    'packaging': ('scripts/delivery_portal.py', 'scripts/finalize_delivery.py', 'assets/guided-delivery/portal.js',
                   'assets/guided-delivery/portal.css', 'assets/guided-delivery/portal.html'),
     'deployment': ('scripts/deployment_workflow.py', 'scripts/deployment_authority.py'),
     'dbt_runtime': ('scripts/dbt_runtime.py', 'scripts/dbt_compatibility.py',
@@ -807,7 +807,7 @@ def _requested_progress(state, result):
         result.update(current_stage=stage, next_action=row['next_action'])
         return
     result.update(current_stage='packaging', delivery_status='design_proposal' if not required else 'provisional_code_generated' if provisional else 'requested_stage_outputs_recorded',
-                  next_action='Package the selected artifacts with their recorded evidence and limits. File registration does not establish native validation or acceptance.')
+                  next_action='Run finalize_delivery.py to verify the selected files, START_HERE.html and extracted handoff. Registered task outputs are not a completed delivery; package integrity does not establish native validation or acceptance.')
 
 
 def public_view(state, *, _refresh=True):

@@ -4,6 +4,12 @@ The coordinator owns intake, inventory, cross-domain reconciliation and stage
 gates. Workers own one bounded question or artifact. Install the complete shared
 runtime, but do not load the entire workflow into every worker's context.
 
+Final handoff assembly stays with the coordinator: after reconciling worker
+outputs, run the [delivery finalizer](review-surface.md#finalize-the-selected-handoff).
+Targeted context must not drop the root navigation page or selected design/code
+files. Repair packaging from retained artifacts without resending source context
+to the specialists. Prepared files are not proof of a verified final handoff.
+
 ## Dispatch once, supply only what the task needs
 
 1. Inventory and extract each source scope once. Prefer deterministic parsers and
