@@ -14,7 +14,7 @@ import stat
 import sys
 
 from dbt_feature_delivery import prepare_features
-from dbt_information_schema import _load_duckdb, read_information_schema
+from dbt_information_schema import ERROR_CODES, InformationSchemaError, _load_duckdb, read_information_schema
 from dbt_native_lint import _run, lint_native
 from dbt_runtime import driver_contract, observed_version, runtime_identity
 from source_adapters.base import read_json
@@ -32,9 +32,21 @@ EXPECTED_CANDIDATES = {'dbt_project.yml.fragment', 'checks/dma_model_description
                        'checks/dma_public_model_owners.sql', 'checks/_dma_checks.yml'}
 
 
+class _QualificationError(ValueError):
+    """A diagnostic produced only by this qualifier's fixed assertions."""
+
+
 def _require(condition, code):
     if not condition:
-        raise ValueError('dbt.feature_qualification.' + code)
+        raise _QualificationError('dbt.feature_qualification.' + code)
+
+
+def _reported_error(error):
+    if isinstance(error, InformationSchemaError) and str(error) in ERROR_CODES:
+        return str(error)
+    if type(error) is _QualificationError:
+        return str(error)
+    return 'qualification_step_failed:' + type(error).__name__
 
 
 def _sha(raw):
@@ -301,7 +313,7 @@ def qualify(distribution, executable, driver_path, output, *, execute=False):
         report['status'] = 'passed'
     except Exception as error:
         report['status'] = 'failed'
-        report['error'] = str(error) if str(error).startswith('dbt.feature_qualification.') else 'qualification_step_failed:' + type(error).__name__
+        report['error'] = _reported_error(error)
     _save_json(root / 'report.json', report)
     return report
 

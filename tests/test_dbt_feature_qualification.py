@@ -3,6 +3,7 @@ import contextlib
 import copy
 import hashlib
 import io
+import json
 from pathlib import Path
 import stat
 import sys
@@ -146,6 +147,42 @@ class FeatureQualificationTests(unittest.TestCase):
                                        '--output', str(existing), '--execute'])
         self.assertEqual(code, 1)
         self.assertEqual(marker.read_text(), 'unchanged')
+
+    def test_report_preserves_only_allowlisted_information_schema_codes(self):
+        errors = [
+            (qualification.InformationSchemaError('dbt_info_schema.parquet_decode_failed'),
+             'dbt_info_schema.parquet_decode_failed'),
+            (qualification.InformationSchemaError('dbt_info_schema.unsafe_directory'),
+             'dbt_info_schema.unsafe_directory'),
+            (qualification.InformationSchemaError('dbt_info_schema.parquet_decode_failed\nsecret-value'),
+             'qualification_step_failed:InformationSchemaError'),
+            (qualification.InformationSchemaError('dbt_info_schema.secret_value'),
+             'qualification_step_failed:InformationSchemaError'),
+            (ValueError('dbt_info_schema.parquet_decode_failed'), 'qualification_step_failed:ValueError'),
+            (ValueError('dbt.feature_qualification.secret_value'), 'qualification_step_failed:ValueError'),
+            (RuntimeError('native /private/source contains secret-value'), 'qualification_step_failed:RuntimeError'),
+        ]
+        contract = {'adapter': 'duckdb', 'version': 'synthetic', 'platform': 'synthetic', 'sha256': '0' * 64}
+        for index, (error, expected) in enumerate(errors):
+            output = self.root / str(index)
+            with (self.subTest(error=error), patch.object(qualification, '_load_duckdb'),
+                  patch.object(qualification, 'runtime_identity', return_value={}),
+                  patch.object(qualification, 'driver_contract', return_value=contract),
+                  patch.object(qualification, '_driver_bytes', return_value=b''),
+                  patch.object(qualification, '_execute', return_value=(0, b'synthetic', b'')),
+                  patch.object(qualification, 'observed_version', return_value={}),
+                  patch.object(qualification, '_scenario', side_effect=error)):
+                report = qualification.qualify('dbt', '/absent/dbt', '/absent/driver', output, execute=True)
+                self.assertEqual(report['status'], 'failed')
+                self.assertEqual(report['error'], expected)
+                saved = json.loads((output / 'report.json').read_text())
+                self.assertEqual(saved['error'], expected)
+                self.assertNotIn('secret', json.dumps(saved))
+
+    def test_own_fixed_assertion_code_is_preserved(self):
+        with self.assertRaises(ValueError) as caught:
+            qualification._require(False, 'parse_failed')
+        self.assertEqual(qualification._reported_error(caught.exception), 'dbt.feature_qualification.parse_failed')
 
 
 if __name__ == '__main__':

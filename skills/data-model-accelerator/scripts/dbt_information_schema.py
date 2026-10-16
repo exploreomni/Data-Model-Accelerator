@@ -44,6 +44,23 @@ MAX_OUTPUT_BYTES = 8 * 1024 * 1024
 MAX_VALUE_BYTES = 16384
 MAX_LIST_ITEMS = 128
 STAGES = ('unknown', 'parse', 'compile', 'run', 'build')
+# Public diagnostics are exact fixed codes. Callers may project these without
+# copying native decoder messages, paths, or untrusted source values.
+ERROR_CODES = frozenset('dbt_info_schema.' + code for code in (
+    'byte_limit column_limit_or_duplicate column_limit_or_invalid '
+    'conflicting_column_node_id conflicting_declared_type conflicting_lineage_identity '
+    'conflicting_resource_identity conflicting_resource_type '
+    'dependency_missing_install_requirements_dbt_metadata duplicate_column duplicate_identity '
+    'expanded_byte_limit file_limit footer_limit_or_invalid invalid_column_type invalid_field_type '
+    'invalid_list_or_limit invalid_number invalid_parquet invalid_parquet_schema invalid_string '
+    'metadata_limit missing_required_column missing_required_value no_supported_tables '
+    'output_byte_limit output_inside_source_or_unsafe parquet_decode_failed '
+    'parse_invocation_has_compiled_metadata parse_invocation_has_run_results path_collision '
+    'projected_byte_limit row_count_mismatch row_limit sensitive_or_unscannable_metadata '
+    'snapshot_outside_source unsafe_directory unsafe_file unsafe_metadata_path '
+    'unsafe_or_malformed_snapshot unsafe_or_oversized_file unsafe_path unsupported_duckdb_version '
+    'unsupported_schema_version unsupported_stage unsupported_version_directory value_limit'
+).split())
 
 
 class InformationSchemaError(ValueError):
@@ -51,7 +68,10 @@ class InformationSchemaError(ValueError):
 
 
 def _fail(code):
-    raise InformationSchemaError('dbt_info_schema.' + code) from None
+    message = 'dbt_info_schema.' + code
+    if message not in ERROR_CODES:
+        message = 'dbt_info_schema.unsafe_or_malformed_snapshot'
+    raise InformationSchemaError(message) from None
 
 
 def _fields(text, kind='string'):
