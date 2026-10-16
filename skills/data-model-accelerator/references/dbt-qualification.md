@@ -1,5 +1,13 @@
 # Qualifying the initial dbt flow
 
+The original evidence sequence below is the **Core v1** contract. For an explicit
+v2/OSS selection use [runtime selection](dbt-runtime.md) and the versioned request
+in `run_dbt_project.py`; do not copy v1 partial-parse flags into a v2 command.
+The runner/verifier retain schema-1 compatibility and separate schema-2 native
+identity, analysis-mode and driver bindings. Optional feature checks and plain
+SQL native lint are separate evidence, not additional coverage inferred from a
+successful full-root build.
+
 Use this reference when validating a generated dbt candidate or preparing its
 initial acceptance package. The initial delivered path uses full table rebuilds.
 Incremental merges, snapshots, scheduling, production recovery, additional agent

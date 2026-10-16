@@ -12,6 +12,7 @@ Turn tangled analytics code into documented, testable warehouse models and an Om
 | Run one stage or continue a reviewed design | [Independent stages](skills/data-model-accelerator/references/staged-engagement.md) |
 | Build or refactor Omni models | [Omni Modeler](docs/OMNI_MODELER.md) |
 | Choose a supported route | [Capabilities](docs/CAPABILITIES.md) · [Platform matrix](docs/PLATFORM_MATRIX.md) |
+| Retain dbt v1 or adopt dbt v2 / dbt OSS | [Runtime selection and upgrade guide](skills/data-model-accelerator/references/dbt-runtime.md) |
 | Understand testing and remaining limits | [Qualification and reproduction](docs/qualification.md) |
 | Deploy a reviewed model | [Deployment](docs/DEPLOYMENT.md) · [Linting](docs/LINTING.md) |
 | Contribute or run the test suite | [Contributor guide](CONTRIBUTING.md) |

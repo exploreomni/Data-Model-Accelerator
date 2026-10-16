@@ -185,8 +185,20 @@ def get_platform(warehouse: str) -> Dict[str, Any]:
     return profile
 
 
+def get_dbt_pairing(warehouse, selection, *, hosted=False):
+    """Explicit engine overlay; a legacy adapter never qualifies another engine."""
+    from dbt_runtime import runtime_contract
+    result = get_pairing('dbt_platform' if hosted else 'dbt', warehouse)
+    result['dbt_runtime'] = runtime_contract(selection, warehouse)
+    result['native_qualified'] = False  # this lookup never executes the target
+    result['requirements'].append('Verify selected distribution, exact version, driver and effective analysis mode in the actual environment')
+    result['reason'] = ('Runtime-specific candidate route. ' + result['reason'])
+    result['documentation'].append('https://docs.getdbt.com/docs/dbt-versions/dbt-upgrade/upgrading-to-v2')
+    return result
+
+
 def get_pairing(framework: str, warehouse: str) -> Pairing:
-    """dbt is Core authoring; dbt_platform is hosting compatibility, not intake."""
+    """Legacy authoring/hosting lookup; use get_dbt_pairing for a named engine."""
     get_platform(warehouse)
     if not isinstance(framework, str) or framework not in (*FRAMEWORKS, 'dbt_core', 'dbt_platform'):
         raise ValueError('Unsupported transformation framework or hosting route')

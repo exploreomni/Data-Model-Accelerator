@@ -10,6 +10,13 @@ Use only coordinator-supplied parser findings, relevant original expressions, pr
 
 ## Interpretation and placement
 
+Use the coordinator's runtime selection and compatibility assessment; do not
+repeat it. dbt Core, full dbt v2 and dbt OSS are separate distributions, even when
+their manifests share v12. For a supplied Information Schema summary, retain
+declared-versus-verified stage, missing references and field coverage. Dependency
+edges are not PK/FK relationships; parse metadata is not column-lineage proof.
+Request only relevant feature details under [runtime selection](../dbt-runtime.md).
+
 - Trace `ref`/`source` edges, disabled resources, ephemeral expansion and dispatched macros. A manifest dependency is not complete column lineage.
 - Distinguish full-refresh and incremental branches, unique-key declarations, late corrections/deletes, snapshot history, hooks and grants. A declared unique key or passing static test definition does not prove uniqueness or executed tests.
 - Propose `reuse_existing` for a compatible, evidenced model; `move_upstream` for stable reusable row transformations; `retain_semantic` for context-dependent measures; `retain_presentation` for display behavior; `split` for mixed concerns. Use `consolidate_candidate` only with equivalence evidence, `retire_candidate` only with consumer evidence and review, otherwise `unresolved`.

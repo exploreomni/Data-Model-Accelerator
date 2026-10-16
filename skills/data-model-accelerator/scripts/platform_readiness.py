@@ -216,14 +216,14 @@ def assess_repository(repo, framework, warehouse, **options):
     """Return JSON-safe readiness; see references/platform-adapters.md for schema.
 
     Options: max_files, max_file_bytes, max_total_bytes, max_entries, max_depth,
-    include_paths (generated evidence opt-in), coalesce_contract. None selections
+    include_paths (generated evidence opt-in), coalesce_contract, dbt_runtime. None selections
     permit assessment; gcp requires an explicit product answer. No files written.
     """
     if framework not in (None, *ADAPTER_REGISTRY['frameworks']):
         raise ValueError('framework must be dbt, coalesce, native_sql, or None')
     if warehouse not in (None, 'gcp', *ADAPTER_REGISTRY['warehouses']):
         raise ValueError('warehouse must be an explicit registered product, gcp, or None')
-    unknown = set(options) - set(DEFAULT_LIMITS) - {'include_paths', 'coalesce_contract'}
+    unknown = set(options) - set(DEFAULT_LIMITS) - {'include_paths', 'coalesce_contract', 'dbt_runtime'}
     if unknown:
         raise ValueError('Unknown readiness options')
     limits = {key: options.get(key, default) for key, default in DEFAULT_LIMITS.items()}
@@ -234,6 +234,8 @@ def assess_repository(repo, framework, warehouse, **options):
         raise ValueError('include_paths must be a list of relative paths')
     includes = {_relative(value) for value in raw_includes}
     fingerprint, coverage, files, texts = _scan(repo, limits, includes)
+    from dbt_runtime import validate_selection
+    selected_runtime = validate_selection(options['dbt_runtime']) if options.get('dbt_runtime') is not None else None
     paths = {item['path'] for item in files}
     sources, findings, questions = {}, {}, []
 
@@ -310,7 +312,7 @@ def assess_repository(repo, framework, warehouse, **options):
                     adapter = metadata.get('adapter_type')
                     if isinstance(adapter, str) and adapter in ADAPTER_REGISTRY['warehouses']:
                         source(adapter, path)
-                    if metadata.get('dbt_version') != '1.12.4' or metadata.get('dbt_schema_version') != 'https://schemas.getdbt.com/dbt/manifest/v12.json':
+                    if metadata.get('dbt_version') != (selected_runtime['version'] if selected_runtime else '1.12.4') or metadata.get('dbt_schema_version') != 'https://schemas.getdbt.com/dbt/manifest/v12.json':
                         finding('dbt.artifact_version', 'warning', 'Supplied dbt artifact is outside the bundled native evidence version contract.', route, path, ['execution'])
                     finding('dbt.artifact_provenance', 'warning', 'A manifest is present; source revision and environment association remain unverified.', 'Bind original artifacts to the reviewed source and execution identity; dependency maps do not prove column lineage.', path)
                     root_package = metadata.get('project_name')
@@ -349,7 +351,7 @@ def assess_repository(repo, framework, warehouse, **options):
         if '{%' in text and re.search(r'{%[-+]?\s*macro\b', text):
             finding('dbt.macros', 'warning', 'Project macro definitions require review; static scanning does not execute or expand them.', route, path, ['execution'])
         if re.search(r'(?m)^require-dbt-version\s*:', text):
-            finding('dbt.version_requirement', 'warning', 'A source dbt version requirement must be reconciled with the pinned Core 1.12.4 native evidence lane.', route, path, ['execution'])
+            finding('dbt.version_requirement', 'warning', 'A source dbt version requirement must be reconciled with the selected distribution, exact version and package constraints.', route, path, ['execution'])
 
     # Reuse native routing on already-read bytes. This does not invoke adapters,
     # grant source disclosure, re-read inputs, or choose a destination platform.
@@ -381,6 +383,9 @@ def assess_repository(repo, framework, warehouse, **options):
         questions.append({'id': 'warehouse', 'prompt': 'Does GCP mean BigQuery, or another warehouse product?' if warehouse == 'gcp' else 'Which warehouse should the target use?', 'choices': list(ADAPTER_REGISTRY['warehouses'])})
     selected = framework is not None and warehouse in ADAPTER_REGISTRY['warehouses']
     pairing = get_pairing(framework, warehouse) if selected else None
+    if selected and framework == 'dbt' and selected_runtime:
+        from platform_matrix import get_dbt_pairing
+        pairing = get_dbt_pairing(warehouse, selected_runtime)
     generation = 'agent_assisted' if selected else 'needs_selection'
     reason = 'Agent-assisted candidate authoring after discovery, physical bindings and behavioral contracts; this collector emits no target code.'
     if not selected:
@@ -401,7 +406,15 @@ def assess_repository(repo, framework, warehouse, **options):
     if selected and (pairing['status'] == 'unsupported' or not coverage['complete'] or (framework == 'dbt' and any('execution' in f['blocks'] for f in findings.values()))):
         execution = 'blocked'
     execution_reason = 'No target execution was performed. Use authorized existing CI/operator validation and original receipts; static readiness never qualifies a run.'
-    if framework == 'dbt' and warehouse == 'snowflake':
+    compatibility = None
+    if framework == 'dbt' or 'dbt' in sources or selected_runtime:
+        from dbt_compatibility import assess_texts
+        compatibility = assess_texts(texts, selected_runtime, warehouse)
+        if selected_runtime is None and framework == 'dbt':
+            questions.append({'id': 'dbt_runtime', 'prompt': 'Before native dbt execution, retain the existing runtime or select an exact dbt Core, dbt v2 or dbt OSS distribution/version. Design and provisional code can continue.', 'choices': ['retain_existing', 'dbt_core', 'dbt', 'dbt_oss']})
+    if selected_runtime:
+        execution_reason += ' ' + compatibility['runtime_contract']['execution']['reason']
+    elif framework == 'dbt' and warehouse == 'snowflake':
         execution_reason += ' The existing bounded runner/evidence verifier still enforces Core 1.12.4 and its narrower full-project contract.'
     elif selected:
         execution_reason += ' No bundled native executor is qualified for this selected path.'
@@ -410,6 +423,7 @@ def assess_repository(repo, framework, warehouse, **options):
     return {'schema_version': 1, 'kind': 'platform_readiness', 'source_fingerprint': fingerprint,
             'selection': {'framework': framework, 'warehouse': warehouse}, 'coverage': coverage,
             'platform_pairing': pairing,
+            'dbt_compatibility': compatibility,
             'detected_sources': [{'type': key, 'paths': sorted(value), 'confidence': 'static_signal'} for key, value in sorted(sources.items())],
             'source_adapters': [{'source': key, 'status': 'available_not_run',
                                  'contract': 'references/source-adapters/' + key + '.md'}
@@ -428,11 +442,18 @@ def main(argv=None):
     parser.add_argument('--framework', choices=tuple(ADAPTER_REGISTRY['frameworks']))
     parser.add_argument('--warehouse', choices=tuple(ADAPTER_REGISTRY['warehouses']) + ('gcp',))
     parser.add_argument('--include-path', action='append', default=[])
+    parser.add_argument('--dbt-distribution', choices=('dbt_core', 'dbt', 'dbt_oss'))
+    parser.add_argument('--dbt-version')
+    parser.add_argument('--dbt-analysis', choices=('none', 'baseline', 'strict'))
     for name, default in DEFAULT_LIMITS.items():
         parser.add_argument('--' + name.replace('_', '-'), type=int, default=default)
     args = parser.parse_args(argv)
     try:
         options = {key: getattr(args, key) for key in DEFAULT_LIMITS}
+        if args.dbt_distribution or args.dbt_version or args.dbt_analysis:
+            options['dbt_runtime'] = {'distribution': args.dbt_distribution, 'version': args.dbt_version}
+            if args.dbt_analysis:
+                options['dbt_runtime']['analysis_mode'] = args.dbt_analysis
         result = assess_repository(args.repo, args.framework, args.warehouse, include_paths=args.include_path, **options)
         print(json.dumps(result, sort_keys=True, indent=2))
         return 0 if result['coverage']['complete'] else 2

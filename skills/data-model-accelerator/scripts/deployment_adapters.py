@@ -115,10 +115,12 @@ def validate_target(target):
     _require(adapter in TARGET_FIELDS, 'Unsupported deployment adapter')
     required, optional = TARGET_FIELDS[adapter]
     optional = optional | {'physical_destination'} | ({'metadata_namespaces'} if adapter in SQL_ADAPTERS else set())
+    if target.get('framework') == 'dbt' and adapter in {'github_workflow', 'dbt_platform'}:
+        optional = optional | {'dbt_runtime'}
     _require(COMMON_REQUIRED | required <= set(target), 'Missing target fields')
     _require(set(target) <= COMMON_REQUIRED | required | optional | {'auth_env'}, 'Unknown target fields')
     out = copy.deepcopy(target)
-    for name in (COMMON_REQUIRED | required | optional) - {'namespace', 'included_tags', 'metadata_namespaces'}:
+    for name in (COMMON_REQUIRED | required | optional) - {'namespace', 'included_tags', 'metadata_namespaces', 'dbt_runtime'}:
         if name not in out:
             continue
         if name.endswith('_id') and name not in {'identity', 'warehouse_id'}:
@@ -126,6 +128,10 @@ def validate_target(target):
         else:
             _text(out[name], name)
     _require(out['framework'] in ('native_sql', 'dbt', 'coalesce', 'dataform', 'bundle', 'github'), 'Unsupported framework')
+    if 'dbt_runtime' in out:
+        from dbt_runtime import validate_selection
+        out['dbt_runtime'] = validate_selection(out['dbt_runtime'])
+        _require(out['runtime_version'] == out['dbt_runtime']['version'], 'dbt runtime version differs from the deployment target')
     _require(type(out['namespace']) is dict and out['namespace'], 'namespace must be nonempty')
     _require(set(out['namespace']) <= {'database', 'schema', 'catalog', 'dataset'}, 'Unsupported namespace field')
     for k, v in out['namespace'].items():

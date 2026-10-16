@@ -1,5 +1,14 @@
 # Deploy an approved modeling release
 
+For an explicit dbt runtime selection, the reviewed target includes
+`dbt_runtime` (distribution, exact version, analysis mode and selected features).
+It must agree with `runtime_version`, participates in the target hash and cannot
+change after sign-off. Live dbt execution additionally needs independently
+attested `observed_dbt_runtime` and `dbt_runtime_verified` preflight claims.
+Publishing a PR does not execute or prove the selected runtime. The dbt
+platform API version does not select the dbt runtime; retain the existing
+reviewed job/environment and verify its actual runtime separately.
+
 The deployment coordinator turns a prepared handoff into a specific release plan, executes it through an externally configured runner, and retains native receipts. An offline review page can request an action; it cannot approve or perform it.
 
 Start with the [operator runbook](../skills/data-model-accelerator/references/deployment.md). It contains installation, runner policy, exact commands, signing contracts and the supported native routes. Use [guided start](guided-start.md) to create the source assessment and prepared handoff first.

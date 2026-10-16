@@ -2,6 +2,10 @@
 """Read-only native dbt build evidence association, not execution or approval.
 
 Qualified artifact contract: dbt-core 1.12.4, manifest/v12, run-results/v6.
+Version 2 receipts separately qualify dbt/dbt-oss 2.0.8 local DuckDB builds;
+they bind installed runtime and driver pins, the raw request/version output,
+exact commands and effective analysis mode. Identical artifact schema versions
+do not identify the engine. No version 1 check is relaxed for those artifacts.
 Use snapshot_project(project_root) before execution and expected_nodes(preflight)
 to freeze the full runnable denominator. Store a receipt with schema_version 1,
 kind native_dbt_build_evidence, project_root, validation_scope (local or target),
@@ -24,6 +28,7 @@ tests, functions and operation hooks need separate qualification. No repository
 code, dbt command, network request or warehouse query is executed by this tool.
 """
 import argparse
+import copy
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -169,21 +174,112 @@ def same_definition(before, after, preflight, manifest):
     return left == right
 
 
+def _runtime_receipt(receipt, root, result):
+    """Version 2 observations substitute only fields absent in native v2 artifacts."""
+    from dbt_runtime import driver_contract, observed_version, runtime_argv, runtime_contract, validate_selection
+    runtime = receipt.get('runtime')
+    need(type(runtime) is dict and set(runtime) == {'selection', 'identity', 'observed', 'driver', 'effective_analysis_mode'},
+         'Missing versioned runtime observations')
+    selection = validate_selection(runtime['selection'])
+    need(selection == runtime['selection'] and selection['distribution'] in ('dbt', 'dbt_oss') and
+         runtime_contract(selection, receipt['expected_adapter_type'])['execution']['qualified'], 'Unqualified selected runtime contract')
+    need(receipt['validation_scope'] == 'local' and receipt['expected_adapter_type'] == 'duckdb', 'v2 execution is qualified only for local DuckDB')
+    need(runtime['effective_analysis_mode'] == selection['analysis_mode'], 'Effective analysis mode mismatch')
+    observed = runtime['observed']
+    need(type(observed) is dict and observed == observed_version(observed.get('version_output', ''), selection),
+         'Observed runtime distribution/version mismatch')
+    output = receipt.get('version_output')
+    need(type(output) is dict and set(output) == {'path', 'sha256'}, 'Missing native version output association')
+    version_path = canonical(root / relative_path(output['path']))
+    need(version_path.is_file() and version_path.stat().st_size <= 4096, 'Missing/oversized native version output')
+    version_bytes = version_path.read_bytes()
+    need(digest(version_bytes) == output['sha256'] and observed_version(version_bytes.decode('utf-8'), selection) == observed,
+         'Native version output association mismatch')
+    association = receipt.get('request')
+    need(type(association) is dict and set(association) == {'path', 'sha256'}, 'Missing execution request association')
+    request_path = canonical(root / relative_path(association['path']))
+    request = read_json(request_path)
+    need(digest(request_path.read_bytes()) == association['sha256'], 'Execution request hash mismatch')
+    need(type(request) is dict and request.get('schema_version') == 2 and validate_selection(request.get('dbt_runtime')) == selection,
+         'Request runtime selection mismatch')
+    identity = runtime['identity']
+    need(type(identity) is dict and set(identity) == {'distribution', 'version', 'package', 'files'} and
+         identity['distribution'] == selection['distribution'] and identity['version'] == selection['version'] and
+         identity['package'] == ('dbt' if selection['distribution'] == 'dbt' else 'dbt-oss') and request.get('runtime_identity') == identity,
+         'Runtime identity differs from requested pin')
+    files = identity.get('files')
+    need(type(files) is list and 5 <= len(files) <= 1004, 'Missing runtime file identities')
+    paths = set()
+    for item in files:
+        need(type(item) is dict and set(item) == {'path', 'sha256'} and nonempty(item['path']) and
+             Path(item['path']).is_absolute() and '..' not in Path(item['path']).parts and item['path'] not in paths and
+             type(item['sha256']) is str and SHA.fullmatch(item['sha256']), 'Invalid runtime file identity')
+        paths.add(item['path'])
+    need(any(Path(p).name.startswith('_core.') for p in paths) and any(Path(p).name == 'METADATA' for p in paths),
+         'Native implementation/package identity missing')
+    driver = runtime['driver']
+    need(type(driver) is dict and set(driver) == {'path', 'sha256', 'version', 'platform'} and type(driver['platform']) is str,
+         'Missing driver identity')
+    platform_parts = driver['platform'].split('/')
+    need(len(platform_parts) == 2, 'Invalid driver platform')
+    contract = driver_contract(*platform_parts)
+    need(driver['sha256'] == contract['sha256'] and driver['version'] == contract['version'] and
+         request.get('driver') == {k: driver[k] for k in ('path', 'sha256', 'version')}, 'Unqualified driver pin')
+    need(request.get('adapter_type') == receipt['expected_adapter_type'] and request.get('target') == receipt['expected_target_name'],
+         'Request adapter/target mismatch')
+    commands = receipt.get('commands')
+    need(type(commands) is dict and set(commands) == {'version', 'parse', 'build'}, 'Missing version/parse/build command evidence')
+    original_project = Path(receipt['project_root'])
+    executable = files[0]['path']
+    expected_args = {'version': [executable, '--version']}
+    for verb, folder in (('parse', 'preflight'), ('build', 'build')):
+        expected_args[verb] = runtime_argv(executable, verb, original_project, request['profiles_dir'], request['profile'],
+                                          request['target'], original_project.parent / folder, selection)
+    previous = None
+    for verb in ('version', 'parse', 'build'):
+        step = commands[verb]
+        need(type(step) is dict and set(step) == {'args', 'exit_code', 'started_at', 'finished_at'} and
+             step['args'] == expected_args[verb] and type(step['exit_code']) is int and step['exit_code'] == 0,
+             'Unqualified/failed native command: ' + verb)
+        start, end = instant(step['started_at'], verb + ' start'), instant(step['finished_at'], verb + ' finish')
+        need(start <= end and (previous is None or previous <= start), 'Command chronology mismatch')
+        previous = end
+    need(receipt['execution'] == {k: commands['build'][k] for k in ('exit_code', 'started_at', 'finished_at')},
+         'Build execution/command mismatch')
+    need(type(receipt.get('profile_sha256')) is str and SHA.fullmatch(receipt['profile_sha256']), 'Profile byte pin missing')
+    result.update(runtime_distribution=selection['distribution'], runtime_selection=selection,
+                  effective_analysis_mode=selection['analysis_mode'], driver_version=driver['version'])
+    return selection, request, commands
+
+
+def _same_definition_v2(before, after, preflight, manifest, selection):
+    if selection['analysis_mode'] == 'none':
+        after = copy.deepcopy(after)
+        config = after.get('config', {})
+        need(config.get('static_analysis') == 'off' and after.get('static_analysis_off_reason') == 'configuredoff',
+             'OSS effective analysis configuration mismatch')
+        config['static_analysis'] = before.get('config', {}).get('static_analysis')
+    return same_definition(before, after, preflight, manifest)
+
+
 def _verify(receipt_path, result, project_root=None):
     receipt_path = canonical(receipt_path)
     root = receipt_path.parent
     receipt = read_json(receipt_path)
     result['receipt_sha256'] = digest(receipt_path.read_bytes())
-    need(isinstance(receipt, dict) and type(receipt.get('schema_version')) is int and receipt['schema_version'] == 1 and receipt.get('kind') == 'native_dbt_build_evidence', 'Expected version 1 native_dbt_build_evidence receipt')
+    need(isinstance(receipt, dict) and type(receipt.get('schema_version')) is int and receipt['schema_version'] in (1, 2) and receipt.get('kind') == 'native_dbt_build_evidence', 'Expected version 1 or 2 native_dbt_build_evidence receipt')
+    v2 = receipt['schema_version'] == 2
     scope, adapter = receipt.get('validation_scope'), receipt.get('expected_adapter_type')
     need(scope in ('local', 'target') and nonempty(adapter), 'Invalid validation scope/adapter')
     need(adapter != 'duckdb' or scope == 'local', 'DuckDB native execution cannot establish target warehouse validation')
-    need(receipt.get('expected_dbt_version') == DBT_VERSION, 'Unqualified dbt artifact/checksum version')
+    selection, request, commands = _runtime_receipt(receipt, root, result) if v2 else (None, None, None)
+    version = selection['version'] if v2 else DBT_VERSION
+    need(receipt.get('expected_dbt_version') == version, 'Unqualified dbt artifact/checksum version')
     need(nonempty(receipt.get('expected_target_name')), 'Expected target name is required')
     need(nonempty(receipt.get('project_root')) and Path(receipt['project_root']).is_absolute(), 'project_root must be absolute')
     project = canonical(receipt['project_root'] if project_root is None else project_root)
     result.update(declared_project_root=receipt['project_root'], verified_project_root=str(project))
-    result.update(validation_scope=scope, adapter_type=adapter, dbt_version=DBT_VERSION)
+    result.update(validation_scope=scope, adapter_type=adapter, dbt_version=version)
     associations, evidence_paths = {}, set()
     for name in ('preflight_manifest', 'manifest', 'run_results'):
         association = receipt.get(name)
@@ -195,11 +291,14 @@ def _verify(receipt_path, result, project_root=None):
         need(isinstance(association['sha256'], str) and SHA.fullmatch(association['sha256']) and digest(path.read_bytes()) == association['sha256'], 'Changed evidence hash: ' + name)
         associations[name] = read_json(path)
     preflight, manifest, runs = (associations[name] for name in ('preflight_manifest', 'manifest', 'run_results'))
+    if v2:
+        from run_dbt_project import validate_preflight
+        validate_preflight(preflight, request)
     metas = []
     for name, document, schema in [('preflight', preflight, MANIFEST_SCHEMA), ('manifest', manifest, MANIFEST_SCHEMA), ('run_results', runs, RESULTS_SCHEMA)]:
         need(isinstance(document, dict) and isinstance(document.get('metadata'), dict), 'Missing metadata: ' + name)
         meta = document['metadata']; metas.append(meta)
-        need(meta.get('dbt_schema_version') == schema and meta.get('dbt_version') == DBT_VERSION, 'Artifact schema/dbt version mismatch: ' + name)
+        need(meta.get('dbt_schema_version') == schema and meta.get('dbt_version') == version, 'Artifact schema/dbt version mismatch: ' + name)
         need(nonempty(meta.get('invocation_id')), 'Missing invocation identity: ' + name)
     pm, mm, rm = metas
     need(pm.get('adapter_type') == mm.get('adapter_type') == adapter, 'Manifest adapter mismatch')
@@ -213,10 +312,16 @@ def _verify(receipt_path, result, project_root=None):
     started = instant(execution.get('started_at'), 'execution start')
     finished = instant(execution.get('finished_at'), 'execution finish')
     invocation = instant(mm.get('invocation_started_at'), 'manifest invocation start')
-    need(invocation == instant(rm.get('invocation_started_at'), 'run_results invocation start'), 'Invocation start mismatch')
+    if not v2 or rm.get('invocation_started_at') is not None:
+        need(invocation == instant(rm.get('invocation_started_at'), 'run_results invocation start'), 'Invocation start mismatch')
     need(captured <= started <= invocation <= instant(mm.get('generated_at'), 'manifest generated') <= finished, 'Snapshot/build/manifest chronology mismatch')
     need(invocation <= instant(rm.get('generated_at'), 'run_results generated') <= finished, 'Stale run_results chronology')
     need(instant(pm.get('generated_at'), 'preflight generated') <= started, 'Preflight must precede build')
+    if v2:
+        need(pm['invocation_id'] != mm['invocation_id'], 'Preflight and build must be separate invocations')
+        need(instant(commands['parse']['started_at'], 'parse start') <= instant(pm.get('invocation_started_at'), 'parse invocation') <=
+             instant(pm['generated_at'], 'parse generated') <= instant(commands['parse']['finished_at'], 'parse finish') <= captured,
+             'Preflight command/invocation chronology mismatch')
     files = snapshot.get('files')
     need(isinstance(files, list) and files, 'Snapshot file inventory required')
     declared = {}
@@ -227,13 +332,27 @@ def _verify(receipt_path, result, project_root=None):
         declared[path] = item['sha256']
     current = {item['path']: item['sha256'] for item in _project_files(project)}
     need(declared == current, 'Project file inventory/content drift since pre-execution snapshot')
+    if v2:
+        # ae_common.snapshot hashes the sorted byte inventory, independently of
+        # this verifier's captured_at wrapper.
+        inventory_hash = digest(json.dumps(files, sort_keys=True, separators=(',', ':'), ensure_ascii=True).encode())
+        need(request.get('project_sha256') == inventory_hash, 'Request project pin mismatch')
     result['project_snapshot_sha256'] = digest(json.dumps(files, sort_keys=True, separators=(',', ':')).encode())
     expected = receipt.get('expected_node_ids')
     need(isinstance(expected, list) and expected and all(nonempty(uid) for uid in expected) and len(set(expected)) == len(expected), 'Expected node IDs must be unique and nonempty')
     need(sorted(expected) == expected_nodes(preflight) == expected_nodes(manifest), 'Expected/preflight/executed manifest node denominator mismatch')
     need(set(preflight['nodes']) == set(manifest['nodes']), 'Manifest node inventory changed after preflight')
     for uid, node in manifest['nodes'].items():
-        need(same_definition(preflight['nodes'][uid], node, preflight, manifest), 'Parsed node definition changed after preflight: ' + uid)
+        same = (_same_definition_v2(preflight['nodes'][uid], node, preflight, manifest, selection) if v2 else
+                same_definition(preflight['nodes'][uid], node, preflight, manifest))
+        need(same, 'Parsed node definition changed after preflight: ' + uid)
+        if v2:
+            config = node.get('config', {})
+            need(node['resource_type'] != 'snapshot' and
+                 (node['resource_type'] != 'model' or config.get('materialized') in ('table', 'view', 'ephemeral')) and
+                 not config.get('contract', {}).get('enforced') and not node.get('version'), 'Unqualified v2 resource/feature')
+            need(config.get('static_analysis') == ('off' if selection['analysis_mode'] == 'none' else 'baseline'),
+                 'Manifest effective analysis mode mismatch')
         need(node.get('package_name') == mm['project_name'], 'External package resources require separate file mapping qualification')
         path = relative_path(node.get('original_file_path')).as_posix()
         need(path in declared, 'Manifest source file missing from snapshot: ' + path)
@@ -265,7 +384,12 @@ def _verify(receipt_path, result, project_root=None):
                     need(nonempty(value.get('macro_sql')) and value['macro_sql'].strip() in (project / path).read_text(encoding='utf-8'), 'Macro SQL differs from reviewed file')
     args = runs.get('args')
     need(isinstance(args, dict) and args.get('which') == 'build', 'Native evidence must come from dbt build')
-    need(args.get('target') == receipt['expected_target_name'], 'dbt execution target mismatch')
+    if v2:
+        need(args == {'command': 'build', 'which': 'build', 'full_refresh': False,
+                      'static_analysis': 'Off' if selection['analysis_mode'] == 'none' else 'Baseline'},
+             'Unqualified native v2 arguments/effective analysis mode')
+    else:
+        need(args.get('target') == receipt['expected_target_name'], 'dbt execution target mismatch')
     for option in ('select', 'exclude', 'selector', 'resource_types', 'exclude_resource_types', 'state', 'defer_state', 'vars'):
         need(args.get(option) in (None, [], {}, ''), 'Selected/state/vars build is not qualified full-project execution: ' + option)
     for option in ('empty', 'defer', 'favor_state'):
@@ -288,7 +412,8 @@ def _verify(receipt_path, result, project_root=None):
              instant(executed[0].get('completed_at'), 'node execute finish') <=
              instant(rm.get('generated_at'), 'run_results generated'), 'Native node execution timing is outside invocation: ' + uid)
         if resource in ('model', 'test', 'snapshot'):
-            need(record.get('compiled') is True and record.get('compiled_code') == manifest['nodes'][uid]['compiled_code'], 'Compiled execution code differs from manifest: ' + uid)
+            compiled = (record.get('compiled') is None or record.get('compiled') is True) if v2 else record.get('compiled') is True
+            need(compiled and record.get('compiled_code') == manifest['nodes'][uid]['compiled_code'], 'Compiled execution code differs from manifest: ' + uid)
         failures = record.get('failures')
         need((type(failures) is int and failures == 0) if resource == 'test' else failures is None or (type(failures) is int and failures == 0), 'Native result failures must be zero: ' + uid)
         batches = record.get('batch_results')
