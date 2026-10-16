@@ -682,6 +682,8 @@ def _normalize(operation, response):
 def _approval(plan, policy, model_signoff, approval):
     model = verify_attestation(model_signoff, policy, purpose='model_signoff', bindings=model_bindings(plan))
     deploy = verify_attestation(approval, policy, purpose='deployment_approval', bindings=approval_bindings(plan))
+    from authoring_release import require_promotion
+    require_promotion(plan, policy)
     if plan.get('metadata_phase') is not None:
         from metadata_release import verify_preflight
         verify_preflight(plan, policy, deploy.get('claims', {}))

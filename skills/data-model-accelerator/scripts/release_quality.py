@@ -20,7 +20,8 @@ def bind_quality(reference, artifact_root, handoff, target):
     checks before signing. No executable path is accepted from the report.
     """
     from lint_delivery import verify_report
-    require(type(reference) is dict and set(reference) == {'report_path', 'manifest_path'},
+    require(type(reference) is dict and {'report_path', 'manifest_path'} <= set(reference)
+            <= {'report_path', 'manifest_path', 'authoring'},
             'Quality requires report_path and manifest_path')
     report_path, manifest_path = (canonical_path(reference[k]) for k in ('report_path', 'manifest_path'))
     report, manifest = load_json(report_path), load_json(manifest_path)
@@ -34,17 +35,24 @@ def bind_quality(reference, artifact_root, handoff, target):
     require(bool(required), 'Release has no implementation scope for lint coverage')
     require(all(inventory.get(path) == selected[path] for path in required),
             'Lint coverage omits or changes a prepared implementation input')
-    return {'status': 'verified_static', 'report_path': str(report_path), 'manifest_path': str(manifest_path),
+    result = {'status': 'verified_static', 'report_path': str(report_path), 'manifest_path': str(manifest_path),
             'report_sha256': hash_file(report_path), 'manifest_sha256': hash_file(manifest_path),
             'target': copy.deepcopy(target), 'coverage': verified,
             'assurance': 'Static SQL/configuration only; no native validity, data accuracy or deployment authority.'}
+    if 'authoring' in reference:
+        from authoring_release import bind
+        result['authoring'] = bind(reference['authoring'], artifact_root, selected, required, target)
+    return result
 
 
 def verify_quality(plan, handoff):
     quality = plan.get('quality')
     require(type(quality) is dict and quality.get('status') == 'verified_static',
             'A complete, current lint report is required for live release')
-    actual = bind_quality({k: quality[k] for k in ('report_path', 'manifest_path')},
+    reference = {k: quality[k] for k in ('report_path', 'manifest_path')}
+    if quality.get('authoring'):
+        reference['authoring'] = quality['authoring']['reference']
+    actual = bind_quality(reference,
                           plan['artifact_root'], handoff, quality_target(plan))
     require(actual == quality, 'Lint evidence changed; prepare and review a new plan')
     return actual

@@ -36,3 +36,9 @@ knowledge modules. Generate supported views, relationships, topics, query views
 and source-bound AI context as requested. Keep unresolved meanings and unsupported
 constructs explicit. Register outputs, then use separate static, native, accuracy
 and access checks. Native publication is not authorized by this stage.
+
+Preserve the coordinator's configured model and bounded context. Record
+[authoring evidence](../data-model-accelerator/references/authoring-quality.md)
+for supported literal-bearing SQL and filters; unparsed semantic structures stay
+unsupported. Do not replace the Omni modeler/native validator with this narrower
+check or infer business acceptance from a well-formed YAML file.

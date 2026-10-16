@@ -40,6 +40,12 @@ def workflow_view():
                         'sql': 'PRIVATE_SQL_MARKER'}],
             'assets': [{'id': 'report', 'name': 'Order report', 'kind': 'report', 'mapping_status': 'verified',
                         'raw': 'PRIVATE_ASSET_MARKER'}], 'relationships': [],
+            'authoring_checks': [{'task_id': 'build-orders', 'status': 'not_run', 'mode': 'provisional',
+                'counts': {'passed': 3, 'not_run': 1, 'failed': 0, 'unsupported': 0},
+                'model_ids': ['gold.orders'], 'unresolved_assumptions': 1,
+                'qualification': 'Static evidence only.', 'receipt': 'PRIVATE_AUTHORING_RECEIPT',
+                'findings': [{'code': 'assumption_unresolved:catalogue', 'status': 'not_run',
+                              'model_id': 'gold.orders', 'path': 'PRIVATE_SOURCE_PATH', 'field': 'PRIVATE_FIELD'}]}],
             'runner': {'secret': 'PRIVATE_RUNNER_MARKER'}}
 
 
@@ -70,6 +76,20 @@ class GuidedReviewProjectionTests(unittest.TestCase):
         self.assertEqual(len(data['diagrams']), 1)
         self.assertNotIn('PRIVATE_', path.read_text())
         self.assertNotIn('approval_receipt', data['workflow']['stages'][0])
+        self.assertEqual(data['workflow']['authoring_checks'][0]['status'], 'not_run')
+        self.assertNotIn('path', data['workflow']['authoring_checks'][0]['findings'][0])
+
+    def test_authoring_summary_obeys_validation_selection_and_model_scope(self):
+        view = workflow_view()
+        view['authoring_checks'].append(dict(view['authoring_checks'][0], model_ids=['EXCLUDED_MODEL']))
+        module = types.SimpleNamespace(public_view=lambda state: view)
+        for include, expected in [(['documentation', 'validation'], 1), (['documentation'], 0), (['implementation', 'validation'], 0)]:
+            path = self.root / ('selected-' + str(len(list(self.root.glob('*.zip')))) + '.zip')
+            with patch.dict(sys.modules, {'engagement_stages': module}):
+                portal.package_delivery(self.state, self.review, self.root, path, 'engineer', include)
+            data = self.payload(path)
+            self.assertEqual(len(data.get('workflow', {}).get('authoring_checks', [])), expected)
+            self.assertNotIn('EXCLUDED_MODEL', json.dumps(data))
 
     def test_code_only_and_audit_exports_do_not_retain_design_prose(self):
         for audience, include in [('engineer', ['implementation']), ('audit', ['technical_audit'])]:

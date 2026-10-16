@@ -26,6 +26,12 @@ actual task and output references; reuse only current matching evidence. Local
 consistency, native compilation, data accuracy, human acceptance and deployment
 remain distinct. Do not alter expectations merely to make a candidate pass.
 
+Use [authoring checks](../data-model-accelerator/references/authoring-quality.md)
+for supported provenance and structural contracts. `check-task` refreshes evidence
+on unchanged registered outputs while preserving their original generation run.
+Keep unknown, unsupported and stale results visible; no static percentage or
+agent confidence substitutes for independent native/data/security acceptance.
+
 For dbt, follow the selected [runtime evidence contract](../data-model-accelerator/references/dbt-runtime.md).
 Verify executable/distribution/version separately from artifact schema. A native
 lint exit code of zero can contain violations; require complete file results.

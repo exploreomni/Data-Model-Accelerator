@@ -1073,6 +1073,9 @@ def _presentation(state, review=None, audience='engineer'):
         else:
             for key in ('models', 'relationships', 'assets'):
                 workflow.pop(key, None)
+        allowed_models = {m['id'] for m in data['review'].get('models', [])}
+        workflow['authoring_checks'] = [row for row in workflow.get('authoring_checks', [])
+                                       if set(row['model_ids']) <= allowed_models]
     return data
 
 
@@ -1089,6 +1092,11 @@ def _workflow_presentation(raw):
             'tasks': [fields(row, ('id', 'stage', 'entity_ids', 'action', 'reason', 'original_run_id', 'generation_mode'))
                       for row in raw['task_plan'].get('tasks', [])]}
     result['decisions'] = []
+    result['authoring_checks'] = []
+    for row in raw.get('authoring_checks', []):
+        item = fields(row, ('task_id', 'status', 'mode', 'counts', 'model_ids', 'unresolved_assumptions', 'qualification'))
+        item['findings'] = [fields(f, ('code', 'status', 'model_id')) for f in row.get('findings', [])]
+        result['authoring_checks'].append(item)
     for row in raw.get('decisions', []):
         item = fields(row, ('id', 'question', 'status', 'answer', 'recommendation', 'reviewer_role', 'model_ids',
                             'asset_ids', 'blocking_stages', 'rationale', 'evidence_summary'))
@@ -1117,7 +1125,7 @@ def _trim_workflow_details(data):
     for key in ('assets', 'models', 'relationships', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
-        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan'):
+        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks'):
             data['workflow'].pop(key, None)
 
 
@@ -1374,6 +1382,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
             model.pop('columns',None)
     if 'validation' not in include:
         data['review'].pop('validation',None)
+        data.get('workflow', {}).pop('authoring_checks', None)
     if 'diagrams' in include and data['review'].get('models'):
         data['diagrams']=diagram_views(data['review']['models'],data['review'].get('relationships',[]))
     files={a['destination']:a['content'] for a in selected}
