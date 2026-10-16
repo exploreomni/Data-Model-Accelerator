@@ -48,6 +48,14 @@ Refresh the live entrypoint, but keep prior exports and manifests immutable; eac
 new export has its own portable entrypoint snapshot. Preserve the exporter's
 category paths, hashes, audience restrictions and dependency requirements.
 
+Finish through the shared [finalizer](../data-model-accelerator/references/review-surface.md#finalize-the-selected-handoff).
+Require its successful result before describing the selected handoff as ready.
+`record-handoff` only registers prepared files. Finalization verifies the actual
+ZIP and extracted folder, root `START_HERE.html`, and files for each selected
+category. Design content is in `01_Model/`, not a second `design/` directory.
+Repair omissions without rerunning source extraction or unrelated specialists.
+Never silently deselect missing deliverables to pass this check.
+
 Use concise chat milestones about outcome or learning, next action and material
 blockers. Persist decisions in canonical records. Finish with one primary link
 to the current entrypoint, the outcome, material limits and the next action.

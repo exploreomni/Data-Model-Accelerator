@@ -325,7 +325,7 @@ def _delivery_progress(state):
                          'deliverables': snapshot['deliverables'],
                          'qualification': 'Prepared files only; business, native runtime and deployment approval remain separate.'}
     state['next_actions'] = [{'id': 'review_prepared_handoff', 'scope': 'review',
-                             'action': 'Review the prepared model, selected files and reported validation. Resolve outstanding business definitions, access rules and native target checks before approval or deployment.'}]
+                             'action': 'Prepared files are not yet a verified delivery. Run finalize_delivery.py to create and verify START_HERE.html, the selected 01_Model design files and the portable ZIP, then review the handoff. Business, access and native target checks remain separate.'}]
 
 
 def _invalidate(state):
@@ -770,12 +770,15 @@ def main(argv=None):
                 artifact_root=getattr(args, 'artifact_root', None), policy=getattr(args, 'policy', None), attestation=attestation)
         else:
             state = status_engagement(args.run, refresh=args.refresh)
+        render_failed = False
         if not args.no_render:
             try:
                 from delivery_portal import render_engagement
                 render_engagement(state, _path(args.run) / 'START_HERE.html')
             except (ImportError, ValueError, OSError, TypeError) as error:
                 print('State is saved; offline page refresh unavailable: ' + str(error), file=sys.stderr)
+                print('Handoff incomplete: repair the page refresh and finalize the delivery before reporting it ready.', file=sys.stderr)
+                render_failed = True
         if args.json:
             print(json.dumps(state, indent=2))
         else:
@@ -784,7 +787,7 @@ def main(argv=None):
             for action in state['next_actions']:
                 print('- ' + action['action'])
             print('Assessment is read-only. No execution or business approval is implied.')
-        return 0
+        return 2 if render_failed else 0
     except (ValueError, OSError, ImportError, KeyError, TypeError) as error:
         print('Guided workflow: ' + str(error), file=sys.stderr)
         return 1

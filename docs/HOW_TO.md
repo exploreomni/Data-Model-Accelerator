@@ -315,18 +315,23 @@ python3 skills/data-model-accelerator/scripts/guided_workflow.py record-handoff 
   --artifact-root /absolute/candidate-artifacts \
   --audience engineer
 
-python3 skills/data-model-accelerator/scripts/delivery_portal.py package \
+python3 skills/data-model-accelerator/scripts/finalize_delivery.py \
   --state /absolute/engagement-run/state.json \
   --review /absolute/review.json \
   --artifacts /absolute/candidate-artifacts \
   --audience engineer \
-  --output /absolute/engineering-handoff.zip
-
-python3 skills/data-model-accelerator/scripts/delivery_portal.py verify \
-  /absolute/engineering-handoff.zip
+  --output /absolute/engineering-delivery-v1 --javascript
 ```
 
 These commands need the actual prepared review/artifacts; they do not manufacture them. Export must use the same audience and selections as the recorded handoff. The [review-surface reference](../skills/data-model-accelerator/references/review-surface.md) explains category selection and exported paths. Integrity verification proves the packaged bytes and links, not the reported business or execution results.
+
+The finalizer creates `engineering-delivery-v1/handoff.zip` and the matching
+`engineering-delivery-v1/handoff/` folder. Open `handoff/START_HERE.html`.
+**`01_Model/` is the design folder**: it holds the selected design document,
+ERDs and dictionaries. The command fails if a selected category has no files or
+the required design/navigation is missing, and never overwrites an older export.
+`--javascript` needs Node for syntax checks; browser review remains separate.
+Prepared files or successful specialist tasks alone are not a finished handoff.
 
 Return review comments to the same task: identify the rule/model, the reason and the SME's decision. Ask the agent to revise code, model, ERD, dictionary and context together, retain the previous version, rerun affected checks, and issue a new package.
 

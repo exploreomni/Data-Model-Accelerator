@@ -75,6 +75,40 @@ Use the guided workflow's `record_handoff` step to record prepared files before 
 
 The package verifier checks an exhaustive inventory, byte lengths and SHA-256 hashes at any path without extracting ZIP entries. New Python and browser exports include `context_sha256` in the manifest and embedded engagement summary; verification requires them to match and checks portable Markdown links. Legacy integrity manifests without this field retain their original integrity-only verification without claiming context or link validation. This establishes file integrity only. It does **not** authenticate a signer, verify a cloud run, rebind the old frozen benchmark contracts, or prove business approval. Keep original frozen records immutable; replay them only through a qualified evidence resolver or their existing qualified environment.
 
+## Finalize the selected handoff
+
+The coordinator runs this after registering the current review content. It uses
+saved artifacts and deterministic checks; no additional agent research is needed:
+
+```sh
+python scripts/finalize_delivery.py --state /absolute/engagement/state.json \
+  --review /absolute/review-content.json --artifacts /absolute/candidate \
+  --output /absolute/delivery-v1 --audience engineer --javascript
+```
+
+Omit `--audience` to reuse the saved audience (otherwise engineer). Omit `--include`
+to honor saved deliverables. Use an explicit subset only when the user requested
+it, never to hide missing artifacts. `--javascript` requires Node and checks script
+syntax; omitting it leaves syntax checking unperformed, not passed.
+
+Successful output has exactly one `handoff.zip` and a matching `handoff/` folder:
+open `handoff/START_HERE.html`; selected design narrative, ERDs and dictionary
+are under `handoff/01_Model/`. No second `design/` folder is needed. The finalizer
+checks selected category coverage, the registered design narrative when selected,
+current canonical entity coverage, page integrity, ZIP integrity and extracted
+bytes. It rejects missing selected deliverables and never overwrites a prior
+delivery. The existing `package` command remains available for intermediate,
+legacy and reduced exports; its success alone is not a completion check.
+
+`handoff_prepared` records candidate files, not a published ZIP. A failed guided
+HTML refresh now returns exit code 2 while preserving saved engagement state.
+Resume/repair the page rather than rerunning unrelated model work. Finalizer
+success is selected-file completeness only: it does not validate documentation
+meaning, source accuracy, native execution, acceptance or deployment. Retain
+the model-documentation and release verifiers. Its report states browser review
+was not performed; complete the browser review below when available and disclose
+any remaining limitation.
+
 ## Scale and failure behavior
 
 Review collections have an explicit 20,000-item ceiling; packaging permits 5,000 registered artifacts, 20 MiB per file and 100 MiB of selected source payloads. Rendered packages are bounded separately. Exceeding limits fails with a partitioning instruction; no truncation produces a complete badge. Use coherent domain waves and retain complete cross-domain scope/denominators. File preview is limited to 2 MiB without altering downloaded bytes. Tables paginate and files filter. Diagrams partition by domain, at most 36 objects, and connection density; cross-view connections retain explicit counts and the full page ledger. Reserved gutters route connectors outside unrelated table blocks; parallel roles use separate ports and lanes. Teal shows lineage, violet authored joins, dashed amber proposed joins, and dotted grey other/unspecified joins. Large diagrams scroll at a readable scale instead of shrinking every label to fit the page. Inspect rendered output for the actual inventory before delivery.
