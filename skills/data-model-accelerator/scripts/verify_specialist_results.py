@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from looker_source import is_looker_dashboard, parse_dashboard
+from specialist_profiles import disposition_matches, profile_binding
 
 
 COVERAGE = {"parsed", "partial", "unsupported", "missing", "unreadable"}
@@ -137,6 +138,12 @@ def verify(plan_path):
                 errors.append("Invalid task")
                 continue
             tid = task["task_id"]
+            if 'specialist_profile' in task:
+                try:
+                    if task['specialist_profile'] != profile_binding(task.get('source_type')):
+                        errors.append('Specialist profile changed or mismatched after dispatch: ' + tid)
+                except (ValueError, OSError, UnicodeError):
+                    errors.append('Specialist profile unavailable or invalid: ' + tid)
             if tid in task_ids:
                 errors.append("Duplicate task id: " + tid)
             task_ids.add(tid)
@@ -164,6 +171,11 @@ def verify(plan_path):
                 errors.append("Result schema/task mismatch: " + tid)
             if result.get("source_snapshot_sha256") != snapshot:
                 errors.append("Stale specialist result: " + tid)
+            if 'specialist_profile' in task:
+                binding = task['specialist_profile']
+                if (not isinstance(binding, dict) or
+                        result.get('specialist_profile_sha256') != binding.get('sha256')):
+                    errors.append('Missing or stale result specialist profile pin: ' + tid)
             coverage = {}
             for entry in records(result, "asset_coverage", errors):
                 if not isinstance(entry, dict) or not text_value(entry.get("asset_id")):
@@ -184,6 +196,38 @@ def verify(plan_path):
                     errors.append("Binary/unreadable artifact requires separately inventoried extraction: " + aid)
             for aid in allowed - coverage.keys():
                 errors.append("Assigned asset omitted from result " + tid + ": " + aid)
+
+            if task.get('source_adapter_contract_required') and 'source_adapter_contract' not in result:
+                errors.append('Required source adapter contract omitted: ' + tid)
+            if 'source_adapter_contract' in result:
+                try:
+                    from extract_specialist_task import extract
+                    canonical = extract(plan_path, tid)
+                    if result['source_adapter_contract'] != canonical['source_adapter_contract']:
+                        errors.append('Source adapter contract differs from current pinned extraction: ' + tid)
+                    returned_objects = {o.get('object_id'): o for o in records(result, 'objects', errors)
+                                        if isinstance(o, dict) and isinstance(o.get('object_id'), str)}
+                    for obj in canonical['objects']:
+                        returned = returned_objects.get(obj['object_id'], {})
+                        if any(returned.get(k) != obj.get(k) for k in ('object_id', 'native_id', 'kind', 'name', 'evidence', 'source_details')):
+                            errors.append('Source adapter object omitted or altered: ' + tid + ':' + obj['object_id'])
+                    returned_rules = {r.get('rule_id'): r for r in records(result, 'rules', errors)
+                                      if isinstance(r, dict) and isinstance(r.get('rule_id'), str)}
+                    for rule in canonical['rules']:
+                        returned = returned_rules.get(rule['rule_id'], {})
+                        if any(returned.get(k) != rule[k] for k in ('language', 'expression', 'evidence', 'output_object_id')):
+                            errors.append('Source adapter expression omitted or altered: ' + tid + ':' + rule['rule_id'])
+                        expected_refs = {r['reference'] for r in rule['input_refs']}
+                        returned_refs = {r.get('reference') for r in records(returned, 'input_refs', errors)
+                                         if isinstance(r, dict) and isinstance(r.get('reference'), str)}
+                        if not expected_refs.issubset(returned_refs):
+                            errors.append('Source adapter dependency omitted: ' + tid + ':' + rule['rule_id'])
+                    for entry in canonical['asset_coverage']:
+                        if entry['status'] != 'parsed' and coverage.get(entry['asset_id']) == 'parsed':
+                            errors.append('Source adapter coverage gap promoted to parsed: ' + entry['asset_id'])
+                    gaps.append(tid + ': adapter extraction does not establish independent export completeness or native validation')
+                except (OSError, ValueError, KeyError, TypeError, ImportError):
+                    errors.append('Invalid source adapter evidence: ' + tid)
 
             # Re-extract supported JSON from the captured source. A specialist's
             # prose claim of 'parsed' cannot hide a missing dashboard contract.
@@ -271,6 +315,10 @@ def verify(plan_path):
                         or not text_value(context.get("evaluation_grain"))):
                     errors.append("Rule lacks evaluation context: " + rid)
                 placement = rule.get("placement_candidate")
+                if isinstance(context, dict) and 'recommended_disposition' in context:
+                    if not disposition_matches(context['recommended_disposition'],
+                                               placement.get('destination') if isinstance(placement, dict) else None):
+                        errors.append('Disposition conflicts with source placement destination: ' + rid)
                 if (not isinstance(placement, dict) or not isinstance(placement.get("destination"), str)
                         or placement["destination"] not in PLACEMENTS or not text_value(placement.get("rationale"))):
                     errors.append("Rule lacks explicit placement candidate/rationale: " + rid)

@@ -28,7 +28,9 @@ IGNORED_DIRS = {'.git', '.hg', '.svn', '.venv', 'venv', 'node_modules', '__pycac
                 'dist', 'build', '.terraform', '.cache'}
 GENERATED_EVIDENCE = {'target', 'dbt_packages'}
 SECRET_NAME = re.compile(r'(?:^|[._-])(?:credentials?|secrets?|tokens?|service[._-]?account|private[._-]?key)(?:[._-]|$)', re.I)
-TEXT_EXTENSIONS = {'.sql', '.sqlx', '.yml', '.yaml', '.json', '.toml', '.j2', '.jinja', '.py', '.sh'}
+TEXT_EXTENSIONS = {'.sql', '.sqlx', '.yml', '.yaml', '.json', '.toml', '.j2', '.jinja', '.py', '.sh',
+                   '.lkml', '.lookml', '.twb', '.tds', '.pbip', '.pbir', '.pbism', '.tmdl',
+                   '.platform', '.bim', '.ipynb', '.fex', '.mas', '.acx'}
 
 
 def _json_hash(value):
@@ -168,7 +170,7 @@ def _scan(repo, limits, includes):
                         item['raw_csv'] = inspect_csv(data)
                         for issue in item['raw_csv']['gaps']:
                             gap(relative, 'raw_csv_' + issue['code'])
-                    if Path(name).suffix.lower() in TEXT_EXTENSIONS:
+                    if Path(name).suffix.lower() in TEXT_EXTENSIONS or name.lower() == '.platform':
                         try:
                             texts[relative] = data.decode('utf-8')
                         except UnicodeError:
@@ -349,6 +351,18 @@ def assess_repository(repo, framework, warehouse, **options):
         if re.search(r'(?m)^require-dbt-version\s*:', text):
             finding('dbt.version_requirement', 'warning', 'A source dbt version requirement must be reconciled with the pinned Core 1.12.4 native evidence lane.', route, path, ['execution'])
 
+    # Reuse native routing on already-read bytes. This does not invoke adapters,
+    # grant source disclosure, re-read inputs, or choose a destination platform.
+    from plan_specialists import classify
+    from source_adapters.registry import SOURCES as PARSER_SOURCES
+    routed_assets = [{'path': path, 'asset_id': path, 'status': 'readable',
+                      'classification_evidence': []} for path in texts]
+    classify(routed_assets, texts, [], [])
+    for asset in routed_assets:
+        for kind in asset['source_types']:
+            if kind not in ('unknown', 'generic_sql', 'raw_csv'):
+                source(kind, asset['path'])
+
     if not coverage['complete']:
         finding('coverage.incomplete', 'blocker', 'Some source or dependency evidence could not be inspected within the selected bounds.', 'Resolve listed gaps or explicitly revise the source scope; never treat partial inventory as complete.', blocks=['generation', 'execution'])
     if any(item['reason'] == 'credential_path_not_read' for item in coverage['exclusions']):
@@ -397,6 +411,9 @@ def assess_repository(repo, framework, warehouse, **options):
             'selection': {'framework': framework, 'warehouse': warehouse}, 'coverage': coverage,
             'platform_pairing': pairing,
             'detected_sources': [{'type': key, 'paths': sorted(value), 'confidence': 'static_signal'} for key, value in sorted(sources.items())],
+            'source_adapters': [{'source': key, 'status': 'available_not_run',
+                                 'contract': 'references/source-adapters/' + key + '.md'}
+                                for key in sorted(sources) if key in PARSER_SOURCES],
             'raw_csv_inventory': raw_csv_inventory,
             'findings': sorted(findings.values(), key=lambda item: item['id']), 'questions': questions,
             'capabilities': {'assessment': {'status': 'supported' if coverage['complete'] else 'partial', 'reason': 'Bounded static inventory and compatibility signals only; no native parser, complete lineage, or business validation claim.'},

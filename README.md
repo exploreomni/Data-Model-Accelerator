@@ -100,7 +100,8 @@ Choose the framework, warehouse, semantic engine and agent host separately:
 
 - **Frameworks:** dbt, Coalesce or native SQL, subject to the selected native contract.
 - **Warehouses:** Snowflake, Databricks, BigQuery, Redshift, ClickHouse and MotherDuck.
-- **Sources:** dbt, Coalesce, warehouse SQL, BigQuery/Dataform, Looker, Hex, Tableau, Power BI, Sigma and raw CSV have discovery routes; parser and end-to-end coverage differ.
+- **Sources:** bounded offline adapters for dbt, Coalesce, Looker, Power BI, Tableau, Hex, Domo, Sigma, Periscope/CDT, WebFOCUS, Snowflake, Databricks, BigQuery/Dataform, Redshift, ClickHouse, MotherDuck and Fabric. Raw CSV and existing Omni inventory retain their established paths. [Check the exact supported export formats and gaps](docs/CAPABILITIES.md#source-formats); source parsing does not imply complete migration or live API acquisition.
+- **Source interpretation:** [17 focused specialist profiles](skills/data-model-accelerator/references/source-specialists.md), one per adapter, with grain/filter/security checks, placement guidance and exact context requests. The coordinator supplies one pinned profile and selected evidence per task; the host controls actual agent execution and usage.
 - **Omni:** candidate views, relationships, topics, bounded query views, AI context and a guided model review. Unsupported constructs remain explicit.
 
 Routing is not equivalent to full native support. Read the [capability levels](docs/CAPABILITIES.md) and [platform matrix](docs/PLATFORM_MATRIX.md) before choosing a route. SQL lint, framework validity, native execution, data accuracy and human acceptance remain separate checks.

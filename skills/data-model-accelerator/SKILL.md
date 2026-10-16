@@ -132,7 +132,25 @@ Bind every proposed physical input and required column to the catalogue with evi
 
 ## Orchestrate source specialists
 
-Read [orchestration.md](references/orchestration.md). Run `scripts/plan_specialists.py` to inventory and group the selected project into source-specific tasks. Read [source-specialists.md](references/source-specialists.md) for detected formats only. Use specialized extraction subagents for dbt, Coalesce, Snowflake, Databricks, BigQuery/Dataform, Looker, Power BI, Tableau, Hex and Sigma as present; mixed repos may need several. Keep generic SQL and unrecognized artifacts explicit instead of guessing the platform.
+Read [orchestration.md](references/orchestration.md). Run `scripts/plan_specialists.py` to inventory and group the selected project into source-specific tasks. Read [source-specialists.md](references/source-specialists.md) for detected formats only. Use one specialized extraction owner per detected tool; mixed repos may need several. Keep generic SQL and unrecognized artifacts explicit instead of guessing the platform.
+
+Use the [source adapter contract](references/source-adapters.md) to extract
+approved pinned inputs once before dispatch. `run_source_adapter.py --source
+NAME --capabilities` reports actual supported formats separately from target
+generation and linting. `extract_specialist_task.py` bridges canonical parser
+evidence into the existing specialist handoff; preserve `source_adapter_contract`
+so the verifier can reject altered or omitted source findings. Load only that
+tool's `references/source-adapters/NAME.md`, and retain unsupported native
+expressions and export gaps. API research does not imply a live connector.
+
+The 17 adapter-backed tasks have one corresponding interpretation profile in
+`references/specialists/NAME.md`. Use the plan's `specialist_profile` pin and
+`source_type` in the bounded context request so only that profile is embedded.
+Keep design dispositions in `context.recommended_disposition`; map them to the
+existing source result's warehouse/semantic/presentation/split/unresolved
+destinations as documented in the profile. Legacy result schemas and dedicated
+Omni execution remain supported. Static contract tests and the independent
+interpretation benchmark cover different claims; neither proves native parity.
 
 When the host provides delegation, execute the generated tasks through that mechanism, wait for results, and record actual task/run IDs. The planner does not itself launch agents. Preserve source hashes, native IDs, source-language expressions and their evaluation context in each structured handoff. Verify every result with `scripts/verify_specialist_results.py`; incomplete or stale extraction cannot be labeled complete. When delegation is unavailable, perform separately recorded inline specialist passes and disclose that limitation.
 

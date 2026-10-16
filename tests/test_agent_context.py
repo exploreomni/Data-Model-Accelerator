@@ -13,6 +13,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / 'skills/data-model-accelerator/s
 sys.path.insert(0, str(SCRIPTS))
 import agent_context as context
 from disclosure_fixtures import synthetic_disclosure
+from specialist_profiles import load_profile, SOURCES, ROLE_ALIASES
 
 
 class AgentContextTests(unittest.TestCase):
@@ -68,6 +69,62 @@ class AgentContextTests(unittest.TestCase):
     def test_same_input_produces_stable_packet_hash(self):
         first = self.build('first'); second = self.build('second')
         self.assertEqual(first['packet_sha256'], second['packet_sha256'])
+
+    def test_all_source_profiles_fit_selected_scanned_packets_without_other_guides(self):
+        self.request['role'] = 'source_specialist'
+        for source in sorted(SOURCES):
+            with self.subTest(source=source):
+                selected = load_profile(source)
+                self.request['source_type'] = source
+                self.request['bindings']['specialist_profile'] = selected['sha256']
+                receipt = self.build(source)
+                packet = (self.root / source / 'TASK.md').read_text()
+                data = json.loads(packet.split('## Task data and selected evidence\n\n')[1])
+                self.assertEqual(data['specialist_profile'], selected)
+                self.assertNotIn('UNRELATED_PROJECT_CONTENT', packet)
+                self.assertNotIn('text', receipt['specialist_profile'])
+                self.assertEqual(receipt['specialist_profile']['sha256'], selected['sha256'])
+                self.assertLessEqual(receipt['packet_bytes'], context.DEFAULT_BYTES)
+                self.assertEqual(receipt['bindings'], self.request['bindings'])
+
+    def test_profile_pin_staleness_role_and_source_mismatches_fail_before_output(self):
+        self.request.update(role='source_specialist', source_type='dbt')
+        self.request['bindings']['specialist_profile'] = 'a' * 64
+        with self.assertRaisesRegex(ValueError, 'profile changed'): self.build()
+        self.request['bindings']['specialist_profile'] = load_profile('dbt')['sha256']
+        self.request['source_type'] = '../dbt'
+        with self.assertRaisesRegex(ValueError, 'Unsupported specialist source'): self.build()
+        self.request['source_type'] = 'dbt'
+        self.request['role'] = 'analytics_engineer'
+        with self.assertRaisesRegex(ValueError, 'requires source_specialist'): self.build()
+        self.assertFalse((self.root / 'packet').exists())
+
+    def test_profile_bytes_do_not_bypass_packet_budget_or_disclosure_scan(self):
+        self.request.update(role='source_specialist', source_type='dbt')
+        selected = load_profile('dbt')
+        self.request['bindings']['specialist_profile'] = selected['sha256']
+        self.request['max_packet_bytes'] = 4096
+        with self.assertRaisesRegex(ValueError, 'exceeds byte budget'): self.build()
+        self.request.pop('max_packet_bytes')
+        selected['text'] += '\nContact sample.person@example.com'
+        selected['sha256'] = hashlib.sha256(selected['text'].encode()).hexdigest()
+        self.request['bindings']['specialist_profile'] = selected['sha256']
+        with patch.object(context, 'load_profile', return_value=selected):
+            with self.assertRaisesRegex(ValueError, 'denied'): self.build()
+        self.assertFalse((self.root / 'packet').exists())
+
+    def test_legacy_review_role_aliases_are_explicit_and_keep_task_identity(self):
+        for alias, canonical in ROLE_ALIASES.items():
+            self.request['role'] = alias
+            receipt = self.build(alias)
+            self.assertEqual(receipt['role'], canonical)
+            self.assertEqual(receipt['requested_role'], alias)
+            self.assertEqual(receipt['task_id'], self.request['task_id'])
+            data = json.loads((self.root / alias / 'TASK.md').read_text().split('## Task data and selected evidence\n\n')[1])
+            self.assertEqual(data['requested_role'], alias)
+            self.assertEqual(data['role'], canonical)
+        self.request['role'] = 'invented_agent'
+        with self.assertRaisesRegex(ValueError, 'Unsupported specialist role'): self.build()
 
     def test_two_object_source_excerpt_cannot_claim_full_file_coverage(self):
         content = b'view: orders { sql_table_name: orders ;; }\nview: returns { sql_table_name: returns ;; }\n'
