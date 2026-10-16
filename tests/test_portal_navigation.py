@@ -1,5 +1,4 @@
 """Offline portal controls: synthetic DOM, not a substitute for browser rendering QA."""
-import base64
 import json
 from pathlib import Path
 import shutil
@@ -51,13 +50,15 @@ assert.equal(el('replacement-table').children.length>0,true);
 location.hash='#overview';listeners.hashchange[0]();assert.equal(el('overview').hidden,false);
 """,second_boot=True)
 
-    def test_shared_lineage_controls_filters_and_export_selection(self):
+    def test_independent_erd_lineage_controls_filters_and_export_selection(self):
         self.page(self.payload(),"""
 const initial=[...chosen];assert.equal(graph.nodes.length,3);
 el('architecture-model').value='silver.orders';el('architecture-model').onchange();
 el('architecture-direction').value='upstream';el('architecture-direction').onchange();
-assert.equal(el('lineage-model').value,'silver.orders');assert.equal(el('lineage-direction').value,'upstream');
-assert.deepEqual([...lineageSelection.visible].sort(),['bronze.orders','silver.orders']);
+assert.equal(el('lineage-model').value,'');assert.equal(el('lineage-direction').value,'');
+assert.deepEqual([...erdSelection.visible].sort(),['bronze.orders','silver.orders']);
+assert.equal(lineageSelection.visible.size,3);
+el('erd-clear').onclick();
 el('lineage-clear').onclick();el('lineage-new').checked=true;el('lineage-new').onchange();assert.deepEqual([...lineageSelection.visible],['gold.orders']);
 el('lineage-context').checked=true;el('lineage-context').onchange();assert.equal(lineageSelection.dependencies.size,2);
 assert.deepEqual([...chosen],initial);assert.equal(shownViews.length,1);
@@ -81,7 +82,7 @@ assert.equal(el('file-content').textContent,'select 1 as id');
     def test_inline_copy_full_name_and_clipboard_fallback(self):
         # This integration double exercises caller behavior; test_portal_svg owns the sanitizer.
         prefix="""
-const PortalSvg={sanitize(text){const svg=new Node('svg');svg.setAttribute('width','1080');svg.setAttribute('height','900');for(const m of PAYLOAD.review.models){const label=new Node('text');label.setAttribute('data-model-id',m.id);svg.append(label);}return svg;}};
+const PortalSvg={sanitize(text){const svg=new Node('svg');svg.setAttribute('width','1080');svg.setAttribute('height','900');for(const m of PAYLOAD.review.models){const group=new Node('g'),label=new Node('text');group.setAttribute('data-model-id',m.id);label.setAttribute('data-model-id',m.id);group.append(label);svg.append(group);}return svg;}};
 let selectedRange;globalThis.getSelection=()=>({rangeCount:1,toString:()=> 'shortened',getRangeAt:()=>({intersectsNode:n=>n.getAttribute('data-model-id')==='gold.orders'})});
 """
         self.page(self.payload(),"""
@@ -89,6 +90,8 @@ assert(el('diagram').querySelector('svg'));let copied='';let prevented=false;
 el('diagram').oncopy({clipboardData:{setData:(kind,value)=>{assert.equal(kind,'text/plain');copied=value;}},preventDefault:()=>prevented=true});
 assert.equal(copied,graph.byId.get('gold.orders').full_name);assert.equal(prevented,true);
 const label=el('diagram').querySelector('svg').children[2];label.onclick();
+assert.equal(inspectedModel,'gold.orders');assert.equal(label.getAttribute('role'),'button');
+label.onkeydown({key:'Enter',preventDefault(){}});assert.equal(inspectedModel,'gold.orders');
 const input=el('diagram-copy').children[1];assert.equal(input.value,copied);
 copyText(input.value,input,'Copied').then(()=>{assert.equal(input.selected,true);assert.match(el('messages').textContent,/normal Copy shortcut/);});
 """,prefix)

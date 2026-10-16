@@ -72,7 +72,7 @@ preserving independent source checks. See [context-efficient orchestration](skil
 Packet sizes and attempts are operational evidence; actual usage and charges
 remain the agent host's responsibility.
 
-A model delivery maintains an ERD, complete dictionary and documentation for every scoped layer. One current entry page offers **Overview, Design and Implementation**, with detailed evidence available on demand. The selected ZIP opens offline:
+A model delivery maintains an ERD, complete dictionary and documentation for every scoped layer. One current entry page opens to a **Data model** workspace, with **Code & files** and **Validation** alongside it. Inspect the ERD, select a table for its columns, keys, joins and linked code, and filter new versus reused tables. Supporting context stays available on demand. Diagram coverage is checked against the included model inventory; it does not establish business acceptance. The selected ZIP opens offline:
 
 ```text
 START_HERE.html               One entrypoint: status, design and implementation
@@ -88,11 +88,11 @@ Keep one maintained design narrative and setup guide; register them through the 
 To see a small synthetic guided package without warehouse credentials:
 
 ```sh
-python3 skills/data-model-accelerator/scripts/run_guided_delivery_demo.py --output /absolute/new-demo-directory
-python3 skills/data-model-accelerator/scripts/delivery_portal.py verify /absolute/new-demo-directory/engineer-example.zip
+python3 skills/data-model-accelerator/scripts/run_model_review_demo.py --output /absolute/new-demo-directory
+python3 skills/data-model-accelerator/scripts/delivery_portal.py verify /absolute/new-demo-directory/commerce-model-review.zip
 ```
 
-Extract `engineer-example.zip` and open `START_HERE.html`. This is a demonstration, not customer validation evidence.
+Share `commerce-model-review.zip`, or open the extracted `handoff/START_HERE.html`. The root README identifies that one current package. `technical-evidence/` contains the internal generator inputs and checks; it is excluded from the ZIP. This five-table example demonstrates review UX, not customer validation. The broader platform exercise remains available through `run_guided_delivery_demo.py` and the qualification guide.
 
 ## Platforms
 
@@ -106,6 +106,8 @@ Choose the framework, warehouse, semantic engine and agent host separately:
 Routing is not equivalent to full native support. Read the [capability levels](docs/CAPABILITIES.md) and [platform matrix](docs/PLATFORM_MATRIX.md) before choosing a route. SQL lint, framework validity, native execution, data accuracy and human acceptance remain separate checks.
 
 ## Repository map
+
+This checkout contains the accelerator source, not a customer delivery. Keep cloned customer repositories, engagement working files and generated handoffs outside it. Share only the selected delivery ZIP or its extracted handoff; previous exports and internal evidence are not additional customer deliverables.
 
 - `skills/data-model-accelerator/`: skill instructions, specialist references, runtime tools, templates, schemas and runnable synthetic examples.
 - `skills/data-model-*/SKILL.md`: optional stage entrypoints using the complete shared accelerator.

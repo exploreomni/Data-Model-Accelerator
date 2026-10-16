@@ -101,6 +101,9 @@ class PortalPageContractTests(unittest.TestCase):
             (page.replace('id="lineage" class="review-section panel"', 'id="lineage" data-section class="review-section panel"', 1), 'review section'),
             (page.replace('href="#lineage" data-nav="lineage"', 'href="#model" data-nav="lineage"', 1), 'navigation'),
             (page.replace(' data-nav="replacement-map"', '', 1), 'no navigation'),
+            (page.replace('id="review-feedback" class="review-section panel" data-section',
+                          'id="review-feedback" class="review-section panel"', 1), 'review section'),
+            (page.replace(' data-nav="review-feedback"', '', 1), 'no navigation'),
             (page.replace('id="model"', 'id="wrong-model"', 1), 'parent route'),
         )
         for mutated, message in changes:
@@ -192,18 +195,24 @@ class PortalPageContractTests(unittest.TestCase):
         portal._select_omni_evidence(data, [{'id': file['id'], 'sha256': file['sha256'], 'content': body}])
         current = copy.deepcopy(data)
         legacy = copy.deepcopy(data)
-        for key in ('page_mode', 'file_count', 'selected_categories', 'projection'):
+        for key in ('page_mode', 'file_count', 'selected_categories', 'projection', 'package_layout_version', 'generated_deliverables'):
             legacy.pop(key)
         legacy['review']['omni'].pop('views')
 
         def write(snapshot):
-            entries['START_HERE.html'] = self.replace_data(entries['START_HERE.html'].decode(), snapshot).encode()
-            for record in manifest['files']:
-                content = entries[record['path']]
-                record.update(bytes=len(content), sha256=hashlib.sha256(content).hexdigest())
-            entries['DELIVERY_MANIFEST.json'] = json.dumps(manifest).encode()
+            contents={name:body for name,body in entries.items() if name!='DELIVERY_MANIFEST.json'}
+            saved=copy.deepcopy(manifest)
+            contents['START_HERE.html'] = self.replace_data(entries['START_HERE.html'].decode(), snapshot).encode()
+            if 'package_layout_version' in snapshot:
+                contents['README.md']=portal.package_readme(snapshot)
+                saved['files']=portal.package_file_inventory(snapshot,contents)
+            else:
+                saved.pop('package_layout_version')
+                contents={name:body for name,body in contents.items() if name=='START_HERE.html' or name in {row['path'] for row in snapshot['files']}}
+                saved['files']=[{'path':name,'bytes':len(body),'sha256':hashlib.sha256(body).hexdigest()} for name,body in sorted(contents.items())]
+            contents['DELIVERY_MANIFEST.json'] = json.dumps(saved).encode()
             with zipfile.ZipFile(path, 'w') as archive:
-                for name, content in entries.items(): archive.writestr(name, content)
+                for name, content in contents.items(): archive.writestr(name, content)
 
         write(legacy)
         self.assertEqual('integrity_verified', portal.verify_delivery(path)['status'])

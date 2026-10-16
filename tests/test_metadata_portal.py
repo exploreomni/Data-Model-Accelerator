@@ -48,7 +48,7 @@ class MetadataPortalTests(unittest.TestCase):
             page = archive.read('START_HERE.html').decode()
         return json.loads(re.search(r'<script id="delivery-data" type="application/json">(.*?)</script>', page, re.S).group(1))
 
-    def rewrite(self, path, mutate_data=None, mutate_entries=None, mutate_manifest=None):
+    def rewrite(self, path, mutate_data=None, mutate_entries=None, mutate_manifest=None, *, refresh_index=False):
         with zipfile.ZipFile(path) as archive:
             entries = {name: archive.read(name) for name in archive.namelist()}
         manifest = json.loads(entries.pop('DELIVERY_MANIFEST.json'))
@@ -62,7 +62,10 @@ class MetadataPortalTests(unittest.TestCase):
             entries['START_HERE.html'] = page.encode()
         if mutate_entries:
             mutate_entries(entries)
-        manifest['files'] = [{'path': name, 'sha256': hashlib.sha256(body).hexdigest(), 'bytes': len(body)}
+        if refresh_index:
+            entries['README.md'] = portal.package_readme(data)
+        original_records = {record['path']: record for record in manifest['files']}
+        manifest['files'] = [dict(original_records.get(name, {}), path=name, sha256=hashlib.sha256(body).hexdigest(), bytes=len(body))
                              for name, body in sorted(entries.items())]
         if mutate_manifest:
             mutate_manifest(manifest)
@@ -241,17 +244,31 @@ class MetadataPortalTests(unittest.TestCase):
             data['projection']['selected_artifact_count'] = len(data['files'])
             data['projection']['excluded_artifact_count'] += 1
             data['review']['metadata'] = portal._metadata_omitted(data['review']['metadata'])
-        reduced = self.rewrite(path, omit, remove)
+        reduced = self.rewrite(path, omit, remove, refresh_index=True)
         self.assertEqual(portal.verify_delivery(reduced)['status'], 'integrity_verified')
 
     def test_metadata_context_and_package_target_cannot_be_removed_or_changed(self):
         self.register()
         path = self.package()
-        for mutation in [lambda m: m.pop('context_sha256'), lambda m: m['target'].update(warehouse='bigquery')]:
-            with self.subTest(mutation=mutation):
+        for mutation, diagnostic in [(lambda m: m.pop('context_sha256'), 'Portable package layout'),
+                                     (lambda m: m['target'].update(warehouse='bigquery'), 'Metadata')]:
+            with self.subTest(diagnostic=diagnostic):
                 forged = self.rewrite(path, mutate_manifest=mutation)
-                with self.assertRaisesRegex(ValueError, 'Metadata'):
+                with self.assertRaisesRegex(ValueError, diagnostic):
                     portal.verify_delivery(forged)
+        # Actual pre-layout pages still require context when metadata is selected.
+        generated_paths = [row['path'] for row in self.payload(path)['generated_deliverables']]
+        def legacy_data(data):
+            data.pop('package_layout_version'); data.pop('generated_deliverables')
+        def legacy_entries(entries):
+            for name in generated_paths + ['README.md']: entries.pop(name)
+        def legacy_manifest(manifest):
+            manifest.pop('package_layout_version'); manifest.pop('context_sha256')
+            for row in manifest['files']:
+                for key in ('role', 'category', 'embedded'): row.pop(key, None)
+        legacy = self.rewrite(path, legacy_data, legacy_entries, legacy_manifest)
+        with self.assertRaisesRegex(ValueError, 'Metadata review requires a context-bound'):
+            portal.verify_delivery(legacy)
 
     def test_duplicate_embedded_artifact_id_is_rejected(self):
         self.register()

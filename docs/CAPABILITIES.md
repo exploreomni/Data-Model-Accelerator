@@ -81,7 +81,7 @@ Unrecognized formats remain explicit. A CSV inside an existing dbt project retai
 | Dashboard migration | Reparsed source-bound facet accounting, required manual dispositions, existing-document draft-only adapter with exact readback | Automatic new-document publication, universal importer support, browser behavior or visual parity from readback alone |
 | AI context | Approved direct and derived definitions bound to exact gold columns, effective topic selections, disclosure projection, repeated structured-answer trials and optional exact numeric/result comparison | Missing result expectations provide zero numeric coverage; imported provider/trial assertions do not prove real AI-session provenance or effective access |
 | Access migration | Nonweakening checks, complete allowed/denied persona path contracts, imported state and result comparison for six warehouses | Native policy provisioning, GRANT/REVOKE, authenticated live observations or protected deployment from imported JSON |
-| Guided review | Scope-aware evidence lanes and next actions; candidate status; selected browser exports verify artifact hashes and disclose absent fresh scanning | Approval, fresh content scanning inside the browser, or release authority |
+| Guided review | ERD-first table inspector, explicit new/reused status, PK/FK labels, exact code links, inventory-bound diagram coverage and complete exports; scope-aware evidence lanes and next actions; candidate status; selected browser exports verify artifact hashes and disclose absent fresh scanning | Approval, fresh content scanning inside the browser, or release authority |
 | Omni handoff | Candidate-bound semantic dictionary, topics/metrics, dependency SVG, unresolved decisions, native files and a dedicated HTML review | Warehouse layer documentation remains separately required; the semantic panel cannot certify native or business acceptance |
 
 Use the [privacy](../skills/data-model-accelerator/references/sensitive-data.md),
@@ -159,3 +159,7 @@ Without SMEs, the accelerator can still deliver a structural proposal and source
 ## Agent hosts
 
 The skill is intended to travel as a complete folder across capable coding-agent hosts. The [host guide](../skills/data-model-accelerator/references/targets-and-hosts.md) documents Codex, Claude Code, Gemini CLI, Cortex Code and Genie Code setup considerations. Current development evidence comes from Codex. Equivalent end-to-end runs on the other hosts, Cortex Agents packaging, and every host's delegation/execution surface remain separately unqualified.
+
+### First-use model review
+
+The shared offline handoff includes a searchable table navigator, fit/actual-size/expanded ERD, responsive table inspector, exact table-to-code links, scope-specific evidence detail and version-bound feedback requests. Selected model projections also ship as standalone SVG/editable source and CSV/Markdown dictionaries. The manifest distinguishes these generated presentation files from registered artifacts; smaller browser exports retain artifact integrity and explicitly require a fresh disclosure review. Legacy packages remain readable. These are review/packaging capabilities across the existing platform routes, not added warehouse execution or native validation support.
