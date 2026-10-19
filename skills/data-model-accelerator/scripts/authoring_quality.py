@@ -13,7 +13,7 @@ from ae_common import _path, hash_file, hash_json, load_json, require, write_jso
 from authoring_evidence import capture, finding, make_receipt, validate_contract, fields
 
 CHECKER_FILES = ('authoring_evidence.py', 'authoring_provenance.py',
-                 'authoring_conformance.py', 'authoring_quality.py')
+                 'authoring_conformance.py', 'authoring_quality.py', 'artifact_syntax.py', 'source_adapters/base.py')
 
 
 def checker_version():
@@ -44,6 +44,8 @@ def evaluate(root, source_root, contract, paths, dialect):
     else:
         findings, evidence = check_provenance(root, source_root, contract, paths, dialect)
         findings += check_conformance(root, contract, paths, dialect)
+        from artifact_syntax import check_structured_artifacts
+        findings += check_structured_artifacts(root, paths)
     mapped = {row['path'] for row in contract['models']}
     for path in paths:
         if Path(path).suffix.lower() == '.sql' and path not in mapped:

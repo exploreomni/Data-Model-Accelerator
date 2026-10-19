@@ -102,6 +102,36 @@ class GuidedWorkflowTests(unittest.TestCase):
         portal.package_delivery(resumed, json.loads(review.read_text()), root, package, audience='engineer')
         self.assertEqual(portal.verify_delivery(package)['status'], 'integrity_verified')
 
+    def test_checkpoint_without_catalogue_survives_resume_without_prepared_claim(self):
+        review, root = self.handoff(self.start(BASE, catalogue=None))
+        with self.assertRaisesRegex(ValueError, '--checkpoint'):
+            workflow.record_handoff(self.run, review, root)
+        state = workflow.record_handoff(self.run, review, root, checkpoint=True)
+        self.assertEqual(state['delivery']['status'], 'checkpoint')
+        self.assertEqual(state['status'], 'needs_evidence')
+        resumed = workflow.resume_engagement(self.run)
+        self.assertEqual(resumed['delivery']['status'], 'checkpoint')
+        self.assertFalse(resumed['readiness']['generation_ready'])
+        self.assertFalse(resumed['readiness']['execution_authorized'])
+        (root / 'orders.sql').write_text('changed')
+        changed = workflow.resume_engagement(self.run)
+        self.assertNotIn('delivery', changed)
+        self.assertEqual(next(e for e in changed['evidence'] if e['kind'] == 'checkpoint_handoff')['status'], 'stale')
+
+    def test_checkpoint_can_be_empty_and_does_not_inherit_prepared_status(self):
+        review, root = self.handoff(self.start(BASE))
+        workflow.record_handoff(self.run, review, root)
+        document = json.loads(review.read_text()); document['artifacts'] = []
+        review.write_text(json.dumps(document))
+        with redirect_stdout(io.StringIO()):
+            result = workflow.main(['record-handoff', '--run', str(self.run), '--review', str(review),
+                                    '--artifact-root', str(root), '--checkpoint', '--no-render'])
+        self.assertEqual(result, 0)
+        state = workflow.resume_engagement(self.run)
+        self.assertEqual(state['delivery']['artifact_count'], 0)
+        self.assertEqual(state['delivery']['status'], 'checkpoint')
+        self.assertNotEqual(state['status'], 'handoff_prepared')
+
     def test_handoff_file_review_and_dependency_drift_invalidates_prepared_status(self):
         for case in ('file', 'deleted', 'review', 'source', 'catalogue', 'target', 'runtime', 'domain', 'selection', 'audience'):
             with self.subTest(case=case):

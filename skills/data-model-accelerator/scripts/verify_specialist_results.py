@@ -68,6 +68,7 @@ def records(parent, key, errors):
 
 def verify(plan_path):
     errors, gaps = [], []
+    source_contracts, expected_source_files = [], {}
     report = {"schema_version": 1, "extraction_complete": False, "tasks_expected": 0,
               "tasks_returned": 0, "assets_expected": 0, "objects_returned": 0,
               "rules_returned": 0, "errors": errors, "gaps": gaps,
@@ -157,6 +158,14 @@ def verify(plan_path):
             for aid in allowed - assets.keys():
                 errors.append("Assigned asset absent from inventory: " + aid)
             assigned.update(allowed)
+            def expect_source_files():
+                for aid in allowed & assets.keys():
+                    asset = assets[aid]
+                    if asset.get('sha256') is not None:
+                        key = (task.get('source_type'), asset['path'])
+                        expected_source_files[key] = {'source': key[0], 'path': key[1], 'sha256': asset['sha256']}
+            if task.get('source_adapter_contract_required'):
+                expect_source_files()
             try:
                 result_path = inside(run_root, task.get("result_path"))
                 if result_path in result_paths or result_path in {plan_path, inventory_path}:
@@ -200,11 +209,14 @@ def verify(plan_path):
             if task.get('source_adapter_contract_required') and 'source_adapter_contract' not in result:
                 errors.append('Required source adapter contract omitted: ' + tid)
             if 'source_adapter_contract' in result:
+                expect_source_files()
                 try:
                     from extract_specialist_task import extract
                     canonical = extract(plan_path, tid)
                     if result['source_adapter_contract'] != canonical['source_adapter_contract']:
                         errors.append('Source adapter contract differs from current pinned extraction: ' + tid)
+                    else:
+                        source_contracts.append(result['source_adapter_contract'])
                     returned_objects = {o.get('object_id'): o for o in records(result, 'objects', errors)
                                         if isinstance(o, dict) and isinstance(o.get('object_id'), str)}
                     for obj in canonical['objects']:
@@ -217,6 +229,8 @@ def verify(plan_path):
                         returned = returned_rules.get(rule['rule_id'], {})
                         if any(returned.get(k) != rule[k] for k in ('language', 'expression', 'evidence', 'output_object_id')):
                             errors.append('Source adapter expression omitted or altered: ' + tid + ':' + rule['rule_id'])
+                        if any(returned.get(k) != rule.get(k) for k in ('source_details', 'source_occurrence_id')):
+                            errors.append('Source adapter expression context omitted or altered: ' + tid + ':' + rule['rule_id'])
                         expected_refs = {r['reference'] for r in rule['input_refs']}
                         returned_refs = {r.get('reference') for r in records(returned, 'input_refs', errors)
                                          if isinstance(r, dict) and isinstance(r.get('reference'), str)}
@@ -340,6 +354,12 @@ def verify(plan_path):
         report["objects_returned"] = len(object_ids)
         report["rules_returned"] = len(rule_ids)
         report["source_snapshot_sha256"] = snapshot
+        if expected_source_files or source_contracts:
+            from source_adapters.consolidation import merge_reports
+            bundle = merge_reports(source_contracts, expected_files=list(expected_source_files.values()))
+            # Keep source values in the contracts/artifact, never in CLI summaries.
+            report['source_evidence_summary'] = bundle['coverage_summary']
+            report['source_evidence_record_counts'] = bundle['record_counts']
     except (OSError, ValueError, TypeError) as exc:
         errors.append("Invalid dispatch/evidence: " + str(exc))
     report["extraction_complete"] = not errors and not gaps

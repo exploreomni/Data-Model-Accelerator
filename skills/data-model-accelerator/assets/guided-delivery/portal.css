@@ -57,3 +57,6 @@
 .inspector-close{position:sticky;top:0;z-index:1;background:white;border-color:var(--teal)}.table-inspector.drawer-open{scroll-padding-top:68px}.table-inspector.drawer-open .inspector-close{display:inline-flex}.table-inspector .small-actions{margin:14px 0}
 
 .file-preview{margin-top:14px}.file-preview svg{display:block;max-width:none;width:auto;height:auto}
+
+/* Evidence details share the standard routes and responsive table layout. */
+.review-evidence-details{margin-top:18px}.review-evidence-details h3{margin-top:24px}.review-evidence-details .filters{flex-wrap:wrap;margin-top:18px}.review-evidence-details .filters>div{flex:1 1 180px}#review-evidence-summary{min-height:240px;font-family:ui-monospace,monospace}

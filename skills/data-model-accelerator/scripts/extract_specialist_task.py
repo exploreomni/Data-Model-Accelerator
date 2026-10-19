@@ -5,6 +5,7 @@ The coordinator invokes this on approved local evidence before agent dispatch.
 It does not run an agent, authorize disclosure, approve placement or deploy.
 """
 import argparse
+import copy
 import hashlib
 import json
 from pathlib import Path
@@ -75,6 +76,8 @@ def to_specialist(contract, task_id, snapshot, path_ids):
         refs = sorted({d['target'] for d in contract['dependencies'] if d['source_id'] == expression['object_id']})
         rules.append({'rule_id': expression['id'], 'kind': expression['details'].get('expression_kind', 'source_expression'),
                       'language': expression['language'], 'expression': expression['text'], 'output_object_id': owner,
+                      'source_details': copy.deepcopy(expression['details']),
+                      **({'source_occurrence_id': expression['occurrence_id']} if 'occurrence_id' in expression else {}),
                       'input_refs': [{'reference': r, 'status': 'unresolved'} for r in refs],
                       'context': {'evaluation_grain': 'unknown', 'filters': [], 'security': 'unknown'},
                       'evidence': evidence(expression['evidence']),

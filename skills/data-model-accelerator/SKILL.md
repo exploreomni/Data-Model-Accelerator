@@ -120,6 +120,22 @@ Freeze the v2 dictionary and reviewed configuration template before the model bu
 
 ## Use one durable workflow across platforms
 
+Use [reliable-runs.md](references/reliable-runs.md) for bounded dispatch and
+checkpointing. Start or resume the guided engagement before specialist work;
+record the installed content identity, preserve source-adapter contracts, and
+derive shared review artifacts from the canonical design. Reserve work with
+`claim-work`, invoke only the returned dispatch, and checkpoint interruptions.
+During consolidation, use [review-evidence.md](references/review-evidence.md)
+to register every retained source occurrence and existing-model ownership.
+Register separate domain proposals with `reconcile-design` before deriving
+shared artifacts; use common identities for shared entities and business rules.
+Do not report a requirement count as field coverage or mark unassigned reuse
+as complete. Missing records remain unassessed; requested provisional code
+continues with those limits displayed.
+Final completion needs the selected finalizer; interrupted work gets a visibly
+incomplete `--checkpoint` handoff. These controls do not block explicitly
+requested provisional generation or change deployment authority.
+
 Read [guided-workflow.md](references/guided-workflow.md) and [platform-adapters.md](references/platform-adapters.md). Start `scripts/guided_workflow.py` with the source repository and a separate run directory; apply known interview answers rather than asking again. It saves context, bounded compatibility findings, retained revisions, the next short question round and an offline `START_HERE.html`. Resume the same engagement after interruptions; reassess source/catalogue/target context before reusing evidence. The record represents requests and static prerequisites, not execution permission, business approval or complete physical grounding.
 
 Keep source platforms, agent host, framework (`dbt`, `coalesce`, `native_sql`), warehouse (`snowflake`, `databricks`, `bigquery`, `redshift`, `clickhouse`, `motherduck`) and semantic engine independent. `gcp` remains a question until the actual service is confirmed. Read only the selected platform's contract. Coalesce native generation requires a representative versioned project, stable node/column IDs, node types and storage mappings; a registry entry does not establish vendor compatibility. Native target checks retain their own version, identity and evidence requirements.

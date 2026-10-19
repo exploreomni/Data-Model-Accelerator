@@ -292,7 +292,7 @@ def _delivery_choices(state):
     return _digest({key: state['answers'].get(key) for key in ('audience', 'deliverables')})
 
 
-def _handoff_snapshot(state, review_path, artifact_root, audience, include):
+def _handoff_snapshot(state, review_path, artifact_root, audience, include, *, checkpoint=False):
     """Validate actual selected files, without interpreting reported test results."""
     from delivery_portal import validate_review, resolve_selection, select_artifacts
     review_path, artifact_root = _path(review_path), _path(artifact_root)
@@ -300,8 +300,13 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include):
     validate_review(state, review)
     selected_categories = resolve_selection(state, audience, include)
     artifacts = select_artifacts(review, artifact_root, audience, selected_categories)
-    _require(bool(artifacts), 'No artifacts match the handoff selection.')
-    return {'review_path': str(review_path), 'review_sha256': review_hash,
+    _require(checkpoint or bool(artifacts), 'No artifacts match the handoff selection.')
+    review_evidence = {}
+    if state.get('workflow', {}).get('review_assurance'):
+        from review_assurance import records, public_summary
+        review_evidence['review_evidence_sha256'] = _digest({'records': records(state), 'current': public_summary(state)})
+    return {**({'checkpoint': True} if checkpoint else {}), **review_evidence,
+            'review_path': str(review_path), 'review_sha256': review_hash,
             'artifact_root': str(artifact_root), 'audience': audience,
             'deliverables': sorted(selected_categories), 'choices_sha256': _delivery_choices(state),
             'artifacts': [{'path': a['path'], 'destination': a['destination'],
@@ -310,9 +315,22 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include):
 
 def _delivery_progress(state):
     prepared = next((item for item in reversed(state['evidence'])
-                     if item['kind'] == 'prepared_handoff' and item['status'] == 'current'
+                     if item['kind'] in {'prepared_handoff', 'checkpoint_handoff'} and item['status'] == 'current'
                      and item.get('assurance') == 'file_integrity_only' and 'handoff' in item), None)
     state.pop('delivery', None)
+    if prepared and prepared['kind'] == 'checkpoint_handoff':
+        snapshot = prepared['handoff']
+        if state['status'] == 'handoff_prepared':
+            state['status'] = 'candidate_preparation_ready' if state['readiness']['generation_ready'] else 'needs_evidence'
+        state['delivery'] = {'status': 'checkpoint', 'artifact_count': len(snapshot['artifacts']),
+            'assurance': 'file_integrity_only', 'audience': snapshot['audience'],
+            'deliverables': snapshot['deliverables'],
+            'qualification': 'Incomplete checkpoint only; preparation, validation and approval remain separate.'}
+        state['next_actions'] = [a for a in state['next_actions']
+                                 if a['id'] not in {'review_prepared_handoff', 'review_checkpoint_handoff'}]
+        state['next_actions'].insert(0, {'id': 'review_checkpoint_handoff', 'scope': 'review',
+            'action': 'Run finalize_delivery.py --checkpoint to review the available files, then resume outstanding work. This is not a completed handoff.'})
+        return
     if prepared is None or not state['readiness']['generation_ready']:
         if state['status'] == 'handoff_prepared':
             state['status'] = 'candidate_preparation_ready' if state['readiness']['generation_ready'] else 'needs_evidence'
@@ -360,7 +378,8 @@ def _invalidate(state):
                         changed.append('handoff_files')
                     else:
                         observed = _handoff_snapshot(state, pinned['review_path'], pinned['artifact_root'],
-                                                     pinned['audience'], pinned['deliverables'])
+                                                     pinned['audience'], pinned['deliverables'],
+                                                     checkpoint=pinned.get('checkpoint', False))
                         if observed != pinned:
                             changed.append('handoff_files')
                 except (ValueError, OSError, KeyError, TypeError):
@@ -402,6 +421,8 @@ def _stage_progress(state):
 
 
 def _refresh(state, *, catalogue=UNSET, readiness_options=None):
+    from run_control import observe_runtime
+    observe_runtime(state)
     repo = state['inputs']['source']['path']
     _require(Path(repo).is_dir(), 'Source repository is unavailable; restore it before refreshing this engagement.')
     options = dict(readiness_options if readiness_options is not None else state.get('readiness_options', {}))
@@ -604,20 +625,21 @@ def record_evidence(run_dir, path, kind, depends_on=('source', 'catalogue', 'tar
         return _save(run_dir, state, 'evidence_recorded', invalidated=invalidated)
 
 
-def record_handoff(run_dir, review_path, artifact_root, audience=None, include=None):
+def record_handoff(run_dir, review_path, artifact_root, audience=None, include=None, *, checkpoint=False):
     """Record prepared files before export; no test or approval claims are trusted."""
     run_dir = _path(run_dir)
     with _lock(run_dir):
         state = load_engagement(run_dir)
         invalidated = _refresh(state)
-        _require(state['readiness']['generation_ready'], 'Resolve interview and evidence prerequisites before recording a prepared handoff.')
+        _require(checkpoint or state['readiness']['generation_ready'],
+                 'Resolve interview and evidence prerequisites before recording a prepared handoff; use --checkpoint to retain incomplete or provisional work now.')
         audience = audience or state['answers'].get('audience') or 'engineer'
-        snapshot = _handoff_snapshot(state, review_path, artifact_root, audience, include)
+        snapshot = _handoff_snapshot(state, review_path, artifact_root, audience, include, checkpoint=checkpoint)
         for item in state['evidence']:
-            if item['kind'] == 'prepared_handoff' and item['status'] == 'current':
+            if item['kind'] in {'prepared_handoff', 'checkpoint_handoff'} and item['status'] == 'current':
                 item.update(status='superseded', superseded_at=_now())
         state['evidence'].append({'id': 'handoff-' + uuid.uuid4().hex,
-          'kind': 'prepared_handoff', 'status': 'current', 'assurance': 'file_integrity_only',
+          'kind': 'checkpoint_handoff' if checkpoint else 'prepared_handoff', 'status': 'current', 'assurance': 'file_integrity_only',
           'recorded_at': _now(), 'dependencies': _bindings(state), 'handoff': snapshot})
         _delivery_progress(state)
         return _save(run_dir, state, 'handoff_recorded', invalidated=invalidated)
@@ -660,6 +682,15 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
             stages.migrate(state)
         elif action == 'import-design':
             stages.import_design(state, document)
+        elif action == 'record-coverage':
+            from mapping_coverage import register
+            register(state, document, run_dir)
+        elif action == 'record-reuse':
+            from reuse_coverage import register
+            register(state, document, run_dir)
+        elif action == 'reconcile-design':
+            from workflow_reconciliation import register
+            register(state, document, run_dir)
         elif action == 'answer-decisions':
             stages.record_responses(state, document)
         elif action == 'review-bindings':
@@ -679,6 +710,17 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
                 stages.approve_design(state, entities, policy, attestation)
         elif action == 'assess-effort':
             stages.assess_development(state, document)
+        elif action in ('claim-work', 'configure-work'):
+            import run_control
+            state['last_work_action'] = (run_control.claim_work(state, document) if action == 'claim-work'
+                                         else run_control.configure(state, document))
+        elif action == 'checkpoint-work':
+            import run_control
+            root = _path(artifact_root)
+            _outside(root, _path(state['inputs']['source']['path']))
+            _require(root != run_dir and root not in run_dir.parents and run_dir not in root.parents,
+                     'Checkpoint files must be separate from engagement state')
+            state['last_work_action'] = run_control.checkpoint_work(state, document, root)
         elif action in ('plan-tasks', 'record-task', 'check-task'):
             root = _path(artifact_root)
             _outside(root, _path(state['inputs']['source']['path']))
@@ -713,7 +755,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
     stage_commands = ('migrate-stages', 'import-design', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
-                      'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage')
+                      'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
+                      'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design')
     for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence') + stage_commands:
         p = sub.add_parser(command)
         p.add_argument('--run', type=Path, required=True, help='Local engagement folder outside the input repository.')
@@ -730,6 +773,7 @@ def main(argv=None):
         if command == 'status':
             p.add_argument('--refresh', action='store_true')
         if command == 'record-handoff':
+            p.add_argument('--checkpoint', action='store_true', help='Retain incomplete or provisional files without declaring a prepared handoff.')
             p.add_argument('--review', type=Path, required=True)
             p.add_argument('--artifact-root', type=Path, required=True)
             p.add_argument('--audience', choices=('reviewer', 'engineer', 'audit'))
@@ -737,7 +781,8 @@ def main(argv=None):
         if command == 'record-evidence':
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
-        if command in ('import-design', 'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft'):
+        if command in ('import-design', 'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
+                       'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
         if command in ('review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft'):
             p.add_argument('--entities', nargs='+', required=True)
@@ -745,7 +790,7 @@ def main(argv=None):
             p.add_argument('--document', type=Path, help='Exact-scope human decision attributed by the trusted host; never an approval inferred from input files.')
             p.add_argument('--policy', type=Path)
             p.add_argument('--attestation', type=Path)
-        if command in ('plan-tasks', 'record-task', 'check-task'):
+        if command in ('plan-tasks', 'record-task', 'check-task', 'checkpoint-work'):
             p.add_argument('--artifact-root', type=Path, required=True)
         if command == 'stage':
             from engagement_stages import STAGES
@@ -761,7 +806,8 @@ def main(argv=None):
         elif args.command == 'resume':
             state = resume_engagement(args.run)
         elif args.command == 'record-handoff':
-            state = record_handoff(args.run, args.review, args.artifact_root, args.audience, args.include)
+            state = record_handoff(args.run, args.review, args.artifact_root, args.audience, args.include,
+                                   checkpoint=args.checkpoint)
         elif args.command == 'record-evidence':
             state = record_evidence(args.run, args.path, args.kind)
         elif args.command in stage_commands:
@@ -787,6 +833,8 @@ def main(argv=None):
         else:
             print('Engagement ' + state['engagement_id'] + ' — ' + state['status'])
             print('State: ' + str(_path(args.run) / 'state.json'))
+            if args.command in ('claim-work', 'checkpoint-work', 'configure-work'):
+                print('Work action: ' + json.dumps(state['last_work_action'], sort_keys=True))
             for action in state['next_actions']:
                 print('- ' + action['action'])
             print('Assessment is read-only. No execution or business approval is implied.')

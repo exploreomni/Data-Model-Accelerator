@@ -919,7 +919,9 @@ def _summary(state):
     # Explicit projection: never embed absolute roots, full state, answers JSON or receipts.
     delivery = state.get('delivery', {})
     from delivery_assurance import pending_summary
+    from run_control import public_summary
     return {'engagement_id':state.get('engagement_id','Unassigned'), 'revision':state.get('revision',0),
+            'run_control': public_summary(state),
             'delivery_assurance': pending_summary(answers.get('migration_scope')),
             'context_sha256':context_fingerprint(state),
             'delivery':{key:delivery[key] for key in ('status','artifact_count','assurance','audience','deliverables','qualification') if key in delivery},
@@ -1076,7 +1078,19 @@ def _presentation(state, review=None, audience='engineer'):
         allowed_models = {m['id'] for m in data['review'].get('models', [])}
         workflow['authoring_checks'] = [row for row in workflow.get('authoring_checks', [])
                                        if set(row['model_ids']) <= allowed_models]
+        workflow['artifact_checks'] = [row for row in workflow.get('artifact_checks', [])
+                                      if set(row['model_ids']) <= allowed_models]
+        if review and state['workflow'].get('design'):
+            from design_consistency import compare_review
+            workflow['design_checks'] = _design_check_summary(compare_review(state['workflow']['design'], review))
     return data
+
+
+def _design_check_summary(report):
+    return {'status': report['status'], 'finding_count': len(report['findings']),
+            'unknown_count': len(report['unknowns']), 'qualification': report['qualification'],
+            'findings': [{k: row[k] for k in ('code', 'status', 'scope', 'message', 'model_id') if k in row}
+                         for row in report['findings'] + report['unknowns']]}
 
 
 def _workflow_presentation(raw):
@@ -1085,6 +1099,34 @@ def _workflow_presentation(raw):
         return {key:json.loads(json.dumps(value[key])) for key in names if isinstance(value, dict) and key in value}
     result = fields(raw, ('schema_version', 'engagement_id', 'design_id', 'design_revision', 'design_sha256',
                           'current_stage', 'next_action', 'qualification', 'delivery_status', 'requested_stages'))
+    if raw.get('review_assurance'):
+        assurance = raw['review_assurance']
+        projected = fields(assurance, ('schema_version', 'qualification'))
+        for kind in ('coverage', 'reuse', 'reconciliation'):
+            value = assurance.get(kind, {})
+            item = fields(value, ('status', 'unit', 'qualification', 'omitted_detail_rows'))
+            if kind == 'coverage':
+                item.update(fields(value, ('requirements', 'targets', 'export_completeness', 'native_parity', 'orphan_requirements')))
+                item['counts'] = fields(value.get('counts', {}), ('total', 'mapped', 'unresolved', 'unsupported', 'excluded_by_review', 'stale'))
+                supplied = value.get('supplied_files', {})
+                item['supplied_files'] = fields(supplied, ('expected', 'observed', 'missing', 'denominator_basis', 'unit'))
+                item['supplied_files']['statuses'] = fields(supplied.get('statuses', {}), ('parsed', 'partial', 'unsupported'))
+                item['groups'] = [fields(row, ('asset', 'domain', 'total', 'mapped', 'unresolved', 'unsupported', 'excluded_by_review', 'stale', 'model_ids'))
+                                  for row in value.get('groups', [])]
+                item['rows'] = [fields(row, ('id', 'asset', 'name', 'domain', 'model_ids', 'status', 'rationale'))
+                                for row in value.get('rows', [])]
+            elif kind == 'reuse':
+                item.update(fields(value, ('stale', 'canonical_total', 'uninventoried_existing_ids', 'removed_existing_ids', 'native_compatibility', 'review_authority')))
+                item['counts'] = fields(value.get('counts', {}), ('total', 'unassigned'))
+                item['counts']['by_disposition'] = fields(value.get('counts', {}).get('by_disposition', {}),
+                    ('reuse', 'extend', 'replace', 'defer', 'undetermined', 'out_of_scope'))
+                item['rows'] = [fields(row, ('name', 'existing_id', 'owner_domain', 'disposition', 'model_ids', 'requirement_ids', 'compatibility', 'freshness', 'rationale'))
+                                for row in value.get('rows', [])]
+            else:
+                for key in ('findings', 'unknowns'):
+                    item[key] = [fields(row, ('code', 'message', 'model_ids')) for row in value.get(key, [])]
+            projected[kind] = item
+        result['review_assurance'] = projected
     result['stages'] = [fields(row, ('id', 'label', 'status', 'next_action')) for row in raw.get('stages', [])]
     if raw.get('task_plan'):
         result['task_plan'] = {
@@ -1093,6 +1135,10 @@ def _workflow_presentation(raw):
                       for row in raw['task_plan'].get('tasks', [])]}
     result['decisions'] = []
     result['authoring_checks'] = []
+    result['artifact_checks'] = [fields(row, ('task_id', 'stage', 'model_ids', 'status', 'counts', 'qualification'))
+                                 for row in raw.get('artifact_checks', [])]
+    if raw.get('design_checks'):
+        result['design_checks'] = _design_check_summary(raw['design_checks'])
     for row in raw.get('authoring_checks', []):
         item = fields(row, ('task_id', 'status', 'mode', 'counts', 'model_ids', 'unresolved_assumptions', 'qualification'))
         item['findings'] = [fields(f, ('code', 'status', 'model_id')) for f in row.get('findings', [])]
@@ -1100,7 +1146,7 @@ def _workflow_presentation(raw):
     for row in raw.get('decisions', []):
         item = fields(row, ('id', 'question', 'status', 'answer', 'recommendation', 'reviewer_role', 'model_ids',
                             'asset_ids', 'blocking_stages', 'rationale', 'evidence_summary'))
-        item['options'] = [fields(option, ('id', 'label')) for option in row.get('options', [])]
+        item['options'] = [fields(option, ('id', 'label', 'consequences')) for option in row.get('options', [])]
         result['decisions'].append(item)
     if raw.get('effort'):
         keys = ('category', 'confidence', 'readiness', 'breadth', 'summary', 'rationale', 'assumptions',
@@ -1125,7 +1171,7 @@ def _trim_workflow_details(data):
     for key in ('assets', 'models', 'relationships', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
-        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks'):
+        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance'):
             data['workflow'].pop(key, None)
 
 
@@ -1316,7 +1362,8 @@ def package_readme(data):
     engagement = data.get('engagement', {})
     registered, generated = data.get('files', []), data.get('generated_deliverables', [])
     target = engagement.get('target', {})
-    lines = ['# Delivery package', '', 'Open [START_HERE.html](START_HERE.html) for the guided review.', '',
+    checkpoint = data.get('checkpoint')
+    lines = ['# Checkpoint package' if checkpoint else '# Delivery package', '', 'Open [START_HERE.html](START_HERE.html) for the guided review.', '',
              'Audience: ' + _markdown_cell(data.get('audience', 'unresolved')) + '.',
              'Target: ' + _markdown_cell(target.get('framework') or 'unresolved') + ' / ' + _markdown_cell(target.get('warehouse') or 'unresolved') + '.',
              'Selected categories: ' + ', '.join(_markdown_cell(value) for value in sorted(data.get('selected_categories', []))) + '.',
@@ -1325,6 +1372,10 @@ def package_readme(data):
              'Candidate review only. File generation and package integrity do not establish native validation, business acceptance or deployment authority.',
              'Use the selected validation evidence and guided review for reported checks, unresolved decisions and the next action.', '',
              '## Selected files', '']
+    if checkpoint:
+        lines[4:4] = ['Work is incomplete. This checkpoint preserves available outputs; it is not a final delivery.',
+                      'Missing selected categories: ' + (', '.join(checkpoint['missing_categories']) or 'None; task and validation status still require review.') + '.',
+                      'Resume the same engagement and repair only the outstanding work.', '']
     for record in sorted(registered + generated, key=lambda row: row['path']):
         origin = 'generated review projection' if record.get('origin') == 'review_projection' else 'registered artifact; original bytes'
         lines.append(f"- [{_markdown_cell(record['path'])}]({quote(record['path'], safe='/')}) — {record['category']}; {origin}.")
@@ -1356,7 +1407,7 @@ def package_file_inventory(data, files):
     return [dict(path=path, sha256=_sha(body), bytes=len(body), **roles[path]) for path, body in sorted(files.items())]
 
 
-def package_delivery(state, review, artifact_root, output_path, audience='reviewer', include=None):
+def package_delivery(state, review, artifact_root, output_path, audience='reviewer', include=None, *, checkpoint=False):
     validate_review(state,review)
     include=resolve_selection(state,audience,include)
     source=state.get('inputs',{}).get('source',{}).get('path')
@@ -1383,6 +1434,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     if 'validation' not in include:
         data['review'].pop('validation',None)
         data.get('workflow', {}).pop('authoring_checks', None)
+        data.get('workflow', {}).pop('artifact_checks', None)
     if 'diagrams' in include and data['review'].get('models'):
         data['diagrams']=diagram_views(data['review']['models'],data['review'].get('relationships',[]))
     files={a['destination']:a['content'] for a in selected}
@@ -1395,11 +1447,17 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
             data['files'][-1]['diagram_model_ids'] = sorted(artifact['diagram_model_ids'])
     _set_diagram_coverage(data)
     data['generated_deliverables'] = generated_deliverables(data)
-    require(selected or data['generated_deliverables'], 'No artifacts or model deliverables match this audience and selection')
+    require(checkpoint or selected or data['generated_deliverables'], 'No artifacts or model deliverables match this audience and selection')
     generated = validate_generated_deliverables(data)
     require(not ({path.casefold() for path in files} & {path.casefold() for path in generated}),
             'Generated deliverable path collides with a registered artifact')
     files.update(generated)
+    if checkpoint:
+        available = {a['category'] for a in selected if a['content'].strip()} | {
+            a['category'] for a in data['generated_deliverables'] if a['size'] > 0}
+        data['checkpoint'] = {'status': 'incomplete', 'requested_categories': sorted(include),
+                              'missing_categories': sorted(set(include) - available),
+                              'qualification': 'Checkpoint only. Retained files may be partial, provisional or unchecked; resume the same engagement.'}
     require('readme.md' not in {path.casefold() for path in files}, 'Root README.md collides with a selected file')
     files['README.md'] = package_readme(data)
     disclosure = _check_share_policy(state, review, selected, data, audience)
@@ -1419,6 +1477,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
               'target':review['target'],'audience':audience,
               'deliverables':sorted(include),'authority':'File integrity only; not execution, business approval or deployment.',
               'files':package_file_inventory(data, files)}
+    if checkpoint:
+        manifest.update(delivery_kind='checkpoint', checkpoint=data['checkpoint'])
     files['DELIVERY_MANIFEST.json']=json.dumps(manifest,indent=2,sort_keys=True).encode()+b'\n'
     require(sum(map(len,files.values())) <= MAX_PACKAGE_BYTES*3, 'Rendered package exceeds size limit')
     stream=io.BytesIO()
@@ -1463,6 +1523,11 @@ def verify_delivery(path):
             embedded = json.loads(match.group(1))
             require(embedded.get('engagement', {}).get('context_sha256') == context,
                     'Package workflow context differs from its Start Here page')
+            if 'checkpoint' in manifest or 'checkpoint' in embedded:
+                require(manifest.get('delivery_kind') == 'checkpoint'
+                        and manifest.get('checkpoint') == embedded.get('checkpoint')
+                        and embedded['checkpoint'].get('status') == 'incomplete',
+                        'Checkpoint label differs from the Start Here page')
         elif 'START_HERE.html' in names:
             match = re.search(r'<script id="delivery-data" type="application/json">(.*?)</script>',
                               archive.read('START_HERE.html').decode('utf-8'), re.S)

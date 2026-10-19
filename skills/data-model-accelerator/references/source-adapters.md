@@ -80,6 +80,35 @@ Missing dependencies remain unresolved. SQL CTE aliases are not physical table
 dependencies; dynamic relations, unsupported statements and unbound wildcards
 must retain explicit gaps.
 
+### Lossless consolidation
+
+`source_adapters.consolidation.merge_reports(reports, expected_files=...)` merges
+v1 adapter contracts from the same approved inventory. Each optional expected
+file is `{source, path, sha256}` from the pinned inventory. Exact duplicate
+records are retained once; conflicting identities, file revisions or component
+fingerprints raise an error instead of selecting whichever worker finished last.
+All record fields and original contracts are retained, including unrecognized
+metadata and filter/population/currency/time details. This is a local evidence
+artifact, not an agent context packet or a semantic mapping.
+
+The additive `occurrence_id` identifies a source location independently of its
+expression text. Existing record `id` values remain unchanged. Moving/reordering
+source locations may change occurrence IDs; IDs do not establish equivalent
+behavior across revisions. `content_sha256` and file hashes bind exact text.
+Older v1 contracts without these additive fields remain accepted by the merge
+utility and validator. A changed adapter component still requires fresh pinned
+extraction under the existing coordinator verification rules.
+
+`coverage_summary` counts supplied files only, with parsed/partial/unsupported
+statuses and missing expected files. Without an explicit inventory its
+denominator is **received reports only**. It never measures native field
+completeness, resolved semantics or parity. Missing evidence does not prevent
+requested provisional generation. The specialist verifier includes compact
+counts even for missing task results, while keeping its existing completion and
+exit conventions. It also checks that rule `source_details` and occurrence IDs
+survive the specialist handoff. Full expressions belong in the private evidence
+artifact; summaries must not replace them.
+
 ## Targeted specialist ownership
 
 Each tool has one format contract and adapter owner. New research uses official

@@ -20,6 +20,16 @@ def sha(value):
     return hashlib.sha256(value.encode('utf-8')).hexdigest()
 
 
+def occurrence_id(source, category, path, locator, ordinal=0):
+    """Identify an occurrence at a source location, separately from its content.
+
+    The ordinal distinguishes repeated declarations at the same locator. Moving
+    or reordering source locations can change this ID; it is not a native ID.
+    """
+    return source + ':occurrence:' + sha(json.dumps(
+        [category, path, locator, ordinal], ensure_ascii=True))[:24]
+
+
 def bounded(value):
     stack, count = [(value, 0)], 0
     while stack:
@@ -149,7 +159,7 @@ class Report:
 
     def gap(self, path, code, message, locator='$'):
         item = {'code': code, 'message': message, 'evidence': self.evidence(path, locator)}
-        if item not in self.gaps:
+        if not any(all(existing.get(key) == value for key, value in item.items()) for existing in self.gaps):
             self.gaps.append(item)
 
     def cover(self, path, status='parsed', reason=''):
@@ -163,8 +173,22 @@ class Report:
                 self.cover(path, 'unsupported', 'No supported parser claimed this file.')
             if any(g['evidence']['path'] == path for g in self.gaps) and self.coverage[path]['status'] == 'parsed':
                 self.coverage[path]['status'] = 'partial'
+        for category in ('objects', 'expressions', 'dependencies', 'gaps'):
+            seen = {}
+            for item in getattr(self, category):
+                evidence = item['evidence']
+                key = (evidence['path'], evidence['locator'])
+                ordinal = seen.get(key, 0)
+                item['occurrence_id'] = occurrence_id(self.source, category, *key, ordinal)
+                seen[key] = ordinal + 1
+                if category == 'expressions':
+                    item['content_sha256'] = sha(item['text'])
         return {'schema_version': 1, 'kind': 'source_adapter_result', 'source': self.source,
                 'adapter_version': 1, 'source_files': [self.coverage[p] for p in sorted(self.files)],
+                'coverage_summary': {'unit': 'supplied_source_files', 'expected': len(self.files),
+                                     'observed': len(self.coverage), 'missing': 0,
+                                     'statuses': {status: sum(f['status'] == status for f in self.coverage.values())
+                                                  for status in ('parsed', 'partial', 'unsupported')}},
                 'objects': self.objects, 'expressions': self.expressions,
                 'dependencies': self.dependencies, 'gaps': self.gaps,
                 'export_completeness': 'not_established', 'native_validation': 'not_run',
