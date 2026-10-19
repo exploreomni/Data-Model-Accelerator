@@ -72,6 +72,10 @@ def build_handoff(state,model_files,model_context,decisions=None):
     _need(source_fingerprint(state) is not None,'handoff.source_required')
     _need(target['warehouse']==model_context.get('warehouse') and state['answers'].get('semantic_target')=='omni','handoff.target')
     catalogue=state.get('inputs',{}).get('catalogue',{})
+    # Guided provisional runs explicitly retain a missing catalogue as null.
+    # Absence permits a draft handoff; malformed evidence and changed pins do not.
+    if catalogue is None:catalogue={}
+    _need(type(catalogue) is dict,'handoff.catalogue')
     if catalogue.get('sha256') is not None:
         _need(catalogue['sha256']==model_context.get('catalogue_sha256'),'handoff.catalogue_changed')
     _need(type(model_files) is dict and bool(model_files),'handoff.files')
