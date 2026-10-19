@@ -79,7 +79,7 @@ def parse(source, files):
 
 
 def validate(report, files):
-    from .base import sha, bounded
+    from .base import sha, bounded, occurrence_id
     bounded(report)
     if report.get('kind') != 'source_adapter_result' or report.get('schema_version') != 1:
         raise ValueError('source.invalid_contract')
@@ -102,6 +102,7 @@ def validate(report, files):
     if len(expression_ids) != len(set(expression_ids)):
         raise ValueError('source.duplicate_expression')
     for category in ('objects', 'expressions', 'dependencies', 'gaps'):
+        seen = {}
         for item in report[category]:
             e = item['evidence']
             if e['path'] not in files or e['sha256'] != sha(files[e['path']]) or not e['locator']:
@@ -111,3 +112,11 @@ def validate(report, files):
                 raise ValueError('source.unbound_dependency_owner')
             if owner is not None and owner not in ids:
                 raise ValueError('source.dangling_owner')
+            key = (e['path'], e['locator'])
+            ordinal = seen.get(key, 0)
+            if ('occurrence_id' in item and item['occurrence_id'] !=
+                    occurrence_id(report['source'], category, *key, ordinal)):
+                raise ValueError('source.invalid_occurrence')
+            seen[key] = ordinal + 1
+            if category == 'expressions' and 'content_sha256' in item and item['content_sha256'] != sha(item['text']):
+                raise ValueError('source.invalid_expression_hash')

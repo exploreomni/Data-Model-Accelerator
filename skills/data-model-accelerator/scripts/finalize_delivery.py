@@ -51,6 +51,13 @@ def check_selected_delivery(state, review, audience, include, manifest):
         if 'entities' in canonical:
             require({row['id'] for row in canonical['entities']} == {row['id'] for row in review['models']},
                     'Review model coverage differs from the current design. Restore every scoped entity before finalizing.')
+            if canonical.get('schema_version') == 1:
+                from design_consistency import compare_review
+                differences = [row for row in compare_review(canonical, review)['findings']
+                               if row['code'].startswith('review_')]
+                require(not differences, 'Review content differs from the canonical design: '
+                        + ', '.join(sorted({row['code'] for row in differences}))
+                        + '. Regenerate the projection or export an explicitly incomplete checkpoint.')
         require(any(row['path'].startswith('01_Model/') for row in files),
                 'Selected design deliverables are missing from 01_Model/.')
         if 'documentation' in selected:
@@ -62,7 +69,7 @@ def check_selected_delivery(state, review, audience, include, manifest):
     return counts
 
 
-def finalize_delivery(state, review, artifact_root, output, audience=None, include=None, javascript=False):
+def finalize_delivery(state, review, artifact_root, output, audience=None, include=None, javascript=False, *, checkpoint=False):
     """In-process callers must refresh state first, as with the existing exporter.
 
     Build and check in a temporary sibling, then publish a new output directory.
@@ -90,9 +97,13 @@ def finalize_delivery(state, review, artifact_root, output, audience=None, inclu
     staging_identity = _directory_identity(staging)
     try:
         archive_path = staging / 'handoff.zip'
-        manifest = portal.package_delivery(state, review, artifact_root, archive_path, audience, include)
+        if checkpoint:
+            manifest = portal.package_delivery(state, review, artifact_root, archive_path, audience, include, checkpoint=True)
+        else:
+            manifest = portal.package_delivery(state, review, artifact_root, archive_path, audience, include)
         integrity = portal.verify_delivery(archive_path)
-        counts = check_selected_delivery(state, review, audience, include, manifest)
+        counts = ({category: sum(row.get('category') == category and row.get('bytes', 0) > 0 for row in manifest['files'])
+                   for category in include} if checkpoint else check_selected_delivery(state, review, audience, include, manifest))
         page_check = portal.check_page(archive_path, javascript=javascript)
         check_destination()
         require(_directory_identity(staging) == staging_identity, 'Delivery staging directory changed during generation.')
@@ -124,13 +135,15 @@ def finalize_delivery(state, review, artifact_root, output, audience=None, inclu
         except OSError:
             _remove_owned_directory(output, output_identity)
             raise
-        return {'status': 'handoff_verified', 'entrypoint': str(output / 'handoff' / 'START_HERE.html'),
+        return {'status': 'checkpoint_verified' if checkpoint else 'handoff_verified',
+                'entrypoint': str(output / 'handoff' / 'START_HERE.html'),
                 'zip': str(output / 'handoff.zip'), 'folder': str(output / 'handoff'),
                 'design_folder': str(output / 'handoff' / '01_Model') if any(
                     row['path'].startswith('01_Model/') for row in manifest['files']) else None,
                 'selected_deliverable_counts': counts, 'integrity': integrity,
                 'page_check': page_check, 'browser_review': 'not_performed_by_finalizer',
-                'qualification': 'Selected-file completeness and package integrity only; not model correctness, native validation, business approval or deployment.'}
+                'qualification': ('Checkpoint integrity only; selected deliverables may be missing and work remains incomplete.' if checkpoint else
+                                  'Selected-file completeness and package integrity only; not model correctness, native validation, business approval or deployment.')}
     finally:
         _remove_owned_directory(staging, staging_identity)
 
@@ -144,6 +157,7 @@ def main(argv=None):
     parser.add_argument('--audience', choices=sorted(portal.AUDIENCES))
     parser.add_argument('--include', help='Explicit comma-separated subset; omission uses saved selections.')
     parser.add_argument('--javascript', action='store_true', help='Also syntax-check the emitted scripts with Node.')
+    parser.add_argument('--checkpoint', action='store_true', help='Export interrupted work with explicit missing categories; never a completed handoff.')
     args = parser.parse_args(argv)
     try:
         from guided_workflow import assess_engagement
@@ -154,7 +168,8 @@ def main(argv=None):
                 and output not in state_path.parent.parents, 'Keep the final handoff separate from the engagement work directory.')
         state = assess_engagement(state_path.parent)
         result = finalize_delivery(state, load_json(args.review), args.artifacts, output, args.audience,
-                                   args.include.split(',') if args.include is not None else None, args.javascript)
+                                   args.include.split(',') if args.include is not None else None, args.javascript,
+                                   checkpoint=args.checkpoint)
         print(json.dumps(result, indent=2))
         return 0
     except (ValueError, OSError, KeyError, TypeError, ImportError, zipfile.BadZipFile) as error:

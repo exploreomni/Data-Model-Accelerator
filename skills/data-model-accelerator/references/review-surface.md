@@ -77,6 +77,13 @@ The package verifier checks an exhaustive inventory, byte lengths and SHA-256 ha
 
 ## Finalize the selected handoff
 
+For interrupted work, add `--checkpoint` to the same command. The page, README
+and manifest identify it as incomplete and list missing selected categories.
+Available files and an empty initial status handoff are supported without
+changing the saved output selection. Integrity and disclosure checks remain in
+force. Resume the engagement before producing a later final version. See
+[reliable runs](reliable-runs.md); a verified checkpoint is not a completed delivery.
+
 The coordinator runs this after registering the current review content. It uses
 saved artifacts and deterministic checks; no additional agent research is needed:
 

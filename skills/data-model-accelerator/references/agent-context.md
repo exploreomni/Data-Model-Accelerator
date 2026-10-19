@@ -26,7 +26,10 @@ to the specialists. Prepared files are not proof of a verified final handoff.
    evidence and just the required reference sections. Do not send global
    inventory, full working memory, all platform guides or prior tool logs.
    Keep trusted host instructions; do not disable security rules to reduce size.
-4. Default to at most two concurrent extraction workers. Do small tasks in the
+4. Default to at most two concurrent specialists across extraction, design,
+   implementation, semantic modeling and review. Reserve and checkpoint work
+   through [reliable-runs.md](reliable-runs.md); do not relaunch all workers after
+   an interruption. Do small tasks in the
    coordinator when delegation adds no value; independent acceptance still needs
    a separate reviewer. No nested delegation unless the coordinator explicitly
    assigns a distinct workstream. Preserve the configured model choice.

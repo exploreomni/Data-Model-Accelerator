@@ -177,7 +177,9 @@ assert.equal(el('decisions').children.length,1);assert(currentDiagram.svg.includ
 el('asset-filter').value='__unmapped__';el('asset-filter').onchange();
 assert.equal(selection.unknown.has('gold.orders'),true);assert.deepEqual([...chosen],exportBefore);
 """
-        result = subprocess.run([shutil.which('node'), '-e', harness + '\n' + (portal.ASSETS / 'portal.js').read_text().rsplit('})();', 1)[0] + assertions + '\n})();'],
+        script = harness + '\n' + (portal.ASSETS / 'portal.js').read_text().rsplit('})();', 1)[0] + assertions + '\n})();'
+        # Full-page scripts can exceed Linux's per-argument size limit.
+        result = subprocess.run([shutil.which('node'), '-'], input=script,
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 

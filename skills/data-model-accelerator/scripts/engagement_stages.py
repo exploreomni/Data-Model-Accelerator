@@ -23,14 +23,19 @@ COMPONENT_FILES = {
     'semantic': ('scripts/omni_modeler.py', 'references/omni-modeler.md'),
     'validation': ('references/modeling-and-validation.md', 'scripts/verify_refactor_run.py'),
     'packaging': ('scripts/delivery_portal.py', 'scripts/finalize_delivery.py', 'assets/guided-delivery/portal.js',
-                  'assets/guided-delivery/portal.css', 'assets/guided-delivery/portal.html'),
+                  'assets/guided-delivery/portal.css', 'assets/guided-delivery/portal.html',
+                  'scripts/design_consistency.py', 'scripts/run_control.py'),
     'deployment': ('scripts/deployment_workflow.py', 'scripts/deployment_authority.py'),
     # Diagnostic changes refresh evidence; they do not rewrite unchanged SQL.
     'authoring_checks': ('scripts/authoring_evidence.py', 'scripts/authoring_provenance.py',
                          'scripts/authoring_conformance.py', 'scripts/authoring_quality.py',
-                         'scripts/authoring_release.py', 'references/authoring-quality.md'),
+                         'scripts/authoring_release.py', 'references/authoring-quality.md',
+                         'scripts/artifact_syntax.py', 'scripts/design_consistency.py'),
+    'review_evidence': ('scripts/review_assurance.py', 'scripts/mapping_coverage.py',
+                        'scripts/reuse_coverage.py', 'scripts/workflow_reconciliation.py', 'references/review-evidence.md'),
     'execution_observations': ('scripts/agent_execution.py', 'scripts/agent_benchmark.py',
-                               'references/agent-benchmark.md'),
+                               'references/agent-benchmark.md', 'scripts/run_control.py', 'scripts/check_installation.py',
+                               'references/reliable-runs.md'),
     'dbt_runtime': ('scripts/dbt_runtime.py', 'scripts/dbt_compatibility.py',
                     'scripts/dbt_feature_delivery.py', 'scripts/dbt_information_schema.py',
                     'scripts/dbt_native_lint.py', 'scripts/run_dbt_project.py',
@@ -174,9 +179,15 @@ def validate_design(value):
             require(entity['reuse'] is None, 'Create/undetermined cannot assert a reuse binding')
     waves({e['id']: e['depends_on'] for e in value['entities']})
     for edge in value['relationships']:
-        fields(edge, {'from', 'to', 'kind'}, {'label', 'predicate', 'cardinality', 'role', 'evidence', 'status'})
+        fields(edge, {'from', 'to', 'kind'}, {'label', 'predicate', 'cardinality', 'role', 'evidence', 'status',
+                                            'from_columns', 'to_columns'})
         require(edge['from'] in entity_ids and edge['to'] in entity_ids, 'Unknown relationship endpoint')
         require(edge['kind'] in {'lineage', 'relationship'}, 'Relationship kind must be lineage or relationship')
+        if 'from_columns' in edge or 'to_columns' in edge:
+            for key in ('from_columns', 'to_columns'):
+                require(type(edge.get(key)) is list and edge[key] and all(type(c) is str and c.strip() for c in edge[key]),
+                        'Explicit relationship columns require two nonempty text lists')
+            require(len(edge['from_columns']) == len(edge['to_columns']), 'Relationship column binding arity differs')
     for decision in value['decisions']:
         fields(decision, {'id', 'question', 'options', 'recommendation', 'reviewer_role', 'model_ids',
                           'asset_ids', 'blocking_stages', 'rationale', 'evidence_summary'})
@@ -187,7 +198,9 @@ def validate_design(value):
         require(type(decision['options']) is list, 'Decision options must be a list')
         ids([o.get('id') for o in decision['options']])
         for option in decision['options']:
-            fields(option, {'id', 'label'}); text(option['label'])
+            fields(option, {'id', 'label'}, {'consequences'}); text(option['label'])
+            if 'consequences' in option:
+                text(option['consequences'])
         require(decision['recommendation'] is None or type(decision['recommendation']) is str, 'Invalid recommendation')
     return copy.deepcopy(value)
 
@@ -200,6 +213,10 @@ def import_design(state, value):
                 'Keep design identity and advance its revision')
     value['sha256'] = hash_json(value)
     workflow(state)['design'] = value
+    from design_consistency import assess_design
+    workflow(state)['design_checks'] = assess_design(value)
+    from workflow_reconciliation import on_import
+    on_import(state)
     workflow(state)['last_plan'] = None
     return value
 
@@ -278,6 +295,15 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
     selected = closure({k: v['depends_on'] for k, v in entities.items()}, ids(selected, entities, True))
     result = {}
     cache = _cache if _cache is not None else {}
+    if 'coverage_scope' not in cache:
+        from mapping_coverage import scope_bindings
+        cache['coverage_scope'] = scope_bindings(state)
+    if 'reuse_scope' not in cache:
+        from reuse_coverage import scope_bindings
+        cache['reuse_scope'] = scope_bindings(state)
+    if 'reconciliation_scope' not in cache:
+        from workflow_reconciliation import scope_bindings
+        cache['reconciliation_scope'] = scope_bindings(state)
     import guided_workflow as guided
     catalogue = state['inputs']['catalogue']
     if 'catalogue_data' not in cache:
@@ -305,8 +331,12 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
         responses = [r for r in workflow(state)['responses'] if any(r['decision_id'] == d['id'] and
                      r['decision_sha256'] == hash_json(d) for d in decisions)]
         existing = next((m for m in doc['existing_models'] if entity['reuse'] and m['id'] == entity['reuse']['existing_id']), None)
+        coverage = {'coverage': cache['coverage_scope'][key]} if key in cache['coverage_scope'] else {}
+        reuse_evidence = {'reuse_evidence': cache['reuse_scope'][key]} if key in cache['reuse_scope'] else {}
+        reconciliation = {'reconciliation': cache['reconciliation_scope'][key]} if key in cache['reconciliation_scope'] else {}
         result[key] = hash_json({'entity': entity, 'inputs': inputs, 'relationships': edges,
-                                'decisions': decisions, 'responses': responses, 'existing': existing})
+                                'decisions': decisions, 'responses': responses, 'existing': existing,
+                                **coverage, **reuse_evidence, **reconciliation})
         cache[cache_key] = result[key]
     return result
 
@@ -350,7 +380,8 @@ def _design_gaps(state, selected, stage='design'):
     doc = design(state)
     entities = {e['id']: e for e in doc['entities']}
     scope = closure({k: v['depends_on'] for k, v in entities.items()}, selected)
-    gaps = []
+    from workflow_reconciliation import gaps as reconciliation_gaps
+    gaps = reconciliation_gaps(state, scope)
     for key in scope:
         entity = entities[key]
         if not entity['keys'] or not entity['columns'] or any(entity[k].lower() in {'unknown', 'tbd', 'unresolved'} for k in ('grain', 'security', 'history')):
@@ -709,6 +740,13 @@ def record_task(state, artifact_root, request):
     recorded = {key: copy.deepcopy(value) for key, value in request.items() if key not in {'authoring_contract', 'execution'}}
     if execution is not None:
         recorded['execution_observation'] = execution
+    from artifact_syntax import check_structured_artifacts
+    from authoring_evidence import summarize
+    from authoring_quality import checker_version
+    syntax = check_structured_artifacts(artifact_root, specification['outputs'])
+    recorded['artifact_checks'] = {**summarize(syntax), 'findings': syntax,
+                                   'checker_sha256': checker_version(),
+                                   'qualification': 'Syntax only; unsupported and unchecked formats are not native validation.'}
     workflow(state)['runs'].append({**recorded, 'recorded_at': guided._now(),
         'generation_mode': task['generation_mode'],
         'assurance': 'host_reported_file_integrity', 'qualification': 'Output registration is not native validation or deployment approval.'})
@@ -759,6 +797,8 @@ def refresh(state):
     if not state.get('workflow') or not state['workflow']['design']:
         return
     wf = workflow(state)
+    from workflow_reconciliation import refresh as refresh_reconciliation
+    refresh_reconciliation(state)
     if wf.get('artifact_root') and wf['tasks']:
         try:
             wf['last_plan'] = plan_tasks(state, wf['artifact_root'])
@@ -845,6 +885,7 @@ def public_view(state, *, _refresh=True):
     if _refresh:
         refresh(state)
     wf = workflow(state)
+    from review_assurance import public_summary
     doc = wf['design']
     review_records = _current_reviews(state) if doc else []
     approved = set().union(*(scope for _, scope in review_records))
@@ -857,7 +898,10 @@ def public_view(state, *, _refresh=True):
               'review_qualification': 'Design review permits local candidate preparation. Host-reported review is not authenticated identity or deployment authorization.',
               'qualification': 'Review recorded means a human decision attributed by the host, not independently authenticated identity. Signature verified means an external issuer signature was checked. Neither authorizes execution or deployment.',
               'stages': [], 'decisions': [], 'models': [], 'relationships': [], 'assets': [], 'effort': None}
+    result['review_assurance'] = public_summary(state)
     if doc:
+        from design_consistency import assess_design
+        result['design_checks'] = assess_design(doc)
         result.update(models=copy.deepcopy(doc['entities']), relationships=doc['relationships'], assets=doc['assets'])
         answers = {r['decision_id']: r for r in wf['responses']}
         decision_reviews = {}
@@ -924,4 +968,24 @@ def public_view(state, *, _refresh=True):
     _requested_progress(state, result)
     from authoring_quality import summaries
     result['authoring_checks'] = summaries(state)
+    result['artifact_checks'] = []
+    latest = {r['task_id']: r for r in wf['runs']}
+    specifications = {t['id']: t for t in wf['tasks']}
+    from authoring_quality import checker_version
+    current_checker = checker_version() if latest else None
+    for key, run in latest.items():
+        if key not in specifications:
+            continue
+        checks = run.get('artifact_checks')
+        if not checks:
+            continue
+        current = False
+        try:
+            current = (checks['checker_sha256'] == current_checker
+                       and _output_hashes(wf['artifact_root'], specifications[key]['outputs']) == run['outputs'])
+        except (ValueError, OSError, KeyError, TypeError):
+            pass
+        result['artifact_checks'].append({'task_id': key, 'stage': specifications[key]['stage'],
+            'model_ids': specifications[key]['entity_ids'], 'counts': checks['counts'],
+            'status': checks['status'] if current else 'stale', 'qualification': checks['qualification']})
     return result

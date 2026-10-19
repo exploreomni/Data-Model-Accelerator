@@ -118,6 +118,16 @@ The bundled dbt executor has a narrower full-project contract than many customer
 
 ## Resume without starting over
 
+The agent now records its installed runtime fingerprint and bounded work
+checkpoints. Ask it to resume the existing engagement after an interruption;
+completed matching outputs should be reused. An interrupted delivery still gets
+an offline `START_HERE.html`, explicitly labeled **Checkpoint — work is incomplete**,
+with available files and missing deliverables. Design consistency findings appear
+in Validation. These are separate from native warehouse/Omni testing.
+
+The agent's [dispatch and checkpoint reference](../skills/data-model-accelerator/references/reliable-runs.md)
+describes the commands; users can simply ask to continue from the checkpoint.
+
 For raw tables or CSV snapshots with no former team, SME or Excel baseline, use
 the [provisional new-model route](../skills/data-model-accelerator/references/inherited-data-discovery.md).
 It supports candidate generation and source-derived structural checks while
@@ -141,5 +151,19 @@ records. Asset filters help navigate the design but do not change export scope.
 For large projects, work in domain waves with explicit dependency/consumer closure. Increase inventory limits only after reviewing the reported gaps, or provide selected artifacts under `readiness-options`; never treat a truncated inventory as complete. The review tables are searchable and paginated; diagrams preserve the declared model inventory and relationships. Export each coherent domain separately when package limits are reached, preserving cross-domain dependencies and coverage.
 
 ## Before customer sign-off
+
+Open **Coverage & reuse** in Start Here to see which retained source occurrences
+have proposed destinations, which existing tables have owners, and which domain
+proposals disagree. Filter by asset, domain or model; expand details only when
+needed. Missing evidence is **Unassessed**, not a passing check. **Mapped** means
+an authored association, not validated behavior. Use the existing decisions and
+feedback controls to return answers and corrections to the agent. Choice
+consequences appear where the design supplies them.
+
+The agent records the detailed mapping and reuse ledgers in the engagement and
+reconciles domain proposals before projecting shared artifacts. Changes refresh
+affected scopes; explicit provisional generation remains available. A changed
+ledger makes an older prepared handoff stale without deleting its files.
+
 
 Run a representative project through discovery, a real mismatch, interrupted/resumed work, source drift and reviewer export. Then obtain separately authorized native target and consumer evidence. Local fixtures and a polished page do not establish customer acceptance. The first customer pilot should expose its actual compatibility and validation gaps before a delivery commitment is made.

@@ -72,8 +72,15 @@ async function browserSubsetManifest(snapshot,audience,categories,entries,page=n
     integrity_scope:'Selected embedded artifact hashes were checked; checksums below bind the newly rendered files only.',
     authority:'File integrity only; no new content scan, authenticated review, business acceptance or deployment authority.',files:[]};
   if(page?.package_layout_version===1)manifest.package_layout_version=1;
+  if(page?.checkpoint){manifest.delivery_kind='checkpoint';manifest.checkpoint=structuredClone(page.checkpoint);}
   for(const [path,body]of entries){const record={path,sha256:await sha256(body),bytes:body.length};if(page?.package_layout_version===1){const registered=page.files.find(f=>f.path===path),generated=page.generated_deliverables.find(f=>f.path===path),file=registered||generated;if(file)Object.assign(record,{role:registered?'registered_artifact':'generated_deliverable',category:file.category,embedded:true});else if(path==='START_HERE.html'||path==='README.md')Object.assign(record,{role:path==='START_HERE.html'?'entrypoint':'index',embedded:false});else throw new Error('Unclassified package file: '+path);}manifest.files.push(record);}
   return manifest;
+}
+function updateCheckpointDeficits(snapshot){
+  if(!snapshot.checkpoint)return;
+  const present=new Set([...(snapshot.files||[]),...(snapshot.generated_deliverables||[])].filter(f=>f.size>0).map(f=>f.category));
+  const previous=new Set(snapshot.checkpoint.missing_categories||[]);
+  snapshot.checkpoint.missing_categories=snapshot.checkpoint.requested_categories.filter(c=>previous.has(c)||!present.has(c));
 }
 // END PORTABLE ASSURANCE HELPERS
 // BEGIN COMPACT HANDOFF HELPERS
@@ -131,9 +138,30 @@ function decisionResponseDocument(workflow,engagementId,responses){
   return{schema_version:1,kind:'decision_responses',intent:'record_answers',engagement_id:engagementId,design_id:workflow.design_id,design_revision:workflow.design_revision,design_sha256:workflow.design_sha256,answers,request_only:true};
 }
 function trimWorkflowDetails(snapshot,categories){
-  if(['documentation','diagrams','dictionary'].some(key=>categories.has(key)))return;
+  if(snapshot.audience!=='audit'&&['documentation','diagrams','dictionary'].some(key=>categories.has(key)))return;
   for(const key of ['assets','models','relationships','decisions','changes'])delete snapshot.review?.[key];
-  for(const key of ['decisions','effort','models','relationships','assets','task_plan'])delete snapshot.workflow?.[key];
+  for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance'])delete snapshot.workflow?.[key];
+}
+// Coverage/reuse counts describe supplied associations, never native validation.
+function reviewEvidenceCount(value){return Number.isSafeInteger(value)&&value>=0?String(value):'Unassessed';}
+function reviewEvidenceList(value){return Array.isArray(value)?value.filter(v=>typeof v==='string'&&v.trim()):[];}
+function reviewEvidenceDimensions(row,kind,coverageRows){
+  const modelIds=reviewEvidenceList(row.model_ids);
+  const assets=kind==='reuse'?[...new Set(coverageRows.filter(item=>reviewEvidenceList(item.model_ids).some(id=>modelIds.includes(id))).map(item=>item.asset).filter(v=>typeof v==='string'&&v.trim()))]:reviewEvidenceList([row.asset]);
+  return{asset:assets,domain:reviewEvidenceList([kind==='reuse'?row.owner_domain:row.domain]),model:modelIds};
+}
+function reviewEvidenceMatches(row,kind,filters,coverageRows){
+  const dims=reviewEvidenceDimensions(row,kind,coverageRows);
+  for(const key of ['asset','domain','model'])if(filters[key]&&(filters[key]==='__unknown__'?dims[key].length>0:!dims[key].includes(filters[key])))return false;
+  const search=typeof filters.search==='string'?filters.search.trim().toLowerCase():'';
+  const values=['id','asset','name','domain','existing_id','owner_domain','status','disposition','compatibility','freshness','rationale'].map(key=>typeof row[key]==='string'?row[key]:'');
+  return !search||[...values,...dims.model,...dims.asset,...reviewEvidenceList(row.requirement_ids)].join(' ').toLowerCase().includes(search);
+}
+function reviewEvidenceSelection(assurance,filters={}){
+  const coverage=Array.isArray(assurance?.coverage?.rows)?assurance.coverage.rows.slice(0,500):[];
+  const reuse=Array.isArray(assurance?.reuse?.rows)?assurance.reuse.rows.slice(0,500):[];
+  const groups=Array.isArray(assurance?.coverage?.groups)?assurance.coverage.groups:[];
+  return{coverage:coverage.filter(row=>reviewEvidenceMatches(row,'coverage',filters,coverage)),reuse:reuse.filter(row=>reviewEvidenceMatches(row,'reuse',filters,coverage)),groups:groups.filter(row=>reviewEvidenceMatches(row,'coverage',filters,coverage)),coverageRows:coverage,reuseRows:reuse};
 }
 // One normalized graph for both diagram entry points. No physical bindings are guessed.
 function modelGraph(modelRows,relationships,omni){
@@ -262,7 +290,7 @@ function download(name,body,mime){const url=URL.createObjectURL(new Blob([body],
 function bytes(b64){return Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
 function card(parent,title,value,note){const c=make('article',undefined,'card');c.append(make('h3',title),make('strong',value),make('p',note));parent.append(c);}
 function table(id,columns,rows,pageSize=30){let page=0;const draw=()=>{const target=clear(id);if(!rows.length){target.append(make('p','No matching records.','empty'));return;}const wrap=make('div',undefined,'table-scroll'),t=make('table'),head=make('tr');columns.forEach(c=>head.append(make('th',c[0])));const thead=make('thead');thead.append(head);t.append(thead);const body=make('tbody');rows.slice(page*pageSize,(page+1)*pageSize).forEach(row=>{const tr=make('tr');columns.forEach(c=>{const td=make('td'),v=c[1](row);td.append(v instanceof Node?v:make('span',v));tr.append(td);});body.append(tr);});t.append(body);wrap.append(t);target.append(wrap);const pager=make('div',undefined,'pager'),prev=make('button','Previous','secondary'),next=make('button','Next','secondary');prev.disabled=page===0;next.disabled=(page+1)*pageSize>=rows.length;prev.onclick=()=>{page--;draw();};next.onclick=()=>{page++;draw();};pager.append(prev,make('span',`${page*pageSize+1}–${Math.min((page+1)*pageSize,rows.length)} of ${rows.length}`),next);target.append(pager);};draw();}
-const reviewSections=['overview','readiness','changes','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[])];
+const reviewSections=['overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[])];
 const sectionRoutes={architecture:'model',lineage:'model','table-dictionary':'model','implementation-code':'delivery','replacement-map':'delivery'};
 let firstNavigation=true,modelWorkspaceReady=false;
 function navigate(){
@@ -285,6 +313,9 @@ document.querySelectorAll('[data-nav]').forEach(link=>{link.onclick=()=>{if(loca
 el('implementation-nav').hidden=false;el('files-nav').hidden=true;
 el('page-title').textContent=review.title||'Your modeling engagement';
 el('subtitle').textContent=review.description||'A guided path from the current repository to a model you can inspect, test and adopt.';
+if(data.checkpoint){el('checkpoint-note').hidden=false;el('checkpoint-note').textContent='Checkpoint — work is incomplete. Missing selected categories: '+(data.checkpoint.missing_categories.join(', ')||'none; remaining tasks and validation still require review')+'. Resume the same engagement to continue.';}
+const runControl=eng.run_control;
+el('run-progress').textContent=runControl?`${pretty(runControl.status)} coordination · ${runControl.attempts} attempts · ${runControl.counts.active} active · ${runControl.counts.interrupted} interrupted · ${runControl.reused} reused. Runtime ${runControl.runtime_sha256?.slice(0,12)||'not recorded'}. These counts do not establish host execution or cost.`:'Execution accounting was not recorded for this older package.';
 Object.values(eng.target||{}).filter(v=>v&&v!=='retain_existing').forEach(v=>el('target-tags').append(make('span',pretty(v),'pill')));
 const fingerprint=typeof eng.source_fingerprint==='object'?eng.source_fingerprint?.value:eng.source_fingerprint;
 el('scope-note').textContent=`${pretty(eng.engagement_type)} · ${text(eng.domain)} · Source ${fingerprint?fingerprint.slice(0,12):'not inventoried'} · This view is a recorded snapshot; refresh through the agent after changes.`;
@@ -310,6 +341,55 @@ function effortPackageDetails(row){const box=make('div');box.append(make('p',row
 const workflow=data.workflow||null;
 const models=review.models||[],changes=review.changes||[],cases=review.validation||[];
 const decisions=[...new Map([...(review.decisions||[]),...(workflow?.decisions||[])].map(d=>[d.id,d])).values()];
+const reviewAssurance=workflow?.review_assurance||null;
+const evidenceCoverage=reviewAssurance?.coverage,evidenceReuse=reviewAssurance?.reuse,evidenceReconciliation=reviewAssurance?.reconciliation;
+const evidenceStatus=value=>typeof value==='string'&&value.trim()?pretty(value):'Unassessed';
+const evidenceNames=value=>reviewEvidenceList(value).join(', ')||'Unknown / unassigned';
+const evidenceCounts=(counts,keys)=>keys.map(key=>`${pretty(key)}: ${reviewEvidenceCount(counts?.[key])}`).join(' · ');
+const evidenceCountRatio=(part,total)=>Number.isSafeInteger(part)&&part>=0&&Number.isSafeInteger(total)&&total>=0?`${part} of ${total}`:'Unassessed';
+const mappingSummary=evidenceCountRatio(evidenceCoverage?.counts?.mapped,evidenceCoverage?.counts?.total);
+const reuseSummary=evidenceCountRatio(evidenceReuse?.counts?.unassigned,evidenceReuse?.counts?.total);
+const reconciliationFindings=Array.isArray(evidenceReconciliation?.findings)?evidenceReconciliation.findings:null;
+const reconciliationUnknowns=Array.isArray(evidenceReconciliation?.unknowns)?evidenceReconciliation.unknowns:null;
+card(el('review-evidence-cards'),'Mapped source occurrences',mappingSummary,`${evidenceStatus(evidenceCoverage?.status)} · ${evidenceCounts(evidenceCoverage?.counts,['unresolved','unsupported','excluded_by_review','stale'])}. Authored associations, not validated behavior.`);
+card(el('review-evidence-cards'),'Existing models unassigned',reuseSummary,`${evidenceStatus(evidenceReuse?.status)} · Ownership and disposition need explicit evidence.`);
+card(el('review-evidence-cards'),'Reconciliation',evidenceStatus(evidenceReconciliation?.status),`${reviewEvidenceCount(reconciliationFindings?.length)} findings · ${reviewEvidenceCount(reconciliationUnknowns?.length)} unknowns. No native compatibility is established here.`);
+const supplied=evidenceCoverage?.supplied_files;
+const suppliedStatuses=supplied?.statuses&&typeof supplied.statuses==='object'&&!Array.isArray(supplied.statuses)?Object.entries(supplied.statuses).map(([key,value])=>`${pretty(key)}: ${reviewEvidenceCount(value)}`).join(' · ')||'Unassessed':'Unassessed';
+el('review-evidence-sources').textContent=`Supplied files — expected: ${reviewEvidenceCount(supplied?.expected)} · observed: ${reviewEvidenceCount(supplied?.observed)} · missing: ${reviewEvidenceCount(supplied?.missing)}. Statuses: ${suppliedStatuses}. Full export completeness is not established; native parity is not validated.`;
+const dispositions=evidenceReuse?.counts?.by_disposition;
+const dispositionSummary=dispositions&&typeof dispositions==='object'&&!Array.isArray(dispositions)?Object.entries(dispositions).map(([key,value])=>`${pretty(key)}: ${reviewEvidenceCount(value)}`).join(' · ')||'Unassessed':'Unassessed';
+el('review-evidence-reuse-scope').textContent=`Canonical existing inventory: ${reviewEvidenceCount(evidenceReuse?.canonical_total)} · stale reuse records: ${reviewEvidenceCount(evidenceReuse?.stale)}. Dispositions — ${dispositionSummary}. Evidence recorded is not validated compatibility.`;
+const initialEvidenceSelection=reviewEvidenceSelection(reviewAssurance);
+for(const key of ['asset','domain','model']){
+  const control=el('review-evidence-'+key),values=new Set();
+  for(const [kind,rows]of [['coverage',initialEvidenceSelection.coverageRows],['reuse',initialEvidenceSelection.reuseRows]])for(const row of rows)for(const value of reviewEvidenceDimensions(row,kind,initialEvidenceSelection.coverageRows)[key])values.add(value);
+  const unknown=make('option','Unknown / unassigned');unknown.value='__unknown__';control.append(unknown);
+  for(const value of [...values].sort()){const option=make('option',key==='model'?(models.find(m=>m.id===value)?.name||value):value);option.value=value;control.append(option);}
+}
+function evidenceFollowup(row){const link=make('a',row.status==='unassigned'||row.owner_domain===null?'Review assignment':'Review decision');link.href='#changes';return link;}
+function renderReviewEvidence(){
+  const filters=Object.fromEntries(['asset','domain','model','search'].map(key=>[key,el('review-evidence-'+key).value]));
+  const selected=reviewEvidenceSelection(reviewAssurance,filters);
+  const detailCount=(record,visible,included)=>Array.isArray(record?.rows)?`${visible.length} of ${included.length}`:'Unassessed';
+  el('review-evidence-filter-note').textContent=`Included source details: ${detailCount(evidenceCoverage,selected.coverage,selected.coverageRows)} · included reuse details: ${detailCount(evidenceReuse,selected.reuse,selected.reuseRows)}. Global counts stay unchanged. Asset filtering for reuse follows explicit shared model IDs; absent associations remain unknown.`;
+  const render=(id,columns,rows,assessed)=>{if(!assessed)empty(id,'Unassessed — no detail evidence was supplied.');else table(id,columns,rows);};
+  render('review-evidence-groups',[['Asset',r=>r.asset||'Unknown'],['Domain',r=>r.domain||'Unknown / unassigned'],['Recorded counts',r=>evidenceCounts(r,['total','mapped','unresolved','unsupported','excluded_by_review','stale'])],['Models',r=>evidenceNames(r.model_ids)]],selected.groups,Array.isArray(evidenceCoverage?.groups));
+  render('review-evidence-coverage',[['Occurrence',r=>r.name||r.id||'Unknown'],['Asset / domain',r=>`${r.asset||'Unknown'} · ${r.domain||'Unknown / unassigned'}`],['Models',r=>evidenceNames(r.model_ids)],['Status',r=>evidenceStatus(r.status)],['Rationale',r=>r.rationale||'Not supplied'],['Next step',evidenceFollowup]],selected.coverage,Array.isArray(evidenceCoverage?.rows));
+  render('review-evidence-reuse',[['Existing model',r=>`${r.name||'Unknown'} · ${r.existing_id||'Unknown ID'}`],['Owner domain',r=>r.owner_domain||'Unknown / unassigned'],['Disposition',r=>evidenceStatus(r.disposition)],['Models / requirements',r=>`${evidenceNames(r.model_ids)} / ${evidenceNames(r.requirement_ids)}`],['Compatibility / freshness',r=>`${r.compatibility==='evidence_recorded'?'Evidence recorded — not validated':'Unknown'} · ${evidenceStatus(r.freshness)}`],['Rationale',r=>r.rationale||'Not supplied'],['Next step',evidenceFollowup]],selected.reuse,Array.isArray(evidenceReuse?.rows));
+  for(const [kind,record]of [['coverage',evidenceCoverage],['reuse',evidenceReuse]])el('review-evidence-'+kind+'-limit').textContent=`Additional detail rows omitted from this page: ${reviewEvidenceCount(record?.omitted_detail_rows)}. Filters affect included details only; request the retained evidence to inspect omitted rows.`;
+  const reconciliationRows=[...(reconciliationFindings||[]).map(row=>({...row,kind:'Finding'})),...(reconciliationUnknowns||[]).map(row=>({...row,kind:'Unknown'}))];
+  render('review-evidence-reconciliation',[['Type',r=>r.kind],['Issue',r=>r.code||'Unknown'],['Details',r=>r.message||'Not supplied'],['Models',r=>evidenceNames(r.model_ids)],['Next step',()=>{const link=make('a','Prepare feedback');link.href='#review-feedback';return link;}]],reconciliationRows,reconciliationFindings!==null||reconciliationUnknowns!==null);
+}
+const orphan=evidenceCoverage?.orphan_requirements,uninventoried=evidenceReuse?.uninventoried_existing_ids;
+el('review-evidence-open-items').textContent=`Requirements without recorded mappings: ${Array.isArray(orphan)?(orphan.length?evidenceNames(orphan):'None recorded'):'Unassessed'}. Existing IDs missing from the reuse inventory: ${Array.isArray(uninventoried)?(uninventoried.length?evidenceNames(uninventoried):'None recorded'):'Unassessed'}. Review these through Changes & decisions or Prepare review feedback.`;
+el('review-evidence-summary').value=[`Coverage & reuse — ${eng.engagement_id||'engagement not supplied'}`,`Mapped source occurrences: ${mappingSummary}. Status: ${evidenceStatus(evidenceCoverage?.status)}.`,evidenceCounts(evidenceCoverage?.counts,['total','mapped','unresolved','unsupported','excluded_by_review','stale']),el('review-evidence-sources').textContent,`Existing models unassigned: ${reuseSummary}. Status: ${evidenceStatus(evidenceReuse?.status)}.`,el('review-evidence-reuse-scope').textContent,`Reconciliation: ${evidenceStatus(evidenceReconciliation?.status)}; ${reviewEvidenceCount(reconciliationFindings?.length)} findings; ${reviewEvidenceCount(reconciliationUnknowns?.length)} unknowns.`,el('review-evidence-open-items').textContent,'Delivered files and mapped associations do not establish validated behavior, approval or deployment readiness. See Validation for its separate evidence.'].join('\n');
+el('review-evidence-copy').onclick=()=>copyText(el('review-evidence-summary').value,el('review-evidence-summary'),'Coverage and reuse summary copied.');
+for(const key of ['asset','domain','model'])el('review-evidence-'+key).onchange=renderReviewEvidence;
+el('review-evidence-search').oninput=renderReviewEvidence;
+el('review-evidence-reset').onclick=()=>{for(const key of ['asset','domain','model','search'])el('review-evidence-'+key).value='';renderReviewEvidence();};
+renderReviewEvidence();
+
 const handoff=compactHandoff(data);
 table('delivery-stages',[['Stage',s=>s.label],['Recorded status',s=>pretty(s.status)],['What it means',s=>s.detail]],handoff.stages,5);
 el('handoff-blockers').textContent=`${handoff.blockers.decisions} unresolved decisions · ${handoff.blockers.failed} failed, ${handoff.blockers.pending} pending and ${handoff.blockers.skipped} skipped reported cases. Missing evidence remains unverified; these counts are not a completion score.`;
@@ -455,6 +535,7 @@ function decisionList(){
     item.append(make('p',`Affected entities: ${(d.model_ids||[]).join(', ')||'Mapping unresolved'} · Blocking stages: ${(d.blocking_stages||[]).map(pretty).join(', ')||'Not specified'}`,'muted'));
     if(d.recommendation)item.append(make('p',`Recommendation: ${d.recommendation}`));
     if(d.rationale)item.append(make('p',d.rationale));if(d.evidence_summary)item.append(make('p',`Evidence: ${d.evidence_summary}`,'muted'));
+    for(const option of d.options||[])if(typeof option.consequences==='string'&&option.consequences.trim()){const consequence=make('div',undefined,'decision-consequence');consequence.append(make('strong',option.label||option.id),make('p',`Consequences: ${option.consequences}`));item.append(consequence);}
     item.append(make('p',d.answer?`Recorded answer: ${d.answer}`:'No answer has been recorded.'));
     const canAnswer=canAnswerDecisions()&&(workflow.decisions||[]).some(row=>row.id===d.id);
     if(canAnswer){
@@ -647,6 +728,10 @@ function filterAssets(){assetId=el('asset-filter').value;selection=assetSelectio
 el('asset-filter').onchange=filterAssets;filterAssets();
 card(el('validation-counts'),'Reported passes',cases.filter(c=>c.status==='pass').length,`${cases.length} total declared cases; scope is shown per case.`);
 const authoringChecks=workflow?.authoring_checks||[];
+const designChecks=workflow?.design_checks;
+el('design-consistency-note').textContent=designChecks?`${designChecks.finding_count} structural findings · ${designChecks.unknown_count} unknowns. ${designChecks.qualification}`:'Design consistency has not been checked for this package.';
+table('design-consistency',[['Finding',r=>pretty(r.code)],['Status',r=>pretty(r.status)],['Scope',r=>pretty(r.scope)],['Action / explanation',r=>r.message]],designChecks?.findings||[]);
+table('artifact-syntax',[['Task',r=>r.task_id],['Stage',r=>pretty(r.stage)],['Status',r=>pretty(r.status)],['Counts',r=>Object.entries(r.counts||{}).map(([key,value])=>`${value} ${pretty(key)}`).join(' · ')]],workflow?.artifact_checks||[]);
 el('authoring-boundary').textContent=authoringChecks.length?'Reported static authoring observations for the included model scope. Unresolved, unsupported and stale checks remain visible. These observations do not prove native validity, business accuracy or deployment approval.':'Authoring evidence is not included for this scope. Ask the agent to recheck the retained code; no regeneration is needed for a checker-only update.';
 table('authoring-checks',[
   ['Task',r=>r.task_id],['Mode',r=>pretty(r.mode)],['Reported status',r=>pretty(r.status)],
@@ -740,7 +825,7 @@ async function rebuildGenerated(snapshot){
   }
   return records;
 }
-function subsetReadme(snapshot){return ['# Open START_HERE.html','', 'Extract the entire ZIP, then open START_HERE.html in a browser. The review works offline.', '', 'Data model: inspect tables, keys and joins. Code & files: inspect and download selected deliverables. Validation: review pending and reported checks.', '', 'Candidate review only. File integrity is not native execution, business acceptance or deployment authorization. This browser subset requires a fresh content scan and disclosure review before sharing.', '', 'Included files:',...[(snapshot.files||[]),(snapshot.generated_deliverables||[])].flat().map(f=>'- '+f.path),''].join('\n');}
+function subsetReadme(snapshot){return [snapshot.checkpoint?'# Checkpoint — work is incomplete':'# Open START_HERE.html','',snapshot.checkpoint?'Missing selected categories: '+(snapshot.checkpoint.missing_categories.join(', ')||'none; work remains incomplete')+'.':'', 'Extract the entire ZIP, then open START_HERE.html in a browser. The review works offline.', '', 'Data model: inspect tables, keys and joins. Code & files: inspect and download selected deliverables. Validation: review pending and reported checks.', '', 'Candidate review only. File integrity is not native execution, business acceptance or deployment authorization. This browser subset requires a fresh content scan and disclosure review before sharing.', '', 'Included files:',...[(snapshot.files||[]),(snapshot.generated_deliverables||[])].flat().map(f=>'- '+f.path),''].join('\n');}
 
 function implementationGuidance(){
   const target=eng.target||{};
@@ -789,6 +874,7 @@ el('download-package').onclick=async()=>{
     trimOmniEvidence(next,selected);
     trimHandoff(next,selected);
     trimWorkflowDetails(next,chosen);
+    if(next.audience==='audit'||!['documentation','diagrams','dictionary'].some(key=>chosen.has(key)))delete next.workflow?.review_assurance;
     if(next.deployment){
       const selectedIds=new Set(selected.map(f=>f.id));
       if(next.deployment.plan&&!selectedIds.has(next.deployment.plan.evidence_artifact_id)){
@@ -804,7 +890,7 @@ el('download-package').onclick=async()=>{
       next.review.quality_checks=next.review.quality_checks.map(q=>selectedIds.has(q.evidence_artifact_id)?q:qualityOmitted(q.id));
     }
     if(!chosen.has('validation'))delete next.review.validation;
-    if(next.workflow&&(!chosen.has('validation')||!['documentation','diagrams','dictionary'].some(x=>chosen.has(x))))delete next.workflow.authoring_checks;
+    if(next.workflow&&(!chosen.has('validation')||!['documentation','diagrams','dictionary'].some(x=>chosen.has(x)))){delete next.workflow.authoring_checks;delete next.workflow.artifact_checks;}
     if(!['documentation','diagrams','dictionary'].some(x=>chosen.has(x))){delete next.review.models;delete next.review.relationships;}
     else if(!chosen.has('dictionary')){
       (next.review.models||[]).forEach(m=>delete m.columns);
@@ -816,6 +902,7 @@ el('download-package').onclick=async()=>{
     }
     if(data.package_layout_version===1){
       next.generated_deliverables=await rebuildGenerated(next);
+      updateCheckpointDeficits(next);
       const generated=await checkedSubsetFiles(next.generated_deliverables,next.generated_deliverables,chosen,true);entries.push(...generated);
       entries.push(['README.md',new TextEncoder().encode(subsetReadme(next))]);
     }

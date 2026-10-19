@@ -90,6 +90,18 @@ for(const [scope,required]of [['model_only',8],['model_semantic',13],['full_dash
 }
 """)
 
+    def test_subset_preserves_existing_checkpoint_deficits_and_adds_omitted_categories(self):
+        self.execute("""
+const snapshot={checkpoint:{requested_categories:['documentation','implementation','diagrams'],
+missing_categories:['implementation']},files:[
+await syntheticFile('blank','model.sql','   ','implementation'),
+await syntheticFile('docs','model.md','Model documentation')]};
+updateCheckpointDeficits(snapshot);
+assert.deepEqual(snapshot.checkpoint.missing_categories,['implementation','diagrams']);
+updateCheckpointDeficits(snapshot);
+assert.deepEqual(snapshot.checkpoint.missing_categories,['implementation','diagrams']);
+""")
+
     def test_negative_evidence_stays_visible_but_cannot_change_scope_requirements(self):
         self.execute("""
 const value=portableAssurance({delivery_assurance:{migration_scope:'full_dashboard',checks:[

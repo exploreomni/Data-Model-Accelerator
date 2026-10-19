@@ -111,6 +111,22 @@ class SourcePipelineTests(unittest.TestCase):
         self.assertTrue(any('WHERE deleted_at IS NULL' in r['expression'] for r in self.result['rules']))
         self.assertIn('raw.orders', {r['reference'] for r in self.result['unresolved_references']})
         self.assertTrue(all(r['placement_candidate']['destination'] == 'unresolved' for r in self.result['rules']))
+        self.assertEqual(result['source_evidence_summary']['unit'], 'supplied_source_files')
+        self.assertEqual(result['source_evidence_summary']['expected'], 1)
+        self.assertEqual(result['source_evidence_summary']['observed'], 1)
+        self.assertEqual(result['source_evidence_record_counts']['expressions'], len(self.result['source_adapter_contract']['expressions']))
+
+    def test_expression_context_cannot_be_dropped_at_coordinator_boundary(self):
+        candidate = copy.deepcopy(self.result)
+        candidate['rules'][0].pop('source_details')
+        self.assertTrue(any('expression context omitted' in e for e in self.verify_result(candidate)['errors']))
+
+    def test_missing_task_retains_pinned_source_denominator(self):
+        result = verify(self.plan_path)
+        self.assertEqual(result['source_evidence_summary']['expected'], 1)
+        self.assertEqual(result['source_evidence_summary']['observed'], 0)
+        self.assertEqual(result['source_evidence_summary']['missing'], 1)
+        self.assertFalse(result['extraction_complete'])
 
     def test_omitted_or_changed_expression_rejected(self):
         for mutation in ('omit', 'change'):
