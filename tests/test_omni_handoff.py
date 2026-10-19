@@ -47,6 +47,49 @@ class OmniHandoffTests(unittest.TestCase):
         self.assertEqual('pending',self.result['summary']['native_status'])
         self.assertFalse(self.result['summary']['acceptance_ready'])
 
+    def test_missing_catalogue_can_package_an_unverified_semantic_candidate(self):
+        for missing in ('null', 'absent'):
+            with self.subTest(catalogue=missing):
+                state=copy.deepcopy(self.state)
+                if missing=='null':state['inputs']['catalogue']=None
+                else:del state['inputs']['catalogue']
+                before=copy.deepcopy(state)
+                result=handoff.build_handoff(state,self.files,self.context)
+                self.assertEqual(before,state)
+                self.assertFalse(result['acceptance_ready'])
+                self.assertFalse(result['native_verified'])
+                self.assertEqual('pending',result['summary']['native_status'])
+                self.assertEqual('not_authorized',result['summary']['deployment_status'])
+                output=self.root/('semantic-'+missing)
+                registration=handoff.write_handoff(result,output)
+                review=copy.deepcopy(self.review)
+                review['context_sha256']=portal.context_fingerprint(state)
+                review['artifacts']=registration['artifacts'];review['omni']=registration['omni']
+                package=self.root/('missing-'+missing+'.zip')
+                portal.package_delivery(state,review,output,package,audience='engineer')
+                self.assertEqual('integrity_verified',portal.verify_delivery(package)['status'])
+                with zipfile.ZipFile(package) as archive:
+                    self.assertTrue(any(path.endswith('events.view') for path in archive.namelist()))
+
+    def test_malformed_catalogue_is_not_treated_as_missing(self):
+        for malformed in (False, 0, [], 'unknown'):
+            with self.subTest(catalogue=malformed):
+                state=copy.deepcopy(self.state);state['inputs']['catalogue']=malformed
+                with self.assertRaisesRegex(ValueError,'handoff.catalogue'):
+                    handoff.build_handoff(state,self.files,self.context)
+
+    def test_present_catalogue_still_requires_matching_context(self):
+        state=copy.deepcopy(self.state);state['inputs']['catalogue']['sha256']='f'*64
+        with self.assertRaisesRegex(ValueError,'handoff.catalogue_changed'):
+            handoff.build_handoff(state,self.files,self.context)
+
+    def test_missing_physical_context_remains_an_explicit_inventory_gap(self):
+        state=copy.deepcopy(self.state);state['inputs']['catalogue']=None
+        context=copy.deepcopy(self.context);context['catalogue_sha256']=None
+        with self.assertRaisesRegex(ValueError,'handoff.inventory_unavailable'):
+            handoff.build_handoff(state,self.files,context)
+        self.assertIsNone(context['catalogue_sha256'])
+
     def test_reviewer_package_is_curated_without_sql_or_private_context(self):
         path=self.package(audience='reviewer');data=self.payload(path)
         self.assertEqual('selected',data['review']['omni']['evidence_state'])

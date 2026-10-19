@@ -85,6 +85,12 @@ or create a catalogue record.
   native acceptance. The reviewed refactor planner still requires accepted
   definitions; use the provisional stage tasks rather than falsely marking
   draft decisions accepted.
+- The curated Omni handoff needs resolvable model context. If it reports
+  `handoff.inventory_unavailable`, retain that diagnostic and package the native
+  draft files through the existing generic review/finalizer. Include clearly
+  labeled declared semantic definitions and unresolved bindings; do not present
+  them as grounded lineage or fill a missing catalogue hash to satisfy the
+  checker. This limitation does not prevent delivery of the requested drafts.
 
 This narrow exception covers catalogue absence and pending design review or
 decisions. It does not waive target selection, source-inventory boundaries,
