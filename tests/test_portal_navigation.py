@@ -64,9 +64,9 @@ assert.ok(el('authoring-checks').children.length);assert.ok(el('authoring-findin
         self.page(self.payload(),"""
 const initial=[...chosen];assert.equal(graph.nodes.length,3);
 el('architecture-model').value='silver.orders';el('architecture-model').onchange();
-el('architecture-direction').value='upstream';el('architecture-direction').onchange();
+el('erd-dependencies').checked=true;el('erd-dependencies').onchange();
 assert.equal(el('lineage-model').value,'');assert.equal(el('lineage-direction').value,'');
-assert.deepEqual([...erdSelection.visible].sort(),['bronze.orders','silver.orders']);
+assert.deepEqual([...erdSelection.visible].sort(),['bronze.orders','gold.orders','silver.orders']);assert.equal(inspectedModel,'silver.orders');
 assert.equal(lineageSelection.visible.size,3);
 el('erd-clear').onclick();
 el('lineage-clear').onclick();el('lineage-new').checked=true;el('lineage-new').onchange();assert.deepEqual([...lineageSelection.visible],['gold.orders']);

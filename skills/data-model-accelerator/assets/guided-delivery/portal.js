@@ -139,7 +139,7 @@ function decisionResponseDocument(workflow,engagementId,responses){
 }
 function trimWorkflowDetails(snapshot,categories){
   if(snapshot.audience!=='audit'&&['documentation','diagrams','dictionary'].some(key=>categories.has(key)))return;
-  for(const key of ['assets','models','relationships','decisions','changes'])delete snapshot.review?.[key];
+  for(const key of ['assets','models','relationships','domain_proposals','decisions','changes'])delete snapshot.review?.[key];
   for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance'])delete snapshot.workflow?.[key];
 }
 // Coverage/reuse counts describe supplied associations, never native validation.
@@ -164,8 +164,23 @@ function reviewEvidenceSelection(assurance,filters={}){
   return{coverage:coverage.filter(row=>reviewEvidenceMatches(row,'coverage',filters,coverage)),reuse:reuse.filter(row=>reviewEvidenceMatches(row,'reuse',filters,coverage)),groups:groups.filter(row=>reviewEvidenceMatches(row,'coverage',filters,coverage)),coverageRows:coverage,reuseRows:reuse};
 }
 // One normalized graph for both diagram entry points. No physical bindings are guessed.
-function modelGraph(modelRows,relationships,omni){
-  const nodes=modelRows.map(m=>({...m,object_kind:'warehouse',full_name:m.name||m.id})),edges=[];
+function modelGraph(modelRows,relationships,omni,proposals=[]){
+  const records=relationships.map((e,i)=>({...e,occurrence_id:'canonical:'+(i+1),record_origin:'canonical',record_position:i+1}));
+  const domainsByModel=new Map();for(const p of proposals)for(const id of p.model_ids||[]){if(!domainsByModel.has(id))domainsByModel.set(id,[]);domainsByModel.get(id).push(p.domain);}
+  const rows=modelRows.map(m=>({...m,proposal_domains:domainsByModel.get(m.id)||[]})),knownModels=new Set(rows.map(m=>m.id));
+  for(const proposal of proposals){
+    for(const endpoint of proposal.reference_endpoints||[])if(!knownModels.has(endpoint.id)){rows.push({id:endpoint.id,name:endpoint.name||endpoint.id,layer:'reference',object_kind:'reference',reference_only:true,grain:'Definition absent from included model inventory'});knownModels.add(endpoint.id);}
+    (proposal.relationships||[]).forEach((e,i)=>records.push({...e,occurrence_id:'proposal:'+proposal.id+':'+(i+1),record_origin:'domain_proposal',proposal_id:proposal.id,proposal_domain:proposal.domain,record_position:i+1}));
+  }
+  const grouped=new Map();
+  for(const e of records){const key=JSON.stringify([e.from,e.to,e.kind,e.role||e.label||'']);if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(e);}
+  for(const group of grouped.values()){
+    const signature=e=>JSON.stringify([e.predicate||'',e.cardinality||'',e.notation||'',e.from_columns||[],e.to_columns||[],e.status||e.implementation_status||'']);
+    const counts=new Map();for(const e of group){const key=signature(e);counts.set(key,(counts.get(key)||0)+1);}
+    for(const e of group){e.conflicting_definitions=counts.size>1;e.duplicate_occurrences=counts.get(signature(e));}
+  }
+  modelRows=rows;relationships=records;
+  const nodes=modelRows.map(m=>({...m,object_kind:m.reference_only?'reference':'warehouse',full_name:m.name||m.id})),edges=[];
   // Retain every authored interpretation, including conflicting cardinality/status/evidence.
   const addEdge=e=>edges.push(e);
   relationships.forEach(e=>addEdge({...e}));
@@ -212,24 +227,35 @@ function graphPages(selection,maximum=36,preferred=[]){
     pages.push({label:`${group.label}${group.nodes.length>maximum?' · view '+(Math.floor(start/maximum)+1):''} · ${nodes.length} objects`,model_ids:nodes.map(n=>n.id),nodes,edges:edges.slice(0,120),omitted_graph_connections:Math.max(0,edges.length-120),cross_view_connections:selection.edges.filter(e=>ids.has(e.from)!==ids.has(e.to)).length});
   }return pages;
 }
+function edgeEvidence(e){return [e.occurrence_id||'Recorded dependency',e.proposal_domain,e.conflicting_definitions?'Conflicting definitions':null,e.duplicate_occurrences>1?`${e.duplicate_occurrences} matching occurrences`:null,e.evidence?JSON.stringify(e.evidence):null].filter(Boolean).join(' · ');}
 function filteredModelSvg(modelRows,edges,dependencyIds=new Set(),omittedEdges=0,compact=false,portable=false){
   if(!modelRows.length)return '';
-  if(new Set(modelRows.map(m=>m.id)).size!==modelRows.length||modelRows.some(m=>!m.id||!['bronze','silver','gold','semantic'].includes(m.layer)))throw new Error('ERD inventory contains duplicate IDs or unsupported layers.');
+  if(new Set(modelRows.map(m=>m.id)).size!==modelRows.length||modelRows.some(m=>!m.id||!['bronze','silver','gold','semantic','reference'].includes(m.layer)))throw new Error('ERD inventory contains duplicate IDs or unsupported layers.');
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
-  const order=['bronze','silver','gold','semantic'],layers=order.filter(l=>modelRows.some(m=>m.layer===l));
+  const order=['bronze','silver','gold','semantic','reference'],layers=order.filter(l=>modelRows.some(m=>m.layer===l));
   let grouped=layers.map(l=>modelRows.filter(m=>m.layer===l));
-  if(compact&&layers.length===1&&modelRows.length>3){grouped=[modelRows.slice(0,Math.ceil(modelRows.length/2)),modelRows.slice(Math.ceil(modelRows.length/2))];layers.push(layers[0]);}
+  if(compact){const splitLayers=[],splitGroups=[];for(const [i,rows]of grouped.entries()){const count=Math.min(3,Math.ceil(rows.length/5)),size=Math.ceil(rows.length/count);for(let n=0;n<count;n++){splitLayers.push(layers[i]);splitGroups.push(rows.slice(n*size,(n+1)*size));}}layers.splice(0,layers.length,...splitLayers);grouped=splitGroups;}
   const index=new Map(),positions=new Map(),incidents=new Map(modelRows.map(m=>[m.id,[]]));
   grouped.forEach((rows,i)=>rows.forEach(m=>index.set(m.id,i)));
   edges=edges.filter(e=>incidents.has(e.from)&&incidents.has(e.to));
   const lanes=layers.map(()=>[]),skips=[];
   edges.forEach((e,i)=>{const a=index.get(e.from),b=index.get(e.to);incidents.get(e.from).push(i+'from');incidents.get(e.to).push(i+'to');if(Math.abs(a-b)===1)lanes[Math.min(a,b)].push(i);else if(a===b)lanes[a].push(i);else{lanes[a].push(i);lanes[b].push(i);skips.push(i);}});
-  const cw=compact?320:440,ch=Math.max(190,60+20*Math.max(0,...[...incidents.values()].map(v=>v.length))),gutters=lanes.map(v=>Math.max(compact?100:170,50+v.length*16)),xs=[34];
+  const cw=440,wrapCard=(value,limit=44)=>{const str=String(value??'').replace(/\s+/g,' '),out=[];for(let i=0;i<str.length;i+=limit)out.push(str.slice(i,i+limit));return out.length?out:[''];};
+  const content=new Map(modelRows.map(m=>{
+    const title=m.full_name||m.name||m.id,qualifier=m.reference_only?'Reference only · definition missing':m.scope_role==='shared_reference'?'Shared reference · outside domain':dependencyIds.has(m.id)?'Required dependency context':m.object_kind==='semantic'?'Semantic object':dispositionLabel(m)+' · '+m.layer;
+    const declared=Array.isArray(m.keys)?m.keys.filter(key=>typeof key==='string'):[],columns=(m.columns||[]).filter(c=>c.key||declared.includes(c.name)),missingKeys=declared.filter(key=>!(m.columns||[]).some(c=>c.name===key)).map(name=>({name,key:'Declared key',type:'Type unverified'})),keyRows=[...columns,...missingKeys],shown=keyRows.length?keyRows:(m.columns||[]).slice(0,4);
+    const lines=[...wrapCard(title,36).map(text=>({text,name:true})),...wrapCard(qualifier).map(text=>({text,note:true})),...wrapCard(m.grain||'Grain unresolved').map(text=>({text,note:true})),...shown.flatMap(c=>wrapCard((c.key||((m.keys||[]).includes(c.name)?'Declared key':''))+' '+c.name+' · '+(c.type||'unknown')).map(text=>({text,key:true})))];
+    if(!keyRows.length)lines.push({text:'Keys not supplied',note:true});
+    if((m.columns||[]).length>columns.length&&keyRows.length)lines.push({text:`${m.columns.length-columns.length} other columns in inspector`,note:true});
+    else if((m.columns||[]).length>shown.length)lines.push({text:`${m.columns.length-shown.length} other columns in inspector`,note:true});
+    return[m.id,lines];
+  }));
+  const ch=Math.max(190,48+22*Math.max(...[...content.values()].map(lines=>lines.length)),60+20*Math.max(0,...[...incidents.values()].map(v=>v.length))),gutters=lanes.map(v=>Math.max(150,50+v.length*16)),xs=[34];
   for(let i=1;i<layers.length;i++)xs.push(xs[i-1]+cw+gutters[i-1]);
   const top=(compact?70:115)+skips.length*20;grouped.forEach((rows,i)=>rows.forEach((m,j)=>positions.set(m.id,{x:xs[i],y:top+j*(ch+48)})));
   const bottom=top+Math.max(1,...grouped.map(g=>g.length))*(ch+48),width=Math.max(compact?500:1080,(xs.at(-1)||34)+cw+(gutters.at(-1)||170)+34);
   const wrap=value=>{const text=String(value).replace(/\s+/g,' '),limit=Math.max(30,Math.floor((width-68)/10)),lines=[];for(let i=0;i<text.length;i+=limit)lines.push(text.slice(i,i+limit));return lines.length?lines:[''];};
-  const ledger=compact?[]:edges.map((e,i)=>[...wrap(`E${i+1} · ${e.from} → ${e.to}`),...wrap([e.label||e.kind,e.predicate,e.cardinality,e.role,e.status||e.implementation_status||'Not validated'].filter(Boolean).join(' · '))]);
+  const ledger=compact?[]:edges.map((e,i)=>[...wrap(`E${i+1} · ${e.from} → ${e.to}`),...wrap([e.label||e.kind,e.predicate,e.cardinality,e.role,e.status||e.implementation_status||'Not validated',edgeEvidence(e)].filter(Boolean).join(' · '))]);
   const height=bottom+ledger.reduce((sum,lines)=>sum+lines.length*23+14,0)+65;
   const parts=[`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img"><title>Layered model and declared dependencies</title><desc>Full names are selectable using the model name controls. ${omittedEdges} connectors omitted from this image; see the complete relationship ledger.</desc>${portable?'':'<style>.model-name { font-weight: 700; fill: #172e43; } .model-note { fill: #546779; }</style>'}<rect width="${width}" height="${height}" fill="#f4f7fb"/><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#537080"/></marker></defs>`];
   layers.forEach((l,i)=>parts.push(`<text x="${xs[i]}" y="35" font-family="sans-serif" font-size="22" fill="#172e43">${l} · ${grouped[i].length}</text>`));
@@ -240,11 +266,11 @@ function filteredModelSvg(modelRows,edges,dependencyIds=new Set(),omittedEdges=0
     else if(a===b)points=[[p.x+cw,y1],[lane(a,i),y1],[lane(a,i),y2],[q.x+cw,y2]];
     else points=[[p.x+cw,y1],[lane(a,i),y1],[lane(a,i),70+skips.indexOf(i)*20],[lane(b,i),70+skips.indexOf(i)*20],[lane(b,i),y2],[q.x+cw,y2]];
     const status=e.status||e.implementation_status,color=e.kind==='lineage'?'#0c827e':status==='authored'?'#7658a7':status==='proposed'?'#9b641c':'#53697f',dash=e.kind==='lineage'||status==='authored'?'':` stroke-dasharray="${status==='proposed'?'7 4':'2 4'}"`;
-    parts.push(`<path d="M ${points.map(p=>p.join(' ')).join(' L ')}" fill="none" stroke="${color}" stroke-width="2"${dash} marker-end="url(#arrow)"><title>${esc(e.label||e.kind)}</title></path><text x="${points[0][0]+5}" y="${y1-5}" font-family="sans-serif" font-size="13" fill="${color}">E${i+1}</text>`);
+    parts.push(`<path d="M ${points.map(p=>p.join(' ')).join(' L ')}" fill="none" stroke="${color}" stroke-width="2"${dash}${e.kind==='lineage'?' marker-end="url(#arrow)"':''}><title>${esc(e.label||e.kind)}</title></path><text x="${points[0][0]+5}" y="${y1-5}" font-family="sans-serif" font-size="13" fill="${color}">E${i+1}</text>`);
   });
-  for(const m of modelRows){const p=positions.get(m.id);if(!p)continue;const title=m.full_name||m.name||m.id,subtitle=dependencyIds.has(m.id)?'Required dependency context':m.mapping_status==='inferred'?'Inferred asset mapping':m.object_kind==='semantic'?'Semantic object':dispositionLabel(m)+' · '+m.layer;
-    parts.push(`<g data-model-id="${esc(m.id)}"><title>${esc(title)} · ${esc(m.grain||'Grain unresolved')}</title><rect x="${p.x}" y="${p.y}" width="${cw}" height="${ch}" rx="10" fill="white" stroke="#9aabba"/><text data-model-id="${esc(m.id)}" data-model-name="${esc(title)}" class="model-name" font-weight="700" x="${p.x+14}" y="${p.y+28}" font-family="sans-serif" font-size="18" fill="#172e43">${esc(title.length>(compact?25:38)?title.slice(0,compact?25:38)+'…':title)}</text><text class="model-note" x="${p.x+14}" y="${p.y+52}" font-family="sans-serif" font-size="15" fill="#546779">${esc(subtitle)}</text><text x="${p.x+14}" y="${p.y+76}" font-family="sans-serif" font-size="15" fill="#546779">${esc((m.grain||'Grain unresolved').slice(0,compact?36:50))}</text>`);
-    [...(m.columns||[])].sort((a,b)=>Number(Boolean(b.key))-Number(Boolean(a.key))).slice(0,4).forEach((c,i)=>parts.push(`<text x="${p.x+14}" y="${p.y+102+i*20}" font-family="monospace" font-size="15" fill="#172e43">${esc(((c.key?c.key+' ':'')+c.name+' · '+(c.type||'unknown')).slice(0,compact?30:44))}</text>`));parts.push('</g>');
+  for(const m of modelRows){const p=positions.get(m.id);if(!p)continue;const title=m.full_name||m.name||m.id,reference=m.reference_only||m.scope_role==='shared_reference';
+    parts.push(`<g data-model-id="${esc(m.id)}"><title>${esc(title)} · ${esc(m.grain||'Grain unresolved')}</title><rect x="${p.x}" y="${p.y}" width="${cw}" height="${ch}" rx="10" fill="${reference?'#fff8ed':'white'}" stroke="${reference?'#a77831':'#9aabba'}"${m.reference_only?' stroke-dasharray="6 4"':''}/>`);
+    content.get(m.id).forEach((line,i)=>parts.push(`<text${line.name?` data-model-id="${esc(m.id)}" data-model-name="${esc(title)}" class="model-name" font-weight="700"`:''} x="${p.x+14}" y="${p.y+28+i*22}" font-family="${line.key?'monospace':'sans-serif'}" font-size="${line.name?18:15}" fill="${line.note?'#546779':'#172e43'}">${esc(line.text)}</text>`));parts.push('</g>');
   }
   let ledgerY=bottom;for(const lines of ledger){for(const line of lines){parts.push(`<text x="34" y="${ledgerY}" font-family="sans-serif" font-size="15" fill="#172e43">${esc(line)}</text>`);ledgerY+=23;}ledgerY+=14;}
   if(omittedEdges)parts.push(`<text x="34" y="${height-20}" font-size="16" fill="#546779">${omittedEdges} connectors omitted from this image. See the complete relationship ledger.</text>`);
@@ -254,21 +280,60 @@ function filteredModelSvg(modelRows,edges,dependencyIds=new Set(),omittedEdges=0
 function dispositionLabel(model){return({create:'New',reuse:'Reused',extend:'Extended',replace:'Replaced'})[model.disposition]||'Unspecified';}
 function columnRole(model,column){return column.key||((model.keys||[]).includes(column.name)?'Declared key':'—');}
 function selectErd(graph,options={}){
-  const warehouse=graph.nodes.filter(m=>m.object_kind==='warehouse'),ids=new Set(warehouse.map(m=>m.id));
-  let focused=new Set(ids);
-  if(options.focus){focused=new Set(ids.has(options.focus)?[options.focus]:[]);if(options.direction==='relationships'){
-    for(const e of graph.edges)if(e.kind==='relationship'){if(e.from===options.focus&&ids.has(e.to))focused.add(e.to);if(e.to===options.focus&&ids.has(e.from))focused.add(e.from);}
-  }else{const selected=selectLineage(graph,{focus:options.focus,direction:options.direction});focused=new Set([...selected.visible].filter(id=>ids.has(id)));}}
+  const warehouse=graph.nodes.filter(m=>m.object_kind==='warehouse');
+  const domainNodes=warehouse.filter(m=>!options.domain||m.domain===options.domain||m.proposal_domains?.includes(options.domain)),domainIds=new Set(domainNodes.map(m=>m.id));
   const query=(options.search||'').trim().toLowerCase();
-  const nodes=warehouse.filter(m=>focused.has(m.id)&&(!options.allowed||options.allowed.has(m.id))&&(!options.layer||m.layer===options.layer)&&(!options.disposition||(options.disposition==='undetermined'?dispositionLabel(m)==='Unspecified':m.disposition===options.disposition))&&(!query||(m.full_name+' '+m.id).toLowerCase().includes(query)));
-  const visible=new Set(nodes.map(m=>m.id)),edges=graph.edges.filter(e=>visible.has(e.from)&&visible.has(e.to)&&((options.direction&&options.direction!=='relationships')||e.kind==='relationship'));
-  return{nodes,edges,visible,selected:visible,dependencies:new Set(),hidden:warehouse.length-nodes.length};
+  const direct=new Set(domainNodes.filter(m=>(!options.allowed||options.allowed.has(m.id))&&(!options.layer||m.layer===options.layer)&&(!options.disposition||(options.disposition==='undetermined'?dispositionLabel(m)==='Unspecified':m.disposition===options.disposition))&&(!query||(m.full_name+' '+m.id).toLowerCase().includes(query))).map(m=>m.id));
+  const applicable=graph.edges.filter(e=>!options.domain||e.record_origin!=='domain_proposal'||e.proposal_domain===options.domain);
+  const visible=new Set(direct),joins=applicable.filter(e=>e.kind==='relationship'||options.dependencies&&e.kind==='lineage');
+  // Only domain scope adds neighbors. Search/layer/asset filters remain explicit boundaries.
+  const permitted=id=>{const m=graph.byId.get(id);return m&&m.object_kind!=='semantic'&&(!options.allowed||m.object_kind==='reference'||options.allowed.has(id));};
+  for(const e of joins)if(direct.has(e.from)||direct.has(e.to)){
+    for(const id of [e.from,e.to])if(permitted(id)&&(!domainIds.has(id)||direct.has(id))&&(options.domain||graph.byId.get(id).object_kind==='reference'))visible.add(id);
+  }
+  // Domain-assigned proposal records explicitly scope disconnected shared/reference components.
+  // Under an asset boundary, missing definitions need an allowed known endpoint anchor.
+  if(!query&&!options.layer&&!options.disposition){
+    const scoped=joins.filter(e=>e.record_origin==='domain_proposal');
+    const scopedIds=new Set(scoped.flatMap(e=>[e.from,e.to]));
+    for(const id of scopedIds)if(permitted(id)&&graph.byId.get(id).object_kind==='warehouse'&&(!domainIds.has(id)||direct.has(id)))visible.add(id);
+    if(!options.allowed){for(const id of scopedIds)if(permitted(id))visible.add(id);}
+    else{
+      const adjacency=new Map();for(const e of scoped){if(!permitted(e.from)||!permitted(e.to))continue;for(const [a,b]of [[e.from,e.to],[e.to,e.from]]){if(!adjacency.has(a))adjacency.set(a,new Set());adjacency.get(a).add(b);}}
+      const pending=[...visible],visited=new Set(pending);for(let i=0;i<pending.length;i++)for(const id of adjacency.get(pending[i])||[])if(!visited.has(id)&&graph.byId.get(id).object_kind==='reference'){visited.add(id);visible.add(id);pending.push(id);}
+    }
+  }
+  const nodes=graph.nodes.filter(m=>visible.has(m.id)).map(m=>({...m,scope_role:m.object_kind==='reference'?'missing_reference':direct.has(m.id)?'domain':'shared_reference'}));
+  const edges=joins.filter(e=>visible.has(e.from)&&visible.has(e.to));
+  const inScope=e=>domainIds.has(e.from)||domainIds.has(e.to)||e.record_origin==='domain_proposal';
+  const hiddenConnections=joins.filter(e=>inScope(e)&&(!visible.has(e.from)||!visible.has(e.to))).length;
+  const referenceScope=new Set(joins.filter(inScope).flatMap(e=>[e.from,e.to]).filter(id=>!domainIds.has(id)&&graph.byId.has(id)));
+  const hiddenReferences=[...referenceScope].filter(id=>!visible.has(id)).length;
+  // Overlay controls drawing only. Retain eligible dependency evidence separately;
+  // never use its endpoints to expand the default join diagram.
+  const candidates=applicable.filter(e=>permitted(e.from)&&permitted(e.to)&&(direct.has(e.from)||direct.has(e.to)||visible.has(e.from)&&visible.has(e.to)||!query&&!options.layer&&!options.disposition&&e.record_origin==='domain_proposal'));
+  const ledgerIds=new Set();
+  if(!options.allowed)for(const e of candidates){ledgerIds.add(e.from);ledgerIds.add(e.to);}
+  else{
+    const adjacency=new Map();for(const e of candidates)for(const [a,b]of [[e.from,e.to],[e.to,e.from]]){if(!adjacency.has(a))adjacency.set(a,new Set());adjacency.get(a).add(b);if(graph.byId.get(a).object_kind==='warehouse')ledgerIds.add(a);}
+    const pending=[...ledgerIds];for(let i=0;i<pending.length;i++)for(const id of adjacency.get(pending[i])||[])if(!ledgerIds.has(id)&&graph.byId.get(id).object_kind==='reference'){ledgerIds.add(id);pending.push(id);}
+  }
+  return{nodes,edges,visible,selected:direct,dependencies:new Set(),domain:options.domain||'',focus:options.focus||'',
+    domain_total:domainNodes.length,domain_count:direct.size,shared_count:nodes.filter(m=>m.scope_role==='shared_reference').length,
+    missing_count:nodes.filter(m=>m.reference_only).length,hidden:domainNodes.length-direct.size,hidden_connections:hiddenConnections,hidden_references:hiddenReferences,
+    dependencies_displayed:Boolean(options.dependencies),ledger:candidates.filter(e=>ledgerIds.has(e.from)&&ledgerIds.has(e.to))};
 }
 function erdPages(selection,maximum=36){
-  // Rebuild from the selected inventory. Stale saved pages cannot strand a table in a singleton view.
+  if(!Number.isSafeInteger(maximum)||maximum<1)throw new Error('ERD page size must be a positive integer.');
+  // Breadth-first order keeps connected tables together without pruning isolates or cycles.
+  const byId=new Map(selection.nodes.map(n=>[n.id,n])),adj=new Map(selection.nodes.map(n=>[n.id,new Set()]));
+  for(const e of selection.edges){adj.get(e.from)?.add(e.to);adj.get(e.to)?.add(e.from);}
+  const seen=new Set(),ordered=[];
+  const seeds=[...selection.nodes].sort((a,b)=>String(a.domain||'').localeCompare(String(b.domain||''))||a.id.localeCompare(b.id));
+  for(const seed of seeds){if(seen.has(seed.id))continue;seen.add(seed.id);const queue=[seed.id];for(let i=0;i<queue.length;i++){const id=queue[i];ordered.push(byId.get(id));for(const next of adj.get(id)||[])if(!seen.has(next)){seen.add(next);queue.push(next);}}}
   const pages=[];
-  for(let start=0;start<selection.nodes.length;start+=maximum){const nodes=selection.nodes.slice(start,start+maximum),ids=new Set(nodes.map(m=>m.id)),edges=selection.edges.filter(e=>ids.has(e.from)&&ids.has(e.to));
-    pages.push({label:`Tables ${start+1}–${start+nodes.length} of ${selection.nodes.length}`,model_ids:nodes.map(m=>m.id),nodes,edges:edges.slice(0,120),omitted_graph_connections:Math.max(0,edges.length-120),cross_view_connections:selection.edges.filter(e=>ids.has(e.from)!==ids.has(e.to)).length,compact:true});
+  for(let start=0;start<ordered.length;start+=maximum){const nodes=ordered.slice(start,start+maximum),ids=new Set(nodes.map(m=>m.id)),edges=selection.edges.filter(e=>ids.has(e.from)&&ids.has(e.to));
+    pages.push({label:`${selection.domain||'Entire model'} · tables ${start+1}–${start+nodes.length} of ${ordered.length}`,model_ids:nodes.map(m=>m.id),nodes,edges:edges.slice(0,120),ledger:(selection.ledger||selection.edges).filter(e=>ids.has(e.from)||ids.has(e.to)),omitted_graph_connections:Math.max(0,edges.length-120),cross_view_connections:selection.edges.filter(e=>ids.has(e.from)!==ids.has(e.to)).length,compact:true});
   }return pages;
 }
 function assertModelCoverage(modelRows,svg){
@@ -553,17 +618,18 @@ function decisionList(){
 function updateDecisionButton(){const selected=[...decisionInputs.values()].filter(v=>v.selected).length;el('save-decisions').disabled=!canAnswerDecisions()||!selected;el('save-decisions').textContent=`Save selected decision answers${selected?' ('+selected+')':''}`;}
 el('save-decisions').onclick=()=>{try{const answers=[...decisionInputs].filter(([,v])=>v.selected).map(([decision_id,v])=>({decision_id,answer:v.answer,option_id:v.option_id,rationale:v.rationale}));const result=decisionResponseDocument(workflow,eng.engagement_id,answers);download('decision-responses.json',JSON.stringify(result,null,2),'application/json');el('decision-receipt').textContent=`Saved ${answers.length} responses for design revision ${workflow.design_revision}. Give the file to the agent in this engagement. The file does not approve a design or authorize deployment; the agent will confirm whether each answer was recorded.`;}catch(error){notice(error.message);}};
 decisionList();
-const graph=modelGraph(models,review.relationships||[],review.omni);
+const graph=modelGraph(models,review.relationships||[],review.omni,review.domain_proposals||[]);
 const diagramEnabled=data.page_mode==='status'||!Array.isArray(data.selected_categories)||data.selected_categories.includes('diagrams');
 const lineageOptions={focus:'',direction:'both',search:'',layer:'',newOnly:false,context:false,joins:true};
-const erdOptions={focus:'',direction:'relationships',search:'',layer:'',disposition:''};
-let diagramFitMode=true,tableLimit=50;
+const erdOptions={focus:'',domain:'',dependencies:false,search:'',layer:'',disposition:''};
+for(const domain of [...new Set(graph.nodes.flatMap(m=>[m.domain,...(m.proposal_domains||[])]).filter(Boolean))].sort()){const option=make('option',domain);option.value=domain;el('erd-domain').append(option);}
+let diagramFitMode=false,tableLimit=50;
 let shownViews=[],lineageViews=[],currentDiagram=null,currentLineageDiagram=null,lineageSelection=selectLineage(graph),erdSelection=selectErd(graph),diagramZoom=1,lineageZoom=1,inspectedModel='',inspectorFile=null;
 for(const id of ['architecture-model','lineage-model'])for(const model of graph.nodes){
   if(id==='architecture-model'&&model.object_kind!=='warehouse')continue;
   const option=make('option',`${model.object_kind==='warehouse'?'Warehouse':'Semantic'} · ${model.full_name} (${model.layer})`);option.value=model.id;el(id).append(option);
 }
-el('architecture-direction').value='relationships';el('lineage-joins').checked=true;
+el('lineage-joins').checked=true;
 function setViewOptions(id,views){const prior=Number(el(id).value)||0,select=clear(id);views.forEach((v,i)=>{const option=make('option',v.label);option.value=String(i);select.append(option);});select.value=String(Math.min(prior,Math.max(0,views.length-1)));}
 function buildViews(){
   let allowed;
@@ -577,12 +643,12 @@ function buildViews(){
   const summary=clear('model-summary');summary.append(make('strong',`${models.length} tables`),make('span','Candidate design','pill'));
   for(const [value,label]of [['create','new'],['reuse','reused'],['extend','extended'],['replace','replaced'],['undetermined','unspecified']]){const count=models.filter(m=>value==='undetermined'?dispositionLabel(m)==='Unspecified':m.disposition===value).length;if(count)summary.append(make('span',`${count} ${label}`,'pill'));}
   for(const kind of ['fact','dimension']){const count=models.filter(m=>m.entity_type===kind).length;if(count)summary.append(make('span',`${count} ${kind}${count===1?'':'s'}`,'pill'));}
-  summary.append(make('span',`${(review.relationships||[]).filter(e=>e.kind==='relationship').length} declared relationships`));
+  summary.append(make('span',`${graph.edges.filter(e=>e.kind==='relationship').length} declared relationship occurrences`));
   const unresolved=decisions.filter(d=>!['resolved','accepted','approved'].includes(d.status)).length;if(unresolved){const link=make('a',`${unresolved} decisions to review`);link.href='#changes';summary.append(link);}
   el('diagram-download-all').disabled=!diagramEnabled||!models.length;
   showDiagram();showLineage();relationshipTable();tableNavigator();
   const inspector=clear('inspect-model');const prompt=make('option','Choose a table');prompt.value='';inspector.append(prompt);
-  for(const model of graph.nodes.filter(m=>m.object_kind==='warehouse')){const option=make('option',`${model.full_name} · ${dispositionLabel(model)}`);option.value=model.id;inspector.append(option);}
+  for(const model of graph.nodes.filter(m=>m.object_kind==='warehouse'||erdSelection.visible.has(m.id))){const option=make('option',`${model.full_name} · ${model.reference_only?'Reference only':dispositionLabel(model)}`);option.value=model.id;inspector.append(option);}
   if(!graph.byId.has(inspectedModel))inspectedModel=erdSelection.nodes[0]?.id||'';
   inspector.value=inspectedModel;inspectModel(inspectedModel);
   table('model-roster',[['Table',m=>{const b=make('button',m.full_name,'secondary');b.type='button';b.onclick=()=>revealModel(m.id);return b;}],['Change',dispositionLabel],['One row represents',m=>m.grain||'Not supplied'],['Declared keys',m=>(m.columns||[]).filter(c=>c.key||(m.keys||[]).includes(c.name)).map(c=>`${columnRole(m,c)}: ${c.name}`).join('; ')||'Not supplied']],erdSelection.nodes);
@@ -641,7 +707,7 @@ function showDiagram(){
   const view=shownViews[Number(el('diagram-view').value)||0];currentDiagram=view||null;
   el('diagram-download').disabled=!view;el('diagram-view').hidden=shownViews.length<2;el('diagram-view-label').hidden=shownViews.length<2;
   drawDiagram('diagram','diagram',view);
-  el('diagram-coverage').textContent=view?`${view.model_ids.length} tables on this page · ${erdSelection.visible.size} of ${models.length} included tables${erdSelection.hidden?` · ${erdSelection.hidden} hidden by filters`:''}${view.cross_view_connections?` · ${view.cross_view_connections} joins continue on another page`:''}${view.omitted_graph_connections?` · ${view.omitted_graph_connections} connectors in the relationship table only`:''}.`:diagramEnabled?'No tables match. Show all tables to reset this view.':'Diagrams were not included in this package.';
+  el('diagram-coverage').textContent=view?`${view.model_ids.length} tables on this page · ${erdSelection.domain_count} of ${erdSelection.domain_total} included tables · ${erdSelection.shared_count} shared references · ${erdSelection.missing_count} missing definitions · ${erdSelection.hidden} hidden domain tables · ${erdSelection.hidden_references} references omitted by scope · ${erdSelection.hidden_connections} joins hidden by scope${erdSelection.hidden?` · ${erdSelection.hidden} hidden by filters`:''}${view.cross_view_connections?` · ${view.cross_view_connections} joins continue on another page`:''}${view.omitted_graph_connections?` · ${view.omitted_graph_connections} connectors in the relationship table only`:''}.`:diagramEnabled?'No tables match. Show all tables to reset this view.':'Diagrams were not included in this package.';
 }
 function showLineage(){currentLineageDiagram=lineageViews[Number(el('lineage-view').value)||0]||null;el('lineage-download').disabled=!currentLineageDiagram;el('lineage-view').hidden=lineageViews.length<2;drawDiagram('lineage-diagram','lineage',currentLineageDiagram);}
 function fitDiagram(){
@@ -649,11 +715,11 @@ function fitDiagram(){
   if(!view||!target.clientWidth)return;
   const width=Number(view.svg?.match(/width="([\d.]+)"/)?.[1]),height=Number(view.svg?.match(/height="([\d.]+)"/)?.[1]);
   if(!width||!height)return;
-  diagramZoom=Math.min(1,Math.max(.05,(target.clientWidth-8)/width),Math.max(.05,((globalThis.innerHeight||900)*.65)/height));
+  diagramZoom=Math.max(.5,Math.min(1,(target.clientWidth-8)/width,((globalThis.innerHeight||900)*.65)/height));
   diagramFitMode=true;applyDiagramZoom('diagram','diagram',diagramZoom);target.scrollLeft=0;target.scrollTop=0;
 }
 el('diagram-fit').onclick=fitDiagram;
-el('diagram-expand').onclick=()=>{const expanded=el('diagram-expand').getAttribute('aria-expanded')!=='true';el('model-canvas').classList.toggle('expanded',expanded);el('diagram-expand').setAttribute('aria-expanded',String(expanded));el('diagram-expand').textContent=expanded?'Close expanded view':'Expand diagram';fitDiagram();};
+el('diagram-expand').onclick=()=>{const expanded=el('diagram-expand').getAttribute('aria-expanded')!=='true';el('model-canvas').classList.toggle('expanded',expanded);el('diagram-expand').setAttribute('aria-expanded',String(expanded));el('diagram-expand').textContent=expanded?'Close expanded view':'Expand diagram';if(diagramFitMode)fitDiagram();};
 addEventListener('resize',()=>{if(diagramFitMode)fitDiagram();});
 function tableNavigator(){
   const query=el('table-search').value.toLowerCase(),rows=graph.nodes.filter(m=>m.object_kind==='warehouse'&&(!query||m.full_name.toLowerCase().includes(query))),target=clear('table-navigator');
@@ -665,39 +731,51 @@ function tableNavigator(){
 el('table-search').oninput=()=>{tableLimit=50;tableNavigator();};el('table-more').onclick=()=>{tableLimit+=50;tableNavigator();};
 for(const prefix of ['diagram','lineage']){
   el(prefix+'-view').onchange=prefix==='diagram'?showDiagram:showLineage;
-  el(prefix+'-download').onclick=()=>{const view=prefix==='diagram'?currentDiagram:currentLineageDiagram;if(view)download(prefix==='diagram'?'erd-current-view.svg':'lineage-current-view.svg',view.downloadSvg||viewSvg(view),'image/svg+xml');};
+  el(prefix+'-download').onclick=()=>{const view=prefix==='diagram'?currentDiagram:currentLineageDiagram;if(view){if(prefix==='diagram')exportErd('erd-current-view.zip',[view],erdSelection,'Current diagram page; ledger includes its cross-page relationships.');else download('lineage-current-view.svg',view.downloadSvg||viewSvg(view),'image/svg+xml');}};
   for(const [action,delta]of [['in',.25],['out',-.25],['reset',0]])el(prefix+'-zoom-'+action).onclick=()=>{let value=prefix==='diagram'?diagramZoom:lineageZoom;value=delta?Math.max(.25,Math.min(3,value+delta)):1;if(prefix==='diagram'){diagramZoom=value;diagramFitMode=false;}else lineageZoom=value;applyDiagramZoom(prefix==='diagram'?'diagram':'lineage-diagram',prefix,value);};
 }
+function exportErd(filename,pages,scope,label,complete=false){
+  const encoder=new TextEncoder(),ids=pages.flatMap(p=>p.model_ids),nodeIds=new Set(ids),edges=(scope.ledger||scope.edges).filter(e=>complete||nodeIds.has(e.from)||nodeIds.has(e.to));
+  const entries=pages.map((page,i)=>['erd-'+String(i+1).padStart(3,'0')+'.svg',encoder.encode(filteredModelSvg(page.nodes,page.edges,new Set(),page.omitted_graph_connections,false,true))]);
+  entries.push(['MODEL_INDEX.json',encoder.encode(JSON.stringify({scope:label,domain:scope.domain||null,model_ids:ids,dependencies_displayed:scope.dependencies_displayed,ledger_only_model_ids:[...new Set(edges.flatMap(e=>[e.from,e.to]))].filter(id=>!nodeIds.has(id)),
+    domain_model_ids:scope.nodes.filter(n=>nodeIds.has(n.id)&&n.scope_role==='domain').map(n=>n.id),reference_ids:scope.nodes.filter(n=>nodeIds.has(n.id)&&n.scope_role!=='domain').map(n=>n.id),
+    models:scope.nodes.filter(n=>nodeIds.has(n.id)),relationships:edges,hidden_tables:scope.hidden,hidden_references:scope.hidden_references,hidden_connections:scope.hidden_connections,
+    pages:pages.map(p=>({model_ids:p.model_ids,cross_view_connections:p.cross_view_connections,ledger_only_connections:p.omitted_graph_connections})),qualification:'Candidate display only. Every supplied occurrence is retained; conflicting definitions require review. References are not certified warehouse models. No approval or validation is implied.'},null,2))]);
+  download(filename,zip(entries),'application/zip');
+}
 el('diagram-download-all').onclick=()=>{
-  try{if(!diagramEnabled||!models.length)return;const complete=selectErd(graph),pages=erdPages(complete).map(p=>({...p,compact:false})),ids=pages.flatMap(p=>p.model_ids);
-    if(ids.length!==models.length||new Set(ids).size!==models.length)throw new Error('Complete ERD coverage failed.');
-    if(pages.length===1&&!pages[0].omitted_graph_connections)download('complete-model-erd.svg',viewSvg(pages[0]),'image/svg+xml');
-    else{const encoder=new TextEncoder(),entries=pages.map((page,i)=>['erd-'+String(i+1).padStart(3,'0')+'.svg',encoder.encode(viewSvg(page))]);entries.push(['MODEL_INDEX.json',encoder.encode(JSON.stringify({scope:'Every warehouse table included in this review; independent of display filters',model_ids:ids,relationships:complete.edges,pages:pages.map(p=>({model_ids:p.model_ids,cross_view_connections:p.cross_view_connections,ledger_only_connections:p.omitted_graph_connections})),qualification:'Identity coverage only; declared joins are not validated constraints.'},null,2))]);download('complete-model-erd.zip',zip(entries),'application/zip');}
-    notice(`Exported all ${models.length} included warehouse tables. Display filters were not applied. Joins are declared, not validated.`);
+  try{if(!diagramEnabled||!models.length)return;
+    const allowed=assetId?new Set(selection.visible):undefined,complete=selectErd(graph,{domain:erdOptions.domain,allowed,dependencies:erdOptions.dependencies}),pages=erdPages(complete),ids=pages.flatMap(p=>p.model_ids);
+    if(ids.length!==complete.nodes.length||new Set(ids).size!==complete.nodes.length)throw new Error('Complete ERD coverage failed.');
+    exportErd('complete-domain-erd.zip',pages,complete,'Complete selected domain and connected references within the included asset/audience scope. Search, layer, change and focus filters are ignored.',true);
+    notice(`Exported all ${complete.domain_count} included domain tables, ${complete.shared_count} shared references and ${complete.missing_count} missing definitions. Asset and audience scope retained; joins are declared, not validated.`);
   }catch(error){notice(error.message);}
 };
 function syncLineage(){el('lineage-model').value=lineageOptions.focus;el('lineage-direction').value=lineageOptions.direction;buildViews();}
-for(const [id,key]of [['architecture-model','focus'],['architecture-direction','direction'],['erd-layer','layer'],['erd-disposition','disposition']])el(id).onchange=()=>{erdOptions[key]=el(id).value;buildViews();};
+for(const [id,key]of [['erd-domain','domain'],['erd-layer','layer'],['erd-disposition','disposition']])el(id).onchange=()=>{erdOptions[key]=el(id).value;buildViews();};
+el('architecture-model').onchange=()=>{erdOptions.focus=el('architecture-model').value;if(erdOptions.focus)revealModel(erdOptions.focus);};
+el('erd-dependencies').onchange=()=>{erdOptions.dependencies=el('erd-dependencies').checked;buildViews();};
 el('erd-search').oninput=()=>{erdOptions.search=el('erd-search').value;buildViews();};
-el('erd-clear').onclick=()=>{Object.assign(erdOptions,{focus:'',direction:'relationships',search:'',layer:'',disposition:''});for(const id of ['architecture-model','erd-layer','erd-disposition','erd-search','asset-filter'])el(id).value='';el('architecture-direction').value='relationships';filterAssets();};
+el('erd-clear').onclick=()=>{Object.assign(erdOptions,{focus:'',domain:'',dependencies:false,search:'',layer:'',disposition:''});for(const id of ['architecture-model','erd-domain','erd-layer','erd-disposition','erd-search','asset-filter'])el(id).value='';el('erd-dependencies').checked=false;filterAssets();};
 el('lineage-model').onchange=()=>{lineageOptions.focus=el('lineage-model').value;syncLineage();};el('lineage-direction').onchange=()=>{lineageOptions.direction=el('lineage-direction').value;syncLineage();};
 let lineageSearchTimer;
 el('lineage-search').oninput=()=>{clearTimeout(lineageSearchTimer);lineageSearchTimer=setTimeout(()=>{lineageOptions.search=el('lineage-search').value;buildViews();},160);};
 el('lineage-layer').onchange=()=>{lineageOptions.layer=el('lineage-layer').value;buildViews();};
 for(const [id,key]of [['lineage-new','newOnly'],['lineage-context','context'],['lineage-joins','joins']])el(id).onchange=()=>{lineageOptions[key]=el(id).checked;buildViews();};
 el('lineage-clear').onclick=()=>{clearTimeout(lineageSearchTimer);Object.assign(lineageOptions,{focus:'',direction:'both',search:'',layer:'',newOnly:false,context:false,joins:true});el('lineage-search').value='';el('lineage-layer').value='';el('lineage-new').checked=false;el('lineage-context').checked=false;el('lineage-joins').checked=true;syncLineage();};
-function relationshipTable(){table('relationships',[['From',r=>graph.byId.get(r.from)?.full_name||r.from],['To',r=>graph.byId.get(r.to)?.full_name||r.to],['Join / cardinality',r=>[r.predicate||r.label||'Predicate not supplied',r.cardinality||'Cardinality not supplied',r.role].filter(Boolean).join(' · ')],['Status',r=>r.status||r.implementation_status||'Not specified']],erdSelection.edges,10);}
+
+function relationshipTable(){table('relationships',[['From',r=>graph.byId.get(r.from)?.full_name||r.from],['To',r=>graph.byId.get(r.to)?.full_name||r.to],['Join / cardinality',r=>[r.predicate||r.label||'Predicate not supplied',r.cardinality||'Cardinality not supplied',r.role].filter(Boolean).join(' · ')],['Status',r=>r.status||r.implementation_status||'Not specified'],['Evidence / reconciliation',r=>edgeEvidence(r)]],erdSelection.edges,10);}
 function showInspectorTab(name){for(const tab of ['columns','relationships','code']){el('inspect-'+tab).hidden=tab!==name;el('inspect-'+tab+'-tab').setAttribute('aria-selected',String(tab===name));}}
 let inspectorReturn=null;
 function closeInspector(){el('table-inspector').classList.toggle('drawer-open',false);el('table-inspector').removeAttribute('role');el('table-inspector').removeAttribute('aria-modal');inspectorReturn?.focus?.({preventScroll:true});}
-function revealModel(id){inspectorReturn=document.activeElement;inspectModel(id);const panel=el('table-inspector');if((globalThis.innerWidth||1400)<=1200){panel.classList.toggle('drawer-open',true);panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.focus?.({preventScroll:true});}}
+function revealModel(id){inspectorReturn=document.activeElement;const page=shownViews.findIndex(view=>view.model_ids.includes(id));if(page>=0&&page!==(Number(el('diagram-view').value)||0)){el('diagram-view').value=String(page);showDiagram();}inspectModel(id);const panel=el('table-inspector');if((globalThis.innerWidth||1400)<=1200){panel.classList.toggle('drawer-open',true);panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.focus?.({preventScroll:true});}}
 el('inspector-close').onclick=closeInspector;
 addEventListener('keydown',event=>{if(event.key==='Escape'){closeInspector();if(el('diagram-expand').getAttribute('aria-expanded')==='true')el('diagram-expand').onclick();}if(event.key==='Tab'&&el('table-inspector').getAttribute('aria-modal')==='true'){const nodes=[...el('table-inspector').querySelectorAll('button, select, textarea, a')].filter(n=>!n.disabled&&!n.hidden&&n.getClientRects?.().length);if(!nodes.length)return;const first=nodes[0],last=nodes[nodes.length-1];if(event.shiftKey&&(document.activeElement===first||document.activeElement===el('table-inspector'))){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
 
 function inspectModel(id){
-  inspectedModel=id;tableNavigator();el('inspect-model').value=id;el('diagram').querySelectorAll?.('[data-model-id]').forEach(node=>{if((node.localName||node.tag)==='g'){const selected=node.getAttribute('data-model-id')===id;node.classList.toggle('selected-model',selected);node.setAttribute('aria-current',String(selected));}});const model=graph.byId.get(id),summary=clear('inspector-summary');
+  inspectedModel=id;tableNavigator();el('inspect-model').value=id;el('diagram').querySelectorAll?.('[data-model-id]').forEach(node=>{if((node.localName||node.tag)==='g'){const selected=node.getAttribute('data-model-id')===id;node.classList.toggle('selected-model',selected);node.setAttribute('aria-current',String(selected));}});const model=graph.byId.get(id),scopeRole=erdSelection.nodes.find(m=>m.id===id)?.scope_role,summary=clear('inspector-summary');
   if(!model){summary.append(make('p','Choose a table in the ERD or selector.','empty'));clear('inspect-columns');clear('inspect-relationships');clear('inspect-code-file').hidden=true;el('inspect-code-file').onchange=null;showInspectorCode(null);return;}
-  summary.append(make('h3',model.full_name),make('span',dispositionLabel(model),'pill'),make('p',model.grain||'Row grain has not been supplied.'));
+  summary.append(make('h3',model.full_name),make('span',model.reference_only?'Reference only · definition missing':scopeRole==='shared_reference'?'Shared reference':dispositionLabel(model),'pill'),make('p',model.grain||'Row grain has not been supplied.'));
   if(model.description)summary.append(make('p',model.description,'muted'));
   const modelCases=cases.filter(c=>c.model_ids?.includes(id)),modelDecisions=decisions.filter(d=>d.model_ids?.includes(id)&&!['resolved','accepted','approved'].includes(d.status));
   summary.append(make('p',modelCases.length?`Table checks: ${modelCases.filter(c=>c.status==='fail').length} failed, ${modelCases.filter(c=>c.status==='pass').length} reported passes, ${modelCases.filter(c=>!['fail','pass'].includes(c.status)).length} pending/other. Verify evidence in Validation.`:'Table-specific validation is not supplied. See Validation for engagement checks.','muted'));
@@ -707,7 +785,7 @@ function inspectModel(id){
   if(model.columns?.length)table('inspect-columns',[['Column definitions',c=>{const cell=make('div'),heading=make('div',undefined,'inspector-detail-heading');heading.append(make('strong',c.name),make('span',columnRole(model,c),'pill'));cell.append(heading,make('p',[c.type||c.data_type||'Type not supplied',c.nullable===true?'Nullable':c.nullable===false?'Not nullable':typeof c.nullable==='string'?c.nullable:null].filter(Boolean).join(' · '),'muted'),make('p',c.description||'Definition not supplied.'));return cell;}]],model.columns,20);
   else empty('inspect-columns','Column definitions are not included in this package. Request the dictionary.');
   const joins=graph.edges.filter(e=>e.kind==='relationship'&&(e.from===id||e.to===id));
-  if(joins.length)table('inspect-relationships',[['Declared relationships',e=>{const cell=make('div');cell.append(make('strong',graph.byId.get(e.from===id?e.to:e.from)?.full_name||'Unresolved'),make('p',e.predicate||'Join predicate not supplied.','inspector-predicate'),make('p',`Cardinality: ${e.cardinality||'Not supplied'}${e.role?' · Role: '+e.role:''}`,'muted'),make('p',`Status: ${e.status||e.implementation_status||'Not supplied'}`,'muted'));return cell;}]],joins,10);
+  if(joins.length)table('inspect-relationships',[['Declared relationships',e=>{const cell=make('div');cell.append(make('strong',graph.byId.get(e.from===id?e.to:e.from)?.full_name||'Unresolved'),make('p',e.predicate||'Join predicate not supplied.','inspector-predicate'),make('p',`Cardinality: ${e.cardinality||'Not supplied'}${e.role?' · Role: '+e.role:''}`,'muted'),make('p',`Status: ${e.status||e.implementation_status||'Not supplied'}`,'muted'),make('p',edgeEvidence(e),'muted'));return cell;}]],joins,10);
   else empty('inspect-relationships','No joins are recorded for this table. Keys and relationships are not inferred from names.');
   const codeIds=new Set([model.artifact_id,...(Array.isArray(model.artifact_ids)?model.artifact_ids:[])].filter(Boolean)),linked=files.filter(f=>codeIds.has(f.id)&&f.category==='implementation'),select=clear('inspect-code-file');
   for(const file of linked){const option=make('option',file.path);option.value=file.id;select.append(option);}select.hidden=linked.length<2;select.value=linked[0]?.id||'';select.onchange=()=>showInspectorCode(linked.find(f=>f.id===select.value)||null);
@@ -715,7 +793,7 @@ function inspectModel(id){
 }
 function showInspectorCode(file){inspectorFile=file;el('inspector-open-code').disabled=!file;const body=file?bytes(file.base64):null,tooLarge=body&&body.length>2*1024*1024;el('inspect-code-copy').disabled=!file||tooLarge;el('inspect-code-download').disabled=!file;el('inspect-code-text').textContent=body?(tooLarge?'Preview limited to 2 MiB. Download the complete file.':new TextDecoder().decode(body)):'';el('inspect-code-note').textContent=file?file.path:data.audience==='reviewer'?'Code is excluded from reviewer packages. Request the engineering package.':data.page_mode==='status'?'This status page has no code payload. Request the engineering package.':'No implementation artifact is linked to this table. Ask the agent to register the mapping; included files remain in Code & files.';}
 el('inspector-open-code').onclick=()=>{if(inspectorFile){closeInspector();openArtifact(inspectorFile.id);}};
-el('inspector-feedback').onclick=()=>{el('feedback-model').value=inspectedModel;closeInspector();location.hash='review-feedback';};
+el('inspector-feedback').onclick=()=>{el('feedback-model').value=models.some(m=>m.id===inspectedModel)?inspectedModel:'';closeInspector();location.hash='review-feedback';};
 el('inspect-model').onchange=()=>inspectModel(el('inspect-model').value);
 for(const tab of ['columns','relationships','code'])el('inspect-'+tab+'-tab').onclick=()=>showInspectorTab(tab);
 el('inspect-code-copy').onclick=()=>{if(inspectorFile&&!el('inspect-code-copy').disabled)copyText(el('inspect-code-text').textContent,el('inspect-code-text'),'Code copied.');};
@@ -765,7 +843,7 @@ function sizeFilePreview(fit){
   const viewBox=(graphic.getAttribute('viewBox')||'').trim().split(/[\s,]+/).map(Number);
   const width=Number(graphic.getAttribute('width'))||viewBox[2]||graphic.naturalWidth;
   const height=Number(graphic.getAttribute('height'))||viewBox[3]||graphic.naturalHeight;
-  if(width&&height){const scale=fit?Math.min(1,Math.max(.05,(target.clientWidth-8)/width),Math.max(.05,((globalThis.innerHeight||900)*.65)/height)):1;graphic.style.width=width*scale+'px';graphic.style.height=height*scale+'px';}
+  if(width&&height){const scale=fit?Math.max(.5,Math.min(1,(target.clientWidth-8)/width,((globalThis.innerHeight||900)*.65)/height)):1;graphic.style.width=width*scale+'px';graphic.style.height=height*scale+'px';}
   target.scrollLeft=0;target.scrollTop=0;
 }
 function showFile(file){
@@ -814,7 +892,7 @@ async function rebuildGenerated(snapshot){
   const add=async(id,path,category,description,body,ids)=>{const bytes=new TextEncoder().encode(body);if(bytes.length>5*1024*1024)throw new Error('Generated file exceeds size limit; ask the agent to partition it.');const record={id,path,category,description,requires:[],origin:'review_projection',sha256:await sha256(bytes),size:bytes.length,base64:encode(bytes)};if(ids)record.diagram_model_ids=ids;records.push(record);};
   if(chosen.has('diagrams')){
     for(const [i,view]of(snapshot.diagrams||[]).entries()){const suffix=String(i+1).padStart(3,'0');await add('generated:erd:'+suffix,'01_Model/ERD/model-'+suffix+'.svg','diagrams','Model view '+(i+1)+'; part of the complete included table inventory.',new TextDecoder().decode(bytes(view.base64)),view.model_ids);}
-    await add('generated:erd-source','01_Model/ERD/model-source.json','diagrams','Editable model source with every included table and declared connection.',JSON.stringify({schema_version:1,kind:'portable_model_source',qualification:'Editable presentation source; not implementation or approval.',models,relationships},null,2)+'\n');
+    await add('generated:erd-source','01_Model/ERD/model-source.json','diagrams','Editable model source with every included table and declared connection.',JSON.stringify({schema_version:1,kind:'portable_model_source',qualification:'Editable presentation source; not implementation or approval.',models,relationships,...(snapshot.review?.domain_proposals?.length?{domain_proposals:snapshot.review.domain_proposals,relationship_ledger:modelGraph(models,relationships,null,snapshot.review.domain_proposals).edges.filter(e=>e.record_origin)}:{})},null,2)+'\n');
   }
   if(chosen.has('dictionary')){
     // A category-only subset never changes the selected dictionary. Preserve the
@@ -891,11 +969,12 @@ el('download-package').onclick=async()=>{
     }
     if(!chosen.has('validation'))delete next.review.validation;
     if(next.workflow&&(!chosen.has('validation')||!['documentation','diagrams','dictionary'].some(x=>chosen.has(x)))){delete next.workflow.authoring_checks;delete next.workflow.artifact_checks;}
-    if(!['documentation','diagrams','dictionary'].some(x=>chosen.has(x))){delete next.review.models;delete next.review.relationships;}
+    if(!['documentation','diagrams','dictionary'].some(x=>chosen.has(x))){delete next.review.models;delete next.review.relationships;delete next.review.domain_proposals;}
     else if(!chosen.has('dictionary')){
       (next.review.models||[]).forEach(m=>delete m.columns);
       // Rebuild auxiliary projections from the reduced dictionary; registered files stay byte-identical.
-      for(const view of next.diagrams||[]){const ids=new Set(view.model_ids),rows=(next.review.models||[]).filter(m=>ids.has(m.id)),edges=(next.review.relationships||[]).filter(e=>ids.has(e.from)&&ids.has(e.to));
+      const reducedGraph=modelGraph(next.review.models||[],next.review.relationships||[],null,next.review.domain_proposals||[]);
+      for(const view of next.diagrams||[]){const ids=new Set(view.model_ids),rows=reducedGraph.nodes.filter(m=>ids.has(m.id)),edges=reducedGraph.edges.filter(e=>ids.has(e.from)&&ids.has(e.to));
         const svg=filteredModelSvg(rows,edges.slice(0,120),new Set(),Math.max(0,edges.length-120),false,true);
         view.base64=btoa(Array.from(new TextEncoder().encode(svg),byte=>String.fromCharCode(byte)).join(''));
       }
