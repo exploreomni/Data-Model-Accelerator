@@ -60,3 +60,5 @@
 
 /* Evidence details share the standard routes and responsive table layout. */
 .review-evidence-details{margin-top:18px}.review-evidence-details h3{margin-top:24px}.review-evidence-details .filters{flex-wrap:wrap;margin-top:18px}.review-evidence-details .filters>div{flex:1 1 180px}#review-evidence-summary{min-height:240px;font-family:ui-monospace,monospace}
+
+.dependency-toggle{display:flex;align-items:center;gap:8px;align-self:end;margin-bottom:12px}.dependency-toggle input{flex-shrink:0}

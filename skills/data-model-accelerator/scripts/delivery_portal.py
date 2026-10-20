@@ -626,6 +626,8 @@ def validate_review(state, review):
     for edge in review.get('relationships', []):
         require(edge.get('from') in ids and edge.get('to') in ids, 'Relationship references an absent model')
         require(edge.get('kind') in ('lineage', 'relationship'), 'Relationship kind must distinguish lineage from joins')
+    from portal_checks import erd_inventory
+    erd_inventory(review)
     for name in ('changes', 'decisions', 'validation'):
         keys = [v.get('id') for v in review.get(name, [])]
         require(all(isinstance(k, str) and k for k in keys) and len(set(keys)) == len(keys), name + ' IDs must be unique')
@@ -744,13 +746,45 @@ def _edge_description(edge):
     status = edge.get('status', edge.get('implementation_status'))
     if edge['kind'] == 'relationship':
         values.append('Implementation: ' + (str(status) + ' (declared)' if status else 'not specified'))
+    if edge.get('occurrence_id'):
+        values.append(edge['occurrence_id'])
+    if edge.get('conflicting_definitions'):
+        values.append('Conflicting definitions')
+    if edge.get('duplicate_occurrences', 0) > 1:
+        values.append(str(edge['duplicate_occurrences']) + ' matching occurrences')
     return ' · '.join(values)
+
+
+def _model_card_lines(model):
+    def wrap(value, width=44):
+        text = re.sub(r'\s+', ' ', str(value))
+        return [text[i:i+width] for i in range(0, len(text), width)] or ['']
+    rows = [(line, 'name') for line in wrap(model.get('name') or model['id'], 36)]
+    if model.get('reference_only'):
+        rows += [('Reference only · definition missing', 'note')]
+    rows += [(line, 'note') for line in wrap(model.get('grain') or 'Grain unresolved')]
+    columns = model.get('columns', [])
+    declared = [key for key in model.get('keys', []) if isinstance(key, str)]
+    keys = [c for c in columns if c.get('key') or c['name'] in declared]
+    missing = [{'name': key, 'key': 'Declared key', 'type': 'Type unverified'}
+               for key in declared if not any(c['name'] == key for c in columns)]
+    shown = keys + missing or columns[:4]
+    for column in shown:
+        key = column.get('key') or ('Declared key' if column['name'] in model.get('keys', []) else '')
+        rows += [(line, 'key') for line in wrap(str(key) + ' ' + column['name'] + ' · ' + str(column.get('type') or 'unknown'))]
+    if not keys and not missing:
+        rows.append(('Keys not supplied', 'note'))
+    other = len(columns) - (len(keys) if keys or missing else len(shown))
+    if other > 0:
+        rows.append((str(other) + ' other columns in dictionary', 'note'))
+    return rows
 
 
 def _diagram_layout(models, relationships):
     """Orthogonal routes stay in reserved gutters, never through another table."""
-    grouped = {layer: [m for m in models if m['layer'] == layer] for layer in LAYERS}
-    active_layers = [layer for layer in LAYERS if grouped[layer]]
+    layers = (*LAYERS, 'reference')
+    grouped = {layer: [m for m in models if m['layer'] == layer] for layer in layers}
+    active_layers = [layer for layer in layers if grouped[layer]]
     layer_index = {m['id']: active_layers.index(m['layer']) for m in models}
     incidents = {m['id']: [] for m in models}
     lanes = {index: [] for index in range(len(active_layers))}
@@ -765,8 +799,9 @@ def _diagram_layout(models, relationships):
             lanes[a].append(index)
         else:
             lanes[a].append(index); lanes[b].append(index); skips.append(index)
-    card_width = 360
-    card_height = max(138, 48 + 16 * max((len(v) for v in incidents.values()), default=0))
+    card_width = 440
+    card_height = max(190, 48 + 22 * max((len(_model_card_lines(m)) for m in models), default=0),
+                      48 + 16 * max((len(v) for v in incidents.values()), default=0))
     gutter_widths = [max(156, 42 + len(lanes[i]) * 14) for i in range(len(active_layers))]
     column_x = [34]
     for i in range(len(active_layers) - 1):
@@ -801,14 +836,14 @@ def _diagram_layout(models, relationships):
         routes.append({'points': points, 'label': 'E' + str(index + 1), 'edge': edge})
     return {'positions': positions, 'routes': routes, 'card_width': card_width, 'card_height': card_height,
             'width': max(1080, column_x[-1] + card_width + gutter_widths[-1] + 34),
-            'bottom': top + max(len(grouped[layer]) for layer in LAYERS) * (card_height + 48),
+            'bottom': top + max(len(grouped[layer]) for layer in layers) * (card_height + 48),
             'column_x': column_x, 'layers': active_layers}
 
 
 def model_svg(models, relationships):
     """Connected table blocks plus a visible, complete relationship label ledger."""
     from portal_checks import model_inventory
-    model_inventory(models, relationships)
+    model_inventory(models, relationships, references=True)
     if not models:
         return ''
     layout = _diagram_layout(models, relationships)
@@ -816,7 +851,7 @@ def model_svg(models, relationships):
     card_width, card_height = layout['card_width'], layout['card_height']
     ledger, cursor = [], layout['bottom'] + 30
     for index, edge in enumerate(relationships):
-        lines = [f"E{index + 1} · {edge['from']} → {edge['to']}"]
+        lines = textwrap.wrap(f"E{index + 1} · {edge['from']} → {edge['to']}", width=120, break_long_words=True)
         lines.extend(textwrap.wrap(_edge_description(edge), width=120, break_long_words=True) or [''])
         ledger.append((cursor, lines, edge)); cursor += 22 * len(lines) + 20
     height = cursor + 28
@@ -836,21 +871,16 @@ def model_svg(models, relationships):
         color = '#0c827e' if edge['kind'] == 'lineage' else '#7658a7' if status == 'authored' else '#9b641c' if status == 'proposed' else '#53697f'
         dash = '' if edge['kind'] == 'lineage' or status == 'authored' else ' stroke-dasharray="7 4"' if status == 'proposed' else ' stroke-dasharray="2 4"'
         path = 'M ' + ' L '.join(f'{x:g} {y:g}' for x, y in points)
-        parts.append(f'<path d="{path}" fill="none" stroke="{color}" stroke-width="2"{dash} marker-end="url(#arrow)"><title>{e(route["label"] + ": " + _edge_description(edge))}</title></path>')
+        marker = ' marker-end="url(#arrow)"' if edge['kind'] == 'lineage' else ''
+        parts.append(f'<path d="{path}" fill="none" stroke="{color}" stroke-width="2"{dash}{marker}><title>{e(route["label"] + ": " + _edge_description(edge))}</title></path>')
         x, y = points[0]; goes_right = points[1][0] > x
         parts.append(f'<text x="{x + (5 if goes_right else -5):g}" y="{y - 5:g}" text-anchor="{"start" if goes_right else "end"}" font-family="sans-serif" font-size="9" fill="{color}">{route["label"]}</text>')
     for model in models:
         x, y = positions[model['id']]
         name, grain = str(model.get('name', model['id'])), str(model.get('grain', 'Grain unresolved'))
         parts.append(f'<g data-model-id="{e(model["id"])}"><title>{e(name)} — {e(grain)}</title><rect x="{x}" y="{y}" width="{card_width}" height="{card_height}" rx="10" fill="white" stroke="#9aabba"/>')
-        parts.append(f'<text x="{x+14}" y="{y+25}" font-family="sans-serif" font-size="15" font-weight="700" fill="#18324a">{e(name[:38] + ("…" if len(name) > 38 else ""))}</text>')
-        parts.append(f'<text x="{x+14}" y="{y+44}" font-family="sans-serif" font-size="11" fill="#53697f">{e(grain[:48] + ("…" if len(grain) > 48 else ""))}</text>')
-        columns = sorted(model.get('columns', []), key=lambda c: not bool(c.get('key')))
-        for j, column in enumerate(columns[:4]):
-            label = ((str(column.get('key')) + ' ') if column.get('key') else '') + column['name'] + ' · ' + str(column.get('type', 'unknown'))
-            parts.append(f'<text x="{x+14}" y="{y+64+j*16}" font-family="monospace" font-size="11" fill="#18324a">{e(label[:49])}</text>')
-        if len(columns) > 4:
-            parts.append(f'<text x="{x+14}" y="{y+130}" font-family="sans-serif" font-size="10" fill="#53697f">+ {len(columns)-4} columns in dictionary</text>')
+        for j, (label, style) in enumerate(_model_card_lines(model)):
+            parts.append(f'<text x="{x+14}" y="{y+28+j*22}" font-family="{"monospace" if style == "key" else "sans-serif"}" font-size="{18 if style == "name" else 15}" font-weight="{700 if style == "name" else 400}" fill="#18324a">{e(label)}</text>')
         parts.append('</g>')
     for y, lines, edge in ledger:
         for index, line in enumerate(lines):
@@ -862,7 +892,7 @@ def model_svg(models, relationships):
 def diagram_views(models, relationships, maximum=36):
     """Partition by domain/node and edge density, retaining cross-view accounting."""
     from portal_checks import model_inventory
-    model_inventory(models, relationships)
+    model_inventory(models, relationships, references=True)
     require(type(maximum) is int and maximum > 0, 'Diagram page size must be a positive integer')
     if not models:
         return []
@@ -1053,7 +1083,7 @@ def _presentation(state, review=None, audience='engineer'):
     if review:
         validate_review(state, review)
         data['projection']['excluded_artifact_count'] = len(review.get('artifacts', []))
-        data['review']=json.loads(json.dumps({k:review.get(k, [] if k not in ('title','description') else '') for k in ('title','description','models','relationships','changes','decisions','validation','assets')}))
+        data['review']=json.loads(json.dumps({k:review.get(k, [] if k not in ('title','description') else '') for k in ('title','description','models','relationships','domain_proposals','changes','decisions','validation','assets')}))
         if review.get('quality_checks'):
             data['review']['quality_checks'] = [dict(_quality_data(row), **{key:row[key]
                 for key in ('context_sha256', 'evidence_artifact_id', 'sha256')}) for row in review['quality_checks']]
@@ -1168,7 +1198,7 @@ def _workflow_presentation(raw):
 
 def _trim_workflow_details(data):
     """A code-only subset must not retain unselected design narratives or decisions."""
-    for key in ('assets', 'models', 'relationships', 'decisions', 'changes'):
+    for key in ('assets', 'models', 'relationships', 'domain_proposals', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
         for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance'):
@@ -1224,7 +1254,8 @@ def render_engagement(state, output_path, review=None):
     _select_metadata_evidence(data, [])
     _select_omni_evidence(data, [])
     if data['review'].get('models'):
-        data['diagrams']=diagram_views(data['review']['models'],data['review'].get('relationships',[]))
+        from portal_checks import erd_inventory
+        data['diagrams']=diagram_views(*erd_inventory(data['review']))
     _set_diagram_coverage(data)
     rendered = _html(data).encode('utf-8')
     _check_disclosure_bytes(rendered, 'START_HERE.html')
@@ -1291,6 +1322,10 @@ def generated_deliverables(data):
                 base64.b64decode(page['base64'], validate=True), page['model_ids'])
         source = {'schema_version': 1, 'kind': 'portable_model_source',
                   'qualification': MODEL_SOURCE_QUALIFICATION, 'models': models, 'relationships': relationships}
+        if review.get('domain_proposals'):
+            from portal_checks import erd_inventory
+            source['domain_proposals'] = review['domain_proposals']
+            source['relationship_ledger'] = erd_inventory(review)[1]
         add('generated:erd-source', '01_Model/ERD/model-source.json', 'diagrams',
             'Editable model source with every included table and declared connection, including cross-view connections.',
             (json.dumps(source, indent=2, ensure_ascii=False, sort_keys=True) + '\n').encode())
@@ -1436,7 +1471,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         data.get('workflow', {}).pop('authoring_checks', None)
         data.get('workflow', {}).pop('artifact_checks', None)
     if 'diagrams' in include and data['review'].get('models'):
-        data['diagrams']=diagram_views(data['review']['models'],data['review'].get('relationships',[]))
+        from portal_checks import erd_inventory
+        data['diagrams']=diagram_views(*erd_inventory(data['review']))
     files={a['destination']:a['content'] for a in selected}
     for artifact in selected:
         data['files'].append({'id':artifact['id'],'path':artifact['destination'],'category':artifact['category'],

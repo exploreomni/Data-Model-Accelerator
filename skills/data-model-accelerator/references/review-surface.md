@@ -143,22 +143,43 @@ it never guesses filenames or exposes excluded code. Reviewer and status pages
 explain how to request an engineering package. Code & files remains discoverable
 for every audience, and engineering packages select an included implementation file.
 
-The ERD starts with every included warehouse model. Search, layer, change and focus
-controls are available in the filter disclosure. Relationship focus includes the
-selected table and directly related warehouse neighbors. Explicit lineage focus
-follows transformations. The separate transformation-lineage panel retains its own
-filters and can include selected curated Omni objects. Both use the same renderer,
-but filtering one never silently restricts the other. The shared asset filter still
-applies to both. Only a recorded `disposition: create` marks an object as new.
-Asset filtering never attributes unmapped semantic objects to a report.
+The ERD opens at 100% with every included model, including isolated tables. Choose
+Entire domain to retain all of that domain's models plus connected shared references.
+Focus on table and table clicks inspect and highlight; they never prune the graph.
+Search, layer and change filters are explicit reductions with hidden counts. Shared
+references show their supplied definitions; missing definitions are separate,
+reference-only blocks and never count as certified warehouse models. Domain, shared,
+missing and hidden counts remain visible. Known models excluded by the asset scope
+are never reconstructed as missing references. With an asset filter, missing references
+require an allowed model anchor through explicit proposal relationships. Joins display by default; the optional
+dependency overlay is separate; lineage-only shared/reference tables appear only
+when that overlay is enabled. The transformation-lineage panel retains independent
+filters and may include selected curated Omni objects. Only `disposition: create`
+marks an object as new. Asset filters never attribute unmapped semantic objects.
 
-The ERD shows visible/included counts and rebuilds its pages from the inventory,
-so a saved singleton diagram cannot become the sole model view. Download this view
-exports the visible page. Download complete ERD ignores display filters and includes
-every warehouse model in the review. A single page exports an SVG with wrapped,
-untruncated join details; multiple pages or dense graphs export a ZIP with all pages
-and a complete model/relationship JSON index. Cross-page and omitted connectors stay
-explicit. These are declared joins, not verified warehouse constraints.
+Download current view + ledger exports the current page and its complete connection
+ledger, including cross-page endpoints. Download complete domain ERD exports every
+selected-domain table and connected reference, ignoring search, layer, change and
+focus while retaining the asset and audience boundary. Both are ZIPs containing
+natural-size SVGs and `MODEL_INDEX.json` from the same normalized graph. The index
+retains every occurrence, provenance, duplicate counts and conflicting definitions,
+including dependency records when their visual overlay is off. Ledger-only endpoint
+IDs are identified separately from the drawn table inventory. Pagination groups
+connected tables without losing isolated tables or cycles; cross-page and omitted
+connectors remain explicit. Declared joins do not establish enforced constraints.
+
+Producers may add optional `review.domain_proposals` without changing the canonical
+design or its acceptance state. Each record has a unique `id`, a `domain`, explicit
+canonical `model_ids`, `relationships` using the existing join/lineage record shape,
+and `reference_endpoints` containing only `{id, name?}` for explicitly missing
+endpoints. Domain-assigned relationships may include disconnected shared/reference
+components. Known shared endpoints must already exist in the included model inventory; missing endpoints must be listed
+explicitly, with exact IDs (no fuzzy or schema-stripped matching). Canonical
+relationships still reject absent endpoints. Imported occurrences are retained
+alongside canonical declarations; differences in explicit column bindings, predicate,
+cardinality, notation or status for the same endpoints/kind/role (or label) are flagged for review. Audit and code-only exports
+omit proposals with the model details. Proposals are display evidence, not new model
+approval, native validation or permission to implement.
 
 Upstream/downstream traversal follows recorded `depends_on` and lineage edges;
 joins do not become transformation dependencies. Declared joins are a separate
@@ -169,7 +190,9 @@ retains counts for hidden objects and connectors continuing in another view.
 The full selected relationship ledger remains accessible below Architecture.
 
 Diagrams open at their natural size in a scroll box with independent zoom and
-reset controls. Validated inline SVG supports selectable labels; diagram-label
+reset controls. Full names, grain and declared keys wrap without truncation. Fit
+overview is optional and stops at 50%; use scrolling or coherent pages to explore
+larger domains. Expanding the canvas preserves the current zoom. Validated inline SVG supports selectable labels; diagram-label
 copy and the full-name selector use complete inventory names. If the clipboard
 is unavailable, select the full text and use the normal Copy shortcut. A failed
 inline parser falls back only to the generator's escaped image, with a visible

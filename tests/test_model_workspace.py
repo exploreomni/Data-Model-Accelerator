@@ -75,13 +75,13 @@ assert.equal(el('inspect-model').children.length,6);assert.equal(el('diagram-vie
 assert.match(currentDiagram.svg,/fact_sales|FACT_SALES/);
 """, prefix="location.hash='';")
 
-    def test_relationship_focus_retains_facts_but_lineage_does_not_infer_them(self):
+    def test_focus_inspects_without_pruning_and_lineage_does_not_infer_joins(self):
         self.page(self.payload(), """
 el('architecture-model').value='dim_customer';el('architecture-model').onchange();
-assert.deepEqual([...erdSelection.visible].sort(),['dim_customer','fact_payments','fact_returns','fact_sales']);
+assert.deepEqual([...erdSelection.visible].sort(),['dim_customer','dim_product','fact_payments','fact_returns','fact_sales']);
 assert.equal(lineageSelection.visible.size,5);
 el('lineage-model').value='dim_customer';el('lineage-model').onchange();
-assert.deepEqual([...lineageSelection.visible],['dim_customer']);assert.equal(erdSelection.visible.size,4);
+assert.deepEqual([...lineageSelection.visible],['dim_customer']);assert.equal(erdSelection.visible.size,5);
 el('erd-disposition').value='create';el('erd-disposition').onchange();assert.equal(erdSelection.visible.size,3);
 el('erd-clear').onclick();assert.equal(erdSelection.visible.size,5);assert.equal(lineageSelection.visible.size,1);
 """)
@@ -103,13 +103,20 @@ assert.equal(el('inspect-code-copy').disabled,true);
 """)
 
     def test_complete_export_ignores_filters_and_current_export_is_labeled(self):
-        self.page(self.payload(), """
-let exported;download=(name,body)=>{exported={name,body};};
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = [str(Path(tmp)/name) for name in ('current.zip', 'complete.zip')]
+            self.page(self.payload(), """
+let writes=[];download=(name,body)=>{const output=name==='erd-current-view.zip'?OUTPUTS[0]:OUTPUTS[1];writes.push(body.arrayBuffer().then(buffer=>require('node:fs').writeFileSync(output,Buffer.from(buffer))));};
 el('erd-search').value='dim_customer';el('erd-search').oninput();assert.equal(currentDiagram.model_ids.length,1);
-el('diagram-download').onclick();assert.equal(exported.name,'erd-current-view.svg');assert.equal((exported.body.match(/<g data-model-id=/g)||[]).length,1);
-el('diagram-download-all').onclick();assert.equal(exported.name,'complete-model-erd.svg');assert.equal((exported.body.match(/<g data-model-id=/g)||[]).length,5);
-assert.equal(currentDiagram.model_ids.length,1);assert.match(el('messages').textContent,/all 5 included warehouse tables/);
-""")
+el('diagram-download').onclick();el('diagram-download-all').onclick();
+assert.equal(currentDiagram.model_ids.length,1);assert.match(el('messages').textContent,/all 5 included domain tables/);
+Promise.all(writes);
+""".replace('OUTPUTS', json.dumps(paths)))
+            for path, count in zip(paths, [1, 5]):
+                with zipfile.ZipFile(path) as archive:
+                    index = json.loads(archive.read('MODEL_INDEX.json'))
+                    self.assertEqual(len(index['model_ids']), count)
+                    self.assertIn('scope', index)
 
     def test_reviewer_never_exposes_inspector_code_and_no_design_opens_overview(self):
         data = self.payload('reviewer')
@@ -128,7 +135,7 @@ inspectModel('fact_sales');assert.equal(inspectorFile,null);assert.equal(el('ins
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'complete.zip'
             self.page(data, """
-download=(name,body)=>{assert.equal(name,'complete-model-erd.zip');body.arrayBuffer().then(buffer=>require('node:fs').writeFileSync(OUTPUT,Buffer.from(buffer)));};
+download=(name,body)=>{assert.equal(name,'complete-domain-erd.zip');body.arrayBuffer().then(buffer=>require('node:fs').writeFileSync(OUTPUT,Buffer.from(buffer)));};
 el('diagram-download-all').onclick();
 """.replace('OUTPUT', json.dumps(str(path))))
             with zipfile.ZipFile(path) as archive:
@@ -142,12 +149,18 @@ el('diagram-download-all').onclick();
         data = self.payload()
         edge = data['review']['relationships'][0]
         edge.update(predicate='customer_key = ' + 'very_long_identifier_' * 12 + 'FINAL_TAIL', role='bill_to', status='authored')
-        self.page(data, """
-let exported;download=(name,body)=>{exported={name,body};};el('diagram-download-all').onclick();
-assert.equal(exported.name,'complete-model-erd.svg');
-const ledger=exported.body.replace(/<[^>]+>/g,'');
-assert(ledger.includes('FINAL_TAIL'));assert(ledger.includes('many:1'));assert(ledger.includes('bill_to'));assert(ledger.includes('authored'));
-""")
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'complete.zip'
+            self.page(data, """
+download=(name,body)=>{assert.equal(name,'complete-domain-erd.zip');body.arrayBuffer().then(buffer=>require('node:fs').writeFileSync(OUTPUT,Buffer.from(buffer)));};
+el('diagram-download-all').onclick();
+""".replace('OUTPUT',json.dumps(str(path))))
+            with zipfile.ZipFile(path) as archive:
+                index=json.loads(archive.read('MODEL_INDEX.json'))
+                self.assertEqual(index['relationships'][0]['predicate'], edge['predicate'])
+                svg=archive.read('erd-001.svg').decode()
+                for value in ('FINAL_TAIL', 'many:1', 'bill_to', 'authored'):
+                    self.assertIn(value,svg)
 
     def test_subset_without_dictionary_rebuilds_auxiliary_svgs(self):
         import base64

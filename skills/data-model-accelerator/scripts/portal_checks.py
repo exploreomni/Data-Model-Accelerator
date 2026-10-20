@@ -4,6 +4,7 @@ The normal render path uses only the standard library. JavaScript syntax and
 stub-DOM execution are explicit developer checks and require Node only on request.
 """
 import base64
+from collections import Counter
 import hashlib
 from html.parser import HTMLParser
 import json
@@ -31,18 +32,19 @@ UNVERIFIED_DIAGRAM_QUALIFICATION = 'No diagram_model_ids scope was declared. Fil
 _NUMBER = r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?'
 
 
-def model_inventory(models, relationships=None):
+def model_inventory(models, relationships=None, *, references=False):
     """Validate the warehouse graph before layout; never silently drop a layer."""
     require(isinstance(models, list) and len(models) <= 20000, 'Diagram models must be a bounded list')
     identifiers = []
     for model in models:
         require(isinstance(model, dict), 'Diagram model must be an object')
+        require(references or not model.get('reference_only'), 'Reference-only endpoints cannot be canonical models')
         identifier = model.get('id')
         require(isinstance(identifier, str) and identifier.strip() == identifier and identifier
                 and not any(ord(char) < 32 or ord(char) == 127 for char in identifier),
                 'Diagram model ID must be nonempty text without surrounding whitespace or control characters')
         identifiers.append(identifier)
-        require(isinstance(model.get('layer'), str) and model['layer'] in {'bronze', 'silver', 'gold'},
+        require(isinstance(model.get('layer'), str) and (model['layer'] in {'bronze', 'silver', 'gold'} or references and model.get('reference_only') is True and model['layer'] == 'reference'),
                 'Diagram model layer must be bronze, silver or gold')
         columns = model.get('columns', [])
         require(isinstance(columns, list) and all(isinstance(column, dict)
@@ -60,6 +62,81 @@ def model_inventory(models, relationships=None):
             require(isinstance(edge.get('kind'), str) and edge['kind'] in {'lineage', 'relationship'},
                     'Diagram relationship kind must be lineage or relationship')
     return identifiers
+
+
+def erd_inventory(review):
+    """Add explicitly supplied proposal occurrences without changing the canonical model.
+
+    Unknown IDs require explicit reference_endpoints. Known IDs must come from this
+    review inventory; a proposal cannot supply private model definitions indirectly.
+    """
+    models = review.get('models', [])
+    known = set(model_inventory(models, review.get('relationships', [])))
+    proposals = review.get('domain_proposals', [])
+    require(isinstance(proposals, list) and len(proposals) <= 20000, 'Domain proposals must be a bounded list')
+    nodes = [dict(model, proposal_domains=[]) for model in models]
+    by_id = {node['id']: node for node in nodes}
+    edges = [dict(edge, occurrence_id='canonical:' + str(i+1), record_origin='canonical', record_position=i+1)
+             for i, edge in enumerate(review.get('relationships', []))]
+    proposal_ids = set()
+    association_count = 0
+    for proposal in proposals:
+        require(isinstance(proposal, dict) and set(proposal) <= {'id', 'domain', 'model_ids', 'relationships', 'reference_endpoints'},
+                'Unsupported domain proposal fields')
+        require(isinstance(proposal.get('id'), str) and proposal['id'].strip() and proposal['id'] not in proposal_ids,
+                'Domain proposal IDs must be unique nonempty text')
+        proposal_ids.add(proposal['id'])
+        require(isinstance(proposal.get('domain'), str) and proposal['domain'].strip(), 'Domain proposal needs a domain')
+        model_ids = _diagram_ids(proposal.get('model_ids'))
+        association_count += len(model_ids)
+        require(association_count <= 20000, 'Proposal associations exceed review limit; partition explicitly')
+        require(set(model_ids) <= known, 'Domain proposal model_ids must be included canonical models')
+        for identifier in model_ids:
+            by_id[identifier]['proposal_domains'].append(proposal['domain'])
+        endpoints = proposal.get('reference_endpoints', [])
+        require(isinstance(endpoints, list) and len(endpoints) <= 20000, 'Reference endpoints must be a bounded list')
+        external = set()
+        for endpoint in endpoints:
+            require(isinstance(endpoint, dict) and set(endpoint) <= {'id', 'name'}, 'Reference endpoints accept only id and name')
+            identifier = endpoint.get('id')
+            _diagram_ids([identifier])
+            require(identifier not in known and identifier not in external, 'Reference endpoint duplicates a known model or endpoint')
+            require('name' not in endpoint or isinstance(endpoint['name'], str) and endpoint['name'].strip(), 'Reference name must be text')
+            external.add(identifier)
+            if identifier in by_id:
+                require(by_id[identifier]['name'] == endpoint.get('name', identifier), 'Conflicting reference endpoint names')
+            else:
+                node = {'id': identifier, 'name': endpoint.get('name', identifier), 'layer': 'reference',
+                        'object_kind': 'reference', 'reference_only': True,
+                        'grain': 'Definition absent from included model inventory'}
+                require(len(nodes) < 20000, 'Combined ERD inventory exceeds review limit; partition explicitly')
+                nodes.append(node); by_id[identifier] = node
+        relationships = proposal.get('relationships', [])
+        require(isinstance(relationships, list) and len(edges) + len(relationships) <= 20000,
+                'Combined proposal relationships must be a bounded list')
+        for i, edge in enumerate(relationships):
+            require(isinstance(edge, dict) and isinstance(edge.get('from'), str) and isinstance(edge.get('to'), str), 'Invalid proposal relationship')
+            require(edge['from'] in known | external and edge['to'] in known | external,
+                    'Proposal relationship needs explicit reference_endpoints for missing models')
+            require(edge.get('kind') in {'lineage', 'relationship'}, 'Proposal relationship kind must distinguish joins and dependencies')
+            edges.append(dict(edge, occurrence_id='proposal:' + proposal['id'] + ':' + str(i+1), record_origin='domain_proposal',
+                              proposal_id=proposal['id'], proposal_domain=proposal['domain'], record_position=i+1))
+        require(external <= {edge[end] for edge in relationships for end in ('from', 'to')}, 'Reference endpoints must be used explicitly')
+    require(len(nodes) <= 20000 and len(edges) <= 20000, 'Combined ERD inventory exceeds review limit; partition explicitly')
+    groups = {}
+    for edge in edges:
+        key = json.dumps([edge['from'], edge['to'], edge['kind'], edge.get('role') or edge.get('label') or ''], sort_keys=True)
+        groups.setdefault(key, []).append(edge)
+    def signature(edge):
+        return json.dumps([edge.get('predicate') or '', edge.get('cardinality') or '', edge.get('notation') or '',
+                           edge.get('from_columns') or [], edge.get('to_columns') or [],
+                           edge.get('status') or edge.get('implementation_status') or ''], sort_keys=True)
+    for group in groups.values():
+        signatures = Counter(signature(edge) for edge in group)
+        for edge in group:
+            edge['conflicting_definitions'] = len(signatures) > 1
+            edge['duplicate_occurrences'] = signatures[signature(edge)]
+    return nodes, edges
 
 
 def _diagram_ids(value):
@@ -198,6 +275,8 @@ def diagram_coverage(data, decoded_files=None):
     """Derive claims solely from included models and selected SVG bytes."""
     models = data.get('review', {}).get('models', [])
     identifiers = model_inventory(models)
+    graph_nodes, _ = erd_inventory(data.get('review', {}))
+    reference_ids = [node['id'] for node in graph_nodes if node.get('reference_only')]
     pages = data.get('diagrams', [])
     require(isinstance(pages, list), 'Diagram pages must be a list')
     seen = []
@@ -212,11 +291,13 @@ def diagram_coverage(data, decoded_files=None):
         svg_model_coverage(content, scope)
         seen.extend(scope)
     if pages:
-        require(len(seen) == len(set(seen)) and set(seen) == set(identifiers),
+        require(len(seen) == len(set(seen)) and set(seen) == set(identifiers + reference_ids),
                 'Diagram pages must cover every included model exactly once')
     elif identifiers and (data.get('page_mode') == 'status' or 'diagrams' in data.get('selected_categories', [])):
         raise ValueError('Diagram pages are missing for the included model inventory')
-    generated = {'status': 'verified' if pages else 'not_included', 'model_count': len(seen), 'page_count': len(pages)}
+    generated = {'status': 'verified' if pages else 'not_included', 'model_count': len(seen) - (len(reference_ids) if pages else 0), 'page_count': len(pages)}
+    if reference_ids and pages:
+        generated['reference_count'] = len(reference_ids)
     registered = []
     for file in data.get('files', []):
         if not file.get('path', '').lower().endswith('.svg'):
