@@ -743,6 +743,8 @@ def _edge_description(edge):
     for key, label in (('role', 'Role'), ('predicate', 'Predicate'), ('cardinality', 'Cardinality')):
         if edge.get(key):
             values.append(label + ': ' + str(edge[key]))
+    if edge.get('from_columns') or edge.get('to_columns'):
+        values.append('Columns: ' + ', '.join(edge.get('from_columns', [])) + ' → ' + ', '.join(edge.get('to_columns', [])))
     status = edge.get('status', edge.get('implementation_status'))
     if edge['kind'] == 'relationship':
         values.append('Implementation: ' + (str(status) + ' (declared)' if status else 'not specified'))
@@ -762,6 +764,10 @@ def _model_card_lines(model):
     rows = [(line, 'name') for line in wrap(model.get('name') or model['id'], 36)]
     if model.get('reference_only'):
         rows += [('Reference only · definition missing', 'note')]
+    elif model.get('object_kind') == 'interface':
+        rows += [('External interface · implementation unresolved', 'note')]
+    elif model.get('object_kind', 'source' if model.get('layer') == 'bronze' else 'model') == 'source':
+        rows += [('Source object', 'note')]
     rows += [(line, 'note') for line in wrap(model.get('grain') or 'Grain unresolved')]
     columns = model.get('columns', [])
     declared = [key for key in model.get('keys', []) if isinstance(key, str)]
@@ -878,7 +884,9 @@ def model_svg(models, relationships):
     for model in models:
         x, y = positions[model['id']]
         name, grain = str(model.get('name', model['id'])), str(model.get('grain', 'Grain unresolved'))
-        parts.append(f'<g data-model-id="{e(model["id"])}"><title>{e(name)} — {e(grain)}</title><rect x="{x}" y="{y}" width="{card_width}" height="{card_height}" rx="10" fill="white" stroke="#9aabba"/>')
+        interface = model.get('object_kind') == 'interface'
+        fill, stroke, dash = ('#eef3ff', '#62549a', ' stroke-dasharray="6 4"') if interface else ('white', '#9aabba', '')
+        parts.append(f'<g data-model-id="{e(model["id"])}"><title>{e(name)} — {e(grain)}</title><rect x="{x}" y="{y}" width="{card_width}" height="{card_height}" rx="10" fill="{fill}" stroke="{stroke}"{dash}/>')
         for j, (label, style) in enumerate(_model_card_lines(model)):
             parts.append(f'<text x="{x+14}" y="{y+28+j*22}" font-family="{"monospace" if style == "key" else "sans-serif"}" font-size="{18 if style == "name" else 15}" font-weight="{700 if style == "name" else 400}" fill="#18324a">{e(label)}</text>')
         parts.append('</g>')
@@ -1106,6 +1114,9 @@ def _presentation(state, review=None, audience='engineer'):
             for key in ('models', 'relationships', 'assets'):
                 workflow.pop(key, None)
         allowed_models = {m['id'] for m in data['review'].get('models', [])}
+        if review is not None and 'design_readiness' in workflow:
+            from design_readiness import summarize
+            workflow['design_readiness'] = _readiness_presentation(summarize(state, allowed_models))
         workflow['authoring_checks'] = [row for row in workflow.get('authoring_checks', [])
                                        if set(row['model_ids']) <= allowed_models]
         workflow['artifact_checks'] = [row for row in workflow.get('artifact_checks', [])
@@ -1397,12 +1408,41 @@ def _design_check_summary(report):
                          for row in report['findings'] + report['unknowns']]}
 
 
+def _readiness_presentation(raw):
+    """Keep separate scoped checks, never transport source paths or receipts."""
+    def fields(value, names):
+        return {key: json.loads(json.dumps(value[key])) for key in names if isinstance(value, dict) and key in value}
+
+    def counts(value, names):
+        return {key: value[key] for key in names if isinstance(value, dict) and type(value.get(key)) is int and value[key] >= 0}
+
+    result = fields(raw, ('schema_version', 'qualification'))
+    result['counts'] = counts(raw.get('counts'), ('objects', 'models', 'sources', 'interfaces', 'new_models', 'reused_models', 'changed_models', 'undetermined_models'))
+    result['counts']['by_layer'] = counts(raw.get('counts', {}).get('by_layer'), LAYERS)
+    for key in ('structural', 'coverage', 'evidence', 'independent_review', 'human_review', 'native_validation'):
+        item = fields(raw.get(key), ('status', 'qualification'))
+        if key == 'structural':
+            item.update(counts(raw.get(key), ('findings', 'unknowns')))
+        elif key == 'coverage':
+            value = raw.get(key, {})
+            item['counts'] = counts(value.get('counts'), ('sources', 'files', 'objects', 'consumers', 'assigned', 'excluded', 'unresolved', 'interfaces', 'findings'))
+            item['findings'] = [fields(row, ('code', 'message', 'model_ids', 'domain_ids')) for row in value.get('findings', [])]
+        elif key == 'evidence':
+            item['counts'] = counts(raw.get(key, {}).get('counts'), ('observed_metadata', 'repository_declaration', 'user_assertion', 'proposal'))
+        elif key == 'independent_review':
+            item.update(counts(raw.get(key), ('reviewed_models', 'expected_objects')))
+        result[key] = item
+    return result
+
+
 def _workflow_presentation(raw):
     """Allowlisted review prose only; never transport full state or approval receipts."""
     def fields(value, names):
         return {key:json.loads(json.dumps(value[key])) for key in names if isinstance(value, dict) and key in value}
     result = fields(raw, ('schema_version', 'engagement_id', 'design_id', 'design_revision', 'design_sha256',
                           'current_stage', 'next_action', 'qualification', 'delivery_status', 'requested_stages'))
+    if raw.get('design_readiness'):
+        result['design_readiness'] = _readiness_presentation(raw['design_readiness'])
     if raw.get('review_assurance'):
         assurance = raw['review_assurance']
         projected = fields(assurance, ('schema_version', 'qualification'))
@@ -1461,11 +1501,12 @@ def _workflow_presentation(raw):
     # Used only for status pages without a separately supplied review contract.
     result['models'] = []
     for row in raw.get('models', raw.get('entities', [])):
-        item = fields(row, ('id', 'name', 'layer', 'domain', 'grain', 'asset_ids', 'depends_on', 'mapping_status', 'disposition'))
-        item['columns'] = [fields(column, ('name', 'type', 'key', 'description')) for column in row.get('columns', [])]
+        item = fields(row, ('id', 'name', 'layer', 'domain', 'grain', 'asset_ids', 'depends_on', 'mapping_status', 'disposition',
+                            'object_kind', 'keys', 'history', 'security', 'description', 'display_label'))
+        item['columns'] = [fields(column, ('name', 'type', 'key', 'description', 'nullable')) for column in row.get('columns', [])]
         result['models'].append(item)
     result['assets'] = [fields(row, ('id', 'name', 'kind', 'mapping_status')) for row in raw.get('assets', [])]
-    result['relationships'] = [fields(row, ('from', 'to', 'kind', 'label', 'predicate', 'cardinality', 'role', 'status', 'evidence'))
+    result['relationships'] = [fields(row, ('from', 'to', 'kind', 'label', 'predicate', 'cardinality', 'role', 'status', 'evidence', 'from_columns', 'to_columns'))
                                for row in raw.get('relationships', [])]
     return result
 
@@ -1479,7 +1520,7 @@ def _trim_workflow_details(data):
     for key in ('assets', 'models', 'relationships', 'domain_proposals', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
-        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance'):
+        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness'):
             data['workflow'].pop(key, None)
 
 

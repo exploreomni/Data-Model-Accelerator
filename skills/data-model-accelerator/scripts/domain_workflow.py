@@ -235,6 +235,8 @@ def _progress(state, domain, tasks):
         statuses['design_status'] = 'review_recorded' if approved else 'needs_review'
         if not approved:
             gaps.append('Obtain current human design review for the domain and its shared dependencies.')
+        if approved:
+            gaps.extend(stages._design_gaps(state, sorted(selected)))
     represented_assets = {asset for e in (state['workflow'].get('design') or {}).get('entities', [])
                           if e['id'] in selected for asset in e.get('asset_ids', [])}
     missing_assets = set(domain['asset_ids']) - represented_assets
@@ -242,17 +244,19 @@ def _progress(state, domain, tasks):
         gaps.append('Map the discovered domain assets to its models before completion: ' + ', '.join(sorted(missing_assets)))
     finished = []
     graph = {e['id']: e['depends_on'] for e in (state['workflow'].get('design') or {}).get('entities', [])}
+    physical = selected - {e['id'] for e in (state['workflow'].get('design') or {}).get('entities', [])
+                           if e.get('object_kind') == 'interface'}
     for stage in required:
         matches = [t for t in tasks if t['stage'] == stage and set(t['entity_ids']) & selected]
         current = [t for t in matches if t['action'] == 'reuse' and t.get('generation_mode') != 'provisional'
                    and set(t['entity_ids']) <= selected]
         covered = {e for t in current for e in (stages.closure(graph, t['entity_ids']) if stage == 'semantic' else t['entity_ids'])}
-        done = bool(selected) and selected <= covered
+        done = bool(physical) and physical <= covered
         statuses[stage + '_status'] = ('outputs_recorded' if done else
             'provisional_outputs' if any(t['action'] == 'reuse' and t.get('generation_mode') == 'provisional' for t in matches)
             else 'partial' if current else 'pending')
         if not done:
-            gaps.append('Record current reviewed ' + stage + ' outputs for: ' + ', '.join(sorted(selected - covered)))
+            gaps.append('Record current reviewed ' + stage + ' outputs for: ' + ', '.join(sorted(physical - covered)))
         finished.extend(t for t in current if set(t['entity_ids']) <= selected)
     if not gaps:
         binding = hash_json({'domain': domain, 'entities': stages.entity_bindings(state, sorted(selected)), 'required_stages': required,

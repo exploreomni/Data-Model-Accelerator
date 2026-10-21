@@ -148,7 +148,7 @@ function trimWorkflowDetails(snapshot,categories){
   delete snapshot.legacy_alignment;
   delete snapshot.migration_planning;
   for(const key of ['assets','models','relationships','domain_proposals','decisions','changes'])delete snapshot.review?.[key];
-  for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance'])delete snapshot.workflow?.[key];
+  for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance','design_readiness'])delete snapshot.workflow?.[key];
 }
 // Coverage/reuse counts describe supplied associations, never native validation.
 function reviewEvidenceCount(value){return Number.isSafeInteger(value)&&value>=0?String(value):'Unassessed';}
@@ -171,6 +171,11 @@ function reviewEvidenceSelection(assurance,filters={}){
   const groups=Array.isArray(assurance?.coverage?.groups)?assurance.coverage.groups:[];
   return{coverage:coverage.filter(row=>reviewEvidenceMatches(row,'coverage',filters,coverage)),reuse:reuse.filter(row=>reviewEvidenceMatches(row,'reuse',filters,coverage)),groups:groups.filter(row=>reviewEvidenceMatches(row,'coverage',filters,coverage)),coverageRows:coverage,reuseRows:reuse};
 }
+// Legacy graph labels remain compatible; declared canonical kinds are preserved.
+function designObjectKind(model){return ['model','source','interface','semantic','reference'].includes(model.object_kind)?model.object_kind:model.layer==='bronze'?'source':'model';}
+function designInventoryObject(model){return ['model','source','interface'].includes(designObjectKind(model));}
+function objectKindLabel(model){return({model:'Model',source:'Source',interface:'External interface',semantic:'Semantic object',reference:'Reference only'})[designObjectKind(model)];}
+function relationshipColumns(edge){return edge.from_columns?.length||edge.to_columns?.length?(edge.from_columns||[]).join(', ')+' → '+(edge.to_columns||[]).join(', '):'Column bindings not supplied';}
 // One normalized graph for both diagram entry points. No physical bindings are guessed.
 function modelGraph(modelRows,relationships,omni,proposals=[]){
   const records=relationships.map((e,i)=>({...e,occurrence_id:'canonical:'+(i+1),record_origin:'canonical',record_position:i+1}));
@@ -188,7 +193,7 @@ function modelGraph(modelRows,relationships,omni,proposals=[]){
     for(const e of group){e.conflicting_definitions=counts.size>1;e.duplicate_occurrences=counts.get(signature(e));}
   }
   modelRows=rows;relationships=records;
-  const nodes=modelRows.map(m=>({...m,object_kind:m.reference_only?'reference':'warehouse',full_name:m.name||m.id})),edges=[];
+  const nodes=modelRows.map(m=>({...m,object_kind:m.reference_only?'reference':m.object_kind||'warehouse',full_name:m.name||m.id})),edges=[];
   // Retain every authored interpretation, including conflicting cardinality/status/evidence.
   const addEdge=e=>edges.push(e);
   relationships.forEach(e=>addEdge({...e}));
@@ -208,7 +213,7 @@ function modelGraph(modelRows,relationships,omni,proposals=[]){
   }
   const byId=new Map(nodes.map(m=>[m.id,m])),up=new Map(nodes.map(m=>[m.id,new Set()])),down=new Map(nodes.map(m=>[m.id,new Set()]));let unresolved=0;
   for(const e of edges){if(!byId.has(e.from)||!byId.has(e.to)){unresolved++;continue;}if(e.kind==='lineage'){up.get(e.to).add(e.from);down.get(e.from).add(e.to);}}
-  nodes.sort((a,b)=>(a.object_kind==='warehouse'?0:1)-(b.object_kind==='warehouse'?0:1)||a.full_name.localeCompare(b.full_name)||a.id.localeCompare(b.id));
+  nodes.sort((a,b)=>(designInventoryObject(a)?0:1)-(designInventoryObject(b)?0:1)||a.full_name.localeCompare(b.full_name)||a.id.localeCompare(b.id));
   return{nodes,edges,byId,up,down,unresolved};
 }
 function walkLineage(start,adjacency){const visited=new Set(start),pending=[...start];while(pending.length){for(const id of adjacency.get(pending.pop())||[])if(!visited.has(id)){visited.add(id);pending.push(id);}}return visited;}
@@ -250,7 +255,7 @@ function filteredModelSvg(modelRows,edges,dependencyIds=new Set(),omittedEdges=0
   edges.forEach((e,i)=>{const a=index.get(e.from),b=index.get(e.to);incidents.get(e.from).push(i+'from');incidents.get(e.to).push(i+'to');if(Math.abs(a-b)===1)lanes[Math.min(a,b)].push(i);else if(a===b)lanes[a].push(i);else{lanes[a].push(i);lanes[b].push(i);skips.push(i);}});
   const cw=440,wrapCard=(value,limit=44)=>{const str=String(value??'').replace(/\s+/g,' '),out=[];for(let i=0;i<str.length;i+=limit)out.push(str.slice(i,i+limit));return out.length?out:[''];};
   const content=new Map(modelRows.map(m=>{
-    const title=m.full_name||m.name||m.id,qualifier=m.reference_only?'Reference only · definition missing':m.scope_role==='shared_reference'?'Shared reference · outside domain':dependencyIds.has(m.id)?'Required dependency context':m.object_kind==='semantic'?'Semantic object':dispositionLabel(m)+' · '+m.layer;
+    const title=m.full_name||m.name||m.id,kind=designObjectKind(m),qualifier=m.reference_only?'Reference only · definition missing':kind==='interface'?'External interface · implementation unresolved':m.scope_role==='shared_reference'?'Shared reference · outside domain':dependencyIds.has(m.id)?'Required dependency context':kind==='semantic'?'Semantic object':kind==='source'?'Source object · '+m.layer:dispositionLabel(m)+' · '+m.layer;
     const declared=Array.isArray(m.keys)?m.keys.filter(key=>typeof key==='string'):[],columns=(m.columns||[]).filter(c=>c.key||declared.includes(c.name)),missingKeys=declared.filter(key=>!(m.columns||[]).some(c=>c.name===key)).map(name=>({name,key:'Declared key',type:'Type unverified'})),keyRows=[...columns,...missingKeys],shown=keyRows.length?keyRows:(m.columns||[]).slice(0,4);
     const lines=[...wrapCard(title,36).map(text=>({text,name:true})),...wrapCard(qualifier).map(text=>({text,note:true})),...wrapCard(m.grain||'Grain unresolved').map(text=>({text,note:true})),...shown.flatMap(c=>wrapCard((c.key||((m.keys||[]).includes(c.name)?'Declared key':''))+' '+c.name+' · '+(c.type||'unknown')).map(text=>({text,key:true})))];
     if(!keyRows.length)lines.push({text:'Keys not supplied',note:true});
@@ -263,7 +268,7 @@ function filteredModelSvg(modelRows,edges,dependencyIds=new Set(),omittedEdges=0
   const top=(compact?70:115)+skips.length*20;grouped.forEach((rows,i)=>rows.forEach((m,j)=>positions.set(m.id,{x:xs[i],y:top+j*(ch+48)})));
   const bottom=top+Math.max(1,...grouped.map(g=>g.length))*(ch+48),width=Math.max(compact?500:1080,(xs.at(-1)||34)+cw+(gutters.at(-1)||170)+34);
   const wrap=value=>{const text=String(value).replace(/\s+/g,' '),limit=Math.max(30,Math.floor((width-68)/10)),lines=[];for(let i=0;i<text.length;i+=limit)lines.push(text.slice(i,i+limit));return lines.length?lines:[''];};
-  const ledger=compact?[]:edges.map((e,i)=>[...wrap(`E${i+1} · ${e.from} → ${e.to}`),...wrap([e.label||e.kind,e.predicate,e.cardinality,e.role,e.status||e.implementation_status||'Not validated',edgeEvidence(e)].filter(Boolean).join(' · '))]);
+  const ledger=compact?[]:edges.map((e,i)=>[...wrap(`E${i+1} · ${e.from} → ${e.to}`),...wrap([e.label||e.kind,e.predicate,relationshipColumns(e),e.cardinality,e.role,e.status||e.implementation_status||'Not validated',edgeEvidence(e)].filter(Boolean).join(' · '))]);
   const height=bottom+ledger.reduce((sum,lines)=>sum+lines.length*23+14,0)+65;
   const parts=[`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img"><title>Layered model and declared dependencies</title><desc>Full names are selectable using the model name controls. ${omittedEdges} connectors omitted from this image; see the complete relationship ledger.</desc>${portable?'':'<style>.model-name { font-weight: 700; fill: #172e43; } .model-note { fill: #546779; }</style>'}<rect width="${width}" height="${height}" fill="#f4f7fb"/><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#537080"/></marker></defs>`];
   layers.forEach((l,i)=>parts.push(`<text x="${xs[i]}" y="35" font-family="sans-serif" font-size="22" fill="#172e43">${l} · ${grouped[i].length}</text>`));
@@ -276,8 +281,8 @@ function filteredModelSvg(modelRows,edges,dependencyIds=new Set(),omittedEdges=0
     const status=e.status||e.implementation_status,color=e.kind==='lineage'?'#0c827e':status==='authored'?'#7658a7':status==='proposed'?'#9b641c':'#53697f',dash=e.kind==='lineage'||status==='authored'?'':` stroke-dasharray="${status==='proposed'?'7 4':'2 4'}"`;
     parts.push(`<path d="M ${points.map(p=>p.join(' ')).join(' L ')}" fill="none" stroke="${color}" stroke-width="2"${dash}${e.kind==='lineage'?' marker-end="url(#arrow)"':''}><title>${esc(e.label||e.kind)}</title></path><text x="${points[0][0]+5}" y="${y1-5}" font-family="sans-serif" font-size="13" fill="${color}">E${i+1}</text>`);
   });
-  for(const m of modelRows){const p=positions.get(m.id);if(!p)continue;const title=m.full_name||m.name||m.id,reference=m.reference_only||m.scope_role==='shared_reference';
-    parts.push(`<g data-model-id="${esc(m.id)}"><title>${esc(title)} · ${esc(m.grain||'Grain unresolved')}</title><rect x="${p.x}" y="${p.y}" width="${cw}" height="${ch}" rx="10" fill="${reference?'#fff8ed':'white'}" stroke="${reference?'#a77831':'#9aabba'}"${m.reference_only?' stroke-dasharray="6 4"':''}/>`);
+  for(const m of modelRows){const p=positions.get(m.id);if(!p)continue;const title=m.full_name||m.name||m.id,reference=m.reference_only||m.scope_role==='shared_reference',external=designObjectKind(m)==='interface';
+    parts.push(`<g data-model-id="${esc(m.id)}"><title>${esc(title)} · ${esc(m.grain||'Grain unresolved')}</title><rect x="${p.x}" y="${p.y}" width="${cw}" height="${ch}" rx="10" fill="${external?'#eef3ff':reference?'#fff8ed':'white'}" stroke="${external?'#62549a':reference?'#a77831':'#9aabba'}"${m.reference_only||external?' stroke-dasharray="6 4"':''}/>`);
     content.get(m.id).forEach((line,i)=>parts.push(`<text${line.name?` data-model-id="${esc(m.id)}" data-model-name="${esc(title)}" class="model-name" font-weight="700"`:''} x="${p.x+14}" y="${p.y+28+i*22}" font-family="${line.key?'monospace':'sans-serif'}" font-size="${line.name?18:15}" fill="${line.note?'#546779':'#172e43'}">${esc(line.text)}</text>`));parts.push('</g>');
   }
   let ledgerY=bottom;for(const lines of ledger){for(const line of lines){parts.push(`<text x="34" y="${ledgerY}" font-family="sans-serif" font-size="15" fill="#172e43">${esc(line)}</text>`);ledgerY+=23;}ledgerY+=14;}
@@ -288,7 +293,7 @@ function filteredModelSvg(modelRows,edges,dependencyIds=new Set(),omittedEdges=0
 function dispositionLabel(model){return({create:'New',reuse:'Reused',extend:'Extended',replace:'Replaced'})[model.disposition]||'Unspecified';}
 function columnRole(model,column){return column.key||((model.keys||[]).includes(column.name)?'Declared key':'—');}
 function selectErd(graph,options={}){
-  const warehouse=graph.nodes.filter(m=>m.object_kind==='warehouse');
+  const warehouse=graph.nodes.filter(designInventoryObject);
   const domainNodes=warehouse.filter(m=>!options.domain||m.domain===options.domain||m.proposal_domains?.includes(options.domain)),domainIds=new Set(domainNodes.map(m=>m.id));
   const query=(options.search||'').trim().toLowerCase();
   const direct=new Set(domainNodes.filter(m=>(!options.allowed||options.allowed.has(m.id))&&(!options.layer||m.layer===options.layer)&&(!options.disposition||(options.disposition==='undetermined'?dispositionLabel(m)==='Unspecified':m.disposition===options.disposition))&&(!query||(m.full_name+' '+m.id).toLowerCase().includes(query))).map(m=>m.id));
@@ -304,7 +309,7 @@ function selectErd(graph,options={}){
   if(!query&&!options.layer&&!options.disposition){
     const scoped=joins.filter(e=>e.record_origin==='domain_proposal');
     const scopedIds=new Set(scoped.flatMap(e=>[e.from,e.to]));
-    for(const id of scopedIds)if(permitted(id)&&graph.byId.get(id).object_kind==='warehouse'&&(!domainIds.has(id)||direct.has(id)))visible.add(id);
+    for(const id of scopedIds)if(permitted(id)&&designInventoryObject(graph.byId.get(id))&&(!domainIds.has(id)||direct.has(id)))visible.add(id);
     if(!options.allowed){for(const id of scopedIds)if(permitted(id))visible.add(id);}
     else{
       const adjacency=new Map();for(const e of scoped){if(!permitted(e.from)||!permitted(e.to))continue;for(const [a,b]of [[e.from,e.to],[e.to,e.from]]){if(!adjacency.has(a))adjacency.set(a,new Set());adjacency.get(a).add(b);}}
@@ -323,7 +328,7 @@ function selectErd(graph,options={}){
   const ledgerIds=new Set();
   if(!options.allowed)for(const e of candidates){ledgerIds.add(e.from);ledgerIds.add(e.to);}
   else{
-    const adjacency=new Map();for(const e of candidates)for(const [a,b]of [[e.from,e.to],[e.to,e.from]]){if(!adjacency.has(a))adjacency.set(a,new Set());adjacency.get(a).add(b);if(graph.byId.get(a).object_kind==='warehouse')ledgerIds.add(a);}
+    const adjacency=new Map();for(const e of candidates)for(const [a,b]of [[e.from,e.to],[e.to,e.from]]){if(!adjacency.has(a))adjacency.set(a,new Set());adjacency.get(a).add(b);if(designInventoryObject(graph.byId.get(a)))ledgerIds.add(a);}
     const pending=[...ledgerIds];for(let i=0;i<pending.length;i++)for(const id of adjacency.get(pending[i])||[])if(!ledgerIds.has(id)&&graph.byId.get(id).object_kind==='reference'){ledgerIds.add(id);pending.push(id);}
   }
   return{nodes,edges,visible,selected:direct,dependencies:new Set(),domain:options.domain||'',focus:options.focus||'',
@@ -697,11 +702,25 @@ for(const domain of [...new Set(graph.nodes.flatMap(m=>[m.domain,...(m.proposal_
 let diagramFitMode=false,tableLimit=50;
 let shownViews=[],lineageViews=[],currentDiagram=null,currentLineageDiagram=null,lineageSelection=selectLineage(graph),erdSelection=selectErd(graph),diagramZoom=1,lineageZoom=1,inspectedModel='',inspectorFile=null;
 for(const id of ['architecture-model','lineage-model'])for(const model of graph.nodes){
-  if(id==='architecture-model'&&model.object_kind!=='warehouse')continue;
-  const option=make('option',`${model.object_kind==='warehouse'?'Warehouse':'Semantic'} · ${model.full_name} (${model.layer})`);option.value=model.id;el(id).append(option);
+  if(id==='architecture-model'&&!designInventoryObject(model))continue;
+  const option=make('option',`${objectKindLabel(model)} · ${model.full_name} (${model.layer})`);option.value=model.id;el(id).append(option);
 }
 el('lineage-joins').checked=true;
 function setViewOptions(id,views){const prior=Number(el(id).value)||0,select=clear(id);views.forEach((v,i)=>{const option=make('option',v.label);option.value=String(i);select.append(option);});select.value=String(Math.min(prior,Math.max(0,views.length-1)));}
+function renderDesignReadiness(){
+  const readiness=workflow?.design_readiness,enabled=data.audience!=='audit'&&(data.page_mode==='status'||!Array.isArray(data.selected_categories)||['documentation','diagrams','dictionary'].some(key=>data.selected_categories.includes(key)));
+  el('design-readiness').hidden=!enabled||!readiness;
+  if(!enabled||!readiness)return;
+  const target=clear('design-readiness-statuses');
+  for(const [key,label]of [['structural','Structure'],['coverage','Source coverage'],['evidence','Evidence'],['independent_review','Independent review'],['human_review','Human review'],['native_validation','Native validation']]){
+    const item=readiness[key]||{},badge=make('span',`${label}: ${pretty(item.status||'unassessed')}`,'pill');
+    if(item.qualification)badge.title=item.qualification;
+    target.append(badge);
+  }
+  const evidenceCounts=readiness.evidence?.counts,bases=[['observed_metadata','observed metadata'],['repository_declaration','repository declarations'],['user_assertion','user assertions'],['proposal','proposals']];
+  const classifications=evidenceCounts&&bases.some(([key])=>Object.hasOwn(evidenceCounts,key))?' Evidence classifications: '+bases.map(([key,label])=>label+': '+reviewEvidenceCount(evidenceCounts[key])).join(' · ')+'. Counts classify host-reported claims only; warehouse verification requires separate execution evidence.':'';
+  el('design-readiness-note').textContent='Included design scope. Diagram filters change the visible counts, not these checks. '+(readiness.qualification||'Structural consistency does not establish complete discovery, independent review, human approval, or native validation.')+classifications;
+}
 function buildViews(){
   let allowed;
   if(assetId){allowed=new Set(selection.visible);if(assetId==='__unmapped__')for(const node of graph.nodes)if(node.object_kind==='semantic')allowed.add(node.id);}
@@ -711,15 +730,17 @@ function buildViews(){
   lineageViews=diagramEnabled?graphPages(lineageSelection,36,data.diagrams||[]):[];
   setViewOptions('diagram-view',shownViews);setViewOptions('lineage-view',lineageViews);
   el('lineage-summary').textContent=diagramEnabled?`${lineageSelection.selected.size} selected + ${lineageSelection.dependencies.size} dependency-context objects of ${graph.nodes.length} included objects. ${lineageSelection.hidden} hidden by filters; ${graph.unresolved} unresolved endpoint references. Joins are separate from transformation dependencies.`:'Diagrams were not selected for this package.';
-  const summary=clear('model-summary');summary.append(make('strong',`${models.length} tables`),make('span','Candidate design','pill'));
-  for(const [value,label]of [['create','new'],['reuse','reused'],['extend','extended'],['replace','replaced'],['undetermined','unspecified']]){const count=models.filter(m=>value==='undetermined'?dispositionLabel(m)==='Unspecified':m.disposition===value).length;if(count)summary.append(make('span',`${count} ${label}`,'pill'));}
-  for(const kind of ['fact','dimension']){const count=models.filter(m=>m.entity_type===kind).length;if(count)summary.append(make('span',`${count} ${kind}${count===1?'':'s'}`,'pill'));}
-  summary.append(make('span',`${graph.edges.filter(e=>e.kind==='relationship').length} declared relationship occurrences`));
+  const summary=clear('model-summary'),visible=erdSelection.nodes.filter(m=>erdSelection.selected.has(m.id)),visibleModels=visible.filter(m=>designObjectKind(m)==='model');
+  summary.append(make('strong',`Models: ${visibleModels.length}`),make('span',`Sources: ${visible.filter(m=>designObjectKind(m)==='source').length}`,'pill'),make('span',`External interfaces: ${visible.filter(m=>designObjectKind(m)==='interface').length}`,'pill interface-kind'),make('span','Candidate design','pill'));
+  for(const [value,label]of [['create','new'],['reuse','reused'],['extend','extended'],['replace','replaced'],['undetermined','unspecified']]){const count=visibleModels.filter(m=>value==='undetermined'?dispositionLabel(m)==='Unspecified':m.disposition===value).length;if(count)summary.append(make('span',`${count} ${label}`,'pill'));}
+  for(const kind of ['fact','dimension']){const count=visibleModels.filter(m=>m.entity_type===kind).length;if(count)summary.append(make('span',`${count} ${kind}${count===1?'':'s'}`,'pill'));}
+  summary.append(make('span',`${erdSelection.edges.filter(e=>e.kind==='relationship').length} declared relationship occurrences`));
+  renderDesignReadiness();
   const unresolved=decisions.filter(d=>!['resolved','accepted','approved'].includes(d.status)).length;if(unresolved){const link=make('a',`${unresolved} decisions to review`);link.href='#changes';summary.append(link);}
   el('diagram-download-all').disabled=!diagramEnabled||!models.length;
   showDiagram();showLineage();relationshipTable();tableNavigator();
   const inspector=clear('inspect-model');const prompt=make('option','Choose a table');prompt.value='';inspector.append(prompt);
-  for(const model of graph.nodes.filter(m=>m.object_kind==='warehouse'||erdSelection.visible.has(m.id))){const option=make('option',`${model.full_name} · ${model.reference_only?'Reference only':dispositionLabel(model)}`);option.value=model.id;inspector.append(option);}
+  for(const model of graph.nodes.filter(m=>designInventoryObject(m)||erdSelection.visible.has(m.id))){const option=make('option',`${model.full_name} · ${model.reference_only?'Reference only':dispositionLabel(model)}`);option.value=model.id;inspector.append(option);}
   if(!graph.byId.has(inspectedModel))inspectedModel=erdSelection.nodes[0]?.id||'';
   inspector.value=inspectedModel;inspectModel(inspectedModel);
   table('model-roster',[['Table',m=>{const b=make('button',m.full_name,'secondary');b.type='button';b.onclick=()=>revealModel(m.id);return b;}],['Change',dispositionLabel],['One row represents',m=>m.grain||'Not supplied'],['Declared keys',m=>(m.columns||[]).filter(c=>c.key||(m.keys||[]).includes(c.name)).map(c=>`${columnRole(m,c)}: ${c.name}`).join('; ')||'Not supplied']],erdSelection.nodes);
@@ -793,7 +814,7 @@ el('diagram-fit').onclick=fitDiagram;
 el('diagram-expand').onclick=()=>{const expanded=el('diagram-expand').getAttribute('aria-expanded')!=='true';el('model-canvas').classList.toggle('expanded',expanded);el('diagram-expand').setAttribute('aria-expanded',String(expanded));el('diagram-expand').textContent=expanded?'Close expanded view':'Expand diagram';if(diagramFitMode)fitDiagram();};
 addEventListener('resize',()=>{if(diagramFitMode)fitDiagram();});
 function tableNavigator(){
-  const query=el('table-search').value.toLowerCase(),rows=graph.nodes.filter(m=>m.object_kind==='warehouse'&&(!query||m.full_name.toLowerCase().includes(query))),target=clear('table-navigator');
+  const query=el('table-search').value.toLowerCase(),rows=graph.nodes.filter(m=>designInventoryObject(m)&&(!query||m.full_name.toLowerCase().includes(query))),target=clear('table-navigator');
   el('table-count').textContent=`${rows.length} of ${models.length} included tables · select a table for columns, keys, joins and code. Diagram filters do not remove tables from this list.`;
   for(const model of rows.slice(0,tableLimit)){const button=make('button',model.full_name,'secondary');button.type='button';button.setAttribute('aria-current',String(model.id===inspectedModel));button.setAttribute('aria-label','Inspect '+model.full_name);button.append(make('small',`${pretty(model.layer)} · ${dispositionLabel(model)}`));button.onclick=()=>{revealModel(model.id);};target.append(button);}
   if(!rows.length)target.append(make('p','No table names match. Clear the search to see every included table.','muted'));
@@ -835,7 +856,7 @@ el('lineage-layer').onchange=()=>{lineageOptions.layer=el('lineage-layer').value
 for(const [id,key]of [['lineage-new','newOnly'],['lineage-context','context'],['lineage-joins','joins']])el(id).onchange=()=>{lineageOptions[key]=el(id).checked;buildViews();};
 el('lineage-clear').onclick=()=>{clearTimeout(lineageSearchTimer);Object.assign(lineageOptions,{focus:'',direction:'both',search:'',layer:'',newOnly:false,context:false,joins:true});el('lineage-search').value='';el('lineage-layer').value='';el('lineage-new').checked=false;el('lineage-context').checked=false;el('lineage-joins').checked=true;syncLineage();};
 
-function relationshipTable(){table('relationships',[['From',r=>graph.byId.get(r.from)?.full_name||r.from],['To',r=>graph.byId.get(r.to)?.full_name||r.to],['Join / cardinality',r=>[r.predicate||r.label||'Predicate not supplied',r.cardinality||'Cardinality not supplied',r.role].filter(Boolean).join(' · ')],['Status',r=>r.status||r.implementation_status||'Not specified'],['Evidence / reconciliation',r=>edgeEvidence(r)]],erdSelection.edges,10);}
+function relationshipTable(){table('relationships',[['From',r=>graph.byId.get(r.from)?.full_name||r.from],['To',r=>graph.byId.get(r.to)?.full_name||r.to],['Join / cardinality',r=>[r.predicate||r.label||'Predicate not supplied',relationshipColumns(r),r.cardinality||'Cardinality not supplied',r.role].filter(Boolean).join(' · ')],['Status',r=>r.status||r.implementation_status||'Not specified'],['Evidence / reconciliation',r=>edgeEvidence(r)]],erdSelection.edges,10);}
 function showInspectorTab(name){for(const tab of ['columns','relationships','code']){el('inspect-'+tab).hidden=tab!==name;el('inspect-'+tab+'-tab').setAttribute('aria-selected',String(tab===name));}}
 let inspectorReturn=null;
 function closeInspector(){el('table-inspector').classList.toggle('drawer-open',false);el('table-inspector').removeAttribute('role');el('table-inspector').removeAttribute('aria-modal');inspectorReturn?.focus?.({preventScroll:true});}
@@ -847,6 +868,9 @@ function inspectModel(id){
   inspectedModel=id;tableNavigator();el('inspect-model').value=id;el('diagram').querySelectorAll?.('[data-model-id]').forEach(node=>{if((node.localName||node.tag)==='g'){const selected=node.getAttribute('data-model-id')===id;node.classList.toggle('selected-model',selected);node.setAttribute('aria-current',String(selected));}});const model=graph.byId.get(id),scopeRole=erdSelection.nodes.find(m=>m.id===id)?.scope_role,summary=clear('inspector-summary');
   if(!model){summary.append(make('p','Choose a table in the ERD or selector.','empty'));clear('inspect-columns');clear('inspect-relationships');clear('inspect-code-file').hidden=true;el('inspect-code-file').onchange=null;showInspectorCode(null);return;}
   summary.append(make('h3',model.full_name),make('span',model.reference_only?'Reference only · definition missing':scopeRole==='shared_reference'?'Shared reference':dispositionLabel(model),'pill'),make('p',model.grain||'Row grain has not been supplied.'));
+  summary.append(make('span',objectKindLabel(model),'pill'+(designObjectKind(model)==='interface'?' interface-kind':'')));
+  if(designObjectKind(model)==='interface')summary.append(make('p','External interface only; executable implementation and compatibility are unresolved.','muted'));
+  for(const [key,label]of [['keys','Declared keys'],['history','History'],['security','Security']])if(model[key]!=null)summary.append(make('p',label+': '+(Array.isArray(model[key])?model[key].join(', ')||'Not supplied':text(model[key])),'muted'));
   if(model.description)summary.append(make('p',model.description,'muted'));
   const modelCases=cases.filter(c=>c.model_ids?.includes(id)),modelDecisions=decisions.filter(d=>d.model_ids?.includes(id)&&!['resolved','accepted','approved'].includes(d.status));
   summary.append(make('p',modelCases.length?`Table checks: ${modelCases.filter(c=>c.status==='fail').length} failed, ${modelCases.filter(c=>c.status==='pass').length} reported passes, ${modelCases.filter(c=>!['fail','pass'].includes(c.status)).length} pending/other. Verify evidence in Validation.`:'Table-specific validation is not supplied. See Validation for engagement checks.','muted'));
@@ -856,7 +880,7 @@ function inspectModel(id){
   if(model.columns?.length)table('inspect-columns',[['Column definitions',c=>{const cell=make('div'),heading=make('div',undefined,'inspector-detail-heading');heading.append(make('strong',c.name),make('span',columnRole(model,c),'pill'));cell.append(heading,make('p',[c.type||c.data_type||'Type not supplied',c.nullable===true?'Nullable':c.nullable===false?'Not nullable':typeof c.nullable==='string'?c.nullable:null].filter(Boolean).join(' · '),'muted'),make('p',c.description||'Definition not supplied.'));return cell;}]],model.columns,20);
   else empty('inspect-columns','Column definitions are not included in this package. Request the dictionary.');
   const joins=graph.edges.filter(e=>e.kind==='relationship'&&(e.from===id||e.to===id));
-  if(joins.length)table('inspect-relationships',[['Declared relationships',e=>{const cell=make('div');cell.append(make('strong',graph.byId.get(e.from===id?e.to:e.from)?.full_name||'Unresolved'),make('p',e.predicate||'Join predicate not supplied.','inspector-predicate'),make('p',`Cardinality: ${e.cardinality||'Not supplied'}${e.role?' · Role: '+e.role:''}`,'muted'),make('p',`Status: ${e.status||e.implementation_status||'Not supplied'}`,'muted'),make('p',edgeEvidence(e),'muted'));return cell;}]],joins,10);
+  if(joins.length)table('inspect-relationships',[['Declared relationships',e=>{const cell=make('div');cell.append(make('strong',graph.byId.get(e.from===id?e.to:e.from)?.full_name||'Unresolved'),make('p',e.predicate||'Join predicate not supplied.','inspector-predicate'),make('p',relationshipColumns(e),'muted'),make('p',`Cardinality: ${e.cardinality||'Not supplied'}${e.role?' · Role: '+e.role:''}`,'muted'),make('p',`Status: ${e.status||e.implementation_status||'Not supplied'}`,'muted'),make('p',edgeEvidence(e),'muted'));return cell;}]],joins,10);
   else empty('inspect-relationships','No joins are recorded for this table. Keys and relationships are not inferred from names.');
   const codeIds=new Set([model.artifact_id,...(Array.isArray(model.artifact_ids)?model.artifact_ids:[])].filter(Boolean)),linked=files.filter(f=>codeIds.has(f.id)&&f.category==='implementation'),select=clear('inspect-code-file');
   for(const file of linked){const option=make('option',file.path);option.value=file.id;select.append(option);}select.hidden=linked.length<2;select.value=linked[0]?.id||'';select.onchange=()=>showInspectorCode(linked.find(f=>f.id===select.value)||null);

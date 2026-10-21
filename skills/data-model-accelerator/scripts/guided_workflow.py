@@ -317,6 +317,13 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include, *, c
     if state.get('workflow', {}).get('migration_planning'):
         from migration_planning import fingerprint
         review_evidence['migration_planning_sha256'] = fingerprint(state)
+    if any(state.get('workflow', {}).get(k) for k in ('design_coverage', 'design_evidence', 'independent_design_reviews')):
+        from design_readiness import summarize
+        from design_evidence import scope_bindings as evidence_bindings
+        from design_coverage import scope_bindings as coverage_bindings
+        review_evidence['design_readiness_sha256'] = _digest({'summary': summarize(state),
+            'evidence': evidence_bindings(state), 'coverage': coverage_bindings(state),
+            'reviews': state['workflow'].get('independent_design_reviews', {})})
     return {**({'checkpoint': True} if checkpoint else {}), **review_evidence,
             'review_path': str(review_path), 'review_sha256': review_hash,
             'artifact_root': str(artifact_root), 'audience': audience,
@@ -504,7 +511,10 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
     complete = platform.get('coverage', {}).get('complete') is True and fingerprint.get('complete') is True
     capable = platform.get('capabilities', {}).get('generation', {}).get('status') == 'agent_assisted'
     generation_ready = not missing and complete and capable and not blockers
-    provisional_available = not missing and complete and capable and all(
+    # Unknown business semantics are precisely what an explicit draft request
+    # can carry forward. Target, scope and disclosure choices still must be known.
+    provisional_missing = set(missing) - {'trusted_outputs', 'retained_behavior', 'corrected_behavior'}
+    provisional_available = not provisional_missing and complete and capable and all(
         item['id'] in {'capture_catalogue', 'restore_catalogue'} for item in blockers)
     state['readiness'] = {'interview_complete': not missing, 'generation_ready': generation_ready,
                           'provisional_generation_available': provisional_available,
@@ -725,8 +735,28 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
             import domain_workflow
             {'register-domains': domain_workflow.register, 'select-domain': domain_workflow.select_domain,
              'pause-domain': domain_workflow.pause_domain, 'complete-domain': domain_workflow.complete_domain}[action](state, document)
+            if action == 'select-domain' and not _known(state['answers'].get('priority_domain')):
+                # Retain the actual user choice; do not ask the intake question again.
+                selected = next(d for d in domain_workflow.ledger(state)['domains'] if d['id'] == document['domain_id'])
+                state['answers']['priority_domain'] = selected['name']
+                invalidated += _refresh(state)
         elif action == 'import-design':
             stages.import_design(state, document)
+        elif action == 'assemble-design':
+            from design_builder import assemble
+            stages.import_design(state, assemble(document))
+        elif action == 'record-design-coverage':
+            from design_coverage import record
+            record(state, document, run_dir)
+        elif action == 'record-design-evidence':
+            from design_evidence import record
+            record(state, document, run_dir)
+        elif action == 'independent-review-bindings':
+            from design_evidence import review_bindings
+            state['workflow']['independent_review_request'] = review_bindings(state, entities)
+        elif action == 'record-independent-review':
+            from design_evidence import record_review
+            record_review(state, document, run_dir)
         elif action == 'record-coverage':
             from mapping_coverage import register
             register(state, document, run_dir)
@@ -836,7 +866,8 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
-    stage_commands = ('migrate-stages', 'import-design', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
+    stage_commands = ('migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
+                      'independent-review-bindings', 'record-independent-review', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
                       'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design',
                       'record-business-rules', 'review-business-rules', 'recommend-shared-models',
@@ -869,7 +900,8 @@ def main(argv=None):
         if command == 'record-evidence':
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
-        if command in ('import-design', 'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
+        if command in ('import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
+                       'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
                        'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design',
                        'record-business-rules', 'review-business-rules', 'recommend-shared-models',
                        'extract-periscope', 'record-migration-validation',
@@ -878,7 +910,7 @@ def main(argv=None):
                        'configure-migration-planning', 'record-migration-plan', 'edit-migration-items',
                        'register-domains', 'select-domain', 'pause-domain', 'complete-domain'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
-        if command in ('review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):
+        if command in ('review-bindings', 'independent-review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):
             p.add_argument('--entities', nargs='+', required=True)
         if command == 'approve-design':
             p.add_argument('--document', type=Path, help='Exact-scope human decision attributed by the trusted host; never an approval inferred from input files.')

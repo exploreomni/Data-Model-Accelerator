@@ -93,7 +93,10 @@ or create a catalogue record.
   checker. This limitation does not prevent delivery of the requested drafts.
 
 This narrow exception covers catalogue absence and pending design review or
-decisions. It does not waive target selection, source-inventory boundaries,
+decisions, including unknown trusted comparison outputs and behavior to retain
+or correct. Keep those interview answers missing and visible; do not invent a
+baseline or record an empty corrections list merely to unlock drafting.
+It does not waive target selection, source-inventory boundaries,
 disclosure restrictions, unsupported platform contracts or other blockers.
 It authorizes files only; the reviewed validation stage, target execution and
 deployment retain their own gates. File-only lint, syntax and structural checks
