@@ -192,6 +192,11 @@ def guard_dispatch(state, request):
     if not ledger(state) or request['role'] in {'source_specialist', 'catalogue_specialist'}:
         return
     domain = _domain(state)
+    if request['role'] == 'migration_project_manager':
+        require(not request.get('task_id') and request['scope_ids'] == [domain['id']]
+                and not request['source_paths'],
+                'Migration planning must use the selected domain and retained evidence only')
+        return
     if request.get('task_id'):
         require_scope(state, request['scope_ids'])
     elif request['role'] == 'warehouse_architect' and request['scope_ids'] == [domain['id']]:

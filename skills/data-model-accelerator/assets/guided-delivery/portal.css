@@ -84,3 +84,5 @@
   body.migration-print .migration-screen{display:none}
   body.migration-print .migration-print-summary{display:block;white-space:pre-wrap;overflow-wrap:anywhere;overflow:visible;max-height:none;background:white;color:black;border:0;padding:0;font:11pt/1.5 sans-serif}
 }
+/* Optional planning views inherit the shared responsive section layout. */
+.planning-narrative{white-space:pre-wrap;overflow-wrap:anywhere}

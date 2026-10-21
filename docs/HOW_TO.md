@@ -51,6 +51,47 @@ Cost control comes from reusing extraction, explicit mappings and unchanged
 results, and sending only unresolved scoped differences to a reviewer. The tool
 records local evidence and packet sizes; it does not estimate an account bill.
 
+## Migration planning and ticket templates
+
+Ask for the optional planning stage after a draft design or when revisiting a
+reviewed domain. For example:
+
+> Plan the migration for this domain using our retained old-to-new mappings.
+> Ask which spreadsheet/document formats and ticket tool we want. Include the
+> old dashboard connections, proposed new model/topic destinations, unresolved
+> definitions, dependencies, measurable acceptance criteria and cutover/rollback.
+> Keep this to editable plans and ticket templates; do not create live tickets.
+
+The agent asks about local Excel/Word, Google Sheets/Docs or both; the selected
+ticket platform; existing templates/backlog; and missing priorities, owners or
+migration constraints. It reuses answers already recorded. A draft remains
+available when context is missing, alongside requested provisional code.
+
+Open **Migration plan** in `START_HERE.html`. Download the inventory for old/new
+tables and dashboard destinations, then the narrative plan and selected ticket
+pack. Select both documentation and dictionary to include the full planning
+inventory; reduced exports explicitly omit it. Files are together in `05_Migration/`. Shared models and split/merge mappings
+remain explicit. Unknown lineage is not filled by matching names. Proposed routes
+do not establish native topic existence or dashboard parity.
+
+Notes, owners, priorities and dates can be returned to the agent by stable
+planning ID. The agent records them against the displayed plan hash and preserves
+them on regeneration. Changing business meaning requires the normal definition
+and design reviews. Workbook edits are not automatic approval or live ticket sync.
+
+Google-only selection produces native-authoring content for the host connector;
+it is explicitly pending until the host creates and verifies the real documents.
+If the host lacks access, choose an offered local fallback or retain the pending
+request. There is no silent format substitution. Review each platform's import
+instructions before importing, especially parent/dependency handling and updates.
+Existing ticket updates are proposals, not rows in a create-only import.
+
+Engineering commands and the PM task contract are in
+[migration-planning.md](../skills/data-model-accelerator/references/migration-planning.md).
+Planning exports do not authorize ticket creation, external sharing, deployment
+or retirement. Unchanged domains reuse retained work; planning formatting edits
+do not invalidate approved engineering code.
+
 For a dashboard migration, supply business definitions up front using conversation
 or the [business-rule template](../skills/data-model-accelerator/assets/business-rules-template.md).
 A useful request is: “Read our Periscope Git snapshot, show what you could and could
@@ -86,7 +127,7 @@ python3 skills/data-model-accelerator/scripts/guided_workflow.py --help
 Your agent can read `skills/data-model-accelerator/SKILL.md` directly. To install it in a host's skill directory, copy the **entire** `skills/data-model-accelerator` folder, including references and scripts. Preserve an existing installation unless you deliberately choose to update it. Do not install only `SKILL.md`.
 
 Optionally install the sibling `data-model-design`, `data-model-implement`,
-`data-model-semantic`, `data-model-validate`, `data-model-package` and
+`data-model-semantic`, `data-model-validate`, `data-model-package`, `data-model-migration-plan` and
 `data-model-deploy` folders beside it. These are focused entrypoints into the same
 workflow. They require the main skill and share its answers, review and evidence;
 they do not create separate projects or repeat discovery.

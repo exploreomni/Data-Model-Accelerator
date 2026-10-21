@@ -16,6 +16,7 @@ from pathlib import Path, PurePosixPath
 import re
 import stat
 import struct
+import xml.etree.ElementTree as ET
 import zipfile
 
 
@@ -206,7 +207,14 @@ def scan_bytes(data, filename):
             finding('coverage.member_limit', 'COVERAGE', location, unsupported=True)
             return
         result['coverage']['objects_inspected'] += 1
-        suffix = PurePosixPath(name.replace('\\', '/')).suffix.lower()
+        format_path = PurePosixPath(name.replace('\\', '/'))
+        suffix = format_path.suffix.lower()
+        # OPC/OOXML relationship parts are XML, including the extension-only
+        # root member _rels/.rels (whose pathlib suffix is empty). This does not
+        # permit other Office members or bypass recursive archive inspection.
+        relationship_xml = suffix == '.rels' or format_path.name.lower() == '.rels'
+        if relationship_xml:
+            suffix = '.xml'
         signals(name, location)
         if body.startswith(b'PK') or suffix == '.zip':
             try:
@@ -275,6 +283,18 @@ def scan_bytes(data, filename):
             finding('coverage.binary_content', 'COVERAGE', location, unsupported=True)
             return
         signals(text, location)
+        if relationship_xml:
+            # HTMLParser below is intentionally tolerant for HTML; relationship
+            # XML must also be well-formed. DTD/entity declarations are outside
+            # this supported part format and are never expanded or fetched.
+            if re.search(r'<!\s*(?:DOCTYPE|ENTITY)\b', text, re.I):
+                finding('coverage.unsupported_xml_declaration', 'COVERAGE', location, unsupported=True)
+                return
+            try:
+                ET.fromstring(text)
+            except (ET.ParseError, ValueError):
+                finding('coverage.invalid_xml', 'COVERAGE', location, unsupported=True)
+                return
         if suffix == '.json':
             try:
                 json_values(_json(text), location, 0, depth)

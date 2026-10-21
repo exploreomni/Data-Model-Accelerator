@@ -4,6 +4,17 @@ Use this page to scope a customer pilot. The accelerator combines agent reasonin
 
 ## Read capability claims correctly
 
+Optional [migration planning](../skills/data-model-accelerator/references/migration-planning.md)
+turns retained, domain-scoped design and historical alignment into an editable
+Excel inventory, Word migration plan, and ticket templates/import candidates.
+The focused project-manager role records consumer destinations, dependencies,
+acceptance criteria, waves, unknowns and effort categories without rescanning the
+source repository. Stable item IDs preserve human edits across revisions.
+Google formats produce typed content for native host creation; they remain
+pending until creation and read-back are confirmed. Import candidates require
+the selected system's field mapping and review. These capabilities do not post
+tickets, verify live importer compatibility, establish parity or authorize a release.
+
 Optional [historical table alignment](../skills/data-model-accelerator/references/legacy-alignment.md)
 adds per-domain new/refactor/mixed intake and a retained predesign baseline.
 It supports many-to-many table/column/rule mappings, target semantic placements,

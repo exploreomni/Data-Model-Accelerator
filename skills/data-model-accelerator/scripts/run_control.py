@@ -11,7 +11,7 @@ from ae_common import hash_file, hash_json, require, safe_relative
 
 ROLES = {'source_specialist', 'catalogue_specialist', 'warehouse_architect',
          'analytics_engineer', 'semantic_modeler', 'validation_analyst',
-         'independent_reviewer', 'documentation_specialist'}
+         'independent_reviewer', 'documentation_specialist', 'migration_project_manager'}
 DEFAULT_LIMIT = 2
 
 
@@ -80,6 +80,18 @@ def _binding(state, request):
         require(not any(p.lower() in guided.SECRET_FILES or p.lower().startswith('.env')
                         or guided.SECRET_PATH.search(p) for p in Path(path).parts),
                 'Credential paths cannot be work inputs')
+    if request['role'] == 'migration_project_manager':
+        require(not request.get('task_id') and source_type is None and not paths,
+                'Migration planning consumes retained scoped evidence, not source discovery or code tasks')
+        require(len(request['scope_ids']) == 1, 'Select exactly one migration-planning domain')
+        from migration_planning import work_input_binding
+        domain = work_input_binding(state, request['scope_ids'][0])
+        from ae_common import hash_file
+        scripts = Path(__file__).resolve().parent
+        return {'role': request['role'], 'domain_id': domain['domain_id'],
+                'planning_inputs_sha256': hash_json(domain),
+                'planning_engine_sha256': hash_file(scripts / 'migration_planning.py'),
+                'planning_playbook_sha256': hash_file(scripts.parent / 'references/migration-planning.md')}, None
     if request.get('task_id'):
         root = state['workflow'].get('artifact_root')
         require(root, 'Plan stage tasks with an artifact root before dispatch')
@@ -104,6 +116,16 @@ def _outputs_current(record):
     from authoring_evidence import capture
     try:
         return bool(record.get('outputs')) and capture(record['artifact_root'], list(record['outputs'])) == record['outputs']
+    except (OSError, ValueError, TypeError, KeyError):
+        return False
+
+
+def _planning_result_current(state, record):
+    if record['role'] != 'migration_project_manager':
+        return True
+    from migration_planning import retained_result_binding
+    try:
+        return record.get('planning_result_binding') == retained_result_binding(state, record['scope_ids'][0])
     except (OSError, ValueError, TypeError, KeyError):
         return False
 
@@ -137,7 +159,8 @@ def claim_work(state, request):
                     'qualification': 'Reuse the existing host worker; do not launch another.'}
     for record in reversed(ops['attempts']):
         if (record['fingerprint'] == fingerprint
-                and record['status'] == 'outputs_recorded' and _outputs_current(record)):
+                and record['status'] == 'outputs_recorded' and _outputs_current(record)
+                and _planning_result_current(state, record)):
             ops['reuse_count'] += 1
             state['operations'] = ops
             return {'action': 'reuse', 'attempt_id': record['attempt_id'], 'outputs': record['outputs'],
@@ -183,6 +206,12 @@ def checkpoint_work(state, request, artifact_root):
     outputs = capture(root, request['outputs'])
     if request['status'] == 'outputs_recorded':
         require(outputs, 'Completed work needs retained output files')
+        if attempt['role'] == 'migration_project_manager':
+            current, _ = _binding(state, attempt)
+            require(hash_json(current) == attempt['fingerprint'],
+                    'PM inputs changed during work; checkpoint as interrupted and claim the changed scope')
+            from migration_planning import retained_result_binding
+            attempt['planning_result_binding'] = retained_result_binding(state, attempt['scope_ids'][0])
         # Stage output registration has its own byte, scope and review checks.
         if attempt.get('task_id'):
             task = next(t for t in stages.plan_tasks(state, root)['tasks'] if t['id'] == attempt['task_id'])

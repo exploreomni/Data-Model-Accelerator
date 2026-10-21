@@ -47,6 +47,7 @@ to the specialists. Prepared files are not proof of a verified final handoff.
 | Analyst / independent reviewer | Original relevant expressions and report contracts, independent expectations, candidate diff, affected dependency/documentation slices | Author's conclusions as the sole oracle or all previous conversations |
 | Documenter | Current model specification, scoped dictionary/ERD/code associations, unresolved definitions | Repeated source discovery and re-authoring business definitions |
 | Legacy comparison task (`independent_reviewer`) | Selected domain baseline, proposed targets, explicit mappings, relevant definitions and unresolved differences | New repository discovery, unrelated domains, full conversation or autonomous redesign |
+| Migration project manager (`migration_project_manager`) | Current domain planning snapshot, evidence-backed mappings, consumer destinations, decisions, selected ticket profile and acceptance gaps | Repository rescans, other vendor manuals, unrelated domains, invented estimates and live ticket writes |
 
 These are routing defaults, not permission to omit required dependencies or
 security/history/population context. The coordinator retains a complete coverage
@@ -85,7 +86,7 @@ The request is JSON:
   initial` and a `role` from the table's runtime names: `source_specialist`,
   `catalogue_specialist`, `warehouse_architect`, `analytics_engineer`,
   `semantic_modeler`, `validation_analyst`, `independent_reviewer` or
-  `documentation_specialist`.
+  `documentation_specialist` or `migration_project_manager`.
 - For a planned source task with `specialist_profile`, add `source_type` and
   `bindings.specialist_profile` using that plan's profile SHA-256. The builder
   loads only the matching installed profile, verifies the pin, scans it with

@@ -314,6 +314,9 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include, *, c
     if state.get('workflow', {}).get('legacy_alignment'):
         from legacy_alignment import fingerprint
         review_evidence['legacy_alignment_sha256'] = fingerprint(state)
+    if state.get('workflow', {}).get('migration_planning'):
+        from migration_planning import fingerprint
+        review_evidence['migration_planning_sha256'] = fingerprint(state)
     return {**({'checkpoint': True} if checkpoint else {}), **review_evidence,
             'review_path': str(review_path), 'review_sha256': review_hash,
             'artifact_root': str(artifact_root), 'audience': audience,
@@ -425,9 +428,18 @@ def _stage_progress(state):
     # Preserve discovery and file-review actions; candidate readiness does not
     # substitute for the current stage's reviewed inputs.
     state['next_actions'] = [a for a in state['next_actions'] if a['scope'] in {'discovery', 'readiness', 'review'}
-                             and not a['id'].startswith('legacy_comparison:')]
+                             and not a['id'].startswith(('legacy_comparison:', 'migration_planning:'))]
     from domain_workflow import public_summary as domain_summary
     journey = domain_summary(state)
+    if state['workflow'].get('migration_planning'):
+        from migration_planning import public_summary as planning_summary
+        for row in planning_summary(state)['domains']:
+            if journey and row['domain_id'] != journey['active_domain_id']:
+                continue
+            if row.get('freshness') != 'current' or not row.get('plan_sha256'):
+                state['next_actions'].append({'id': 'migration_planning:' + row['domain_id'], 'scope': 'review',
+                    'action': 'Prepare or refresh this domain migration plan from retained mappings. '
+                              'Missing planning context does not block explicitly requested provisional code.'})
     if state['workflow'].get('legacy_alignment'):
         from legacy_alignment import public_summary as alignment_summary
         for row in alignment_summary(state)['domains']:
@@ -730,6 +742,14 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
         elif action == 'review-business-rules':
             from business_rules import record_decisions
             record_decisions(state, document)
+        elif action in ('configure-migration-planning', 'record-migration-plan', 'edit-migration-items'):
+            import migration_planning
+            if action == 'configure-migration-planning':
+                migration_planning.configure(state, document)
+            elif action == 'record-migration-plan':
+                migration_planning.register_plan(state, document, run_dir)
+            else:
+                migration_planning.edit_items(state, document, run_dir)
         elif action in ('configure-legacy-comparison', 'record-legacy-baseline',
                         'record-legacy-alignment', 'review-legacy-alignment'):
             import legacy_alignment
@@ -823,6 +843,7 @@ def main(argv=None):
                       'extract-periscope', 'record-migration-validation', 'migration-bindings',
                       'configure-legacy-comparison', 'record-legacy-baseline',
                       'record-legacy-alignment', 'review-legacy-alignment',
+                      'configure-migration-planning', 'record-migration-plan', 'edit-migration-items',
                       'register-domains', 'select-domain', 'pause-domain', 'complete-domain')
     for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence') + stage_commands:
         p = sub.add_parser(command)
@@ -854,6 +875,7 @@ def main(argv=None):
                        'extract-periscope', 'record-migration-validation',
                        'configure-legacy-comparison', 'record-legacy-baseline',
                        'record-legacy-alignment', 'review-legacy-alignment',
+                       'configure-migration-planning', 'record-migration-plan', 'edit-migration-items',
                        'register-domains', 'select-domain', 'pause-domain', 'complete-domain'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
         if command in ('review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):

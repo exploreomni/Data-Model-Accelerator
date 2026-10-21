@@ -43,7 +43,7 @@ Discovery does not execute the source project. Core helpers require Python 3.9+ 
 
 Each stage uses the same saved engagement. Optional `data-model-design`,
 `data-model-implement`, `data-model-semantic`, `data-model-validate`,
-`data-model-package` and `data-model-deploy` skills provide focused entrypoints;
+`data-model-package`, `data-model-migration-plan` and `data-model-deploy` skills provide focused entrypoints;
 install them beside the complete main skill. They share contracts and answers.
 The local stage commands plan and gate work; the coding-agent host performs the
 actual specialist work. For local candidate generation, the host records explicit
@@ -51,6 +51,14 @@ human approval of the exact design scope from the trusted conversation or an
 authenticated review system. No signing service is required. Teams can optionally
 use external signed design review. Neither path authorizes SQL execution or
 deployment; the governed release workflow retains its separate authority checks.
+
+For an optional migration plan, the accelerator reuses historical mappings and
+consumer inventories to produce an Excel inventory, Word plan and selected
+ticket templates/import files. It asks about Google Sheets/Docs during intake;
+native cloud creation uses the agent host's connector and remains pending until
+verified there. Jira, Linear, Azure DevOps, Monday and Asana exports retain their
+import limitations; GitHub and generic outputs are copyable templates. No live
+tickets are created. See [migration planning](docs/HOW_TO.md#migration-planning-and-ticket-templates).
 
 If you request code while the catalogue or design review is pending, the agent
 can produce **provisional dbt/native and semantic files** from available evidence.
