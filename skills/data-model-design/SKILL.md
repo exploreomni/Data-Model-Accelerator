@@ -24,6 +24,13 @@ bounded design with grain, keys, relationships, history/security, layer allocati
 dictionary and connected ERD. Compare existing model reuse across the required
 dimensions. Keep unknowns and competing interpretations visible.
 
+For a refactoring or mixed domain with historical comparison selected, follow
+[legacy alignment](../data-model-accelerator/references/legacy-alignment.md).
+Use the retained baseline during design and present the old-table-to-new-model
+comparison before review, including unmapped fields and intentional corrections.
+A comparison can also be added to an existing design; report discrepancies
+before changing approved entities. Mapping is not parity or design approval.
+
 Import the versioned design, explain how to answer each outstanding decision,
 and prepare its scoped review. Design work does not generate implementation or
 Omni code. After explicit human approval of the displayed scope in the trusted

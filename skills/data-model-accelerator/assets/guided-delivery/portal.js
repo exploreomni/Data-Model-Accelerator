@@ -141,6 +141,7 @@ function trimWorkflowDetails(snapshot,categories){
   if(snapshot.audience!=='audit'&&['documentation','diagrams','dictionary'].some(key=>categories.has(key)))return;
   delete snapshot.migration_review;
   delete snapshot.domain_journey;
+  delete snapshot.legacy_alignment;
   for(const key of ['assets','models','relationships','domain_proposals','decisions','changes'])delete snapshot.review?.[key];
   for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance'])delete snapshot.workflow?.[key];
 }
@@ -361,7 +362,7 @@ const migrationReview=data.audience!=='audit'&&(data.page_mode==='status'||['doc
 const domainJourney=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.domain_journey:null;
 const reviewSections=['overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[])];
 const sectionRoutes={architecture:'model',lineage:'model','table-dictionary':'model','implementation-code':'delivery','replacement-map':'delivery'};
-let firstNavigation=true,modelWorkspaceReady=false;
+let firstNavigation=true,modelWorkspaceReady=false,pendingInspectorModel=null;
 function navigate(){
   if(!firstNavigation)closeInspector();
   const defaultSection=domainJourney?.needs_selection?'domain-journey':(review.models||[]).length?'model':'overview';
@@ -375,6 +376,7 @@ function navigate(){
   if(!firstNavigation||location.hash){target?.focus?.({preventScroll:true});target?.scrollIntoView?.({block:'start'});}
   firstNavigation=false;checkLayout();
   if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{if(modelWorkspaceReady&&diagramFitMode)fitDiagram();});
+  if(modelWorkspaceReady&&pendingInspectorModel){const modelId=pendingInspectorModel;pendingInspectorModel=null;if(requested==='architecture')revealModel(modelId);}
 }
 addEventListener('hashchange',navigate);navigate();
 // Repeated clicks on the same fragment still reveal its parent and focus the anchor.
@@ -955,6 +957,10 @@ async function rebuildGenerated(snapshot){
   if(chosen.has('documentation')&&snapshot.migration_review){
     await add('generated:migration-review','01_Model/migration-review.md','documentation','Scoped business rules, shared model proposals, source coverage and parity evidence.',snapshot.migration_review.summary_markdown);
   }
+  if(chosen.has('documentation')&&snapshot.legacy_alignment?.domains?.some(domain=>domain.comparison_requested)){
+    await add('generated:legacy-alignment-csv','01_Model/legacy-table-alignment.csv','documentation','Complete scoped comparison of existing tables and proposed models.',snapshot.legacy_alignment.summary_csv);
+    await add('generated:legacy-alignment-markdown','01_Model/legacy-table-alignment.md','documentation','Complete scoped comparison, coverage and review evidence.',snapshot.legacy_alignment.summary_markdown);
+  }
   if(!models.length)return records;
   if(chosen.has('diagrams')){
     for(const [i,view]of(snapshot.diagrams||[]).entries()){const suffix=String(i+1).padStart(3,'0');await add('generated:erd:'+suffix,'01_Model/ERD/model-'+suffix+'.svg','diagrams','Model view '+(i+1)+'; part of the complete included table inventory.',new TextDecoder().decode(bytes(view.base64)),view.model_ids);}
@@ -1061,6 +1067,65 @@ el('download-package').onclick=async()=>{
     notice('Candidate subset created with checked file hashes. No new content scan or disclosure approval was performed; return this exact ZIP to the agent before sharing.');
   }catch(error){notice(error.message);}
 };
+
+// Comparison filters only affect presentation; full scoped evidence is kept for exports.
+const legacyAlignment=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))&&data.legacy_alignment?.domains?.some(domain=>domain.comparison_requested)?data.legacy_alignment:null;
+function alignmentLabel(value){const label=pretty(value);return label.charAt(0).toUpperCase()+label.slice(1);}
+function alignmentCoverageLine(kind,counts){
+  const label=alignmentLabel(kind)+': ',valid=value=>Number.isSafeInteger(value)&&value>=0;
+  if(!counts||!valid(counts.total))return label+'Not assessed';
+  if(counts.total===0)return label+'No items supplied';
+  if(!['mapped','unmatched','unsupported'].every(key=>valid(counts[key])))return label+'Not assessed';
+  const details=[`${counts.mapped} of ${counts.total} mapped`];
+  for(const [key,name]of [['unmatched','unmatched'],['unsupported','unsupported'],['excluded','explicitly excluded']])if(valid(counts[key])&&counts[key]>0)details.push(`${counts[key]} ${name}`);
+  return label+details.join('; ');
+}
+function alignmentChanged(row){return ['split','merge','many_to_many'].includes(row.relationship)||row.behavior==='correct';}
+function alignmentUnresolved(row){if(row.review_status==='accepted'&&row.freshness==='current'&&['retire_candidate','out_of_scope'].includes(row.disposition))return false;return ['unmatched','unsupported'].includes(row.status)||row.behavior==='undecided'||row.review_status!=='accepted'||row.freshness!=='current';}
+function alignmentMatches(row,filters){
+  return(!filters.domain||row.domain_id===filters.domain)&&(!filters.table||row.legacy_sources.some(source=>JSON.stringify([row.domain_id,source.table_id])===filters.table))&&(!filters.model||row.targets.some(target=>target.model_id===filters.model))&&(!filters.asset||row.model_ids.some(id=>models.find(model=>model.id===id)?.asset_ids?.includes(filters.asset)))&&(!filters.changed||alignmentChanged(row))&&(!filters.unresolved||alignmentUnresolved(row));
+}
+function alignmentSource(row){return row.legacy_sources.map(source=>(source.table_name||source.table_id)+(source.kind!=='table'?' · '+(source.label||source.field_id||source.kind):'')).join('; ')||'No existing source supplied';}
+function alignmentModelLinks(id){
+  const cell=make('div'),model=models.find(item=>item.id===id);cell.append(make('strong',id));if(!model)return cell;
+  const actions=make('div',undefined,'small-actions'),inspect=make('button','Inspect model','secondary');inspect.type='button';inspect.onclick=()=>{pendingInspectorModel=id;if(location.hash==='#architecture')navigate();else location.hash='#architecture';};actions.append(inspect);
+  const ids=[model.artifact_id,...(model.artifact_ids||[])],code=files.filter(file=>file.category==='implementation'&&ids.includes(file.id));
+  for(const [index,file]of code.entries()){const button=make('button','Open code'+(code.length>1?' '+(index+1):''),'secondary');button.type='button';button.setAttribute('title',file.path);button.setAttribute('aria-label','Open code: '+file.path);button.onclick=()=>openArtifact(file.id);actions.append(button);}
+  const related=decisions.filter(decision=>decision.model_ids?.includes(id));if(related.length){const button=make('button',`Review ${related.length} related decision${related.length===1?'':'s'}`,'secondary');button.type='button';button.onclick=()=>{location.hash='#changes';navigate();el('decisions').scrollIntoView({block:'start'});};actions.append(button);}
+  cell.append(actions);return cell;
+}
+function alignmentTargets(row){const cell=make('div');for(const target of row.targets){cell.append(alignmentModelLinks(target.model_id),make('small',pretty(target.kind)+(target.field?': '+target.field:'')+(target.kind==='semantic'?' · Proposed placement; native existence unverified':'')));}if(!row.targets.length)cell.append(make('span','No target mapping supplied'));return cell;}
+function alignmentFilters(){return{table:el('alignment-table').value,model:el('alignment-model').value,domain:el('alignment-domain').value,asset:el('alignment-asset').value,changed:el('alignment-changed').checked,unresolved:el('alignment-unresolved').checked};}
+function renderAlignment(){
+  if(!legacyAlignment)return;
+  const filters=alignmentFilters(),all=legacyAlignment.rows||[],rows=all.filter(row=>alignmentMatches(row,filters));
+  el('alignment-count').textContent=`${rows.length} of ${all.length} comparison rows shown · ${rows.filter(alignmentChanged).length} structural changes / corrections · ${rows.filter(alignmentUnresolved).length} unresolved. Coverage describes supplied baseline evidence, not parity.`;
+  table('alignment-forward',[['Existing table / item',row=>alignmentSource(row)],['Proposed models',alignmentTargets],['Change / status',row=>[...new Set([alignmentLabel(row.relationship),alignmentLabel(row.disposition||'unresolved')]),alignmentLabel(row.status),'Behavior: '+alignmentLabel(row.behavior),'Human review: '+alignmentLabel(row.review_status),'Evidence: '+alignmentLabel(row.freshness)].join(' · ')],['Explanation / evidence',row=>{const cell=make('div');cell.append(make('p',row.rationale||'No explanation supplied.'),make('small','Basis: '+alignmentLabel(row.basis)),make('small','Evidence categories: '+((row.evidence_labels||[]).join(', ')||'None supplied')),make('small','Domain: '+row.domain_id));return cell;}]],rows);
+  if(!rows.length)empty('alignment-forward',all.length?'No comparison rows match these filters. Clear filters to review the included baseline.':'No baseline comparison rows are available. Supply or refresh the requested baseline with the agent.');
+  const targetIds=new Set(rows.flatMap(row=>row.targets.map(target=>target.model_id)));
+  if(!filters.table&&!filters.changed&&!filters.unresolved)for(const domain of legacyAlignment.domains.filter(domain=>domain.comparison_requested&&(!filters.domain||domain.domain_id===filters.domain)))for(const id of domain.model_ids||[])if((!filters.model||id===filters.model)&&(!filters.asset||models.find(model=>model.id===id)?.asset_ids?.includes(filters.asset)))targetIds.add(id);
+  table('alignment-reverse',[['Proposed model',row=>alignmentModelLinks(row.id)],['Existing sources / explanation',row=>row.rows.length?row.rows.map(item=>alignmentSource(item)+' · '+(item.rationale||'No explanation supplied.')).join('\n'):'No legacy association supplied. This is not evidence of a new model or parity.']],Array.from(targetIds).sort().map(id=>({id,rows:rows.filter(row=>row.targets.some(target=>target.model_id===id))})));
+}
+if(legacyAlignment){
+  el('replacement-title').textContent='Compare with existing tables';el('replacement-nav-label').textContent='Compare with existing tables';el('replacement-description').textContent='Inspect supplied existing-table mappings in both directions. Human review states are recorded evidence; no action on this page approves or retires a table.';el('replacement-table').hidden=true;el('alignment-screen').hidden=false;
+  el('alignment-qualification').textContent=legacyAlignment.qualification||'Supplied mappings only. Behavioral parity, native validation and acceptance remain separate.';
+  const option=(control,value,label)=>{const node=make('option',label);node.value=value;el(control).append(node);},seenTables=new Set(),seenModels=new Set(),seenAssets=new Set();
+  for(const domain of legacyAlignment.domains.filter(item=>item.comparison_requested)){
+    option('alignment-domain',domain.domain_id,domain.domain_id);
+    for(const source of [...(domain.tables||[]).map(row=>({table_id:row.id,table_name:row.name})),...(legacyAlignment.rows||[]).filter(row=>row.domain_id===domain.domain_id).flatMap(row=>row.legacy_sources)]){const key=JSON.stringify([domain.domain_id,source.table_id]);if(!seenTables.has(key)){seenTables.add(key);option('alignment-table',key,source.table_name+' · '+domain.domain_id);}}
+    for(const id of domain.model_ids||[])seenModels.add(id);
+  }
+  for(const row of legacyAlignment.rows||[])for(const target of row.targets)seenModels.add(target.model_id);
+  for(const id of [...seenModels].sort()){option('alignment-model',id,id);for(const asset of models.find(model=>model.id===id)?.asset_ids||[])seenAssets.add(asset);}
+  for(const id of [...seenAssets].sort())option('alignment-asset',id,(review.assets||[]).find(asset=>asset.id===id)?.name||id);
+  table('alignment-coverage',[['Domain',domain=>domain.domain_id],['Baseline / freshness',domain=>`${alignmentLabel(domain.baseline_status)} · ${alignmentLabel(domain.freshness)} · ${alignmentLabel(domain.alignment_status)}${domain.omitted_details?' · Some details omitted from this scope':''}`],['Supplied coverage',domain=>{const cell=make('div',undefined,'alignment-coverage-lines');for(const kind of ['tables','columns','rules'])cell.append(make('div',alignmentCoverageLine(kind,domain.coverage?.[kind])));return cell;}]],legacyAlignment.domains.filter(domain=>domain.comparison_requested));
+  for(const id of ['alignment-table','alignment-model','alignment-domain','alignment-asset','alignment-changed','alignment-unresolved'])el(id).onchange=renderAlignment;
+  el('alignment-print-summary').textContent=(legacyAlignment.summary_markdown||'Complete comparison summary unavailable.').replace(/^#{1,3} /gm,'').replace(/\\([\\`*_\[\]()!|])/g,'$1').replaceAll('<br>','\n').replaceAll('&lt;','<').replaceAll('&gt;','>').replaceAll('&amp;','&');
+  el('alignment-csv').onclick=()=>download('legacy-table-alignment.csv',legacyAlignment.summary_csv,'text/csv;charset=utf-8');el('alignment-markdown').onclick=()=>download('legacy-table-alignment.md',legacyAlignment.summary_markdown,'text/markdown;charset=utf-8');
+  el('alignment-print').onclick=()=>{if(typeof globalThis.print!=='function')return notice('Use the complete comparison Markdown deliverable to print this review.');document.body.classList.toggle('alignment-print',true);try{globalThis.print();}catch(error){document.body.classList.toggle('alignment-print',false);notice('Printing is unavailable here. Use the complete comparison Markdown deliverable.');}};
+  renderAlignment();
+}
+addEventListener('afterprint',()=>document.body.classList.toggle('alignment-print',false));
 
 // Real layout is checked only when the page is opened; a stub DOM cannot establish geometry.
 function assertPortalLayout(){

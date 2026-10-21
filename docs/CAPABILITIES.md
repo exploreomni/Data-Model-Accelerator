@@ -4,6 +4,17 @@ Use this page to scope a customer pilot. The accelerator combines agent reasonin
 
 ## Read capability claims correctly
 
+Optional [historical table alignment](../skills/data-model-accelerator/references/legacy-alignment.md)
+adds per-domain new/refactor/mixed intake and a retained predesign baseline.
+It supports many-to-many table/column/rule mappings, target semantic placements,
+explicit missing coverage, scoped human decisions and incremental freshness.
+The guided review and selected CSV/Markdown documentation share one comparison.
+Existing reuse contracts and engagements without this option retain their behavior.
+Bounded local context preparation and validation-case suggestions do not execute
+an agent, infer undocumented spreadsheet formulas, prove data parity, or authorize
+publication. Platform support follows the existing parsers and emitters; this
+feature does not add new warehouse execution adapters or native validation.
+
 The optional [migration review workflow](../skills/data-model-accelerator/references/migration-review.md)
 connects four local capabilities: a reusable scoped business-rule register with
 explicit human decisions; actual Periscope/CDT Git discovery and extraction with

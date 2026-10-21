@@ -32,6 +32,13 @@ on unchanged registered outputs while preserving their original generation run.
 Keep unknown, unsupported and stale results visible; no static percentage or
 agent confidence substitutes for independent native/data/security acceptance.
 
+When [legacy alignment](../data-model-accelerator/references/legacy-alignment.md)
+is selected, use its validation-case suggestions to scope the existing migration
+parity workflow. Supply independent expectations and reviewed scenarios there;
+alignment records cannot establish parity or approve execution. Test historical
+output grain and attribution as well as totals, and separate intended corrections
+from preservation checks.
+
 For dbt, follow the selected [runtime evidence contract](../data-model-accelerator/references/dbt-runtime.md).
 Verify executable/distribution/version separately from artifact schema. A native
 lint exit code of zero can contain violations; require complete file results.

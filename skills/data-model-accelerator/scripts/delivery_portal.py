@@ -1127,6 +1127,11 @@ def _presentation(state, review=None, audience='engineer'):
             summary = domain_summary(state, allowed_models if review is not None else None)
             if summary is not None:
                 data['domain_journey'] = _domain_presentation(summary)
+        if state['workflow'].get('legacy_alignment'):
+            from legacy_alignment import public_summary as alignment_summary
+            summary = alignment_summary(state, allowed_models if review is not None else None)
+            if summary is not None:
+                data['legacy_alignment'] = _legacy_alignment_presentation(summary)
     return data
 
 
@@ -1189,6 +1194,122 @@ def _domain_presentation(raw):
                         if key in ('total', 'proposed', 'queued', 'active', 'paused', 'completed', 'stale')
                         and type(count) is int and count >= 0}
     return result
+
+
+def _legacy_alignment_presentation(raw):
+    """Only curated comparison fields; source documents and raw evidence stay private."""
+    def fields(value, names):
+        return {key: json.loads(json.dumps(value[key])) for key in names if key in value}
+
+    def coverage(value):
+        return {kind: {key: count for key, count in value.get(kind, {}).items()
+                       if key in ('total', 'mapped', 'unmatched', 'unsupported', 'excluded') and type(count) is int and count >= 0}
+                for kind in ('tables', 'columns', 'rules') if kind in value}
+
+    def source(row):
+        return fields(row, ('table_id', 'table_name', 'kind', 'field_id', 'label'))
+
+    result = {'schema_version': 1, **fields(raw, ('status', 'qualification')), 'domains': []}
+    for domain in raw.get('domains', []):
+        item = fields(domain, ('domain_id', 'mode', 'comparison_requested', 'behavior', 'baseline_status',
+                              'alignment_status', 'freshness', 'model_ids', 'comparison_sha256', 'omitted_details'))
+        item['coverage'] = coverage(domain.get('coverage', {}))
+        item['tables'] = [{**fields(row, ('id', 'name', 'model_ids')),
+                           'completeness': fields(row.get('completeness', {}), ('columns', 'rules')),
+                           'coverage': coverage(row.get('coverage', {}))} for row in domain.get('tables', [])]
+        item['mappings'] = [{**fields(row, ('id', 'model_ids', 'relationship', 'disposition', 'status', 'behavior', 'basis',
+                                           'rationale', 'review_status', 'evidence_labels')),
+                             'legacy_sources': [source(value) for value in row.get('legacy_sources', [])],
+                             'targets': [fields(value, ('model_id', 'kind', 'field')) for value in row.get('targets', [])]}
+                            for row in domain.get('mappings', [])]
+        item['unmatched'] = [source(row) for row in domain.get('unmatched', [])]
+        result['domains'].append(item)
+    result['rows'] = _legacy_alignment_rows(result)
+    result['summary_csv'] = _legacy_alignment_csv(result)
+    result['summary_markdown'] = _legacy_alignment_markdown(result)
+    return result
+
+
+def _legacy_alignment_rows(summary):
+    """The UI and exports share explicit mappings and uncovered baseline items."""
+    rows = []
+    for domain in summary.get('domains', []):
+        if not domain.get('comparison_requested'):
+            continue
+        seen, seen_tables = set(), set()
+        def key(source):
+            return (source.get('table_id'), source.get('kind'), source.get('field_id'))
+        for mapping in domain.get('mappings', []):
+            rows.append(dict(mapping, domain_id=domain['domain_id'], freshness=domain.get('freshness')))
+            for source in mapping['legacy_sources']:
+                seen.add(key(source)); seen_tables.add(source.get('table_id'))
+        unmatched = [row for row in domain.get('unmatched', []) if key(row) not in seen]
+        seen_tables.update(row.get('table_id') for row in unmatched)
+        unmatched.extend({'table_id': row['id'], 'table_name': row['name'], 'kind': 'table', 'label': row['name']}
+                         for row in domain.get('tables', []) if row['id'] not in seen_tables)
+        for index, source in enumerate(unmatched):
+            rows.append({'id': 'unmatched:' + str(index + 1), 'domain_id': domain['domain_id'],
+                'freshness': domain.get('freshness'), 'legacy_sources': [source], 'targets': [], 'model_ids': [],
+                'relationship': 'unmatched', 'status': 'unmatched', 'behavior': 'undecided',
+                'review_status': 'proposed', 'basis': 'No explicit mapping supplied.',
+                'rationale': 'Review this uncovered baseline item with the agent.', 'evidence_labels': []})
+    return rows
+
+
+def _alignment_source_text(row):
+    return '; '.join((source.get('table_name') or source.get('table_id') or 'Unknown table') +
+        (' · ' + (source.get('label') or source.get('field_id') or source.get('kind', 'item'))
+         if source.get('kind') != 'table' else '') for source in row.get('legacy_sources', [])) or 'No source supplied'
+
+
+def _alignment_target_text(row):
+    return '; '.join(target.get('model_id', 'Unknown model') + ' · ' + target.get('kind', 'table') +
+                    (': ' + target['field'] if target.get('field') else '') for target in row.get('targets', [])) or 'Unmapped'
+
+
+def _legacy_alignment_csv(summary):
+    stream = io.StringIO(newline='')
+    writer = csv.writer(stream, lineterminator='\n', quoting=csv.QUOTE_ALL)
+    writer.writerow(('domain_id', 'mapping_id', 'existing_sources', 'target_models', 'relationship', 'disposition', 'status',
+                     'behavior', 'review_status', 'basis', 'rationale', 'evidence_labels', 'freshness'))
+    for row in summary.get('rows', []):
+        values = [row.get('domain_id'), row.get('id'), _alignment_source_text(row), _alignment_target_text(row),
+                  *[row.get(key) for key in ('relationship', 'disposition', 'status', 'behavior', 'review_status', 'basis', 'rationale')],
+                  '; '.join(row.get('evidence_labels', [])), row.get('freshness')]
+        writer.writerow([_csv_cell(str(value) if value is not None else '') for value in values])
+    return stream.getvalue()
+
+
+def _legacy_alignment_markdown(summary):
+    def value(item):
+        return _markdown_cell('Not supplied' if item is None else item)
+    lines = ['# Compare with existing tables', '', value(summary.get('qualification')), '',
+             'All comparison rows permitted in this package are included below; screen filters do not reduce this export.',
+             'Supplied baseline completeness and mapping coverage do not establish behavioral parity, native validation or approval.', '']
+    for domain in summary.get('domains', []):
+        if not domain.get('comparison_requested'): continue
+        lines.extend(['## Domain: ' + value(domain['domain_id']), '',
+            'Baseline: ' + value(domain.get('baseline_status')) + ' · Alignment: ' + value(domain.get('alignment_status')) +
+            ' · Freshness: ' + value(domain.get('freshness')), ''])
+        for kind, counts in domain.get('coverage', {}).items():
+            lines.append(kind.capitalize() + ': ' + '; '.join(key + ' ' + str(counts.get(key, 'unknown'))
+                         for key in ('total', 'mapped', 'unmatched', 'unsupported', 'excluded') if key in counts))
+        if domain.get('omitted_details'): lines.append('Some baseline details are omitted from this permitted scope.')
+        rows = [row for row in summary.get('rows', []) if row['domain_id'] == domain['domain_id']]
+        if not rows: lines.append('No baseline comparison rows are available. Supply or refresh the requested baseline with the agent.')
+        for row in rows:
+            lines.extend(['', '### Mapping: ' + value(row['id']), 'Existing: ' + value(_alignment_source_text(row)),
+                'Proposed: ' + value(_alignment_target_text(row))])
+            for label, key in (('Relationship', 'relationship'), ('Disposition', 'disposition'), ('Mapping status', 'status'), ('Behavior', 'behavior'),
+                               ('Human review', 'review_status'), ('Basis', 'basis'), ('Explanation', 'rationale')):
+                lines.append(label + ': ' + value(row.get(key)))
+            lines.append('Evidence categories: ' + value(', '.join(row.get('evidence_labels', [])) or 'None supplied'))
+        lines.extend(['', '### Target model to existing tables', ''])
+        for model_id in domain.get('model_ids', []):
+            sources = [_alignment_source_text(row) for row in rows if any(t.get('model_id') == model_id for t in row['targets'])]
+            lines.append(value(model_id) + ': ' + value(' | '.join(sources) if sources else 'No legacy association supplied.'))
+        lines.append('')
+    return '\n'.join(lines) + '\n'
 
 
 def _migration_markdown(summary):
@@ -1348,6 +1469,7 @@ def _trim_workflow_details(data):
     """A code-only subset must not retain unselected design narratives or decisions."""
     data.pop('migration_review', None)
     data.pop('domain_journey', None)
+    data.pop('legacy_alignment', None)
     for key in ('assets', 'models', 'relationships', 'domain_proposals', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
@@ -1469,6 +1591,13 @@ def generated_deliverables(data):
         add('generated:migration-review', '01_Model/migration-review.md', 'documentation',
             'Scoped business rules, shared model proposals, source coverage and parity evidence.',
             _migration_markdown(data['migration_review']).encode())
+    if 'documentation' in selected and any(domain.get('comparison_requested') for domain in data.get('legacy_alignment', {}).get('domains', [])):
+        add('generated:legacy-alignment-csv', '01_Model/legacy-table-alignment.csv', 'documentation',
+            'All scoped existing-table mappings and unresolved baseline items; spreadsheet formulas are escaped.',
+            _legacy_alignment_csv(data['legacy_alignment']).encode())
+        add('generated:legacy-alignment-markdown', '01_Model/legacy-table-alignment.md', 'documentation',
+            'Readable existing-table comparison, coverage and both mapping directions.',
+            _legacy_alignment_markdown(data['legacy_alignment']).encode())
     if not models:
         return records
     if 'diagrams' in selected:

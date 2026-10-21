@@ -15,6 +15,14 @@ review → generate its requested code → record completion → ask what is nex
 The same cycle works for dbt, Coalesce and direct warehouse code. Omni is a
 separate code stage when selected, using the existing Omni Modeler and contracts.
 
+Domains can independently be new, refactoring, or mixed. Use optional
+[legacy alignment](legacy-alignment.md) to record that choice separately from
+discovery identities and progress. When selected, retain history before design
+and compare it with the draft before review. Shared historical tables retain
+one identity and explicit consuming domains. Mapping another domain does not
+select it or authorize work there; missing history never silently becomes
+greenfield scope. Existing journeys without this option retain their behavior.
+
 ## Discovery and selection
 
 Use the existing guided engagement. Register a bounded discovery document:

@@ -309,6 +309,9 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
     if 'business_rules_scope' not in cache:
         from business_rules import scope_bindings
         cache['business_rules_scope'] = scope_bindings(state)
+    if 'legacy_alignment_scope' not in cache:
+        from legacy_alignment import scope_bindings
+        cache['legacy_alignment_scope'] = scope_bindings(state)
     import guided_workflow as guided
     catalogue = state['inputs']['catalogue']
     if 'catalogue_data' not in cache:
@@ -340,9 +343,10 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
         reuse_evidence = {'reuse_evidence': cache['reuse_scope'][key]} if key in cache['reuse_scope'] else {}
         reconciliation = {'reconciliation': cache['reconciliation_scope'][key]} if key in cache['reconciliation_scope'] else {}
         business = {'business_rules': cache['business_rules_scope'][key]} if key in cache['business_rules_scope'] else {}
+        alignment = {'legacy_alignment': cache['legacy_alignment_scope'][key]} if key in cache['legacy_alignment_scope'] else {}
         result[key] = hash_json({'entity': entity, 'inputs': inputs, 'relationships': edges,
                                 'decisions': decisions, 'responses': responses, 'existing': existing,
-                                **coverage, **reuse_evidence, **reconciliation, **business})
+                                **coverage, **reuse_evidence, **reconciliation, **business, **alignment})
         cache[cache_key] = result[key]
     return result
 
@@ -390,6 +394,8 @@ def _design_gaps(state, selected, stage='design'):
     gaps = reconciliation_gaps(state, scope)
     from business_rules import gaps as business_rule_gaps
     gaps.extend(business_rule_gaps(state, scope))
+    from legacy_alignment import gaps as alignment_gaps
+    gaps.extend(alignment_gaps(state, scope))
     for key in scope:
         entity = entities[key]
         if not entity['keys'] or not entity['columns'] or any(entity[k].lower() in {'unknown', 'tbd', 'unresolved'} for k in ('grain', 'security', 'history')):

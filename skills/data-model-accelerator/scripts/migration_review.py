@@ -85,6 +85,24 @@ def public_summary(state, allowed_models=None):
         value = load(state, 'parity')
         report = copy.deepcopy(value['report'])
         stale = value['engagement'] != engagement_binding(state)
+        # Optional comparison material must also invalidate a previously saved
+        # scorecard. Recompute its selected bindings; never trust a caller pin.
+        if value.get('comparison_bindings') is not None:
+            try:
+                stale = stale or value['comparison_bindings'] != parity_bindings(state, value['model_ids'])
+            except (ValueError, OSError, KeyError, TypeError):
+                stale = True
+        elif state.get('workflow', {}).get('legacy_alignment'):
+            # Older records did not bind this optional evidence. Re-register
+            # against the current comparison rather than upgrading their claim.
+            from legacy_alignment import scope_bindings as alignment_bindings
+            from engagement_stages import closure
+            try:
+                selected = {m for row in report['crosswalk'] for m in row['model_ids']}
+                graph = {e['id']: e['depends_on'] for e in state['workflow']['design']['entities']}
+                stale = stale or bool(set(closure(graph, sorted(selected))) & set(alignment_bindings(state)))
+            except (ValueError, OSError, KeyError, TypeError):
+                stale = True
         # Captures stay private. Recheck their bytes without copying values into
         # state or the portable package; unavailable evidence cannot retain a pass.
         from review_assurance import load_document
@@ -203,4 +221,5 @@ def register_parity(state, request, run_dir):
                       current_bindings=current)
     known = {m['id'] for m in (state['workflow'].get('design') or {}).get('entities', [])}
     require(all(set(r['model_ids']) <= known for r in report['crosswalk']), 'Parity crosswalk references unknown design models')
-    store(state, 'parity', {'report': report, 'references': refs, 'engagement': engagement_binding(state)}, run_dir)
+    store(state, 'parity', {'report': report, 'references': refs, 'engagement': engagement_binding(state),
+                          'comparison_bindings': current, 'model_ids': selected}, run_dir)

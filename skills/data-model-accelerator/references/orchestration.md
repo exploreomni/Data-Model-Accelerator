@@ -173,6 +173,18 @@ Use [semantic-placement.md](semantic-placement.md). Every rule gets an explicit 
 
 ## 6. Independent QA and generation handoff
 
+When historical comparison is selected for the active domain, first assemble
+[legacy alignment](legacy-alignment.md) from the retained extraction and draft
+design. The coordinator handles explicit mappings; use an `independent_reviewer`
+task only for ambiguous splits, merges, calculations or placement. Give that
+worker the bounded domain packet and relevant original evidence, not another
+repository-discovery assignment. Return mapping proposals, differences and named
+questions; the worker cannot approve them or rewrite the design autonomously.
+Present the comparison with the design before review. Adding it to an approved
+design requires reporting discrepancies first, with only affected material
+changes invalidating later work. Missing historical evidence remains explicit
+and does not close the provisional generation path.
+
 For dbt implementation, continue with the [paired engineering/analyst workflow](analytics-engineering.md). Source extraction tasks remain read-only; do not repurpose their execution records as evidence of code implementation. The refactoring planner assigns domain ownership separately, and the analyst freezes acceptance expectations before the engineer authors a candidate.
 
 An independent QA role receives scoped original evidence, relevant graph/placement slices, independent expectations and the candidate diff, with exact pointers to additional evidence. It checks source coverage, unresolved bindings, loss of context, double application, aggregation/fanout/security behavior, and code/docs/ERD agreement. It must report unresolved or untested cases even when both architects agree. The implementation author cannot supply the sole oracle or self-approve its output. Do not send the full repository, every previous draft or the coordinator's working memory. Follow the bounded design/correction loop in [agent-context.md](agent-context.md); subsequent review targets changed IDs and impacted dependencies while retaining unresolved findings.
