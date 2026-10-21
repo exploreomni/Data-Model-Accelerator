@@ -29,7 +29,7 @@ class Navigation(HTMLParser):
             self.details.append({'attrs': attrs, 'links': []})
         if tag == 'a' and 'data-nav' in attrs:
             self.active = {'href': attrs.get('href'), 'text': '',
-                           'secondary': 'details' in self.stack}
+                           'secondary': 'details' in self.stack, 'hidden': 'hidden' in attrs}
             self.links.append(self.active)
             if self.active['secondary']:
                 self.details[-1]['links'].append(self.active)
@@ -225,8 +225,9 @@ class CompactDeliveryTests(unittest.TestCase):
         nav.feed(template)
         primary_nav = Navigation()
         primary_nav.feed('<nav id="primary-navigation"' + template.split('<nav id="primary-navigation"', 1)[1].split('</nav>', 1)[0] + '</nav>')
-        primary = primary_nav.links
-        self.assertEqual({link['href'] for link in nav.links if not link['secondary']} - {link['href'] for link in primary},
+        primary = [link for link in primary_nav.links if not link['hidden']]
+        self.assertEqual([link['href'] for link in primary_nav.links if link['hidden']], ['#migration-plan'])
+        self.assertEqual({link['href'] for link in nav.links if not link['secondary'] and not link['hidden']} - {link['href'] for link in primary},
                          set())
         self.assertEqual([link['href'] for link in primary], ['#model', '#delivery', '#validation'])
         self.assertEqual([re.sub(r'^\s*\d+\s*', '', link['text']).strip() for link in primary],

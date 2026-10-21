@@ -138,10 +138,15 @@ function decisionResponseDocument(workflow,engagementId,responses){
   return{schema_version:1,kind:'decision_responses',intent:'record_answers',engagement_id:engagementId,design_id:workflow.design_id,design_revision:workflow.design_revision,design_sha256:workflow.design_sha256,answers,request_only:true};
 }
 function trimWorkflowDetails(snapshot,categories){
+  if(snapshot.migration_planning&&!(categories.has('documentation')&&categories.has('dictionary'))){
+    delete snapshot.migration_planning;
+    snapshot.migration_planning_omitted='Migration planning files were omitted: include both documentation and dictionary to export their complete mapping and column inventory.';
+  }
   if(snapshot.audience!=='audit'&&['documentation','diagrams','dictionary'].some(key=>categories.has(key)))return;
   delete snapshot.migration_review;
   delete snapshot.domain_journey;
   delete snapshot.legacy_alignment;
+  delete snapshot.migration_planning;
   for(const key of ['assets','models','relationships','domain_proposals','decisions','changes'])delete snapshot.review?.[key];
   for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance'])delete snapshot.workflow?.[key];
 }
@@ -360,7 +365,8 @@ function card(parent,title,value,note){const c=make('article',undefined,'card');
 function table(id,columns,rows,pageSize=30){let page=0;const draw=()=>{const target=clear(id);if(!rows.length){target.append(make('p','No matching records.','empty'));return;}const wrap=make('div',undefined,'table-scroll'),t=make('table'),head=make('tr');columns.forEach(c=>head.append(make('th',c[0])));const thead=make('thead');thead.append(head);t.append(thead);const body=make('tbody');rows.slice(page*pageSize,(page+1)*pageSize).forEach(row=>{const tr=make('tr');columns.forEach(c=>{const td=make('td'),v=c[1](row);td.append(v instanceof Node?v:make('span',v));tr.append(td);});body.append(tr);});t.append(body);wrap.append(t);target.append(wrap);const pager=make('div',undefined,'pager'),prev=make('button','Previous','secondary'),next=make('button','Next','secondary');prev.disabled=page===0;next.disabled=(page+1)*pageSize>=rows.length;prev.onclick=()=>{page--;draw();};next.onclick=()=>{page++;draw();};pager.append(prev,make('span',`${page*pageSize+1}–${Math.min((page+1)*pageSize,rows.length)} of ${rows.length}`),next);target.append(pager);};draw();}
 const migrationReview=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.migration_review:null;
 const domainJourney=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.domain_journey:null;
-const reviewSections=['overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[])];
+const migrationPlanning=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','dictionary'].every(c=>data.selected_categories?.includes(c)))?data.migration_planning:null;
+const reviewSections=['overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[]),...(migrationPlanning?['migration-plan']:[])];
 const sectionRoutes={architecture:'model',lineage:'model','table-dictionary':'model','implementation-code':'delivery','replacement-map':'delivery'};
 let firstNavigation=true,modelWorkspaceReady=false,pendingInspectorModel=null;
 function navigate(){
@@ -383,6 +389,7 @@ addEventListener('hashchange',navigate);navigate();
 document.querySelectorAll('[data-nav]').forEach(link=>{link.onclick=()=>{if(location.hash==='#'+link.dataset.nav)navigate();};});
 el('implementation-nav').hidden=false;el('files-nav').hidden=true;
 el('domain-journey-nav').hidden=!domainJourney;
+el('migration-plan-nav').hidden=!migrationPlanning;
 if(domainJourney){
   const domains=domainJourney.domains||[],active=domains.find(row=>row.id===domainJourney.active_domain_id);
   el('domain-journey-qualification').textContent=domainJourney.qualification||'Recorded domain progress only; approval and execution authority remain separate.';
@@ -892,7 +899,7 @@ el('audience').textContent=pretty(data.audience);
 const chosen=new Set([...allFiles().map(f=>f.category),...(data.selected_categories||[])]);
 for(const category of chosen){const label=make('label'),input=make('input');input.type='checkbox';input.checked=true;input.value=category;input.onchange=()=>{if(input.checked)chosen.add(category);else chosen.delete(category);updateExport();};label.append(input,make('span',pretty(category)));el('export-choices').append(label);const option=make('option',pretty(category));option.value=category;el('file-category').append(option);}
 function selectedFiles(){return files.filter(f=>chosen.has(f.category));}
-function updateExport(){const selected=selectedFiles(),ids=new Set(selected.map(f=>f.id)),missing=selected.flatMap(f=>(f.requires||[]).filter(id=>!ids.has(id)).map(id=>`${f.id} requires ${id}`));el('download-package').disabled=!(selected.length||(data.generated_deliverables||[]).some(f=>chosen.has(f.category)))||missing.length>0;el('export-dependencies').textContent=missing.length?'Include required deliverables: '+missing.join('; '):`${selected.length} of ${files.length} files selected. Unselected payloads are removed from the new download.`;}updateExport();
+function updateExport(){const selected=selectedFiles(),ids=new Set(selected.map(f=>f.id)),missing=selected.flatMap(f=>(f.requires||[]).filter(id=>!ids.has(id)).map(id=>`${f.id} requires ${id}`));el('download-package').disabled=!(selected.length||(data.generated_deliverables||[]).some(f=>chosen.has(f.category)))||missing.length>0;el('export-dependencies').textContent=missing.length?'Include required deliverables: '+missing.join('; '):`${selected.length} of ${files.length} files selected. Unselected payloads are removed from the new download.`;if(data.migration_planning&&!(chosen.has('documentation')&&chosen.has('dictionary')))el('export-dependencies').textContent+=' Migration planning files require both documentation and dictionary; they will be omitted.';}updateExport();
 if(!allFiles().length){empty('export-choices',eng.delivery?.status==='prepared'?'No files are embedded in this status page. Ask the agent to export the prepared artifacts for your selected audience and deliverables.':'No files are embedded in this status page. Ask the agent to generate and package the selected deliverables after discovery.');}
 let activeFile=null;
 function fileRole(file){const links=models.filter(m=>m.artifact_id===file.id||(m.artifact_ids||[]).includes(file.id));if(links.length)return 'Model implementation: '+links.map(m=>m.name||m.id).join(', ');if(review.handoff?.implementation_guide_artifact_id===file.id)return 'Implementation guide';if(review.handoff?.design_artifact_id===file.id)return 'Design document';return file.category==='implementation'?'Supporting / unmapped implementation file':pretty(file.category);}
@@ -912,8 +919,8 @@ function sizeFilePreview(fit){
 }
 function showFile(file){
   activeFile=file;el('file-title').textContent=file.path;el('file-note').textContent=fileRole(file)+'. '+(file.description||'')+(file.category==='implementation'?' '+implementationGuidance():'');
-  const body=bytes(file.base64),tooLarge=body.length>2*1024*1024,source=tooLarge?'Preview limited to 2 MiB. Download the complete file to inspect it.':new TextDecoder().decode(body);
-  el('file-content').textContent=source;el('copy-code').disabled=tooLarge;el('download-file').disabled=false;
+  const body=bytes(file.base64),tooLarge=body.length>2*1024*1024,binary=/\.(xlsx|docx|zip|pdf)$/i.test(file.path),source=binary?'Download this document to open it in its compatible application. The file is preserved in its original format; text copy is unavailable.':tooLarge?'Preview limited to 2 MiB. Download the complete file to inspect it.':new TextDecoder().decode(body);
+  el('file-content').textContent=source;el('copy-code').disabled=tooLarge||binary;el('download-file').disabled=false;
   const preview=clear('file-preview');el('file-preview-controls').hidden=true;setFilePreview(false);
   if(!tooLarge&&/\.svg$/i.test(file.path)){
     try{
@@ -961,6 +968,13 @@ async function rebuildGenerated(snapshot){
     await add('generated:legacy-alignment-csv','01_Model/legacy-table-alignment.csv','documentation','Complete scoped comparison of existing tables and proposed models.',snapshot.legacy_alignment.summary_csv);
     await add('generated:legacy-alignment-markdown','01_Model/legacy-table-alignment.md','documentation','Complete scoped comparison, coverage and review evidence.',snapshot.legacy_alignment.summary_markdown);
   }
+  if(chosen.has('documentation')&&chosen.has('dictionary')&&snapshot.migration_planning){
+    // Preserve the already generated, hash-checked portable Office files. Browser
+    // export does not regenerate binary documents or create cloud documents.
+    for(const file of snapshot.generated_deliverables||[]){
+      if(file.path.startsWith('05_Migration/')&&file.category==='documentation')records.push(structuredClone(file));
+    }
+  }
   if(!models.length)return records;
   if(chosen.has('diagrams')){
     for(const [i,view]of(snapshot.diagrams||[]).entries()){const suffix=String(i+1).padStart(3,'0');await add('generated:erd:'+suffix,'01_Model/ERD/model-'+suffix+'.svg','diagrams','Model view '+(i+1)+'; part of the complete included table inventory.',new TextDecoder().decode(bytes(view.base64)),view.model_ids);}
@@ -975,7 +989,7 @@ async function rebuildGenerated(snapshot){
   }
   return records;
 }
-function subsetReadme(snapshot){return [snapshot.checkpoint?'# Checkpoint — work is incomplete':'# Open START_HERE.html','',snapshot.checkpoint?'Missing selected categories: '+(snapshot.checkpoint.missing_categories.join(', ')||'none; work remains incomplete')+'.':'', 'Extract the entire ZIP, then open START_HERE.html in a browser. The review works offline.', '', 'Data model: inspect tables, keys and joins. Code & files: inspect and download selected deliverables. Validation: review pending and reported checks.', '', 'Candidate review only. File integrity is not native execution, business acceptance or deployment authorization. This browser subset requires a fresh content scan and disclosure review before sharing.', '', 'Included files:',...[(snapshot.files||[]),(snapshot.generated_deliverables||[])].flat().map(f=>'- '+f.path),''].join('\n');}
+function subsetReadme(snapshot){return [snapshot.checkpoint?'# Checkpoint — work is incomplete':'# Open START_HERE.html','',snapshot.checkpoint?'Missing selected categories: '+(snapshot.checkpoint.missing_categories.join(', ')||'none; work remains incomplete')+'.':'', 'Extract the entire ZIP, then open START_HERE.html in a browser. The review works offline.', '', snapshot.migration_planning_omitted||'', 'Data model: inspect tables, keys and joins. Code & files: inspect and download selected deliverables. Validation: review pending and reported checks.', '', 'Candidate review only. File integrity is not native execution, business acceptance or deployment authorization. This browser subset requires a fresh content scan and disclosure review before sharing.', '', 'Included files:',...[(snapshot.files||[]),(snapshot.generated_deliverables||[])].flat().map(f=>'- '+f.path),''].join('\n');}
 
 function implementationGuidance(){
   const target=eng.target||{};
@@ -1126,6 +1140,43 @@ if(legacyAlignment){
   renderAlignment();
 }
 addEventListener('afterprint',()=>document.body.classList.toggle('alignment-print',false));
+
+function renderMigrationPlanning(){
+  if(!migrationPlanning)return;
+  const selected=el('migration-plan-domain').value,query=el('migration-plan-search').value.toLowerCase();
+  const domains=(migrationPlanning.domains||[]).filter(d=>!selected||d.domain_id===selected);
+  const match=row=>!query||JSON.stringify(row).toLowerCase().includes(query);
+  const rows=key=>domains.flatMap(d=>(d[key]||[]).map(row=>({...row,domain_id:d.domain_id}))).filter(match);
+  const consumers=rows('consumers'),items=rows('work_items');
+  const cards=clear('migration-plan-cards');
+  card(cards,'Included domains',String(domains.length),'Planning follows the included review scope.');
+  card(cards,'Consumer routes',String(consumers.length),'Proposed connections are not verified dashboard behavior.');
+  card(cards,'Work items',String(items.length),'Reviewable templates; no live tickets created.');
+  const missing=domains.reduce((n,d)=>n+(d.missing_consumers||[]).length,0);
+  el('migration-plan-status').textContent=domains.map(d=>`${d.domain_id}: ${pretty(d.freshness)} · ${d.plan_sha256?'plan recorded':'plan not recorded'}`).join(' | ')+(missing?` · ${missing} known consumers still need mapping.`:'');
+  table('migration-plan-consumers',[
+    ['Dashboard / chart',r=>`${r.label||r.id} · ${r.domain_id}`],
+    ['Previously used',(r)=>(r.legacy_table_ids||[]).join(', ')||'Historical connection unknown'],
+    ['Proposed destination',r=>[...(r.model_ids||[]),...(r.topic_ids||[])].join(', ')||'Destination unresolved'],
+    ['Disposition / evidence',r=>`${pretty(r.disposition)} · ${pretty(r.status)}`]],consumers);
+  table('migration-plan-items',[
+    ['Work item',r=>`${r.id} · ${r.title}`],['Outcome',r=>r.outcome],
+    ['Depends on',r=>(r.dependencies||[]).join(', ')||'None recorded'],
+    ['Owner / effort',r=>`${r.owner||'Unassigned'} · ${r.effort?.complexity||r.effort?.category||'Unassessed'}`],
+    ['Acceptance criteria',r=>(r.acceptance_criteria||[]).map(a=>a.expected).join('\n')]],items);
+  table('migration-plan-waves',[['Wave',r=>r.title],['Work items',r=>(r.item_ids||[]).join(', ')],['After',r=>(r.depends_on||[]).join(', ')||'No prerequisite wave recorded']],rows('waves'));
+  table('migration-plan-questions',[['Domain / ID',r=>`${r.domain_id} · ${r.id}`],['Decision or question',r=>r.text]],[...rows('decisions'),...rows('questions'),...domains.flatMap(d=>(d.missing_consumers||[]).map(c=>({domain_id:d.domain_id,id:c.id,text:'Map the missing consumer: '+(c.label||c.id)})))]);
+  const narrative=clear('migration-plan-narrative');
+  for(const d of domains){narrative.append(make('h3',d.domain_id));if(d.narrative)narrative.append(make('p',d.narrative,'planning-narrative'));for(const warning of d.warnings||[])narrative.append(make('p',warning,'scope-note'));}
+  const links=clear('migration-plan-files'),exports=allFiles().filter(f=>f.path.startsWith('05_Migration/'));
+  for(const file of exports){const button=make('button',file.path.split('/').slice(-2).join(' / '),'secondary');button.type='button';button.title=file.path;button.onclick=()=>download(file.path.split('/').pop(),bytes(file.base64));links.append(button);}
+  el('migration-plan-files-note').textContent=exports.length?'Download the inventory first, then the plan and selected ticket import. Google content files require native host creation; they are not cloud documents.':'No planning files are embedded in this page. Ask the agent to finalize the selected documentation, or complete the planning record first.';
+}
+if(migrationPlanning){
+  el('migration-plan-boundary').textContent=migrationPlanning.qualification||'Planning evidence only. Mapping, parity, approval and deployment remain separate.';
+  for(const d of migrationPlanning.domains||[]){const option=make('option',d.domain_id);option.value=d.domain_id;el('migration-plan-domain').append(option);}
+  el('migration-plan-domain').onchange=renderMigrationPlanning;el('migration-plan-search').oninput=renderMigrationPlanning;renderMigrationPlanning();
+}
 
 // Real layout is checked only when the page is opened; a stub DOM cannot establish geometry.
 function assertPortalLayout(){

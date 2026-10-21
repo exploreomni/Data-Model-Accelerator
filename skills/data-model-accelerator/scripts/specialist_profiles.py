@@ -8,7 +8,7 @@ SOURCES = frozenset({'bigquery', 'periscope', 'looker', 'tableau', 'powerbi',
                     'clickhouse', 'motherduck', 'databricks', 'dbt', 'coalesce', 'fabric'})
 ROLES = frozenset({'source_specialist', 'catalogue_specialist', 'warehouse_architect',
                   'analytics_engineer', 'semantic_modeler', 'validation_analyst',
-                  'independent_reviewer', 'documentation_specialist'})
+                  'independent_reviewer', 'documentation_specialist', 'migration_project_manager'})
 ROLE_ALIASES = {'semantic_architect': 'semantic_modeler',
                 'independent_qa': 'independent_reviewer',
                 'omni_modeler': 'semantic_modeler'}

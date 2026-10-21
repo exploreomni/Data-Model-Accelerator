@@ -63,6 +63,14 @@ Domain selection never replaces design review; provisional code remains availabl
 and can be paused without a false completion. Older engagements keep their flow
 until the domain ledger is explicitly adopted.
 
+For requested migration inventories, project plans or ticket templates, use
+[migration-planning.md](references/migration-planning.md) and the optional
+`data-model-migration-plan` entrypoint. Ask the output format and ticket platform
+once, reuse scoped historical alignment, and route the retained domain packet to
+`migration_project_manager`. This optional planning work never adds a gate to
+existing implementation or requested provisional code. Publish its selected
+files and Migration plan tab through the same delivery finalizer.
+
 Start new engagements with entity/table design and its review package. Read
 [staged-engagement.md](references/staged-engagement.md). Generate implementation
 only for a scope with current recorded human design review; a requested final ZIP or
@@ -101,6 +109,7 @@ Read [discovery.md](references/discovery.md) before target deliverable generatio
 - For migration, the trusted comparison reports and their population/filter/currency/history/security contracts, behavior to retain versus intentionally change, affected consumers, and cutover scope.
 - Supplied business definitions and examples: use the optional [migration review workflow](references/migration-review.md) to retain scoped rules before design. Accept conversational answers or the intake template; imports start proposed, and rule acceptance stays separate from design approval.
 - For each selected domain, reuse or ask whether it is new, refactoring, or mixed. Offer [comparison with historical tables](references/legacy-alignment.md) when relevant: retain available historical schemas, SQL and rules before design, then explain splits, merges and moved logic before design review. Missing history does not prevent explicitly requested provisional code. Use existing extraction results and bounded comparison context; do not launch another broad discovery pass.
+- When migration planning is requested, follow [migration-planning.md](references/migration-planning.md). Reuse the selected domain and mappings; ask for Excel/Word versus Google Sheets/Docs and the ticket platform/template. The bounded PM role prepares editable inventory, plan and ticket templates from retained evidence. Missing planning context does not block provisional code. Live ticket writes remain a separate request.
 - Requested outputs and audience, plus mode: assessment; selected candidate artifacts; authorized development validation; or separately authorized deployment handoff. Use [delivery-experience.md](references/delivery-experience.md) to record selections and package the result. Selecting code or tests does not authorize their execution.
 
 Confirm missing meaningful decisions with the user before treating dependent deliverables as reviewed or executing them. An explicit request for provisional code permits supported draft files while those decisions remain unresolved; follow [provisional generation](references/provisional-generation.md). A proposed default is not an answer, and elapsed time is not confirmation. Do not ask again about choices or permissions already supplied. With unknown facts, continue independent work and identify what blocks verification or execution. Do not invent source tables, keys, CDC metadata, user permissions, metric authority, or customer acceptance. A synthetic demonstration is always labeled synthetic.

@@ -17,8 +17,13 @@ audience, deliverables and current stage records.
 
 Follow [delivery experience](../data-model-accelerator/references/delivery-experience.md).
 Reuse the existing `START_HERE.html` or selected Markdown fallback as the one
-authoritative working entrypoint. Offer at most three primary choices: Data model,
+authoritative working entrypoint. Default to three primary choices: Data model,
 Code & files and Validation, showing only what the stage and audience permit.
+When migration planning was selected, add its contextual Migration plan entry
+and select documentation plus dictionary to package its complete column inventory
+and current outputs under `05_Migration/`. Google payloads remain
+pending native host creation; they are not cloud-document links. Follow the
+[planning contract](../data-model-accelerator/references/migration-planning.md).
 Place full inventory, detailed validation and audit behind progressive detail
 links; keep material blockers visible. Maintain one current design document
 bound to canonical design/decision records, with required layer documentation

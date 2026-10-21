@@ -1132,6 +1132,11 @@ def _presentation(state, review=None, audience='engineer'):
             summary = alignment_summary(state, allowed_models if review is not None else None)
             if summary is not None:
                 data['legacy_alignment'] = _legacy_alignment_presentation(summary)
+        if state['workflow'].get('migration_planning'):
+            from migration_planning import public_summary as planning_summary
+            summary = planning_summary(state, allowed_models if review is not None else None)
+            if summary is not None:
+                data['migration_planning'] = summary
     return data
 
 
@@ -1470,6 +1475,7 @@ def _trim_workflow_details(data):
     data.pop('migration_review', None)
     data.pop('domain_journey', None)
     data.pop('legacy_alignment', None)
+    data.pop('migration_planning', None)
     for key in ('assets', 'models', 'relationships', 'domain_proposals', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
@@ -1591,6 +1597,12 @@ def generated_deliverables(data):
         add('generated:migration-review', '01_Model/migration-review.md', 'documentation',
             'Scoped business rules, shared model proposals, source coverage and parity evidence.',
             _migration_markdown(data['migration_review']).encode())
+    if {'documentation', 'dictionary'} <= selected and data.get('migration_planning'):
+        from migration_plan_exports import export_files
+        for file in export_files(data['migration_planning']):
+            add('generated:migration-planning:' + file['path'], file['path'], 'documentation',
+                'Migration planning: ' + file['path'].rsplit('/', 1)[-1] + '. Templates only; no live tickets or deployment.',
+                file['content'])
     if 'documentation' in selected and any(domain.get('comparison_requested') for domain in data.get('legacy_alignment', {}).get('domains', [])):
         add('generated:legacy-alignment-csv', '01_Model/legacy-table-alignment.csv', 'documentation',
             'All scoped existing-table mappings and unresolved baseline items; spreadsheet formulas are escaped.',
@@ -1696,6 +1708,13 @@ def package_readme(data):
         lines[4:4] = ['Work is incomplete. This checkpoint preserves available outputs; it is not a final delivery.',
                       'Missing selected categories: ' + (', '.join(checkpoint['missing_categories']) or 'None; task and validation status still require review.') + '.',
                       'Resume the same engagement and repair only the outstanding work.', '']
+    if data.get('migration_planning_omitted'):
+        lines.extend([data['migration_planning_omitted'], ''])
+    if any(row['path'].startswith('05_Migration/') for row in generated):
+        lines.extend(['Open the **Migration plan** tab in START_HERE.html. In **05_Migration/**, start with '
+                      '**inventory.xlsx**, then **migration-plan.docx**, then **tickets.md** and the selected '
+                      'import file. Google selections contain pending content for native creation instead. '
+                      'Templates and imports have not created live tickets.', ''])
     for record in sorted(registered + generated, key=lambda row: row['path']):
         origin = 'generated review projection' if record.get('origin') == 'review_projection' else 'registered artifact; original bytes'
         lines.append(f"- [{_markdown_cell(record['path'])}]({quote(record['path'], safe='/')}) — {record['category']}; {origin}.")
@@ -1745,6 +1764,12 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     _select_quality_evidence(data, selected)
     _select_metadata_evidence(data, selected)
     _select_omni_evidence(data, selected, state=state, review=review, root=artifact_root)
+    # Planning documents are an indivisible domain export and contain column
+    # metadata. Do not retain their nested payload or binaries after exclusion.
+    if data.get('migration_planning') and not {'documentation', 'dictionary'} <= set(include):
+        data.pop('migration_planning')
+        data['migration_planning_omitted'] = ('Migration planning files were omitted: include both documentation '
+            'and dictionary to export their complete mapping and column inventory.')
     # Data-heavy views must also obey deliverable selection, not just file omission.
     if not set(include)&{'documentation','dictionary','diagrams'}:
         _trim_workflow_details(data)
