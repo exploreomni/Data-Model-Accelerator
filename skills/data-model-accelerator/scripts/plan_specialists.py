@@ -321,6 +321,25 @@ def classify(assets, texts, profiles, gaps):
                 project = PurePosixPath(*path.parts[:index]).as_posix()
                 add(relative, 'periscope', project, 'CDT Git dashboard token path and settings keys; schema interpretation requires extraction')
                 native_project_roots.add(('periscope', project))
+        # A Space snapshot can contain only views or snippets. Require the
+        # native container/name/name.yaml shape and documented metadata nesting;
+        # SQL text, directory names and a connection label alone prove nothing.
+        if suffix == '.yaml':
+            containers = [i for i, part in enumerate(path.parts) if part in ('views', 'snippets')]
+            if containers:
+                index = containers[0]
+                tail = path.parts[index + 1:]
+                settings = re.search(r'(?m)^Settings:\s*(?:#.*)?\n((?:[ \t]+[^\n]*\n?|\n)*)', content)
+                body = settings.group(1) if settings else ''
+                metadata = re.search(r'(?m)^([ ]+)Metadata:\s*(?:#.*)?\n\1[ ]+Owner:\s*\S', body)
+                native = (len(tail) == 2 and name == tail[0].lower() + '.yaml' and metadata)
+                if path.parts[index] == 'views':
+                    native = (native and re.search(r'(?m)^Database Name:\s*\S', content)
+                              and re.search(r'(?m)^[ ]+Materialize View:\s*(?:true|false)\s*(?:#.*)?$', body, re.I))
+                if native:
+                    project = PurePosixPath(*path.parts[:index]).as_posix()
+                    add(relative, 'periscope', project, 'CDT Git ' + path.parts[index] + ' path and nested settings keys; schema interpretation requires extraction')
+                    native_project_roots.add(('periscope', project))
         coalesce_project = (re.search(r"(?m)^\s*fileVersion\s*:", content) and re.search(r"(?m)^\s*platformKind\s*:", content)) or (
             re.search(r"(?m)^fileVersion\s*:\s*3\s*(?:#.*)?$", content) and re.search(r"(?m)^defaultStorageMapping\s*:\s*\S", content))
         if name == "data.yml" and coalesce_project:

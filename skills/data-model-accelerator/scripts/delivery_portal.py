@@ -1113,7 +1113,155 @@ def _presentation(state, review=None, audience='engineer'):
         if review and state['workflow'].get('design'):
             from design_consistency import compare_review
             workflow['design_checks'] = _design_check_summary(compare_review(state['workflow']['design'], review))
+        if state['workflow'].get('migration_review'):
+            from migration_review import public_summary
+            # Only an unscoped pre-design status page may show intake records.
+            scope = allowed_models if review is not None or state['workflow'].get('design') else None
+            summary = public_summary(state, scope)
+            if summary is not None:
+                data['migration_review'] = _migration_presentation(summary)
+        if state['workflow'].get('domain_journey'):
+            from domain_workflow import public_summary as domain_summary
+            # An unfiltered status page can show unassigned future domains.
+            # Every explicit review/package is bounded by its model inventory.
+            summary = domain_summary(state, allowed_models if review is not None else None)
+            if summary is not None:
+                data['domain_journey'] = _domain_presentation(summary)
     return data
+
+
+def _migration_presentation(raw):
+    """Display fields only: no retained paths, source SQL or review receipts."""
+    def fields(value, names):
+        return {key: json.loads(json.dumps(value[key])) for key in names if key in value}
+
+    def counts(value, names):
+        return {key: number for key, number in value.items() if key in names and type(number) is int and number >= 0}
+
+    result = {'schema_version': 1, 'qualification': raw.get('qualification',
+        'Supplied migration evidence; local consistency is not native validation or business acceptance.')}
+    if 'business_rules' in raw:
+        source = raw['business_rules']
+        result['business_rules'] = {**fields(source, ('status', 'count', 'proposed', 'qualification')),
+            'rows': [fields(row, ('id', 'name', 'statement', 'status', 'model_ids')) for row in source.get('rows', [])],
+            'conflicts': [fields(row, ('model_id', 'key', 'rule_ids')) for row in source.get('conflicts', [])]}
+    if 'portfolio' in raw:
+        source = raw['portfolio']
+        result['portfolio'] = {**fields(source, ('status', 'asset_count', 'covered_assets', 'qualification')),
+            'counts': counts(source.get('counts', {}), ('total', 'proposed', 'needs_decision', 'stale')),
+            'candidates': [fields(row, ('id', 'disposition', 'reason', 'asset_ids', 'model_ids', 'grain',
+                                       'dimensions', 'measure_ids', 'rule_ids', 'required_checks'))
+                           for row in source.get('candidates', [])],
+            'coverage': [fields(row, ('asset_id', 'name', 'model_ids', 'disposition', 'candidate_id', 'reason', 'freshness'))
+                         for row in source.get('coverage', [])]}
+    if 'source_discovery' in raw:
+        source = raw['source_discovery']
+        result['source_discovery'] = {**fields(source, ('status', 'freshness', 'qualification')),
+            'version': fields(source.get('version', {}), ('workflow', 'workflow_sha256', 'planner_sha256', 'adapter_component_sha256')),
+            'coverage': {**fields(source.get('coverage', {}), ('known_file_denominator', 'repository_file_denominator',
+                                                             'enumeration_complete', 'export_completeness')),
+                         'counts': counts(source.get('coverage', {}).get('counts', {}), ('parsed', 'partial', 'unsupported', 'excluded', 'unreadable'))},
+            'gaps': [fields(row, ('code',)) for row in source.get('gaps', [])]}
+    if 'parity' in raw:
+        source = raw['parity']
+        result['parity'] = {**fields(source, ('status', 'stale', 'assurance', 'qualification')),
+            'native_verified': False, 'acceptance_ready': False,
+            'counts': counts(source.get('counts', {}), ('pass', 'fail', 'pending', 'unsupported')),
+            'crosswalk': [{**fields(row, ('dashboard_label', 'source_label', 'model_ids', 'topic_ids', 'status', 'case_count', 'required')),
+                           'issues': [fields(issue, ('code', 'status')) for issue in row.get('issues', [])]}
+                          for row in source.get('crosswalk', [])]}
+    result['summary_markdown'] = _migration_markdown(result)
+    return result
+
+
+def _domain_presentation(raw):
+    """A scoped journey view; never expose receipts, private paths or authority."""
+    def fields(value, names):
+        return {key: json.loads(json.dumps(value[key])) for key in names if key in value}
+
+    result = {'schema_version': 1, 'kind': 'domain_journey',
+              **fields(raw, ('active_domain_id', 'needs_selection', 'next_action', 'qualification', 'candidates_sha256'))}
+    result['domains'] = [fields(row, ('id', 'name', 'description', 'status', 'model_ids', 'asset_count',
+                                      'shared_dependency_ids', 'design_status', 'implementation_status',
+                                      'semantic_status', 'completion_kind', 'next_action'))
+                         for row in raw.get('domains', [])]
+    result['counts'] = {key: count for key, count in raw.get('counts', {}).items()
+                        if key in ('total', 'proposed', 'queued', 'active', 'paused', 'completed', 'stale')
+                        and type(count) is int and count >= 0}
+    return result
+
+
+def _migration_markdown(summary):
+    """One complete, deterministic text summary for print and portable delivery."""
+    def value(item):
+        if item is None: return 'Not supplied'
+        if isinstance(item, list): return ', '.join(value(part) for part in item) or 'None supplied'
+        if type(item) is bool: return 'Yes' if item else 'No'
+        return _markdown_cell(item)
+
+    def detail(label, item):
+        lines.append(label + ': ' + value(item))
+
+    lines = ['# Migration review', '', value(summary.get('qualification')), '',
+             'Recorded evidence only. Native verification, business acceptance and deployment authority remain separate.', '']
+    for key, title in (('business_rules', 'Business rules and human decisions'), ('portfolio', 'Shared model proposals'),
+                       ('source_discovery', 'Source discovery coverage'), ('parity', 'Source-to-target parity')):
+        section = summary.get(key)
+        lines.extend(['## ' + title, ''])
+        if section is None:
+            lines.extend(['Not supplied in this review scope.', '']); continue
+        detail('Status', section.get('status'))
+        if section.get('qualification'): detail('Qualification', section['qualification'])
+        if key == 'business_rules':
+            for row in section.get('rows', []):
+                lines.append('')
+                detail('Rule', row.get('name') or row.get('id')); detail('Rule ID', row.get('id'))
+                detail('Statement', row.get('statement')); detail('Recorded decision', row.get('status'))
+                detail('Models', row.get('model_ids', []))
+            if not section.get('rows'): lines.append('No business rules are included in this review scope.')
+            for row in section.get('conflicts', []):
+                detail('Conflict', [row.get('model_id'), row.get('key'), *row.get('rule_ids', [])])
+            lines.extend(['', 'To record a human decision, ask the agent to run guided_workflow review-business-rules with a human_business_rule_review document for this engagement. Imported wording remains proposed until reviewed; rule acceptance is not design approval.'])
+        elif key == 'portfolio':
+            detail('Included source assets', section.get('asset_count'))
+            for row in section.get('candidates', []):
+                lines.append(''); detail('Candidate', row.get('id')); detail('Proposal', row.get('disposition'))
+                for label, field in (('Reason', 'reason'), ('Models', 'model_ids'), ('Source assets', 'asset_ids'),
+                                     ('Grain', 'grain'), ('Dimensions', 'dimensions'), ('Measures', 'measure_ids'),
+                                     ('Business rules', 'rule_ids'), ('Required checks', 'required_checks')):
+                    detail(label, row.get(field))
+            if not section.get('candidates'): lines.append('No shared model candidates are included in this review scope.')
+            for row in section.get('coverage', []):
+                lines.append(''); detail('Source asset', row.get('name') or row.get('asset_id'))
+                for label, field in (('Disposition', 'disposition'), ('Candidate', 'candidate_id'), ('Models', 'model_ids'),
+                                     ('Freshness', 'freshness'), ('Reason', 'reason')):
+                    detail(label, row.get(field))
+        elif key == 'source_discovery':
+            detail('Freshness', section.get('freshness'))
+            version = section.get('version', {})
+            detail('Collector version', version.get('workflow') if isinstance(version, dict) else version)
+            coverage = section.get('coverage', {})
+            for name, count in sorted(coverage.get('counts', {}).items()): detail(name.replace('_', ' ').capitalize(), count)
+            detail('Known file denominator', coverage.get('known_file_denominator'))
+            detail('Repository file denominator', coverage.get('repository_file_denominator'))
+            detail('Supplied repository enumeration complete', coverage.get('enumeration_complete'))
+            detail('Source export completeness', coverage.get('export_completeness'))
+            detail('Gaps', [row.get('code') for row in section.get('gaps', [])])
+        else:
+            detail('Stale evidence', section.get('stale'))
+            for name, count in sorted(section.get('counts', {}).items()): detail(name.replace('_', ' ').capitalize(), count)
+            detail('Assurance', section.get('assurance')); detail('Native verification established', False)
+            detail('Business acceptance established', False)
+            lines.append('Only selected comparisons determine parity status. Retained out-of-scope rows remain visible for context.')
+            for row in section.get('crosswalk', []):
+                lines.append(''); detail('Dashboard', row.get('dashboard_label')); detail('Source', row.get('source_label'))
+                for label, field in (('Models', 'model_ids'), ('Topics', 'topic_ids'), ('Selected comparison', 'required'),
+                                     ('Status', 'status'), ('Cases', 'case_count')):
+                    detail(label, row.get(field))
+                for issue in row.get('issues', []): detail('Issue', [issue.get('code'), issue.get('status')])
+            if not section.get('crosswalk'): lines.append('No parity cases are included in this review scope.')
+        lines.append('')
+    return '\n'.join(lines) + '\n'
 
 
 def _design_check_summary(report):
@@ -1198,6 +1346,8 @@ def _workflow_presentation(raw):
 
 def _trim_workflow_details(data):
     """A code-only subset must not retain unselected design narratives or decisions."""
+    data.pop('migration_review', None)
+    data.pop('domain_journey', None)
     for key in ('assets', 'models', 'relationships', 'domain_proposals', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
@@ -1304,7 +1454,7 @@ def generated_deliverables(data):
     review = data.get('review', {})
     models, relationships = review.get('models', []), review.get('relationships', [])
     model_inventory(models, relationships)
-    if data.get('audience') == 'audit' or not models:
+    if data.get('audience') == 'audit':
         return []
     selected, records = set(data.get('selected_categories', [])), []
     def add(identifier, path, category, description, body, model_ids=None):
@@ -1315,6 +1465,12 @@ def generated_deliverables(data):
         if model_ids is not None:
             record['diagram_model_ids'] = list(model_ids)
         records.append(record)
+    if 'documentation' in selected and data.get('migration_review'):
+        add('generated:migration-review', '01_Model/migration-review.md', 'documentation',
+            'Scoped business rules, shared model proposals, source coverage and parity evidence.',
+            _migration_markdown(data['migration_review']).encode())
+    if not models:
+        return records
     if 'diagrams' in selected:
         for index, page in enumerate(data.get('diagrams', []), 1):
             add(f'generated:erd:{index:03d}', f'01_Model/ERD/model-{index:03d}.svg', 'diagrams',

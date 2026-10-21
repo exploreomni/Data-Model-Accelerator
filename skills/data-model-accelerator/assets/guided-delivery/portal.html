@@ -13,11 +13,13 @@
 <a href="#table-dictionary" data-nav="table-dictionary"><span>All columns</span></a>
 <a href="#implementation-code" data-nav="implementation-code"><span>Code &amp; SQL</span></a>
 <a href="#coverage-reuse" data-nav="coverage-reuse"><span>Coverage &amp; reuse</span></a>
+<a id="migration-review-nav" href="#migration-review" data-nav="migration-review" hidden><span>Migration review</span></a>
 <a href="#review-feedback" data-nav="review-feedback"><span>Prepare review feedback</span></a>
 <a href="#replacement-map" data-nav="replacement-map"><span>Replacement map</span></a></nav></details>
 <details id="supporting-navigation" class="supporting-navigation"><summary>Supporting details</summary><nav aria-label="Supporting review sections">
 <a id="files-nav" href="#delivery" data-nav="delivery" hidden><span>Included files</span></a>
 <a href="#overview" data-nav="overview"><span>Engagement overview</span></a>
+<a id="domain-journey-nav" href="#domain-journey" data-nav="domain-journey" hidden><span>Domain journey</span></a>
 <a href="#lineage" data-nav="lineage"><span>Transformation lineage</span></a>
 <a href="#readiness" data-nav="readiness"><span>Readiness &amp; scope</span></a>
 <a href="#changes" data-nav="changes"><span>Changes &amp; decisions</span></a>
@@ -78,5 +80,26 @@
 <div class="panel"><h3>Unknowns and blockers</h3><div id="metadata-blockers"></div><div id="metadata-unknowns"></div></div>
 <div class="panel"><h3>Privileges and governance requests</h3><p class="muted">Requirements and requests do not establish that privileges were granted or governance changes were approved.</p><div id="metadata-privileges"></div><div id="metadata-governance"></div></div>
 <div class="panel"><h3>Selected plan evidence</h3><p id="metadata-hash" class="scope-note"></p><button id="metadata-inspect" type="button" class="secondary">Inspect metadata plan</button></div></div></section>
+<section id="migration-review" class="review-section" data-section hidden tabindex="-1">
+<div class="migration-screen">
+<div class="section-head"><div><h2>Migration review</h2><p class="muted">Review the supplied business definitions, reusable model proposals and comparison evidence together.</p></div><button id="migration-print" class="secondary" type="button">Print complete summary</button></div>
+<p id="migration-qualification" class="scope-note"></p><p id="migration-attention" class="notice" hidden></p>
+<div class="panel"><h3>Business rules and human decisions</h3><p id="migration-rules-status" class="scope-note"></p><div id="migration-rules"></div><div id="migration-conflicts"></div>
+<p id="migration-rule-help" class="muted">Imported wording remains proposed until a person reviews it. Give the agent a human decision document for this engagement and ask it to run <code>guided_workflow review-business-rules</code> with a <code>human_business_rule_review</code> document. A recorded rule decision does not approve the design or authorize deployment.</p></div>
+<div class="panel"><h3>Shared model proposals</h3><p id="migration-portfolio-status" class="scope-note"></p><div id="migration-candidates"></div><h3>Source asset coverage</h3><div id="migration-portfolio-coverage"></div></div>
+<div class="panel"><h3>Source discovery coverage</h3><p id="migration-source-status" class="scope-note"></p><div id="migration-source-counts"></div><div id="migration-source-gaps"></div></div>
+<div class="panel"><h3>Source-to-target parity</h3><p id="migration-parity-status" class="scope-note"></p><p id="migration-parity-boundary" class="muted">Only selected comparisons determine parity status; retained out-of-scope rows remain visible for context. Supplied results do not establish native verification, business acceptance or deployment authority.</p><div id="migration-parity-counts"></div><div id="migration-parity-crosswalk"></div></div>
+</div><pre id="migration-print-summary" class="migration-print-summary" aria-label="Complete migration review summary"></pre>
+</section>
+<section id="domain-journey" class="review-section" data-section hidden tabindex="-1">
+<div class="section-head"><div><h2>Domain journey</h2><p class="muted">Choose the next domain with the agent, then follow its recorded design and delivery progress.</p></div></div>
+<p id="domain-journey-qualification" class="scope-note"></p><p id="domain-journey-attention" class="notice" hidden></p>
+<div id="domain-journey-summary" class="cards"></div><p id="domain-journey-next" class="scope-note"></p>
+<div class="panel"><h3>Request a domain selection</h3><p class="muted">This control prepares a message for the agent. The active domain and its recorded progress change only after the agent checks and applies your request.</p>
+<label for="domain-choice">Domain to work on next</label><select id="domain-choice"><option value="">Choose a domain…</option></select>
+<label for="domain-request">Message to give the agent</label><textarea id="domain-request" readonly placeholder="Choose an included domain to prepare a request."></textarea>
+<button id="domain-request-copy" class="secondary" type="button" disabled>Copy selection request</button><p id="domain-request-note" class="muted" role="status"></p></div>
+<div class="panel"><h3>Detected and proposed domains</h3><p class="muted">Completion follows the requested scope: reviewed design and any requested implementation or semantic artifacts. It does not establish native validation, business acceptance or deployment.</p><div id="domain-journey-domains"></div></div>
+</section>
 <footer>Version-bound review · No external requests · <span id="footer-id"></span></footer></main>
 <script id="delivery-data" type="application/json">/*__PORTAL_DATA__*/</script><script>/*__PORTAL_SVG_JS__*/</script><script>/*__PORTAL_JS__*/</script></body></html>

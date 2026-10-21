@@ -139,6 +139,8 @@ function decisionResponseDocument(workflow,engagementId,responses){
 }
 function trimWorkflowDetails(snapshot,categories){
   if(snapshot.audience!=='audit'&&['documentation','diagrams','dictionary'].some(key=>categories.has(key)))return;
+  delete snapshot.migration_review;
+  delete snapshot.domain_journey;
   for(const key of ['assets','models','relationships','domain_proposals','decisions','changes'])delete snapshot.review?.[key];
   for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance'])delete snapshot.workflow?.[key];
 }
@@ -355,12 +357,14 @@ function download(name,body,mime){const url=URL.createObjectURL(new Blob([body],
 function bytes(b64){return Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
 function card(parent,title,value,note){const c=make('article',undefined,'card');c.append(make('h3',title),make('strong',value),make('p',note));parent.append(c);}
 function table(id,columns,rows,pageSize=30){let page=0;const draw=()=>{const target=clear(id);if(!rows.length){target.append(make('p','No matching records.','empty'));return;}const wrap=make('div',undefined,'table-scroll'),t=make('table'),head=make('tr');columns.forEach(c=>head.append(make('th',c[0])));const thead=make('thead');thead.append(head);t.append(thead);const body=make('tbody');rows.slice(page*pageSize,(page+1)*pageSize).forEach(row=>{const tr=make('tr');columns.forEach(c=>{const td=make('td'),v=c[1](row);td.append(v instanceof Node?v:make('span',v));tr.append(td);});body.append(tr);});t.append(body);wrap.append(t);target.append(wrap);const pager=make('div',undefined,'pager'),prev=make('button','Previous','secondary'),next=make('button','Next','secondary');prev.disabled=page===0;next.disabled=(page+1)*pageSize>=rows.length;prev.onclick=()=>{page--;draw();};next.onclick=()=>{page++;draw();};pager.append(prev,make('span',`${page*pageSize+1}–${Math.min((page+1)*pageSize,rows.length)} of ${rows.length}`),next);target.append(pager);};draw();}
-const reviewSections=['overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[])];
+const migrationReview=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.migration_review:null;
+const domainJourney=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.domain_journey:null;
+const reviewSections=['overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[])];
 const sectionRoutes={architecture:'model',lineage:'model','table-dictionary':'model','implementation-code':'delivery','replacement-map':'delivery'};
 let firstNavigation=true,modelWorkspaceReady=false;
 function navigate(){
   if(!firstNavigation)closeInspector();
-  const defaultSection=(review.models||[]).length?'model':'overview';
+  const defaultSection=domainJourney?.needs_selection?'domain-journey':(review.models||[]).length?'model':'overview';
   const requested=location.hash.slice(1)||defaultSection,parent=sectionRoutes[requested]||requested,valid=reviewSections.includes(parent)?parent:defaultSection;
   document.querySelectorAll('[data-section]').forEach(s=>s.hidden=s.id!==valid);
   document.body.classList.toggle('model-route',valid==='model');
@@ -376,6 +380,64 @@ addEventListener('hashchange',navigate);navigate();
 // Repeated clicks on the same fragment still reveal its parent and focus the anchor.
 document.querySelectorAll('[data-nav]').forEach(link=>{link.onclick=()=>{if(location.hash==='#'+link.dataset.nav)navigate();};});
 el('implementation-nav').hidden=false;el('files-nav').hidden=true;
+el('domain-journey-nav').hidden=!domainJourney;
+if(domainJourney){
+  const domains=domainJourney.domains||[],active=domains.find(row=>row.id===domainJourney.active_domain_id);
+  el('domain-journey-qualification').textContent=domainJourney.qualification||'Recorded domain progress only; approval and execution authority remain separate.';
+  card(el('domain-journey-summary'),'Recorded active domain',active?.name||active?.id||'None in this view',active?pretty(active.status):'Ask the agent to apply a domain selection.');
+  card(el('domain-journey-summary'),'Included domains',String(domains.length),'This inventory follows the included model scope.');
+  card(el('domain-journey-summary'),'Recorded completed domains',String(domains.filter(row=>row.status==='completed').length),'Completion applies to the requested delivery scope, not live validation.');
+  const attention=[];
+  if(domainJourney.needs_selection)attention.push('Choose a domain and return the selection request to the agent.');
+  if(domains.some(row=>row.status==='stale'))attention.push('Some domain records are stale; ask the agent to refresh their evidence before continuing.');
+  el('domain-journey-attention').hidden=!attention.length;el('domain-journey-attention').textContent=attention.join(' ');
+  el('domain-journey-next').textContent=domainJourney.next_action||'Review the included domain queue with the agent.';
+  for(const row of domains){const option=make('option',`${row.name||row.id} · ${pretty(row.status)}`);option.value=row.id;el('domain-choice').append(option);}
+  const identifiers=values=>(values||[]).join(', ')||'Not assigned';
+  table('domain-journey-domains',[['Domain',row=>{const cell=make('div');cell.append(make('strong',row.name||row.id),make('small',row.id),make('p',row.description||'No description supplied.'));return cell;}],['Journey status',row=>pretty(row.status)],['Design / approval',row=>pretty(row.design_status||'not_recorded')],['Code / semantic progress',row=>`${pretty(row.implementation_status||'not_recorded')} · ${pretty(row.semantic_status||'not_recorded')}`],['Scope / shared dependencies',row=>`${identifiers(row.model_ids)} · ${text(row.asset_count)} source assets. Shared dependencies: ${identifiers(row.shared_dependency_ids)}.`],['Completion / next action',row=>`${pretty(row.completion_kind||'not_completed')} · ${row.next_action||'Review with the agent.'}`]],domains);
+}
+el('domain-choice').onchange=()=>{
+  const row=domainJourney?.domains?.find(item=>item.id===el('domain-choice').value);
+  const bound=typeof domainJourney?.candidates_sha256==='string'&&/^[a-f0-9]{64}$/.test(domainJourney.candidates_sha256);
+  el('domain-request-copy').disabled=!row||!bound;
+  const request=row&&bound?{schema_version:1,domain_id:row.id,request_reference:`Offline portal selection for engagement ${eng.engagement_id}, revision ${eng.revision}.`,candidates_sha256:domainJourney.candidates_sha256}:null;
+  el('domain-request').value=request?`Please select ${row.name||row.id} for engagement ${eng.engagement_id}. Check this request against the current inventory and apply my choice using guided_workflow.py select-domain with this document:\n\n${JSON.stringify(request,null,2)}\n\nThis is a selection request only. Preserve the recorded approvals, code and validation evidence; no design approval, execution or deployment is authorized.`:'';
+  el('domain-request-note').textContent=!row?'':bound?'Request prepared. The recorded active domain has not changed.':'This snapshot has no current domain inventory binding. Ask the agent to refresh the journey before selecting a domain.';
+};
+el('domain-request-copy').disabled=true;
+el('domain-request-copy').onclick=()=>copyText(el('domain-request').value,el('domain-request'),'Domain selection request copied. Return it to the agent to check and apply.');
+el('migration-review-nav').hidden=!migrationReview;
+if(migrationReview){
+  const rules=migrationReview.business_rules,portfolio=migrationReview.portfolio,source=migrationReview.source_discovery,parity=migrationReview.parity;
+  const names=values=>(values||[]).join(', ')||'None supplied';
+  const status=value=>value?`${pretty(value.status||'unassessed')}${value.qualification?' · '+value.qualification:''}`:'Not supplied in this review scope.';
+  const counts=(id,values)=>table(id,[['Recorded count',row=>pretty(row[0])],['Value',row=>row[1]]],Object.entries(values||{}));
+  el('migration-qualification').textContent=migrationReview.qualification||'Supplied migration evidence. Native verification and business acceptance remain separate.';
+  const attention=[];
+  if(rules?.conflicts?.length)attention.push(`${rules.conflicts.length} business rule conflicts require human review.`);
+  if((rules?.rows||[]).some(row=>row.status==='proposed'))attention.push('Proposed business rules still need a human decision.');
+  if(portfolio?.status==='stale'||portfolio?.coverage?.some(row=>row.freshness==='stale'))attention.push('Shared model proposals are stale; refresh their source and rule bindings.');
+  if(source?.freshness==='stale'||source?.status==='stale')attention.push('Source discovery evidence is stale.');
+  if(parity?.stale||parity?.status==='stale')attention.push('Parity evidence is stale; rerun the bound comparisons.');
+  if(parity&&['fail','failed','blocked'].includes(parity.status))attention.push('Parity findings require review before proceeding.');
+  el('migration-attention').hidden=!attention.length;el('migration-attention').textContent=attention.join(' ');
+  el('migration-rules-status').textContent=status(rules);
+  table('migration-rules',[['Rule',row=>{const cell=make('div');cell.append(make('strong',row.name||row.id),make('small',row.id));return cell;}],['Business statement',row=>row.statement],['Recorded decision',row=>pretty(row.status)],['Models',row=>names(row.model_ids)]],rules?.rows||[]);
+  table('migration-conflicts',[['Conflicting model',row=>row.model_id],['Definition',row=>row.key],['Rule IDs',row=>names(row.rule_ids)]],rules?.conflicts||[]);
+  el('migration-portfolio-status').textContent=status(portfolio);
+  table('migration-candidates',[['Candidate / proposal',row=>{const cell=make('div');cell.append(make('strong',row.id),make('p',pretty(row.disposition)));return cell;}],['Reason and validation',row=>`${row.reason||'No reason supplied.'} Required checks: ${names(row.required_checks)}.`],['Models / source assets',row=>`${names(row.model_ids)} · ${names(row.asset_ids)}`],['Grain / dimensions / measures',row=>`${names(row.grain)} · ${names(row.dimensions)} · ${names(row.measure_ids)}`]],portfolio?.candidates||[]);
+  table('migration-portfolio-coverage',[['Source asset',row=>row.name||row.asset_id],['Proposal',row=>pretty(row.disposition)],['Candidate / models',row=>`${row.candidate_id||'No candidate'} · ${names(row.model_ids)}`],['Freshness / reason',row=>`${pretty(row.freshness||'unassessed')} · ${row.reason||'No reason supplied.'}`]],portfolio?.coverage||[]);
+  el('migration-source-status').textContent=status(source)+(source?` · Freshness: ${pretty(source.freshness||'unassessed')} · Known file denominator: ${text(source.coverage?.known_file_denominator)} · Repository file denominator: ${text(source.coverage?.repository_file_denominator)} · Supplied repository enumeration complete: ${source.coverage?.enumeration_complete===true?'Yes':source.coverage?.enumeration_complete===false?'No':'Not supplied'} · Source export completeness: ${pretty(source.coverage?.export_completeness||'not_established')}.`:'');
+  counts('migration-source-counts',source?.coverage?.counts);
+  table('migration-source-gaps',[['Source coverage gap',row=>pretty(row.code)]],source?.gaps||[]);
+  el('migration-parity-status').textContent=status(parity)+(parity?.assurance?' · '+text(parity.assurance):'');
+  counts('migration-parity-counts',parity?.counts);
+  table('migration-parity-crosswalk',[['Dashboard / source',row=>`${row.dashboard_label||'Unassigned'} · ${row.source_label||'Unassigned'}`],['Models / topics',row=>`${names(row.model_ids)} · ${names(row.topic_ids)}`],['Comparison scope',row=>row.required===true?'Selected comparison':row.required===false?'Retained outside selected scope':'Scope not recorded'],['Reported status / cases',row=>`${pretty(row.status)} · ${text(row.case_count)}`],['Issues',row=>(row.issues||[]).map(issue=>`${pretty(issue.code)}: ${pretty(issue.status)}`).join('; ')||'No issues supplied']],parity?.crosswalk||[]);
+  // Decode only our generated Markdown escapes into inert, printable text.
+  el('migration-print-summary').textContent=(migrationReview.summary_markdown||'Complete summary not supplied. Ask the agent to refresh this review.').replace(/^#{1,2} /gm,'').replace(/\\([\\`*_\[\]()!|])/g,'$1').replaceAll('<br>','\n').replaceAll('&lt;','<').replaceAll('&gt;','>').replaceAll('&amp;','&');
+}
+el('migration-print').onclick=()=>{if(typeof globalThis.print!=='function')return notice('Use your browser Print command, or ask the agent for the migration review Markdown deliverable.');document.body.classList.toggle('migration-print',true);try{globalThis.print();}catch(error){document.body.classList.toggle('migration-print',false);notice('Printing is unavailable here. Use the migration review Markdown deliverable.');}};
+addEventListener('afterprint',()=>document.body.classList.toggle('migration-print',false));
 el('page-title').textContent=review.title||'Your modeling engagement';
 el('subtitle').textContent=review.description||'A guided path from the current repository to a model you can inspect, test and adopt.';
 if(data.checkpoint){el('checkpoint-note').hidden=false;el('checkpoint-note').textContent='Checkpoint — work is incomplete. Missing selected categories: '+(data.checkpoint.missing_categories.join(', ')||'none; remaining tasks and validation still require review')+'. Resume the same engagement to continue.';}
@@ -887,9 +949,13 @@ function renderDeliverableIndex(){
 }
 async function rebuildGenerated(snapshot){
   const models=snapshot.review?.models||[],relationships=snapshot.review?.relationships||[],chosen=new Set(snapshot.selected_categories||[]),records=[];
-  if(snapshot.audience==='audit'||!models.length)return records;
+  if(snapshot.audience==='audit')return records;
   const encode=body=>btoa(Array.from(body,b=>String.fromCharCode(b)).join(''));
   const add=async(id,path,category,description,body,ids)=>{const bytes=new TextEncoder().encode(body);if(bytes.length>5*1024*1024)throw new Error('Generated file exceeds size limit; ask the agent to partition it.');const record={id,path,category,description,requires:[],origin:'review_projection',sha256:await sha256(bytes),size:bytes.length,base64:encode(bytes)};if(ids)record.diagram_model_ids=ids;records.push(record);};
+  if(chosen.has('documentation')&&snapshot.migration_review){
+    await add('generated:migration-review','01_Model/migration-review.md','documentation','Scoped business rules, shared model proposals, source coverage and parity evidence.',snapshot.migration_review.summary_markdown);
+  }
+  if(!models.length)return records;
   if(chosen.has('diagrams')){
     for(const [i,view]of(snapshot.diagrams||[]).entries()){const suffix=String(i+1).padStart(3,'0');await add('generated:erd:'+suffix,'01_Model/ERD/model-'+suffix+'.svg','diagrams','Model view '+(i+1)+'; part of the complete included table inventory.',new TextDecoder().decode(bytes(view.base64)),view.model_ids);}
     await add('generated:erd-source','01_Model/ERD/model-source.json','diagrams','Editable model source with every included table and declared connection.',JSON.stringify({schema_version:1,kind:'portable_model_source',qualification:'Editable presentation source; not implementation or approval.',models,relationships,...(snapshot.review?.domain_proposals?.length?{domain_proposals:snapshot.review.domain_proposals,relationship_ledger:modelGraph(models,relationships,null,snapshot.review.domain_proposals).edges.filter(e=>e.record_origin)}:{})},null,2)+'\n');

@@ -4,6 +4,18 @@ Use this page to scope a customer pilot. The accelerator combines agent reasonin
 
 ## Read capability claims correctly
 
+The optional [migration review workflow](../skills/data-model-accelerator/references/migration-review.md)
+connects four local capabilities: a reusable scoped business-rule register with
+explicit human decisions; actual Periscope/CDT Git discovery and extraction with
+version/coverage records; deterministic shared-model recommendations across
+dashboard contracts; and a private export-to-scorecard comparison from source to
+warehouse to Omni. The guided page and selected documentation include the results.
+Changed inputs invalidate affected evidence. Matching declared contracts is a
+candidate recommendation, not proof of equivalence; comparison passes establish
+local consistency only. Bounded signed BigQuery/Omni collectors have synthetic
+contract tests and remain live-unqualified. No new feature authorizes deployment
+or removes requested provisional code generation.
+
 | Level | What it means |
 | --- | --- |
 | Discovery / routing | Recognizes bounded evidence and selects a specialist; does not prove complete parsing or lineage |
@@ -188,3 +200,14 @@ The skill is intended to travel as a complete folder across capable coding-agent
 ### First-use model review
 
 The shared offline handoff includes a searchable table navigator, fit/actual-size/expanded ERD, responsive table inspector, exact table-to-code links, scope-specific evidence detail and version-bound feedback requests. Selected model projections also ship as standalone SVG/editable source and CSV/Markdown dictionaries. The manifest distinguishes these generated presentation files from registered artifacts; smaller browser exports retain artifact integrity and explicitly require a fresh disclosure review. Legacy packages remain readable. These are review/packaging capabilities across the existing platform routes, not added warehouse execution or native validation support.
+
+### Sequential domain delivery
+
+- Discover candidate domains once; require a user choice before detailed design.
+- Review, approve and generate one domain's selected code before offering the next.
+- Track queued, active, paused, completed and stale domains in the guided review.
+- Preserve shared model identities and completed task reuse; recheck affected scopes
+  after input or output changes.
+- Keep explicitly requested provisional code and legacy engagements available.
+- Completion is reviewed candidate code, distinct from native validation, final
+  packaging, business acceptance and deployment authorization.

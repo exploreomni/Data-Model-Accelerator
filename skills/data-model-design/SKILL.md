@@ -15,7 +15,10 @@ and its [staged workflow](../data-model-accelerator/references/staged-engagement
 If that folder or its runtime is missing, report the installation gap. This is a
 stage entrypoint, not a separate engine or approval policy.
 
-Start or resume the same engagement, preserving known answers. Inventory relevant
+Start or resume the same engagement, preserving known answers. For multi-domain
+work, follow the [domain journey](../data-model-accelerator/references/domain-journey.md):
+record the user-selected domain before detailed design, keep other domains queued,
+and include only necessary declared shared interfaces. Inventory relevant
 sources, catalogue records, assets and existing warehouse models. Propose one
 bounded design with grain, keys, relationships, history/security, layer allocation,
 dictionary and connected ERD. Compare existing model reuse across the required

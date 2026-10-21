@@ -6,6 +6,27 @@ See the [project overview](../README.md) and [capabilities and limits](CAPABILIT
 
 You can drive the work through prompts. The agent maintains the technical records and runs the selected helpers; SMEs do not need to edit JSON or learn dbt. The command examples below expose the same local workflow for engineers who want to operate it directly.
 
+For a dashboard migration, supply business definitions up front using conversation
+or the [business-rule template](../skills/data-model-accelerator/assets/business-rules-template.md).
+A useful request is: “Read our Periscope Git snapshot, show what you could and could
+not extract, and compare the selected dashboards together. Reuse existing models
+and propose shared aggregates where the grain and business rules match. Retain our
+rule decisions, then compare independent source results with the generated warehouse
+and Omni results. Keep missing evidence visible and generate provisional code if I
+request it.” The [migration review guide](../skills/data-model-accelerator/references/migration-review.md)
+explains the saved rule register, extraction, portfolio recommendations and parity
+scorecard. Recorded evidence appears in **Migration review** and its accompanying
+Markdown report; old engagements need no forced conversion.
+
+For operators constructing records directly: before importing a canonical design,
+use `"model_ids": []` in portfolio assets, then bind their actual entity IDs after
+design import. A proposed source-to-model mapping uses `mapping_status: inferred`;
+`proposed` is not a mapping status. Portal validation rows use `static`, `local`,
+`warehouse`, `semantic`, `business`, or `operational` as their scope. Keep those
+separate from the engagement's `model_only`, `model_semantic`, or `full_dashboard`
+completion scope. The agent should populate these records from existing answers,
+without making SMEs learn the schema.
+
 ## 1. Make the skill available locally
 
 Use an approved checkout or downloaded copy of this repository. The core discovery, review and packaging helpers need **Python 3.9+ on a POSIX host** and use the standard library. Native dbt adapters, vendor tools and optional validation exercises have separate pinned requirements; install only what the selected path needs, in an isolated environment. Do not upgrade an existing project's runtime just to match an example.
@@ -424,3 +445,23 @@ Extract the current named ZIP and open `START_HERE.html`. Choose **Data model** 
 Use **Request a change** on a table, or **Prepare review feedback**, to download a version-bound correction/question. Return it to the agent with the current package. The agent checks freshness using `review_feedback.py --page /absolute/current/START_HERE.html --responses /absolute/model-review-feedback.json` before reconciling changes into the existing engagement. Feedback is not automatically applied and cannot approve a design or authorize deployment. Existing decision-answer and review workflows remain available.
 
 The numbered folders contain only selected deliverables. Selected ERDs include SVG views and editable source; selected dictionaries include CSV and Markdown. The root README identifies the entrypoint and files. Technical evidence and previous immutable exports stay outside the customer handoff.
+
+## Work through domains one at a time
+
+Ask: “Identify the candidate business domains first. Show me the choices and
+shared dependencies, then ask which domain I want to design first.” The
+accelerator records your selection, designs that domain, walks you through its
+ERD/tables/decisions, and waits for your design approval before generating the
+selected warehouse and Omni code. It then asks which domain to tackle next.
+
+The **Domain journey** panel tracks queued, active, paused, completed and stale
+work. Its offline picker prepares a request for the agent; it never executes code
+or approves a design. Previously completed models and shared dimensions are
+reused. Changed shared contracts flag affected domains for another review.
+
+You can still ask for provisional code with incomplete context. It stays marked
+provisional; say “pause this domain and work on inventory next” to save progress
+without calling it complete. “Completed” means current reviewed candidate code is
+recorded, not production acceptance. Validation, packaging and deployment keep
+their existing checks. Existing engagements can adopt this flow without losing
+their saved work. See the [operator contract](../skills/data-model-accelerator/references/domain-journey.md).
