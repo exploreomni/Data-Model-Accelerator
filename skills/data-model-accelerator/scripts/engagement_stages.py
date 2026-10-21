@@ -207,6 +207,8 @@ def validate_design(value):
 
 def import_design(state, value):
     value = validate_design(value)
+    from domain_workflow import guard_design
+    guard_design(state, value)
     old = workflow(state)['design']
     if old:
         require(value['id'] == old['id'] and value['revision'] > old['revision'],
@@ -304,6 +306,9 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
     if 'reconciliation_scope' not in cache:
         from workflow_reconciliation import scope_bindings
         cache['reconciliation_scope'] = scope_bindings(state)
+    if 'business_rules_scope' not in cache:
+        from business_rules import scope_bindings
+        cache['business_rules_scope'] = scope_bindings(state)
     import guided_workflow as guided
     catalogue = state['inputs']['catalogue']
     if 'catalogue_data' not in cache:
@@ -334,9 +339,10 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
         coverage = {'coverage': cache['coverage_scope'][key]} if key in cache['coverage_scope'] else {}
         reuse_evidence = {'reuse_evidence': cache['reuse_scope'][key]} if key in cache['reuse_scope'] else {}
         reconciliation = {'reconciliation': cache['reconciliation_scope'][key]} if key in cache['reconciliation_scope'] else {}
+        business = {'business_rules': cache['business_rules_scope'][key]} if key in cache['business_rules_scope'] else {}
         result[key] = hash_json({'entity': entity, 'inputs': inputs, 'relationships': edges,
                                 'decisions': decisions, 'responses': responses, 'existing': existing,
-                                **coverage, **reuse_evidence, **reconciliation})
+                                **coverage, **reuse_evidence, **reconciliation, **business})
         cache[cache_key] = result[key]
     return result
 
@@ -382,6 +388,8 @@ def _design_gaps(state, selected, stage='design'):
     scope = closure({k: v['depends_on'] for k, v in entities.items()}, selected)
     from workflow_reconciliation import gaps as reconciliation_gaps
     gaps = reconciliation_gaps(state, scope)
+    from business_rules import gaps as business_rule_gaps
+    gaps.extend(business_rule_gaps(state, scope))
     for key in scope:
         entity = entities[key]
         if not entity['keys'] or not entity['columns'] or any(entity[k].lower() in {'unknown', 'tbd', 'unresolved'} for k in ('grain', 'security', 'history')):
@@ -402,6 +410,8 @@ def _design_gaps(state, selected, stage='design'):
 
 
 def approve_design(state, selected, policy_path, envelope):
+    from domain_workflow import require_scope
+    require_scope(state, selected)
     from deployment_authority import load_policy, verify_attestation
     selected = ids(selected, [e['id'] for e in design(state)['entities']], True)
     require(state['readiness']['generation_ready'], 'Resolve catalogue and discovery prerequisites')
@@ -418,6 +428,8 @@ def approve_design(state, selected, policy_path, envelope):
 
 
 def record_design_review(state, selected, request):
+    from domain_workflow import require_scope
+    require_scope(state, selected)
     """Record an actual human decision relayed by the trusted host.
 
     The runtime checks scope and freshness, not the referenced conversation's
@@ -487,6 +499,8 @@ def draft_bindings(state, selected):
 
 
 def record_draft_request(state, selected, request):
+    from domain_workflow import require_scope
+    require_scope(state, selected)
     fields(request, {'schema_version', 'kind', 'requester', 'request_reference', 'request_text', 'bindings'})
     require(type(request['schema_version']) is int and request['schema_version'] == 1
             and request['kind'] == 'provisional_code_request', 'Invalid provisional code request')
@@ -540,6 +554,9 @@ def generation_mode(state, stage, scope, approved=None):
 
 def require_stage(state, stage, selected, *, _planning=False, _approved=None):
     require(stage in STAGES, 'Unknown stage')
+    if not _planning:
+        from domain_workflow import require_scope
+        require_scope(state, selected, stage)
     doc = design(state)
     scope = closure({e['id']: e['depends_on'] for e in doc['entities']}, ids(selected, [e['id'] for e in doc['entities']], True))
     if stage not in {'design', 'packaging'}:
@@ -593,6 +610,8 @@ def register_tasks(state, request):
     fields(request, {'schema_version', 'tasks'})
     require(type(request['schema_version']) is int and request['schema_version'] == 1 and type(request['tasks']) is list
             and len(request['tasks']) <= 20000 and all(type(t) is dict for t in request['tasks']), 'Invalid stage task plan')
+    from domain_workflow import merge_tasks
+    request = merge_tasks(state, request)
     doc = design(state)
     task_ids = ids([t.get('id') for t in request['tasks']], nonempty=True)
     output_owners = set()
@@ -698,10 +717,22 @@ def plan_tasks(state, artifact_root):
                     break
                 except (ValueError, OSError):
                     reason = 'Recorded output is missing or changed'
+        if action == 'regenerate':
+            from domain_workflow import require_scope
+            try:
+                require_scope(state, task['entity_ids'], task['stage'])
+            except ValueError as error:
+                action, reason = 'blocked', str(error)
         results[key] = {'id': key, 'stage': task['stage'], 'entity_ids': task['entity_ids'], 'action': action,
                         'generation_mode': mode if fingerprint is not None else None,
                         'reason': reason, 'fingerprint': fingerprint, 'original_run_id': original['run_id'] if original else None,
                         'outputs': original['outputs'] if original else None}
+        # Attach only rules for this task's dependency slice, not the whole
+        # interview. The same scoped hashes already participate in reuse.
+        from business_rules import context_packet
+        packet = context_packet(state, closure({e['id']: e['depends_on'] for e in design(state)['entities']}, task['entity_ids']))
+        if packet['rules']:
+            results[key]['business_rule_context'] = packet
     return {'schema_version': 1, 'kind': 'stage_execution_plan', 'tasks': list(results.values()),
             'plan_sha256': hash_json(results), 'qualification': 'Dependency plan only; reuse retains original execution assurance.'}
 
@@ -821,6 +852,9 @@ def _requested_progress(state, result):
         return
     graph = {e['id']: e['depends_on'] for e in doc['entities']}
     expected = set(graph)
+    from domain_workflow import ledger as domain_ledger, scope as domain_scope
+    if domain_ledger(state) and domain_ledger(state)['active_domain_id']:
+        expected = domain_scope(state)
     selections = set(state['answers'].get('deliverables', []))
     code_selected = 'implementation' in selections
     required = ['implementation'] if code_selected else []

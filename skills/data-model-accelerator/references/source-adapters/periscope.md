@@ -116,3 +116,82 @@ unknown dialect, malformed/duplicate/unsafe YAML, unknown formats, missing files
 ambiguous names, unsupported settings and static non-execution. This verifies the
 documented synthetic subset only. Native export samples, export reconciliation,
 runtime results, permission behavior and customer acceptance remain unverified.
+
+## Offline discovery and extraction workflow
+
+`scripts/periscope_workflow.py` performs bounded discovery **and invokes the
+canonical adapter** on the selected readable evidence. It uses the existing
+planner exclusions and descriptor-relative, hash-checked rereads. It does not
+clone repositories, configure the vendor integration, execute source SQL/code,
+contact APIs or change the source checkout. Output must be a new/empty directory
+outside the input; existing output is never overwritten.
+
+Automatic routing recognizes the existing tokenized dashboard marker and native
+`views/<name>/<name>.yaml` or `snippets/<name>/<name>.yaml` settings with nested
+`Settings` / `Metadata` / `Owner`. Views additionally require `Database Name` and
+`Materialize View`. The marker is routing evidence, not successful parsing.
+Generic SQL, a folder name or a connection label alone never establish CDT.
+Nested monorepos retain the full evidence path and separate project roots.
+For a known snapshot whose marker formatting is unsupported, select
+`--source-profile periscope:RELATIVE_ROOT` (or `periscope:.`); this selects files
+without broadening the native parser's accepted formats.
+
+Callable interface:
+
+```python
+run_periscope_workflow(
+    source_root, output_dir, source_profiles=(),
+    source_identity=None, verified_connection_dialects=(), inspect_git=True,
+    max_files=2000, max_file_bytes=1048576, max_total_bytes=33554432,
+)
+```
+
+The returned record is also saved as `periscope-workflow.json` with
+`kind: periscope_workflow` and `schema_version: 1`. It contains:
+
+- `version`, `input`, `profiles`: installed component/profile fingerprints,
+  available Git revisions and dirty state, inventory hash and explicit profiles.
+- `extraction`: actual attempt status, project root, ordinary schema-v1 contract
+  path/hash, profile binding, qualified-object map and `freshness_sha256` with
+  its source-file/component/profile/namespace bindings. Existing orchestration
+  can bind retained artifacts to these values through its freshness/cache
+  controls; the helper does not add an approval or context-cache engine.
+- `coverage.files` and `coverage.counts`: one row per known file, accounted as
+  parsed, partial, unsupported, excluded or unreadable. `known_file_denominator`
+  is exactly the sum of those counts; `selected_file_denominator` is the unique
+  Periscope assignment count. Unsupported formats and extraction failures remain
+  visible. Unread files never receive invented hashes.
+- `coverage.excluded_subtrees`: excluded directories whose internal file counts
+  remain unknown. `repository_file_denominator` is null when exclusions or
+  incomplete enumeration prevent a full repository count. Limits, scan gaps and
+  export-completeness uncertainty stay separate from parser coverage.
+- `source_identity`, `connection_dialects`, `binding_review` and `gaps`: retained
+  identity and interpretation evidence, without native-validation claims.
+
+For cross-checkout identities, supply a caller record of
+`{"repository_id":"stable-repository-id","space_ids":{"relative/cdt":"stable-space-id"}}`.
+The namespace derives from repository plus Space, not the commit or display
+name. Without both identifiers the fallback uses local root/project identity
+and explicitly does not promise cross-checkout stability. Supplied identity is
+not authenticated by this offline helper. Two roots claiming the same Space,
+and duplicate tokens within a Space, remain conflicts; no object is discarded.
+Canonical adapter object IDs are unchanged. Only native-token qualified IDs
+promise token-based identity; view/snippet objects without native tokens retain
+source-occurrence identities, which can change when their paths change.
+
+`verified_connection_dialects` accepts records with `project_root`,
+`connection_name`, `dialect` and a nonempty attributable `evidence` string.
+These are separately recorded verification assertions, not authenticated native
+receipts; conflicting mappings stay unresolved. They do not silently alter
+canonical SQL parsing. Git alone does not prove a bracket token's native meaning
+or parameter bindings, so this workflow performs **no snippet substitution** and
+retains each bracket expression with
+`periscope.binding_native_meaning_unverified`. A future bounded binding path
+requires independently verified native meaning and parameter context; matching
+names alone are insufficient. Code-dependent parity still requires captured
+native outputs through the separately authorized comparison workflow.
+
+`tests/test_periscope_workflow.py` uses synthetic fixtures for views/snippets-only
+discovery, mixed monorepos, old markers, false positives, explicit fallback,
+identity/dialect conflicts, missing/unsupported sidecars, coverage limits and
+non-execution. This remains offline development evidence, not customer acceptance.

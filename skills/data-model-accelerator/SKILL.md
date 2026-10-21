@@ -52,6 +52,17 @@ recreate navigation, design files or packaging evidence.
 
 ## Start with the engagement
 
+For new multi-domain work, follow [domain-journey.md](references/domain-journey.md):
+inventory and propose domains first, ask which to start with, and register the
+user's choice. Design and review that one domain and its necessary shared
+interfaces, generate its selected warehouse and semantic code, then record its
+completion before asking which domain is next. Track queued, active, paused,
+completed and stale work in the saved engagement. Do not design all domains in
+parallel or automatically advance. Reuse an explicit scope choice already given.
+Domain selection never replaces design review; provisional code remains available
+and can be paused without a false completion. Older engagements keep their flow
+until the domain ledger is explicitly adopted.
+
 Start new engagements with entity/table design and its review package. Read
 [staged-engagement.md](references/staged-engagement.md). Generate implementation
 only for a scope with current recorded human design review; a requested final ZIP or
@@ -88,6 +99,7 @@ Read [discovery.md](references/discovery.md) before target deliverable generatio
 - Available live/exported raw-layer metadata catalogue, source schemas, replication configuration, sanitized samples, SaaS exports and report settings, semantic/BI security definitions, and owners.
 - Separate selections for agent host, source project types, target transformation framework, warehouse, and semantic engine. Do not infer one from another. Confirm whether GCP means BigQuery and whether Cortex/Genie means a coding agent or another product surface. Omni is a possible semantic target, not an automatic replacement for every existing semantic layer.
 - For migration, the trusted comparison reports and their population/filter/currency/history/security contracts, behavior to retain versus intentionally change, affected consumers, and cutover scope.
+- Supplied business definitions and examples: use the optional [migration review workflow](references/migration-review.md) to retain scoped rules before design. Accept conversational answers or the intake template; imports start proposed, and rule acceptance stays separate from design approval.
 - Requested outputs and audience, plus mode: assessment; selected candidate artifacts; authorized development validation; or separately authorized deployment handoff. Use [delivery-experience.md](references/delivery-experience.md) to record selections and package the result. Selecting code or tests does not authorize their execution.
 
 Confirm missing meaningful decisions with the user before treating dependent deliverables as reviewed or executing them. An explicit request for provisional code permits supported draft files while those decisions remain unresolved; follow [provisional generation](references/provisional-generation.md). A proposed default is not an answer, and elapsed time is not confirmation. Do not ask again about choices or permissions already supplied. With unknown facts, continue independent work and identify what blocks verification or execution. Do not invent source tables, keys, CDC metadata, user permissions, metric authority, or customer acceptance. A synthetic demonstration is always labeled synthetic.
@@ -187,6 +199,17 @@ interpretation benchmark cover different claims; neither proves native parity.
 When the host provides delegation, execute the generated tasks through that mechanism, wait for results, and record actual task/run IDs. The planner does not itself launch agents. Preserve source hashes, native IDs, source-language expressions and their evaluation context in each structured handoff. Verify every result with `scripts/verify_specialist_results.py`; incomplete or stale extraction cannot be labeled complete. When delegation is unavailable, perform separately recorded inline specialist passes and disclose that limitation.
 
 Reconcile verified results into one source graph before target placement. Bind cross-project dependencies using qualified relation/connection/native IDs and evidence, not short names alone. Preserve sound existing models, intentional variants and unresolved bindings.
+
+For Periscope/CDT Git inputs, run `guided_workflow.py extract-periscope` as described
+in [migration-review.md](references/migration-review.md). Retain its installed/input
+version, actual extraction contracts and full coverage denominator; detection alone
+is not a completed reader pass. Before designing separate dashboard models, run
+the shared-model portfolio pass using source-linked grain, population, filter,
+time and security contracts. Reuse existing models first; keep unknown definitions
+and non-additive metrics explicit. Attach only relevant business rules to workers.
+For migration validation, freeze independent source captures and connect the
+source → warehouse → Omni scorecard to this same engagement. Partial evidence
+remains partial and does not prevent explicitly requested provisional code.
 
 For supported Looker Dashboard API JSON, retain the exact canonical source
 contract from `scripts/looker_source.py`, including every tile, filter, listener,

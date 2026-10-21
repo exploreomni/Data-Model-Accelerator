@@ -120,6 +120,8 @@ def claim_work(state, request):
     require(request['role'] in ROLES, 'Unknown specialist role')
     mode = request.get('execution_mode', 'specialist')
     require(mode in {'inline', 'specialist'}, 'Unknown execution mode')
+    from domain_workflow import guard_dispatch
+    guard_dispatch(state, request)
     binding, task = _binding(state, request)
     fingerprint = hash_json(binding)
     ops = copy.deepcopy(state.get('operations') or {'schema_version': 1, 'max_workers': DEFAULT_LIMIT,

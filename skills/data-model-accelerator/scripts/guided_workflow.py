@@ -305,6 +305,12 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include, *, c
     if state.get('workflow', {}).get('review_assurance'):
         from review_assurance import records, public_summary
         review_evidence['review_evidence_sha256'] = _digest({'records': records(state), 'current': public_summary(state)})
+    if state.get('workflow', {}).get('migration_review'):
+        from migration_review import fingerprint
+        review_evidence['migration_review_sha256'] = fingerprint(state)
+    if state.get('workflow', {}).get('domain_journey'):
+        from domain_workflow import public_summary
+        review_evidence['domain_journey_sha256'] = _digest(public_summary(state))
     return {**({'checkpoint': True} if checkpoint else {}), **review_evidence,
             'review_path': str(review_path), 'review_sha256': review_hash,
             'artifact_root': str(artifact_root), 'audience': audience,
@@ -416,6 +422,12 @@ def _stage_progress(state):
     # Preserve discovery and file-review actions; candidate readiness does not
     # substitute for the current stage's reviewed inputs.
     state['next_actions'] = [a for a in state['next_actions'] if a['scope'] in {'discovery', 'readiness', 'review'}]
+    from domain_workflow import public_summary as domain_summary
+    journey = domain_summary(state)
+    if journey:
+        state['next_actions'].insert(0, {'id': 'domain_journey', 'scope': 'stage', 'action': journey['next_action']})
+        # Do not prompt an all-domain stage while a domain journey is active.
+        return
     state['next_actions'].append({'id': 'continue_' + stage_view['current_stage'],
                                  'scope': 'stage', 'action': stage_view['next_action']})
 
@@ -680,6 +692,10 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
             _secrets(document)
         if action == 'migrate-stages':
             stages.migrate(state)
+        elif action in ('register-domains', 'select-domain', 'pause-domain', 'complete-domain'):
+            import domain_workflow
+            {'register-domains': domain_workflow.register, 'select-domain': domain_workflow.select_domain,
+             'pause-domain': domain_workflow.pause_domain, 'complete-domain': domain_workflow.complete_domain}[action](state, document)
         elif action == 'import-design':
             stages.import_design(state, document)
         elif action == 'record-coverage':
@@ -691,6 +707,24 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
         elif action == 'reconcile-design':
             from workflow_reconciliation import register
             register(state, document, run_dir)
+        elif action == 'record-business-rules':
+            from business_rules import register
+            register(state, document, run_dir)
+        elif action == 'review-business-rules':
+            from business_rules import record_decisions
+            record_decisions(state, document)
+        elif action == 'recommend-shared-models':
+            from shared_model_candidates import register
+            register(state, document, run_dir)
+        elif action == 'extract-periscope':
+            from migration_review import extract_periscope
+            extract_periscope(state, document, run_dir)
+        elif action == 'record-migration-validation':
+            from migration_review import register_parity
+            register_parity(state, document, run_dir)
+        elif action == 'migration-bindings':
+            from migration_review import parity_bindings
+            state['workflow']['migration_validation_bindings'] = parity_bindings(state, entities)
         elif action == 'answer-decisions':
             stages.record_responses(state, document)
         elif action == 'review-bindings':
@@ -756,7 +790,10 @@ def main(argv=None):
     sub = parser.add_subparsers(dest='command', required=True)
     stage_commands = ('migrate-stages', 'import-design', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
-                      'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design')
+                      'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design',
+                      'record-business-rules', 'review-business-rules', 'recommend-shared-models',
+                      'extract-periscope', 'record-migration-validation', 'migration-bindings',
+                      'register-domains', 'select-domain', 'pause-domain', 'complete-domain')
     for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence') + stage_commands:
         p = sub.add_parser(command)
         p.add_argument('--run', type=Path, required=True, help='Local engagement folder outside the input repository.')
@@ -782,9 +819,12 @@ def main(argv=None):
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
         if command in ('import-design', 'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
-                       'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design'):
+                       'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design',
+                       'record-business-rules', 'review-business-rules', 'recommend-shared-models',
+                       'extract-periscope', 'record-migration-validation',
+                       'register-domains', 'select-domain', 'pause-domain', 'complete-domain'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
-        if command in ('review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft'):
+        if command in ('review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):
             p.add_argument('--entities', nargs='+', required=True)
         if command == 'approve-design':
             p.add_argument('--document', type=Path, help='Exact-scope human decision attributed by the trusted host; never an approval inferred from input files.')

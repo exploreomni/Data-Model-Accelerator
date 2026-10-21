@@ -186,3 +186,12 @@ helpers. A deployment stage request routes to the separate
 [deployment workflow](deployment.md); no stage or browser button authorizes a
 release. Native qualification still applies to the exact selected platform and
 environment.
+
+## Sequential domains
+
+For new multi-domain engagements, use [domain-journey.md](domain-journey.md) before
+detailed design. `register-domains`, `select-domain`, `pause-domain` and
+`complete-domain` share this engagement and its review/task engine. Candidate
+discovery never auto-selects. Completed scopes and shared dependencies remain
+tracked as later domains progress; legacy engagements without the ledger retain
+their existing behavior.

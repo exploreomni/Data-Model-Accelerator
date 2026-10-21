@@ -17,6 +17,15 @@ revision/hashes, exact expression locators, dependency status and coverage gaps.
 Keep dashboard/chart tokens separate from display names. Do not rescan the
 repository, open referenced resources, or rely on parent conversation history.
 
+When the coordinator supplies `periscope-workflow.json`, use its actual
+`extraction` contract references and coverage denominator, not discovery alone.
+Keep excluded-subtree counts unknown. Qualified native IDs include the supplied
+Space namespace; fallback local namespaces and source-occurrence IDs do not
+promise stability across checkout/path changes. Treat recorded connection/dialect
+evidence as separate from canonical SQL interpretation, and retain identity or
+dialect conflicts. `binding_review` records remain unresolved until independent
+native meaning and parameter context are supplied; no substitution is implied.
+
 Ask the coordinator for an exact missing item: the definition of a named snippet
 and its parameter binding at the affected chart token; that dashboard's effective
 filter/default record; the verified dialect for the stated connection; or the

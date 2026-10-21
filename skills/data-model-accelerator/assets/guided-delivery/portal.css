@@ -62,3 +62,14 @@
 .review-evidence-details{margin-top:18px}.review-evidence-details h3{margin-top:24px}.review-evidence-details .filters{flex-wrap:wrap;margin-top:18px}.review-evidence-details .filters>div{flex:1 1 180px}#review-evidence-summary{min-height:240px;font-family:ui-monospace,monospace}
 
 .dependency-toggle{display:flex;align-items:center;gap:8px;align-self:end;margin-bottom:12px}.dependency-toggle input{flex-shrink:0}
+
+/* Printing includes every scoped migration row, independent of table pagination. */
+.migration-print-summary{display:none}
+.review-section #domain-choice{margin-bottom:18px}
+@media print{
+  body.migration-print{background:white;color:black}
+  body.migration-print .sidebar,body.migration-print .skip,body.migration-print header,body.migration-print footer,body.migration-print main>:not(#migration-review){display:none!important}
+  body.migration-print main{margin:0;padding:0;max-width:none}
+  body.migration-print .migration-screen{display:none}
+  body.migration-print .migration-print-summary{display:block;white-space:pre-wrap;overflow-wrap:anywhere;overflow:visible;max-height:none;background:white;color:black;border:0;padding:0;font:11pt/1.5 sans-serif}
+}
