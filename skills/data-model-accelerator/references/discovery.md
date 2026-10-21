@@ -17,6 +17,16 @@ invent facts or treat the draft request as approval of the model or execution.
 
 For a blind test, record the permitted evidence boundary and prohibit solution/example contamination. For a new model without existing reports, identify proposed definitions and independently specified expectations. Neither mode inherits a migration baseline or established business approval.
 
+For each selected domain, reuse known intent or ask: **Is this domain new,
+refactoring existing outputs, or a mixture?** If refactoring is relevant, offer
+an optional [historical comparison](legacy-alignment.md): **Which prior final
+tables, schemas, SQL, spreadsheet logic or definitions can we use, and which
+behavior should remain versus be corrected?** Do not repeat answered questions
+or treat unavailable evidence as a new-model answer. Record available history
+before design; present the comparison after the draft and before review. Users
+can add it later without restarting. This optional selection does not create a
+new global prerequisite for candidate or explicitly requested provisional code.
+
 ## Round 2: sources and behavior
 
 For migration, establish these before choosing what to translate:

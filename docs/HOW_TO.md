@@ -6,6 +6,51 @@ See the [project overview](../README.md) and [capabilities and limits](CAPABILIT
 
 You can drive the work through prompts. The agent maintains the technical records and runs the selected helpers; SMEs do not need to edit JSON or learn dbt. The command examples below expose the same local workflow for engineers who want to operate it directly.
 
+## Explain what replaces your historical tables
+
+For each domain, tell the agent whether it is new, refactoring, or mixed. Reuse
+known answers. When comparison is useful, supply available final-table schemas,
+existing SQL/dbt models, spreadsheet logic or documented rules and say which
+behavior should remain versus be corrected. A useful request is:
+
+> Refactor this domain and explain what happens to each of our old final tables.
+> Use the supplied schemas and SQL as historical evidence. Show splits, merges,
+> moved semantic logic, unmapped columns and differences before we review the
+> design. Do not repeat repository discovery. If context is missing, keep it
+> visible and generate provisional code when I request it.
+
+The agent retains the baseline before design, then builds an optional comparison
+after the draft. You can also add the comparison to an existing engagement without
+starting over. **Compare with existing tables** in the guided review shows both
+directions, coverage and outstanding decisions. Selected documentation includes
+the same comparison in Markdown and CSV. When a PDF migration plan is requested,
+include this exported comparison in that document and verify the rendered pages;
+the comparison helper does not itself run a PDF renderer.
+
+Give ordinary-language decisions to preserve, correct, reject, defer or exclude
+specific mappings. The host records those against the displayed comparison.
+Mapping review does not approve the design, validate data or authorize deployment.
+Missing history does not block explicitly requested provisional code.
+
+Engineers can use the [versioned comparison contract](../skills/data-model-accelerator/references/legacy-alignment.md)
+with `guided_workflow.py configure-legacy-comparison`, `record-legacy-baseline`,
+`record-legacy-alignment` and `review-legacy-alignment`. Each accepts the same
+`--run` and `--document` pattern as other stage actions. Use
+`legacy_alignment_tools.py summary|candidates|context|validation-cases --run RUN
+--domain DOMAIN --output NEW_PRIVATE_JSON` for read-only inspection without a
+project-wide rescan. `summary` does not require a domain. For `context`, the
+default is 32 KiB; a higher limit requires `--budget-reason` and cannot exceed
+64 KiB. Pass a prior inspection receipt with `--previous` to identify unchanged
+inputs, then verify the saved work receipt before reusing a completed review.
+Oversized context fails with a partition instruction. Use repeated `--record
+kind:id` selectors for a deliberate slice; omitted records remain counted and
+the slice cannot establish full-domain comparison coverage.
+Source evidence must still pass the existing agent-input disclosure checks.
+
+Cost control comes from reusing extraction, explicit mappings and unchanged
+results, and sending only unresolved scoped differences to a reviewer. The tool
+records local evidence and packet sizes; it does not estimate an account bill.
+
 For a dashboard migration, supply business definitions up front using conversation
 or the [business-rule template](../skills/data-model-accelerator/assets/business-rules-template.md).
 A useful request is: “Read our Periscope Git snapshot, show what you could and could

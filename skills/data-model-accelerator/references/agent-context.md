@@ -46,10 +46,23 @@ to the specialists. Prepared files are not proof of a verified final handoff.
 | Semantic / Omni modeler | Reviewed gold bindings, measure/filter/security contracts, relevant capability modules | Raw/staging implementation unless needed to resolve lineage |
 | Analyst / independent reviewer | Original relevant expressions and report contracts, independent expectations, candidate diff, affected dependency/documentation slices | Author's conclusions as the sole oracle or all previous conversations |
 | Documenter | Current model specification, scoped dictionary/ERD/code associations, unresolved definitions | Repeated source discovery and re-authoring business definitions |
+| Legacy comparison task (`independent_reviewer`) | Selected domain baseline, proposed targets, explicit mappings, relevant definitions and unresolved differences | New repository discovery, unrelated domains, full conversation or autonomous redesign |
 
 These are routing defaults, not permission to omit required dependencies or
 security/history/population context. The coordinator retains a complete coverage
 ledger across tasks. Full deterministic coverage and release checks still run.
+
+For optional [legacy alignment](legacy-alignment.md), assemble explicit matches
+deterministically and delegate only ambiguous comparisons. One initial pass is
+normally sufficient; later passes require changed material or named unresolved
+findings. A source-name match is a suggestion, never evidence of equivalence.
+Use the existing selected model configuration; do not silently downgrade the
+reasoning model to reduce spend. The bounded comparison context is local data,
+not permission to send it: route any excerpts through the same classification,
+scanning and `agent_context.py` boundary before dispatch. Preserve entire relevant
+expressions and dependencies rather than clipping to fit. Partition oversized
+work and expose coverage gaps. Log packet bytes, dispatches, reused results and
+changed scopes; token usage is optional host evidence, not an inferred bill.
 
 ## Prepare a packet
 

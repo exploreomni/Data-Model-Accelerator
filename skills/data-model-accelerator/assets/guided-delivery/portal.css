@@ -65,6 +65,17 @@
 
 /* Printing includes every scoped migration row, independent of table pagination. */
 .migration-print-summary{display:none}
+.alignment-print-summary{display:none}
+.review-section .alignment-filters{flex-wrap:wrap}.review-section .alignment-filters>div{min-width:180px;flex:1 1 180px}.review-section .alignment-filters label.check{flex:1 1 220px;align-self:center;max-width:none;white-space:normal}
+#alignment-forward td,#alignment-reverse td{overflow-wrap:anywhere}#alignment-forward .small-actions{flex-wrap:wrap}
+#alignment-coverage table{table-layout:fixed}#alignment-coverage th:nth-child(1){width:18%}#alignment-coverage th:nth-child(2){width:28%}#alignment-coverage th:nth-child(3){width:54%}#alignment-coverage td{overflow-wrap:anywhere}.alignment-coverage-lines>div+div{margin-top:4px}
+@media print{
+  body.alignment-print{background:white;color:black}
+  body.alignment-print .sidebar,body.alignment-print .skip,body.alignment-print header,body.alignment-print footer,body.alignment-print main>:not(#delivery),body.alignment-print #delivery>:not(#replacement-map),body.alignment-print #replacement-map>:not(#alignment-print-summary){display:none!important}
+  body.alignment-print main{margin:0;padding:0;max-width:none}
+  body.alignment-print .alignment-print-container{display:block!important;margin:0;padding:0;border:0}
+  body.alignment-print .alignment-print-summary{display:block;white-space:pre-wrap;overflow-wrap:anywhere;overflow:visible;max-height:none;background:white;color:black;border:0;padding:0;font:11pt/1.5 sans-serif}
+}
 .review-section #domain-choice{margin-bottom:18px}
 @media print{
   body.migration-print{background:white;color:black}

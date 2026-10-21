@@ -311,6 +311,9 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include, *, c
     if state.get('workflow', {}).get('domain_journey'):
         from domain_workflow import public_summary
         review_evidence['domain_journey_sha256'] = _digest(public_summary(state))
+    if state.get('workflow', {}).get('legacy_alignment'):
+        from legacy_alignment import fingerprint
+        review_evidence['legacy_alignment_sha256'] = fingerprint(state)
     return {**({'checkpoint': True} if checkpoint else {}), **review_evidence,
             'review_path': str(review_path), 'review_sha256': review_hash,
             'artifact_root': str(artifact_root), 'audience': audience,
@@ -421,9 +424,23 @@ def _stage_progress(state):
     stage_view = public_view(state, _refresh=False)
     # Preserve discovery and file-review actions; candidate readiness does not
     # substitute for the current stage's reviewed inputs.
-    state['next_actions'] = [a for a in state['next_actions'] if a['scope'] in {'discovery', 'readiness', 'review'}]
+    state['next_actions'] = [a for a in state['next_actions'] if a['scope'] in {'discovery', 'readiness', 'review'}
+                             and not a['id'].startswith('legacy_comparison:')]
     from domain_workflow import public_summary as domain_summary
     journey = domain_summary(state)
+    if state['workflow'].get('legacy_alignment'):
+        from legacy_alignment import public_summary as alignment_summary
+        for row in alignment_summary(state)['domains']:
+            if not row['comparison_requested'] or journey and row['domain_id'] != journey['active_domain_id']:
+                continue
+            action = None
+            if row['baseline_status'] in {'not_supplied', 'unavailable'}:
+                action = 'Supply available historical schemas or logic, or retain the missing-evidence gap.'
+            elif row['alignment_status'] in {'unassessed', 'stale', 'unavailable'}:
+                action = 'Prepare or refresh the historical comparison using retained evidence before reviewing this domain.'
+            if action:
+                state['next_actions'].append({'id': 'legacy_comparison:' + row['domain_id'], 'scope': 'review',
+                    'action': action + ' Explicitly requested provisional code remains available.'})
     if journey:
         state['next_actions'].insert(0, {'id': 'domain_journey', 'scope': 'stage', 'action': journey['next_action']})
         # Do not prompt an all-domain stage while a domain journey is active.
@@ -713,6 +730,17 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
         elif action == 'review-business-rules':
             from business_rules import record_decisions
             record_decisions(state, document)
+        elif action in ('configure-legacy-comparison', 'record-legacy-baseline',
+                        'record-legacy-alignment', 'review-legacy-alignment'):
+            import legacy_alignment
+            if action == 'configure-legacy-comparison':
+                legacy_alignment.configure(state, document)
+            elif action == 'record-legacy-baseline':
+                legacy_alignment.register_baseline(state, document, run_dir)
+            elif action == 'record-legacy-alignment':
+                legacy_alignment.register_alignment(state, document, run_dir)
+            else:
+                legacy_alignment.record_decisions(state, document)
         elif action == 'recommend-shared-models':
             from shared_model_candidates import register
             register(state, document, run_dir)
@@ -793,6 +821,8 @@ def main(argv=None):
                       'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design',
                       'record-business-rules', 'review-business-rules', 'recommend-shared-models',
                       'extract-periscope', 'record-migration-validation', 'migration-bindings',
+                      'configure-legacy-comparison', 'record-legacy-baseline',
+                      'record-legacy-alignment', 'review-legacy-alignment',
                       'register-domains', 'select-domain', 'pause-domain', 'complete-domain')
     for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence') + stage_commands:
         p = sub.add_parser(command)
@@ -822,6 +852,8 @@ def main(argv=None):
                        'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design',
                        'record-business-rules', 'review-business-rules', 'recommend-shared-models',
                        'extract-periscope', 'record-migration-validation',
+                       'configure-legacy-comparison', 'record-legacy-baseline',
+                       'record-legacy-alignment', 'review-legacy-alignment',
                        'register-domains', 'select-domain', 'pause-domain', 'complete-domain'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
         if command in ('review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):

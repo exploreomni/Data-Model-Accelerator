@@ -28,6 +28,14 @@ Provide editable Mermaid or another agreed diagram source. A diagram and narrati
 
 ## Ownership and handoff
 
+For a selected [historical comparison](legacy-alignment.md), use the retained
+alignment record for the old-to-new table/column/rule explanation. Include known
+unmapped fields, reviewed exclusions, net-new target rationale and outstanding
+differences. Reuse the generated comparison Markdown/CSV in selected narrative
+and PDF migration-plan deliverables; do not author a separate contradictory
+mapping. A PDF document still requires its normal rendering and visual QA.
+Do not substitute mapped or reviewed counts for actual parity results.
+
 - Repository specialists preserve original IDs, expressions, report context and source-to-target lineage candidates. The warehouse-catalogue specialist supplies object/column/type/constraint/visibility evidence for bronze and physical bindings.
 - The warehouse architect owns the canonical model inventory, bronze/silver/gold contracts, model ERD, column definitions and operational modeling decisions. Source/catalogue specialists contribute evidence; existing schemas are documented even when not rebuilt.
 - The semantic architect documents downstream dimensions/measures, aggregation and filter context, security, report controls and the exact gold-field crosswalk. It checks that metric logic is neither omitted nor applied twice.
