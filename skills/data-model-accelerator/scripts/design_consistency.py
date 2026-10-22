@@ -16,7 +16,7 @@ MAX_BYTES = 20 * 1024 * 1024
 DICTIONARY_FIELDS = ('model_id', 'model_name', 'layer', 'domain', 'grain',
                      'column_name', 'data_type', 'key', 'description')
 MODEL_FIELDS = ('id', 'name', 'layer', 'domain', 'grain', 'asset_ids', 'depends_on',
-                'mapping_status', 'disposition')
+                'mapping_status', 'disposition', 'object_kind', 'keys', 'security', 'history')
 COLUMN_FIELDS = ('name', 'type', 'key', 'nullable', 'description')
 RELATIONSHIP_FIELDS = ('from', 'to', 'kind', 'predicate', 'cardinality', 'role', 'status',
                        'from_columns', 'to_columns', 'from_column', 'to_column')

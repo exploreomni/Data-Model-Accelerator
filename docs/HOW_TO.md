@@ -6,6 +6,32 @@ See the [project overview](../README.md) and [capabilities and limits](CAPABILIT
 
 You can drive the work through prompts. The agent maintains the technical records and runs the selected helpers; SMEs do not need to edit JSON or learn dbt. The command examples below expose the same local workflow for engineers who want to operate it directly.
 
+## Start reliably and review what is known
+
+Tell the agent which repositories, warehouse catalogue exports and existing-model
+inventories you are supplying. It records each input once, retains your naming
+and target choices, then asks which domain to design first. Missing inputs stay
+visible. A useful request is:
+
+> Use all supplied sources to design this domain. Preserve our configured model
+> settings and naming conventions. Show what the existing code declares, what
+> the warehouse catalogue confirms, and what you are proposing. Include sources,
+> intermediates and consumers in coverage, with a separate independent review.
+> Generate provisional code if I request it before every binding is verified.
+
+In the model review, inspect the separate source-coverage, provenance, independent
+review and human-review statuses. A structurally clean ERD alone does not establish
+accuracy. Source objects, actual model candidates and external interfaces are
+counted separately. Reply to outstanding questions in ordinary language; the
+agent records your answer against the relevant model without restarting intake.
+
+Engineers can inspect the selected installation with `check_installation.py
+--preflight --selected-skill PATH` and discover supported input shapes through
+`operator_contracts.py examples`. The [design reliability guide](../skills/data-model-accelerator/references/design-reliability.md)
+documents multi-source inventory, canonical design assembly, provenance and review
+commands. These shared contracts work across the supported frameworks and warehouses;
+they do not substitute for testing in the selected native environment.
+
 ## Explain what replaces your historical tables
 
 For each domain, tell the agent whether it is new, refactoring, or mixed. Reuse

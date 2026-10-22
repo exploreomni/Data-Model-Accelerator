@@ -24,6 +24,18 @@ bounded design with grain, keys, relationships, history/security, layer allocati
 dictionary and connected ERD. Compare existing model reuse across the required
 dimensions. Keep unknowns and competing interpretations visible.
 
+Follow [design reliability](../data-model-accelerator/references/design-reliability.md)
+for independent source coverage, supported canonical assembly and provenance.
+Account for transformations, intermediate stages, macros and consumers before
+claiming completeness. Classify warehouse observations, repository declarations,
+human assertions and target proposals separately. Capture existing-model
+baselines independently; do not copy the proposed design into the reuse baseline.
+Use explicit source/model/interface kinds, preserve relationship direction and
+column bindings, and derive documents and diagrams from the same revision.
+An independent reviewer uses original scoped evidence and records a bound review
+before the separate human decision. Missing context remains compatible with the
+shared provisional-generation path.
+
 For a refactoring or mixed domain with historical comparison selected, follow
 [legacy alignment](../data-model-accelerator/references/legacy-alignment.md).
 Use the retained baseline during design and present the old-table-to-new-model

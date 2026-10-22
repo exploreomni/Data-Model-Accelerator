@@ -18,7 +18,8 @@ ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.:-]{0,199}\Z')
 DIMENSIONS = {'grain', 'keys', 'definitions', 'history', 'security', 'dependencies'}
 COMPONENT_FILES = {
     'workflow': ('scripts/engagement_stages.py',),
-    'design': ('references/modeling-and-validation.md', 'references/semantic-placement.md'),
+    'design': ('references/modeling-and-validation.md', 'references/semantic-placement.md',
+               'references/design-reliability.md', 'scripts/design_builder.py'),
     'implementation': ('references/analytics-engineering.md', 'scripts/plan_refactor.py'),
     'semantic': ('scripts/omni_modeler.py', 'references/omni-modeler.md'),
     'validation': ('references/modeling-and-validation.md', 'scripts/verify_refactor_run.py'),
@@ -32,7 +33,8 @@ COMPONENT_FILES = {
                          'scripts/authoring_release.py', 'references/authoring-quality.md',
                          'scripts/artifact_syntax.py', 'scripts/design_consistency.py'),
     'review_evidence': ('scripts/review_assurance.py', 'scripts/mapping_coverage.py',
-                        'scripts/reuse_coverage.py', 'scripts/workflow_reconciliation.py', 'references/review-evidence.md'),
+                        'scripts/reuse_coverage.py', 'scripts/workflow_reconciliation.py', 'references/review-evidence.md',
+                        'scripts/design_coverage.py', 'scripts/design_evidence.py', 'scripts/design_readiness.py'),
     'execution_observations': ('scripts/agent_execution.py', 'scripts/agent_benchmark.py',
                                'references/agent-benchmark.md', 'scripts/run_control.py', 'scripts/check_installation.py',
                                'references/reliable-runs.md'),
@@ -141,7 +143,12 @@ def validate_design(value):
     for entity in value['entities']:
         fields(entity, {'id', 'name', 'domain', 'layer', 'grain', 'keys', 'columns', 'depends_on',
                         'asset_ids', 'security', 'history', 'disposition', 'reuse', 'source_paths', 'catalogue_pointers'},
-               {'description', 'display_label', 'replacement_decision_id', 'mapping_status'})
+               {'description', 'display_label', 'replacement_decision_id', 'mapping_status', 'object_kind'})
+        if 'object_kind' in entity:
+            require(entity['object_kind'] in {'model', 'source', 'interface'}, 'Invalid design object kind')
+            if entity['object_kind'] == 'interface':
+                require(entity['disposition'] == 'undetermined' and entity['reuse'] is None,
+                        'An external interface is not an executable or verified reused model')
         for key in ('name', 'domain', 'layer', 'grain', 'security', 'history'):
             text(entity[key])
         require(entity['layer'] in {'bronze', 'silver', 'gold'}, 'Use a canonical refinement tier; preserve physical naming separately')
@@ -312,6 +319,12 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
     if 'legacy_alignment_scope' not in cache:
         from legacy_alignment import scope_bindings
         cache['legacy_alignment_scope'] = scope_bindings(state)
+    if 'design_coverage_scope' not in cache:
+        from design_coverage import scope_bindings
+        cache['design_coverage_scope'] = scope_bindings(state)
+    if 'design_evidence_scope' not in cache:
+        from design_evidence import scope_bindings
+        cache['design_evidence_scope'] = scope_bindings(state)
     import guided_workflow as guided
     catalogue = state['inputs']['catalogue']
     if 'catalogue_data' not in cache:
@@ -344,9 +357,10 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
         reconciliation = {'reconciliation': cache['reconciliation_scope'][key]} if key in cache['reconciliation_scope'] else {}
         business = {'business_rules': cache['business_rules_scope'][key]} if key in cache['business_rules_scope'] else {}
         alignment = {'legacy_alignment': cache['legacy_alignment_scope'][key]} if key in cache['legacy_alignment_scope'] else {}
+        reliability = {name: cache[name][key] for name in ('design_coverage_scope', 'design_evidence_scope') if key in cache[name]}
         result[key] = hash_json({'entity': entity, 'inputs': inputs, 'relationships': edges,
                                 'decisions': decisions, 'responses': responses, 'existing': existing,
-                                **coverage, **reuse_evidence, **reconciliation, **business, **alignment})
+                                **coverage, **reuse_evidence, **reconciliation, **business, **alignment, **reliability})
         cache[cache_key] = result[key]
     return result
 
@@ -396,8 +410,18 @@ def _design_gaps(state, selected, stage='design'):
     gaps.extend(business_rule_gaps(state, scope))
     from legacy_alignment import gaps as alignment_gaps
     gaps.extend(alignment_gaps(state, scope))
+    from design_coverage import gaps as design_coverage_gaps
+    from design_evidence import readiness_gaps
+    gaps.extend(design_coverage_gaps(state, scope))
+    gaps.extend(readiness_gaps(state, scope))
     for key in scope:
         entity = entities[key]
+        if entity.get('object_kind') == 'interface':
+            # External dependencies need a usable contract, not executable tasks.
+            if (not entity['keys'] or not entity['columns'] or any(entity[k].lower() in
+                    {'unknown', 'tbd', 'unresolved'} for k in ('grain', 'security', 'history'))):
+                gaps.append(key + ': resolve the external interface grain, keys, columns, history and security before reviewed code')
+            continue
         if not entity['keys'] or not entity['columns'] or any(entity[k].lower() in {'unknown', 'tbd', 'unresolved'} for k in ('grain', 'security', 'history')):
             gaps.append(key + ': resolve grain, keys, columns, history and security')
         if entity['disposition'] == 'undetermined':
@@ -581,7 +605,8 @@ def require_stage(state, stage, selected, *, _planning=False, _approved=None):
         bound = {e for task in plan['tasks'] if task['stage'] == 'implementation' and task['action'] == 'reuse'
                  and (stage != 'validation' or task.get('generation_mode') != 'provisional')
                  for e in task['entity_ids']}
-        require(set(scope) <= bound, 'Current physical implementation or reused-binding outputs are required before ' + stage)
+        physical = {e['id'] for e in doc['entities'] if e.get('object_kind') != 'interface'}
+        require(set(scope) & physical <= bound, 'Current physical implementation or reused-binding outputs are required before ' + stage)
     if stage == 'deployment':
         raise ValueError('Use the separate signed deployment workflow; stage selection does not authorize execution')
     return scope
@@ -625,6 +650,9 @@ def register_tasks(state, request):
         fields(task, {'id', 'stage', 'entity_ids', 'depends_on', 'components', 'outputs'})
         require(task['stage'] in STAGES and task['stage'] != 'deployment', 'Deployment uses the separate release workflow')
         ids(task['entity_ids'], [e['id'] for e in doc['entities']], True)
+        if task['stage'] in {'implementation', 'semantic'}:
+            interfaces = {e['id'] for e in doc['entities'] if e.get('object_kind') == 'interface'}
+            require(not set(task['entity_ids']) & interfaces, 'External interfaces cannot own executable implementation or semantic tasks')
         ids(task['depends_on'], task_ids)
         ids(task['components'], COMPONENT_FILES)
         require(type(task['outputs']) is list and task['outputs'], 'Tasks must declare output files')
@@ -649,7 +677,8 @@ def register_tasks(state, request):
             ancestors = closure({t['id']: t['depends_on'] for t in request['tasks']}, [task['id']])
             bound = {e for p in ancestors if by_id[p]['stage'] == 'implementation' for e in by_id[p]['entity_ids']}
             required = closure({e['id']: e['depends_on'] for e in doc['entities']}, task['entity_ids'])
-            require(set(required) <= bound, 'Semantic/validation tasks need scoped physical implementation dependencies (including reused bindings)')
+            physical = {e['id'] for e in doc['entities'] if e.get('object_kind') != 'interface'}
+            require(set(required) & physical <= bound, 'Semantic/validation tasks need scoped physical implementation dependencies (including reused bindings)')
     workflow(state)['tasks'] = copy.deepcopy(request['tasks'])
     workflow(state)['last_plan'] = None
 
@@ -861,6 +890,7 @@ def _requested_progress(state, result):
     from domain_workflow import ledger as domain_ledger, scope as domain_scope
     if domain_ledger(state) and domain_ledger(state)['active_domain_id']:
         expected = domain_scope(state)
+    expected -= {e['id'] for e in doc['entities'] if e.get('object_kind') == 'interface'}
     selections = set(state['answers'].get('deliverables', []))
     code_selected = 'implementation' in selections
     required = ['implementation'] if code_selected else []
@@ -941,7 +971,9 @@ def public_view(state, *, _refresh=True):
     result['review_assurance'] = public_summary(state)
     if doc:
         from design_consistency import assess_design
+        from design_readiness import summarize as design_readiness
         result['design_checks'] = assess_design(doc)
+        result['design_readiness'] = design_readiness(state)
         result.update(models=copy.deepcopy(doc['entities']), relationships=doc['relationships'], assets=doc['assets'])
         answers = {r['decision_id']: r for r in wf['responses']}
         decision_reviews = {}

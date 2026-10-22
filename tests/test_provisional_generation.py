@@ -78,6 +78,28 @@ class ProvisionalGenerationTests(unittest.TestCase):
         self.assertTrue(stages._design_gaps(self.h.state, self.scope))
         self.assertFalse(stages.approved_entities(self.h.state))
 
+    def test_unknown_business_answers_allow_explicit_drafts_without_becoming_known(self):
+        unknown = {'trusted_outputs': None, 'retained_behavior': None, 'corrected_behavior': None}
+        self.h.state = guided.update_answers(self.h.run, {**unknown, 'engagement_type': 'refactor'})
+        self.assertTrue(set(unknown) <= set(self.h.state['readiness']['missing_answers']))
+        self.assertFalse(self.h.state['readiness']['interview_complete'])
+        self.request_draft()
+        self.h.action('stage', entities=self.scope, stage='implementation')
+        self.assertTrue(all(self.h.state['answers'][key] is None for key in unknown))
+        self.assertFalse(stages.approved_entities(self.h.state))
+        for stage in ('validation', 'deployment'):
+            with self.subTest(stage=stage), self.assertRaises(ValueError):
+                self.h.action('stage', entities=self.scope, stage=stage)
+
+    def test_unknown_target_or_disclosure_choices_still_block_drafts(self):
+        for field in ('warehouse', 'framework', 'input_handling', 'migration_scope'):
+            with self.subTest(field=field):
+                original = self.h.state['answers'][field]
+                self.h.state = guided.update_answers(self.h.run, {field: None})
+                with self.assertRaisesRegex(ValueError, 'Resolve discovery'):
+                    self.request_draft()
+                self.h.state = guided.update_answers(self.h.run, {field: original})
+
     def test_partial_drafts_keep_their_provisional_label(self):
         self.request_draft()
         self.h.plan({'schema_version': 1, 'tasks': self.tasks()['tasks'][:1]})

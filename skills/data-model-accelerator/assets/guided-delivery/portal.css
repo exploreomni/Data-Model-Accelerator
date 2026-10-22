@@ -86,3 +86,5 @@
 }
 /* Optional planning views inherit the shared responsive section layout. */
 .planning-narrative{white-space:pre-wrap;overflow-wrap:anywhere}
+/* Compact, distinct evidence dimensions within the existing model workspace. */
+.design-readiness{margin:-4px 0 18px;padding:0 4px}.design-readiness .tags{gap:8px}.design-readiness p{margin:8px 0 0}.interface-kind{background:#eef3ff;border-color:#b7afd5;color:#493e75}

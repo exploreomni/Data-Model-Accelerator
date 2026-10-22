@@ -4,6 +4,16 @@ Use this page to scope a customer pilot. The accelerator combines agent reasonin
 
 ## Read capability claims correctly
 
+[Design reliability](../skills/data-model-accelerator/references/design-reliability.md)
+adds explicit multi-source coverage, independently captured reuse baselines,
+provenance classes, canonical design assembly and scoped independent-review
+records. The review page separates structural checks from coverage, human review
+and native validation, and distinguishes models, sources and external interfaces.
+These shared contracts apply to every supported target; hashes and host-reported
+reviews do not establish warehouse truth or authenticated reviewer identity.
+Older engagements remain compatible and report missing companions as unassessed.
+Explicitly requested provisional code remains available when evidence is missing.
+
 Optional [migration planning](../skills/data-model-accelerator/references/migration-planning.md)
 turns retained, domain-scoped design and historical alignment into an editable
 Excel inventory, Word migration plan, and ticket templates/import candidates.

@@ -52,6 +52,16 @@ recreate navigation, design files or packaging evidence.
 
 ## Start with the engagement
 
+For new design work, follow [design reliability](references/design-reliability.md):
+identify the actual installed runtime, validate retained intake, register every
+supplied source and expected consumer before assigning targets, assemble one
+canonical design, and classify provenance separately from independent review.
+Use the supported helpers and input examples instead of ad-hoc assembly scripts.
+Source coverage, structural validity, independent review and human approval are
+different statuses. Keep partial inputs and external interfaces visible; preserve
+configured model/effort and explicitly requested provisional code. Existing
+engagements adopt these companion records explicitly without fabricated history.
+
 For new multi-domain work, follow [domain-journey.md](references/domain-journey.md):
 inventory and propose domains first, ask which to start with, and register the
 user's choice. Design and review that one domain and its necessary shared
