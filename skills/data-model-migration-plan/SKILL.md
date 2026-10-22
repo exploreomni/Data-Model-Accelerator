@@ -24,6 +24,12 @@ work items, migration waves, cutover/rollback and unresolved questions. Keep
 independent validation with the analyst. Project tickets are not accelerator
 execution tasks. Preserve splits, merges, shared objects and unmapped consumers.
 
+Follow [requested scope and consumers](../data-model-accelerator/references/requested-scope-and-consumers.md).
+Keep every register row in scope, including ownership/ticket-only items. Upstream
+dependencies never count as replacements. Use the same governed identity and
+consumer-change snapshot for the portal, CSVs and Office documents. Convert that
+same document for requested PDFs; do not independently rewrite its mappings.
+
 Register the plan through the guided workflow, then export from its current
 public snapshot. Use one source for workbook, document and ticket descriptions.
 Record user edits by stable item ID with the current plan hash; never silently

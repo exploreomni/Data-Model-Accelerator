@@ -124,6 +124,9 @@ def _known_consumers(state, domain_id):
             for key, label in ((row['dashboard_id'], row['dashboard_label']), (row['subject_id'], row['source_label'])):
                 entry = found.setdefault(key, {'id': key, 'label': label, 'model_ids': []})
                 entry['model_ids'] = sorted(set(entry['model_ids']) | set(row['model_ids']))
+    from migration_inventory import known_consumers
+    for key, row in known_consumers(state, domain_id).items():
+        found.setdefault(key, row)
     for row in found.values(): row['model_ids'] = sorted(set(row['model_ids']))
     return found
 
@@ -329,10 +332,14 @@ def _binding(state, domain_id, request):
     # enriched reconciliation may consume this plan's own supplied lineage.
     inventory.pop('reconciliation', None)
     for mapping in inventory['mappings']: mapping.pop('target_status', None)
-    return hash_json({'version': VERSION, 'config': config, 'inventory': inventory,
+    material = {'version': VERSION, 'config': config, 'inventory': inventory,
                       'targets': {key: _target_pin(state, {'model_id': key, 'kind': 'table'}, cache) for key in sorted(selected)},
                       'known_consumers': _known_consumers(state, domain_id), 'migration_context': _migration_context(state, domain_id),
-                      'evidence': _evidence_pins(state, request)})
+                      'evidence': _evidence_pins(state, request)}
+    from migration_inventory import domain_binding
+    inventory_binding = domain_binding(state, domain_id)
+    if inventory_binding is not None: material['requested_inventory'] = inventory_binding
+    return hash_json(material)
 
 
 def _store(state, domain_id, document, run_dir):
@@ -546,7 +553,19 @@ def _summary(state, domain_id, allowed_models):
             {**reconciliation_input, 'domain_id': domain_id, 'model_ids': sorted(scope)},
             source_lineage=result['source_lineage'], consumers=result['consumers'],
             known_consumers=list(known.values()), evidence_current=result['freshness'] == 'current')
+        # Keep requested scope independent of the successful target shortlist.
+        # This uses explicit legacy/consumer crosswalks, never target ancestry.
+        from migration_inventory import summarize as inventory_summary
+        requested = inventory_summary(state, allowed_models)
+        if requested is not None:
+            result['requested_inventory'] = next((d for d in requested['domains'] if d['domain_id'] == domain_id),
+                {'domain_id': domain_id, 'counts': {}, 'rows': [], 'status': requested['status']})
+            if requested['status'] == 'unavailable': result['warnings'].append('Requested migration inventory is unavailable.')
         result['graph_edges'] = _edges(inventory, result['consumers'])
+        from governance_delivery import project as governance_projection
+        governed = governance_projection(state, sorted(scope))
+        if governed is not None:
+            result['governed_review'] = governed
         if result['source_lineage']['status'] == 'unknown': result['warnings'].append('Upstream source lineage is unknown; no edges were inferred.')
         if result['missing_consumers']: result['warnings'].append('Known consumers are missing from the supplied planning crosswalk.')
         if not scope: result['warnings'].append('No canonical design scope is supplied; this remains a draft plan.')
@@ -627,6 +646,8 @@ def context_packet(state, domain_id, max_bytes=32768, *, record_ids=None):
         paths += [('reconciliation_item', ('reconciliation', 'items')),
                   ('reconciliation_consumer', ('reconciliation', 'consumers')),
                   ('reconciliation_question', ('reconciliation', 'follow_up_questions'))]
+    if 'requested_inventory' in summary:
+        paths.append(('requested_inventory_item', ('requested_inventory', 'rows')))
     records = {}
     for kind, path in paths:
         parent = summary

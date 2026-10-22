@@ -27,16 +27,19 @@ COMPONENT_FILES = {
     'packaging': ('scripts/delivery_portal.py', 'scripts/finalize_delivery.py', 'assets/guided-delivery/portal.js',
                   'assets/guided-delivery/portal.css', 'assets/guided-delivery/portal.html',
                   'scripts/design_consistency.py', 'scripts/run_control.py', 'scripts/portable_site.py',
-                  'scripts/delivery_preflight.py', 'references/delivery-experience.md'),
+                  'scripts/delivery_preflight.py', 'references/delivery-experience.md', 'scripts/governance_delivery.py'),
     'deployment': ('scripts/deployment_workflow.py', 'scripts/deployment_authority.py'),
     # Diagnostic changes refresh evidence; they do not rewrite unchanged SQL.
     'authoring_checks': ('scripts/authoring_evidence.py', 'scripts/authoring_provenance.py',
                          'scripts/authoring_conformance.py', 'scripts/authoring_quality.py',
                          'scripts/authoring_release.py', 'references/authoring-quality.md',
-                         'scripts/artifact_syntax.py', 'scripts/design_consistency.py', 'scripts/dbt_references.py'),
+                         'scripts/artifact_syntax.py', 'scripts/design_consistency.py', 'scripts/dbt_references.py',
+                         'scripts/naming_artifacts.py', 'scripts/naming_governance.py', 'scripts/naming_context.py'),
     'review_evidence': ('scripts/review_assurance.py', 'scripts/mapping_coverage.py',
                         'scripts/reuse_coverage.py', 'scripts/workflow_reconciliation.py', 'references/review-evidence.md',
-                        'scripts/design_coverage.py', 'scripts/design_evidence.py', 'scripts/design_readiness.py'),
+                        'scripts/design_coverage.py', 'scripts/design_evidence.py', 'scripts/design_readiness.py',
+                        'scripts/migration_inventory.py', 'scripts/consumer_contracts.py', 'references/governed-naming.md',
+                        'references/requested-scope-and-consumers.md'),
     'execution_observations': ('scripts/agent_execution.py', 'scripts/agent_benchmark.py',
                                'references/agent-benchmark.md', 'scripts/run_control.py', 'scripts/check_installation.py',
                                'references/reliable-runs.md', 'scripts/run_efficiency.py'),
@@ -324,6 +327,13 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
     if 'migration_intent_scope' not in cache:
         from migration_intent import scope_bindings
         cache['migration_intent_scope'] = scope_bindings(state)
+    for name, module in (('inventory_scope', 'migration_inventory'), ('consumer_scope', 'consumer_contracts')):
+        if name not in cache:
+            from importlib import import_module
+            cache[name] = import_module(module).scope_bindings(state)
+    if 'naming_scope' not in cache:
+        from naming_governance import scope_bindings
+        cache['naming_scope'] = scope_bindings(state)
     import guided_workflow as guided
     catalogue = state['inputs']['catalogue']
     if 'catalogue_data' not in cache:
@@ -360,7 +370,7 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
         reconciliation = {'reconciliation': cache['reconciliation_scope'][key]} if key in cache['reconciliation_scope'] else {}
         business = {'business_rules': cache['business_rules_scope'][key]} if key in cache['business_rules_scope'] else {}
         alignment = {'legacy_alignment': cache['legacy_alignment_scope'][key]} if key in cache['legacy_alignment_scope'] else {}
-        reliability = {name: cache[name][key] for name in ('design_coverage_scope', 'design_evidence_scope', 'migration_intent_scope') if key in cache[name]}
+        reliability = {name: cache[name][key] for name in ('design_coverage_scope', 'design_evidence_scope', 'migration_intent_scope', 'naming_scope', 'inventory_scope', 'consumer_scope') if key in cache[name]}
         result[key] = hash_json({'entity': entity, 'inputs': inputs, 'relationships': edges,
                                 'decisions': decisions, 'responses': responses, 'existing': existing,
                                 **coverage, **reuse_evidence, **reconciliation, **business, **alignment, **reliability})
@@ -417,6 +427,10 @@ def _design_gaps(state, selected, stage='design'):
     from design_evidence import readiness_gaps
     gaps.extend(design_coverage_gaps(state, scope))
     gaps.extend(readiness_gaps(state, scope))
+    from naming_governance import stage_requirements as naming_requirements
+    gaps.extend(naming_requirements(state, scope))
+    from consumer_contracts import gaps as consumer_gaps
+    gaps.extend(consumer_gaps(state, scope))
     for key in scope:
         entity = entities[key]
         if entity.get('object_kind') == 'interface':
@@ -816,6 +830,11 @@ def record_task(state, artifact_root, request, *, refresh_plan=True):
         pins = contract_bindings(task_contracts(state, specification['entity_ids']))
         require(all(execution['context_bindings'].get(k) == v for k, v in pins.items()),
                 'Execution packet omitted or changed the scoped migration intent')
+        from naming_context import packet_contract
+        naming = packet_contract(state, specification['entity_ids'])
+        if naming is not None:
+            require(execution['context_bindings'].get('naming_contract') == naming['sha256'],
+                    'Execution packet omitted or changed the scoped naming contract')
     import guided_workflow as guided
     if specification['stage'] in {'implementation', 'semantic'}:
         from authoring_quality import observe_task
@@ -995,6 +1014,17 @@ def public_view(state, *, _refresh=True):
     result['review_assurance'] = public_summary(state)
     from delivery_plan import public_summary as plan_summary
     result['delivery_plan'] = plan_summary(state)
+    if wf.get('migration_inventory'):
+        from migration_inventory import summarize as inventory_summary
+        result['migration_inventory'] = inventory_summary(state)
+    if wf.get('consumer_contracts'):
+        from consumer_contracts import summarize as consumer_summary
+        result['consumer_contracts'] = consumer_summary(state)
+    if wf.get('naming_governance'):
+        from naming_governance import summarize as naming_summary
+        from naming_artifacts import summary as naming_artifact_summary
+        result['naming_governance'] = naming_summary(state)
+        result['naming_artifacts'] = naming_artifact_summary(state)
     if doc:
         from design_consistency import assess_design
         from design_readiness import summarize as design_readiness

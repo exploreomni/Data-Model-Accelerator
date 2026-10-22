@@ -24,6 +24,12 @@ bounded design with grain, keys, relationships, history/security, layer allocati
 dictionary and connected ERD. Compare existing model reuse across the required
 dimensions. Keep unknowns and competing interpretations visible.
 
+Retain the user's selected [naming policy](../data-model-accelerator/references/governed-naming.md)
+and immutable original-to-target identities. Ask once about a conflicting
+convention; never substitute an accelerator prefix or mix styles silently.
+For refactoring, register the complete [requested scope and public consumer contracts](../data-model-accelerator/references/requested-scope-and-consumers.md)
+before narrowing the design. Unmapped requested tables remain in the denominator.
+
 Follow [design reliability](../data-model-accelerator/references/design-reliability.md)
 for independent source coverage, supported canonical assembly and provenance.
 Account for transformations, intermediate stages, macros and consumers before

@@ -138,6 +138,7 @@ function decisionResponseDocument(workflow,engagementId,responses){
   return{schema_version:1,kind:'decision_responses',intent:'record_answers',engagement_id:engagementId,design_id:workflow.design_id,design_revision:workflow.design_revision,design_sha256:workflow.design_sha256,answers,request_only:true};
 }
 function trimWorkflowDetails(snapshot,categories){
+  if(!(categories.has('documentation')&&categories.has('dictionary')))delete snapshot.workflow?.governance;
   if(snapshot.migration_planning&&!(categories.has('documentation')&&categories.has('dictionary'))){
     delete snapshot.migration_planning;
     snapshot.migration_planning_omitted='Migration planning files were omitted: include both documentation and dictionary to export their complete mapping and column inventory.';
@@ -148,7 +149,7 @@ function trimWorkflowDetails(snapshot,categories){
   delete snapshot.legacy_alignment;
   delete snapshot.migration_planning;
   for(const key of ['assets','models','relationships','domain_proposals','decisions','changes'])delete snapshot.review?.[key];
-  for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance','design_readiness','migration_intent'])delete snapshot.workflow?.[key];
+  for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance','design_readiness','migration_intent','governance'])delete snapshot.workflow?.[key];
 }
 // Coverage/reuse counts describe supplied associations, never native validation.
 function reviewEvidenceCount(value){return Number.isSafeInteger(value)&&value>=0?String(value):'Unassessed';}
@@ -535,6 +536,23 @@ for(const key of ['asset','domain','model'])el('review-evidence-'+key).onchange=
 el('review-evidence-search').oninput=renderReviewEvidence;
 el('review-evidence-reset').onclick=()=>{for(const key of ['asset','domain','model','search'])el('review-evidence-'+key).value='';renderReviewEvidence();};
 renderReviewEvidence();
+
+const governance=workflow?.governance;
+if(governance){
+  el('governed-review').hidden=false;
+  const inventory=governance.inventory,consumers=governance.consumers,naming=governance.naming;
+  el('governed-summary').textContent=`Names: ${evidenceStatus(naming?.status)} · Requested inventory: ${evidenceStatus(inventory?.status)} · Public contracts needing review: ${reviewEvidenceCount(consumers?.counts?.needs_review)}. ${governance.qualification}`;
+  el('governed-policy').textContent=`Selected policy: ${naming?.policy?.profile||'Not selected'} · Overrides: ${reviewEvidenceCount(naming?.exception_count)}. Artifact check: ${evidenceStatus(governance.naming_artifacts?.status)}. Physical uniqueness covers supplied identities only.`;
+  const states=new Map((naming?.resources||[]).map(r=>[r.id,r]));
+  table('governed-names',[['Original / source',r=>`${r.original_name} · ${r.source_id}`],['Target',r=>r.target_name],['Physical alias / namespace',r=>`${r.physical_alias||r.target_name} · ${r.namespace.join('.')}`],['Role / domain',r=>`${r.role} · ${r.domain}`],['Conformance',r=>`${evidenceStatus(states.get(r.id)?.status)} · ${(states.get(r.id)?.gaps||[]).join(', ')}`]],governance.identities||[]);
+  table('governed-checks',[['Check',r=>r.code],['Status',r=>pretty(r.status)],['File',r=>r.path||'Not supplied']],governance.naming_artifacts?.findings||[]);
+  table('governed-counts',[['Domain',r=>r.domain_id],['Requested',r=>r.counts.requested],['Accounted',r=>r.counts.accounted],['Unresolved',r=>r.counts.unresolved]],inventory?.domains||[]);
+  const inventoryRows=(inventory?.domains||[]).flatMap(d=>d.rows.map(r=>({...r,domain:d.domain_id})));
+  table('governed-inventory',[['Domain',r=>r.domain],['Requested identity',r=>`${r.source_namespace} · ${r.native_id}`],['Classification',r=>pretty(r.classification)],['Models',r=>evidenceNames(r.model_ids)],['Remaining work',r=>r.requirements.join('; ')||'No remaining requirement recorded']],inventoryRows);
+  const consumerRows=(consumers?.rows||[]).flatMap(r=>r.findings.map(f=>({...f,contract:r})));
+  const value=v=>v===null?'Unknown':typeof v==='object'?JSON.stringify(v):String(v);
+  table('governed-consumers',[['Source → target',r=>`${r.contract.source_id} → ${r.contract.entity_id}`],['Change',r=>pretty(r.kind)],['Field',r=>r.column||'Model'],['Before → after',r=>`${value(r.before)} → ${value(r.after)}`],['Review',r=>r.requires_decision?pretty(r.contract.review_status):'Unverified / informational']],consumerRows);
+}
 
 const handoff=compactHandoff(data);
 table('delivery-stages',[['Stage',s=>s.label],['Recorded status',s=>pretty(s.status)],['What it means',s=>s.detail]],handoff.stages,5);
@@ -1088,7 +1106,7 @@ async function rebuildGenerated(snapshot){
     await add('generated:legacy-alignment-csv','01_Model/legacy-table-alignment.csv','documentation','Complete scoped comparison of existing tables and proposed models.',snapshot.legacy_alignment.summary_csv);
     await add('generated:legacy-alignment-markdown','01_Model/legacy-table-alignment.md','documentation','Complete scoped comparison, coverage and review evidence.',snapshot.legacy_alignment.summary_markdown);
   }
-  if(chosen.has('documentation')&&chosen.has('dictionary')&&snapshot.migration_planning){
+  if(chosen.has('documentation')&&chosen.has('dictionary')&&(snapshot.migration_planning||snapshot.workflow?.governance)){
     // Preserve the already generated, hash-checked portable Office files. Browser
     // export does not regenerate binary documents or create cloud documents.
     for(const file of snapshot.generated_deliverables||[]){

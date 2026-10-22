@@ -145,6 +145,23 @@ Read [discovery.md](references/discovery.md) before target deliverable generatio
 
 Confirm missing meaningful decisions with the user before treating dependent deliverables as reviewed or executing them. An explicit request for provisional code permits supported draft files while those decisions remain unresolved; follow [provisional generation](references/provisional-generation.md). A proposed default is not an answer, and elapsed time is not confirmation. Do not ask again about choices or permissions already supplied. With unknown facts, continue independent work and identify what blocks verification or execution. Do not invent source tables, keys, CDC metadata, user permissions, metric authority, or customer acceptance. A synthetic demonstration is always labeled synthetic.
 
+## Govern names across the delivery
+
+For new model work, follow [governed naming](references/governed-naming.md).
+Record the user's selected convention once; preserve original source identities,
+existing aliases and any explicit custom pattern. Register the canonical target
+names before delegating, carry the scoped naming packet, and check actual code
+and semantic bindings. Assemblers must not add their own prefixes or schemas.
+An explicit change updates the retained policy and affected references; a missing
+choice permits provisional drafts but never a naming-conformant claim. Older
+engagements adopt the companion explicitly without retroactive renaming.
+
+For refactoring, follow [requested scope and consumers](references/requested-scope-and-consumers.md).
+Register the complete union of supplied inventories before mapping, distinguish
+replacement from upstream-only evidence, and compare public fields, definitions
+and materializations. Keep domain completion separate from provisional authoring.
+Export all selected rows from the same review snapshot, including unresolved items.
+
 ## Platform quality checks
 
 Read [linting.md](references/linting.md) and consult `scripts/platform_matrix.py` for the chosen framework and warehouse. Generate an explicit lint manifest from the entire execution scope, including compiled outputs, macros, hooks and materializations. Run the pinned static linter in isolation; preserve unsupported templates and coverage gaps. Never run compile-time macros as an offline lint. Keep Code conventions, Project validity, Warehouse validation and Data accuracy as separate evidence lanes. Bind current lint evidence to the release plan; live authorization requires it as well as independent native preflight and acceptance.

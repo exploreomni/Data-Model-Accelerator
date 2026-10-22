@@ -302,6 +302,17 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include, *, c
     artifacts = select_artifacts(review, artifact_root, audience, selected_categories)
     _require(checkpoint or bool(artifacts), 'No artifacts match the handoff selection.')
     review_evidence = {}
+    if state.get('workflow', {}).get('migration_inventory'):
+        from migration_inventory import summarize as inventory_summary
+        review_evidence['migration_inventory_sha256'] = _digest(inventory_summary(state))
+    if state.get('workflow', {}).get('consumer_contracts'):
+        from consumer_contracts import summarize as consumer_summary
+        review_evidence['consumer_contracts_sha256'] = _digest(consumer_summary(state))
+    if state.get('workflow', {}).get('naming_governance'):
+        from naming_governance import summarize as naming_summary
+        from naming_artifacts import summary as naming_artifact_summary
+        review_evidence['naming_governance_sha256'] = _digest({
+            'policy': naming_summary(state), 'artifacts': naming_artifact_summary(state)})
     if state.get('workflow', {}).get('review_assurance'):
         from review_assurance import records, public_summary
         review_evidence['review_evidence_sha256'] = _digest({'records': records(state), 'current': public_summary(state)})
@@ -760,6 +771,38 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
             from source_roots import register
             register(state, document, run_dir)
             invalidated.extend(_refresh(state, stage_progress=False))
+        elif action == 'record-migration-inventory':
+            from migration_inventory import register
+            register(state, document, run_dir)
+        elif action in ('record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes'):
+            import consumer_contracts
+            if action == 'record-consumer-contracts':
+                root = _path(artifact_root) if artifact_root is not None else None
+                if root is not None:
+                    from source_roots import ensure_output
+                    ensure_output(state, root)
+                    _require(root != run_dir and root not in run_dir.parents and run_dir not in root.parents,
+                             'Consumer artifacts must be separate from engagement state')
+                consumer_contracts.register(state, document, root)
+            elif action == 'consumer-review-bindings':
+                stages.fields(document, {'contract_ids'})
+                state['workflow']['consumer_review_request'] = consumer_contracts.review_bindings(state, document['contract_ids'])
+            else:
+                consumer_contracts.review(state, document)
+        elif action in ('configure-naming', 'record-model-identities'):
+            import naming_governance
+            (naming_governance.configure if action == 'configure-naming' else naming_governance.register)(state, document)
+        elif action == 'naming-packet':
+            from naming_context import packet_contract
+            state['workflow']['naming_packet'] = packet_contract(state, entities)
+        elif action == 'check-naming':
+            from naming_artifacts import record
+            from source_roots import ensure_output
+            root = _path(artifact_root)
+            ensure_output(state, root)
+            _require(root != run_dir and root not in run_dir.parents and run_dir not in root.parents,
+                     'Naming artifacts must be separate from engagement state')
+            record(state, document, root)
         elif action in ('configure-migration-intent', 'migration-assessment-bindings',
                         'record-migration-assessment', 'migration-intent-packet'):
             import migration_intent
@@ -925,7 +968,7 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
-    stage_commands = ('configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
+    stage_commands = ('record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'naming-packet', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
                       'independent-review-bindings', 'record-independent-review', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
                       'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
@@ -959,7 +1002,7 @@ def main(argv=None):
         if command == 'record-evidence':
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
-        if command in ('configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
+        if command in ('record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
                        'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
                        'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
                        'record-business-rules', 'review-business-rules', 'recommend-shared-models',
@@ -969,14 +1012,16 @@ def main(argv=None):
                        'configure-migration-planning', 'record-migration-plan', 'edit-migration-items',
                        'register-source-roots', 'register-domains', 'select-domain', 'pause-domain', 'complete-domain', 'select-batch', 'pause-batch', 'complete-batch'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
-        if command in ('review-bindings', 'independent-review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):
+        if command in ('naming-packet', 'review-bindings', 'independent-review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):
             p.add_argument('--entities', nargs='+', required=True)
         if command == 'approve-design':
             p.add_argument('--document', type=Path, help='Exact-scope human decision attributed by the trusted host; never an approval inferred from input files.')
             p.add_argument('--policy', type=Path)
             p.add_argument('--attestation', type=Path)
-        if command in ('plan-tasks', 'record-task', 'check-task', 'checkpoint-work'):
+        if command in ('plan-tasks', 'record-task', 'check-task', 'checkpoint-work', 'check-naming'):
             p.add_argument('--artifact-root', type=Path, required=True)
+        if command == 'record-consumer-contracts':
+            p.add_argument('--artifact-root', type=Path)
         if command == 'stage':
             from engagement_stages import STAGES
             p.add_argument('--stage', choices=STAGES, required=True)

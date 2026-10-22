@@ -13,7 +13,8 @@ from ae_common import _path, hash_file, hash_json, load_json, require, write_jso
 from authoring_evidence import capture, finding, make_receipt, validate_contract, fields
 
 CHECKER_FILES = ('authoring_evidence.py', 'authoring_provenance.py', 'dbt_references.py',
-                 'authoring_conformance.py', 'authoring_quality.py', 'artifact_syntax.py', 'source_adapters/base.py')
+                 'authoring_conformance.py', 'authoring_quality.py', 'artifact_syntax.py', 'source_adapters/base.py',
+                 'naming_governance.py', 'naming_artifacts.py')
 
 
 def checker_version():
@@ -115,6 +116,13 @@ def observe_task(state, root, task, mode, *, observation_id, run_id=None, contra
     paths = sorted(set(task['outputs']) | {m['path'] for m in contract['models'] if m['path'] is not None})
     dialect = target_dialect(state)
     receipt = evaluate(root, state['inputs']['source']['path'], contract, paths, dialect)
+    from naming_artifacts import observe_task as observe_naming
+    naming_report = observe_naming(state, root, task, contract)
+    if naming_report is not None:
+        receipt['findings'].extend(naming_report['findings'])
+        from authoring_evidence import summarize
+        receipt.update(summarize(receipt['findings']))
+        receipt['naming_scope_sha256'] = naming_report['scope_sha256']
     observation = {'schema_version': 1, 'id': observation_id, 'task_id': task['id'],
                    'run_id': run_id, 'recorded_at': guided._now(), 'contract': contract,
                    'task_sha256': hash_json(task), 'target_sha256': state['inputs']['target']['sha256'],
@@ -163,6 +171,12 @@ def summaries(state):
                      and hash_json(item['contract']) == receipt['contract_sha256']
                      and capture(root, list(receipt['outputs'])) == receipt['outputs']
                      and capture(state['inputs']['source']['path'], list(receipt['source_evidence'])) == receipt['source_evidence'])
+            if receipt.get('naming_scope_sha256'):
+                from naming_artifacts import _pins
+                from naming_governance import records
+                wanted = {m['id'] for m in item['contract']['models'] if m.get('path') in task['outputs'] and Path(m['path']).suffix.lower() == '.sql'}
+                fresh = fresh and receipt['naming_scope_sha256'] == _pins(state,
+                    [r['id'] for r in records(state) if r['entity_id'] in wanted])
         except (OSError, ValueError, TypeError, KeyError, StopIteration): pass
         result.append({'task_id': task_id, 'observation_id': item['id'], 'run_id': item['run_id'],
                        'mode': receipt['mode'],

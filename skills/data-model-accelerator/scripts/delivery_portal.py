@@ -1160,6 +1160,10 @@ def _presentation(state, review=None, audience='engineer'):
             for key in ('models', 'relationships', 'assets'):
                 workflow.pop(key, None)
         allowed_models = {m['id'] for m in data['review'].get('models', [])}
+        from governance_delivery import project as governance_projection
+        governance = governance_projection(state, allowed_models if review is not None else None)
+        if governance is not None:
+            workflow['governance'] = governance
         if review is not None:
             from delivery_plan import public_summary as delivery_plan_summary
             workflow['delivery_plan'] = delivery_plan_summary(state, allowed_models)
@@ -1619,7 +1623,7 @@ def _trim_workflow_details(data):
     for key in ('assets', 'models', 'relationships', 'domain_proposals', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
-        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness', 'migration_intent'):
+        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness', 'migration_intent', 'governance'):
             data['workflow'].pop(key, None)
 
 
@@ -1820,6 +1824,11 @@ def generated_deliverables(data):
         add('generated:migration-review', '01_Model/migration-review.md', 'documentation',
             'Scoped business rules, shared model proposals, source coverage and parity evidence.',
             _migration_markdown(data['migration_review']).encode())
+    if {'documentation','dictionary'} <= selected and data.get('workflow', {}).get('governance'):
+        from governance_delivery import files as governance_files
+        for file in governance_files(data['workflow']['governance']):
+            add('generated:governance:' + file['path'], file['path'], 'documentation',
+                'Complete selected naming, requested scope and consumer-change review.', file['content'])
     if {'documentation', 'dictionary'} <= selected and data.get('migration_planning'):
         from migration_plan_exports import export_files
         for file in export_files(data['migration_planning']):
@@ -2023,6 +2032,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         data.pop('migration_planning')
         data['migration_planning_omitted'] = ('Migration planning files were omitted: include both documentation '
             'and dictionary to export their complete mapping and column inventory.')
+    if not {'documentation','dictionary'} <= set(include):
+        data.get('workflow',{}).pop('governance',None)
     # Data-heavy views must also obey deliverable selection, not just file omission.
     if not set(include)&{'documentation','dictionary','diagrams'}:
         _trim_workflow_details(data)

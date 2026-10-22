@@ -5,6 +5,11 @@ description: Generate the selected semantic layer from a reviewed warehouse desi
 
 # Model the semantic layer
 
+Consume the selected [naming contract](../data-model-accelerator/references/governed-naming.md)
+and physical identity map. Omni labels may be friendly, but table/schema bindings
+must match the warehouse contract. Check descriptions against scoped expression
+evidence and expose removed public fields; name checks never establish parity.
+
 If the user explicitly requests code with catalogue evidence or design review
 pending, use [provisional generation](../data-model-accelerator/references/provisional-generation.md).
 Author supported draft files against the proposed physical interfaces, with

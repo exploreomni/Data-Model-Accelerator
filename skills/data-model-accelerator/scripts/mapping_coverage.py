@@ -210,7 +210,8 @@ def _scope_bindings(value, state):
     return {key: hash_json(rows) for key, rows in grouped.items()}
 
 
-def summarize(state):
+def summarize(state, *, detail_limit=500):
+    require(detail_limit is None or type(detail_limit) is int and detail_limit >= 0, 'Invalid coverage detail limit')
     value = read(state)
     if value is None:
         return {'status': 'unassessed'}
@@ -239,7 +240,7 @@ def summarize(state):
                 'total': 0, **{s: 0 for s in counts}, 'model_ids': set()})
             group['total'] += 1; group[status] += 1; group['model_ids'].update(model_ids)
         details.append({'id': key, 'asset': occurrence['path'], 'name': occurrence['name'],
-                        'domain': ', '.join(domains), 'model_ids': model_ids, 'status': status,
+                        'domain': ', '.join(domains), 'domain_ids': domains, 'model_ids': model_ids, 'status': status,
                         'rationale': mapping['rationale']})
     summary = value['bundle']['coverage_summary']
     return {'status': 'stale' if counts['stale'] else 'recorded', 'unit': 'retained_source_occurrences',
@@ -248,5 +249,31 @@ def summarize(state):
             'orphan_requirements': sorted(set(value['requirements']) - {r for m in value['mappings'].values() for r in m['requirement_ids']}),
             'export_completeness': 'not_established', 'native_parity': 'not_validated',
             'groups': [{**g, 'model_ids': sorted(g['model_ids'])} for _, g in sorted(groups.items())],
-            'rows': details[:500], 'omitted_detail_rows': max(0, len(details) - 500),
+            'rows': details if detail_limit is None else details[:detail_limit],
+            'omitted_detail_rows': 0 if detail_limit is None else max(0, len(details) - detail_limit),
             'qualification': 'Counts cover retained adapter objects, expressions and dependency occurrences, not all native fields. Mapped means an authored association; exclusions are host-attributed review claims. Full source semantics remain in the pinned evidence.'}
+
+
+def detail_rows(state, selected=None):
+    """Complete current rows, optionally restricted to explicit entity scope.
+
+    Unresolved rows assigned to selected domains remain visible without targets.
+    Cross-domain rows require all declared domains and targets to fit. Unassigned
+    rows with no target cannot be safely attributed to a scoped disclosure and
+    are retained only in the unrestricted ledger/export. No name inference.
+    """
+    rows = summarize(state, detail_limit=None).get('rows', [])
+    if selected is None: return rows
+    selected = set(selected); ids(sorted(selected))
+    models = {e['id']: e for e in (state.get('workflow', {}).get('design') or {}).get('entities', [])}
+    require(selected <= set(models), 'Selected coverage model is unknown')
+    labels = {models[key].get('domain', '').casefold() for key in selected}
+    for domain in (state.get('workflow', {}).get('domain_journey') or {}).get('domains', []):
+        if domain['id'].casefold() in labels or domain['name'].casefold() in labels:
+            labels.update((domain['id'].casefold(), domain['name'].casefold()))
+    kept = []
+    for row in rows:
+        domains = {d.casefold() for d in row['domain_ids'] if d != 'unassigned'}
+        targets = set(row['model_ids'])
+        if targets <= selected and (domains and domains <= labels or not domains and targets): kept.append(row)
+    return kept

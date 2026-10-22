@@ -5,6 +5,12 @@ description: Generate warehouse or framework code for an already reviewed Data M
 
 # Implement the reviewed design
 
+Consume the coordinator's scoped [naming contract](../data-model-accelerator/references/governed-naming.md).
+Preserve original bindings and approved target names in filenames, refs, aliases,
+folders and selected key rules. Check actual outputs; request an explicit override
+instead of inventing names. Public contract changes need separate review, while
+requested provisional generation remains available.
+
 If the user explicitly requests code with catalogue evidence or design review
 pending, use [provisional generation](../data-model-accelerator/references/provisional-generation.md).
 Record the actual request and author supported draft files now. Keep missing

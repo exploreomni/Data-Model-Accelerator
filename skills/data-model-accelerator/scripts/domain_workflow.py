@@ -275,6 +275,21 @@ def _progress(state, domain, tasks, selected=None):
             check(state, selected)
         except ValueError as error:
             gaps.append(str(error))
+    if not batch_scoped:
+        from migration_inventory import gaps as inventory_gaps
+        gaps.extend(inventory_gaps(state, sorted(selected)))
+    if selected and state.get('workflow', {}).get('naming_governance'):
+        from naming_artifacts import summary as naming_summary
+        naming = naming_summary(state, sorted(selected))
+        if naming.get('counts', {}).get('failed'):
+            gaps.append('Correct the generated naming mismatches before marking the domain complete.')
+        code_paths = {p for task in state['workflow'].get('tasks', [])
+                      if task['stage'] in {'implementation','semantic'} and set(task['entity_ids']) <= selected
+                      for p in task['outputs'] if p.endswith(('.sql','.view','.topic','.view.yaml','.topic.yaml'))}
+        unchecked = {f.get('path') for f in naming.get('findings',[])
+                     if f['status']=='not_run' and f.get('path') in code_paths}
+        if code_paths and (not naming.get('artifacts_checked') or unchecked):
+            gaps.append('Check the generated SQL and semantic naming bindings before marking the domain complete.')
     finished = []
     graph = {e['id']: e['depends_on'] for e in (state['workflow'].get('design') or {}).get('entities', [])}
     physical = selected - {e['id'] for e in (state['workflow'].get('design') or {}).get('entities', [])

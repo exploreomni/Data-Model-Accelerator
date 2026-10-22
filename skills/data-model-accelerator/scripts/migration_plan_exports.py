@@ -260,6 +260,26 @@ def _domain(raw):
                               for x in _rows(raw.get('missing_consumers', []), 'missing consumers')]
     d['archived_edits'] = [{k: _text(x.get(k)) for k in ('id', 'notes', 'owner', 'priority', 'due_date')}
                            for x in _rows(raw.get('archived_edits', []), 'archived edits')]
+    if 'requested_inventory' in raw:
+        requested = raw['requested_inventory']; rows = requested.get('rows', [])
+        _require(type(rows) is list and len(rows) <= 20000 and all(type(r) is dict for r in rows),
+                 'Requested inventory exceeds the bounded export size')
+        d['requested_counts'] = {k: _text(v) for k, v in requested.get('counts', {}).items()}
+        d['requested_counts']['omitted_detail_rows'] = _text(requested.get('omitted_detail_rows', 0))
+        d['requested_inventory'] = []
+        for row in rows:
+            item = {k: _text(row.get(k)) for k in ('id', 'source_namespace', 'native_id', 'kind', 'classification')}
+            item.update(accounted=row.get('accounted') is True,
+                        model_ids=_strings(row.get('model_ids', [])),
+                        legacy_table_ids=_strings(row.get('legacy_table_ids', [])),
+                        consumer_ids=_strings(row.get('consumer_ids', [])),
+                        exclusion_ids=_strings(row.get('exclusion_ids', [])))
+            occurrences = row.get('occurrences', [])
+            _require(type(occurrences) is list and len(occurrences) <= 20000, 'Oversized inventory provenance')
+            item['occurrences'] = [{k: _text(o.get(k)) for k in
+                ('id', 'register_id', 'register_kind', 'row_id', 'evidence_reference_count', 'omitted_from_latest_import')}
+                for o in occurrences]
+            d['requested_inventory'].append(item)
     return d
 
 
@@ -282,6 +302,17 @@ def _sheets(d):
         ('Migration context validation', 'not_revalidated')] +
         [('Consumer coverage: '+k,v or 'Unknown') for k,v in d['consumer_coverage'].items()])
     tab('Coverage', ['Kind', 'Measure', 'Count'], d['coverage'])
+    if 'requested_inventory' in d:
+        tab('Requested scope', ['Inventory ID', 'Source namespace', 'Native ID', 'Kind', 'Classification',
+                               'Accounted', 'Model IDs', 'Legacy table IDs', 'Consumer IDs', 'Exclusion decisions'],
+            [(r['id'], r['source_namespace'], r['native_id'], r['kind'], r['classification'], str(r['accounted']),
+              _join(r['model_ids']), _join(r['legacy_table_ids']), _join(r['consumer_ids']), _join(r['exclusion_ids']))
+             for r in d['requested_inventory']])
+        tab('Inventory provenance', ['Inventory ID', 'Occurrence ID', 'Register ID', 'Register kind', 'Row ID',
+                                     'Evidence reference count', 'Omitted from latest import'],
+            [(r['id'], o['id'], o['register_id'], o['register_kind'], o['row_id'], o['evidence_reference_count'],
+              o['omitted_from_latest_import']) for r in d['requested_inventory'] for o in r['occurrences']])
+        tab('Requested counts', ['Measure', 'Count'], sorted(d['requested_counts'].items()))
     tab('Inventory', ['Kind', 'Stable ID', 'Name', 'Layer', 'Grain', 'Model IDs', 'Disposition'],
         [('legacy_table', t['id'], t['name'], '', '', _join(t['model_ids']), '') for t in d['tables']] +
         [('model', m['id'], m['name'], m['layer'], m['grain'], m['id'], m['disposition']) for m in d['models']])
@@ -394,6 +425,17 @@ def _blocks(d):
               {'type':'table','headers':['Kind','Total','Mapped','Unmatched','Unsupported','Excluded'],
                'rows':[[kind]+[value or 'Unknown' for group, key, value in d['coverage'] if group==kind]
                        for kind in ('tables','columns','rules')]}]
+    if 'requested_inventory' in d:
+        blocks += [{'type': 'heading', 'level': 2, 'text': 'Complete requested migration scope'},
+                   {'type': 'paragraph', 'text': 'Supplied scope only. Accounted associations and exclusions do not establish approval or parity.'},
+                   {'type': 'table', 'headers': ['Measure', 'Count'], 'rows': [list(x) for x in sorted(d['requested_counts'].items())]},
+                   {'type': 'table', 'headers': ['Inventory / native identity', 'Source namespace', 'Classification / accounted', 'Targets / exclusions'],
+                    'rows': [[r['id'] + '\n' + r['native_id'], r['source_namespace'], r['classification'] + ' / ' + str(r['accounted']),
+                              _join(r['model_ids']) + '\nExclusion decisions: ' + _join(r['exclusion_ids'])] for r in d['requested_inventory']]},
+                   {'type': 'table', 'headers': ['Inventory / occurrence ID', 'Register / row', 'Evidence reference count', 'Omitted from latest import'],
+                    'rows': [[r['id'] + '\n' + o['id'], o['register_kind'] + ': ' + o['register_id'] + '\n' + o['row_id'],
+                              o['evidence_reference_count'], o['omitted_from_latest_import']]
+                             for r in d['requested_inventory'] for o in r['occurrences']]}]
     blocks.append({'type':'heading','level':2,'text':'Declared table and lineage diagrams'})
     labels = {m['id']: m['name'] or m['id'] for m in d['models']}
     labels.update({t['id']:t['name'] or t['id'] for t in d['tables']})
@@ -555,6 +597,13 @@ def export_files(summary):
             _require(raw.get('freshness') in {'unassessed','unavailable'},'Missing retained plan snapshot')
             continue
         d=_domain(raw);tabs=_sheets(d);blocks=_blocks(d)
+        if raw.get('governed_review'):
+            from governance_delivery import tables as governed_tables, document_blocks
+            # Existing requested inventory tabs already carry these rows.
+            extra=[t for t in governed_tables(raw['governed_review']) if t['name'] not in {t['name'] for t in tabs}]
+            tabs.extend(extra)
+            blocks.extend(document_blocks(raw['governed_review'],
+                exclude=('Requested scope','Requested counts','Inventory provenance') if 'requested_inventory' in d else ()))
         slug=re.sub('[^A-Za-z0-9_-]','-',identity)[:60]+'-'+hashlib.sha256(identity.encode()).hexdigest()[:10]
         base='05_Migration/'+slug+'/'
         def add(path,content,media):files.append({'path':base+path,'content':content,'media_type':media,'domain_id':identity})
@@ -580,3 +629,24 @@ def export_files(summary):
         add('README.md',readme.encode('utf-8'),'text/markdown')
     _require(len({f['path'] for f in files})==len(files),'Export path collision')
     return sorted(files,key=lambda f:f['path'])
+
+
+def mapping_coverage_export(state, selected=None):
+    """Serialize all retained occurrences; callers own disclosure and saving.
+
+    This explicit read-only helper reads the core ledger, independently of the
+    500-row display cap. No source or output files are written.
+    """
+    from mapping_coverage import detail_rows
+    return mapping_coverage_rows_export(detail_rows(state, selected))
+
+
+def mapping_coverage_rows_export(rows):
+    """Export an already disclosure-scoped complete detail_rows projection."""
+    _require(type(rows) is list and len(rows) <= 100000 and all(type(r) is dict for r in rows),
+             'Invalid bounded occurrence coverage')
+    headers = ['Occurrence ID', 'Source asset', 'Name', 'Domain', 'Model IDs', 'Status', 'Rationale']
+    content = _csv(headers, [(r['id'], r['asset'], r['name'], r['domain'], _join(r['model_ids']),
+                              r['status'], r['rationale']) for r in rows])
+    return {'path': 'migration-planning/source-occurrence-coverage.csv', 'content': content,
+            'media_type': 'text/csv', 'domain_id': None}

@@ -25,7 +25,7 @@ BRIEF_FIELDS = {'objective', 'scope_ids', 'summary', 'decisions', 'unknowns',
                 'constraints', 'output_contract', 'stop_conditions'}
 REQUEST_FIELDS = {'schema_version', 'kind', 'task_id', 'role', 'bindings', 'brief',
                   'evidence', 'policy', 'classification', 'mode'}
-OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta', 'source_type', 'migration_intents', 'design_evidence'}
+OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta', 'source_type', 'migration_intents', 'design_evidence', 'naming_contract'}
 
 
 def _text(value, label):
@@ -104,6 +104,8 @@ def _validate(request):
     require(ranges_count <= 64, 'Too many evidence excerpts; split by dependency closure')
     from migration_context import packet_evidence
     packet_evidence(request)
+    from naming_context import validate_packet
+    validate_packet(request)
     return limit
 
 
@@ -150,6 +152,10 @@ def build_packet(root, request, output):
             data['specialist_profile'] = profile
         if 'delta' in request:
             data['delta'] = request['delta']
+        from naming_context import validate_packet
+        naming = validate_packet(request)
+        if naming is not None:
+            data['naming_contract'] = naming
         data['evidence'] = excerpts
         data['file_coverage'] = coverage
         from migration_context import packet_evidence
