@@ -239,3 +239,21 @@ plans expose the applicable contracts, including shared dependency domains.
 When an execution receipt is recorded, its scoped intent pins must match those
 of the current task. Do not turn a behavior-preservation instruction into
 structural preservation or treat an inventory as the target architecture.
+# Proportional validation and execution inventory
+
+Keep the host's configured model defaults unless the user or an applicable routing
+contract explicitly selects another model. Use one independent review followed by
+a correction scoped to actual findings; another full pass needs new evidence or
+a material unresolved risk. Reuse unchanged task outputs through the existing
+fingerprint plan. Do not regenerate every domain after a packaging-only change.
+
+Choose validation from the design's actual risks: declared grain/key uniqueness,
+join fanout and orphans, date/history boundaries, currency/unit treatment, effective
+access, and changed dependencies. Preserve checks required by the selected automation,
+but do not stamp the same test onto every column or turn local samples into native
+warehouse proof. Provisional files stay available with their unverified assumptions.
+
+`run_efficiency.summarize(state)` and delivery preflight report existing task reuse,
+repeated attempts and packet byte counts. Missing execution receipts remain unknown.
+These diagnostics are not token-cost estimates, billing or promises of savings.
+Development difficulty remains in the existing reviewed effort assessment.

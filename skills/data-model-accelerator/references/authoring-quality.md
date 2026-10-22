@@ -29,6 +29,17 @@ external dependencies use `source:schema.table`, `ref:package.model` or
 `table:qualified_relation`. A catalogue's existence does not verify physical
 bindings; validate those against the target environment separately.
 
+The authoring checker and dbt source adapter share `dbt_references.py` for
+literal `ref`/`source` declarations, including multiline/whitespace variants,
+package-qualified refs and literal `version`/`v` arguments. Versioned refs retain
+`@version=<value>` in the dependency key, and package-qualified or versioned refs
+are never mapped to a local model by short filename alone. Reserved separators
+inside names/versions are percent-escaped. Dynamic templates, macro calls and
+control-flow statements remain unsupported; original bytes are preserved.
+Supplied native manifest graph evidence remains separate from source-only
+declarations. None resolves missing physical catalogues or prevents requested
+provisional authoring.
+
 `record-task` accepts optional `authoring_contract`. It automatically checks
 the batch and records a separate observation. Old callers need no new fields;
 unmapped scope is reported as unknown. Failed, missing or unsupported checks

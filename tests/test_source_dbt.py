@@ -251,6 +251,35 @@ class YamlAndBindingTests(unittest.TestCase):
 
 
 class PreservationAndSafetyTests(unittest.TestCase):
+    def test_source_only_literal_references_are_canonical_unbound_declarations(self):
+        raw = "select a.id from {{ ref (\n 'pkg', 'orders', version=2\n) }} a join {{ source('raw', 'users') }} b on a.id=b.id"
+        result = checked({'models/report.sql': raw})
+        self.assertEqual([d['target'] for d in result['dependencies']], ['ref:pkg.orders@version=2', 'source:raw.users'])
+        self.assertTrue(all(d['details']['resolution'] == 'unbound_literal_declaration' for d in result['dependencies']))
+        self.assertTrue({'dbt.literal_reference_unbound', 'dbt.authored_binding_unverified'} <= codes(result))
+        self.assertFalse(result['execution_performed'])
+
+    @unittest.skipUnless(HAS_YAML, 'Pinned PyYAML required for exact project binding')
+    def test_compatible_manifest_dependencies_take_precedence_over_source_only_calls(self):
+        raw = "select id from {{ ref('upstream') }}"
+        model = node(raw_code=raw, checksum={'name': 'sha256', 'checksum': hashlib.sha256(raw.encode()).hexdigest()},
+                     depends_on={'nodes': ['model.shop.upstream'], 'macros': []})
+        upstream = node(name='upstream')
+        files = {'dbt_project.yml': 'name: shop\n', 'models/orders.sql': raw,
+                 'manifest.json': json.dumps(manifest(nodes={model['unique_id']: model, upstream['unique_id']: upstream}))}
+        result = checked(files)
+        self.assertEqual([d['target'] for d in result['dependencies']], ['model.shop.upstream'])
+        self.assertNotIn('dbt.literal_reference_unbound', codes(result))
+        # An explicit empty manifest array still takes precedence; the reader
+        # does not silently repair or re-interpret supplied native parse evidence.
+        model['depends_on']['nodes'] = []
+        files['manifest.json'] = json.dumps(manifest(nodes={model['unique_id']: model}))
+        self.assertFalse(checked(files)['dependencies'])
+        # Missing nodes evidence is not an empty dependency set.
+        model['depends_on'].pop('nodes')
+        files['manifest.json'] = json.dumps(manifest(nodes={model['unique_id']: model}))
+        self.assertEqual([d['target'] for d in checked(files)['dependencies']], ['ref:upstream'])
+
     def test_no_regex_ref_hallucination_or_dynamic_execution(self):
         text = "-- {{ ref('comment_only') }}\n{% for n in var('names') %} select * from {{ ref(n) }} {% endfor %}\n{{ run_query('DROP TABLE important') }}"
         with patch('subprocess.run', side_effect=AssertionError('must not run')), patch('os.system', side_effect=AssertionError('must not run')):
@@ -258,6 +287,7 @@ class PreservationAndSafetyTests(unittest.TestCase):
         self.assertFalse(result['dependencies'])
         self.assertIn(text, [e['text'] for e in result['expressions']])
         self.assertTrue({'dbt.jinja_unrendered', 'dbt.python_unexecuted'} <= codes(result))
+        self.assertIn('dbt.reference_extraction_unresolved', codes(result))
 
     def test_seed_rows_and_profile_credentials_are_not_copied_into_report(self):
         csv = 'id,email\n1,secret@example.invalid\n'

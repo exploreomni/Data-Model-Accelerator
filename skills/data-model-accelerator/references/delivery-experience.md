@@ -125,3 +125,23 @@ handoff together. The coordinator must not substitute a source clone, candidate
 folder, status-only page or `handoff_prepared` message for that result. Explain that
 `03_Design_Documents/` is the simple layout's design folder (`01_Model/` in classic layout). Missing outputs require repair or an explicit
 incomplete status, not another full model run or a silent reduced selection.
+# Early checks and large deliveries
+
+Use `delivery_preflight.py --run-dir <engagement> --review <review.json> --artifacts <candidate>`
+before assembling the final export. It reports selected formats, audience, sizes,
+catalogue availability and missing disclosure context without changing draft authority.
+The finalizer includes this report and separate artifact-delivery, native-validation,
+business-approval and deployment states in its receipt. An explicit scoped draft
+request allows prepared provisional files; `--checkpoint` means genuinely incomplete work.
+
+Simple-layout deliveries with more than 100 models or 200 selected files use one
+root Start Here with domain/output navigation and bounded offline table, code and
+pipeline pages in `03_Design_Documents/Review/`. The original code stays in
+`04_Code_Generation/`; pages only display it. Excel/Word/PDF and mappings have direct
+links in Migration plan. Small and classic deliveries retain their existing renderer.
+
+The maintained large-package route scans each exact member within the document
+limit, then verifies every member, path and hash in the assembled container. It
+does not raise the generic incoming-archive scanner limits. There is no clean-scan
+override: unsupported rich content or unresolved disclosure still prevents export.
+Raster figures are not OCR-verified; retain their documented coverage limitations.

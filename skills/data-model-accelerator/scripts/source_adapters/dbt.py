@@ -2,6 +2,7 @@
 import json
 from pathlib import PurePosixPath
 
+from dbt_references import extract_references
 from .base import Report, read_json, read_yaml, sha, validate_files
 from .sql import parse_sql
 
@@ -9,13 +10,13 @@ SUPPORTED_MANIFEST_SCHEMAS = ('https://schemas.getdbt.com/dbt/manifest/v12.json'
 CAPABILITY = {
     'formats': ['dbt manifest v12 JSON', 'dbt_project.yml config-version 2 (explicit or omitted)',
                 'dbt properties .yml version 2 (explicit or omitted)', 'packages/dependencies/package-lock YAML',
-                'authored SQL/Jinja and Python (preservation only)', 'seed CSV (hash only)'],
+                'authored SQL/Jinja literal reference declarations; Python (preservation only)', 'seed CSV (hash only)'],
     'interpretation': 'bounded_static_extraction',
     'acquisition': 'supplied_exports',
     'limitations': [
         'No dbt commands, Jinja rendering, macro/hook execution, package installation or introspection.',
         'Manifest v12 is a bounded structural contract, not full JSON Schema or native validation.',
-        'Dependencies come from supplied manifest depends_on IDs, never regex ref inference.',
+        'Native dependencies use supplied manifest IDs; source-only literal refs/sources remain unbound declarations.',
         'Compiled code is supplied evidence, not authenticated execution or revision parity.',
         'YAML config inheritance, runtime branches, remote packages and effective security remain unresolved.',
     ],
@@ -157,7 +158,7 @@ class _Parser:
             return
         self.r.cover(path, 'parsed')
 
-    def bind(self, path, loc, row, dialect, manifest_owner):
+    def bind(self, path, loc, row, dialect, manifest_owner, disabled=False):
         original = row.get('original_file_path')
         raw = row.get('raw_code')
         if not isinstance(raw, str):
@@ -180,9 +181,13 @@ class _Parser:
         if isinstance(checksum, dict) and checksum.get('name') == 'sha256' and checksum.get('checksum') != sha(raw):
             self.gap(path, 'checksum_mismatch', 'Declared sha256 checksum differs from exact supplied authored bytes.', loc)
             return
+        depends = row.get('depends_on')
+        nodes = depends.get('nodes') if isinstance(depends, dict) else None
+        compatible = (not disabled and isinstance(nodes, list) and all(_text(item) for item in nodes))
         self.bindings.setdefault(candidate, []).append({'dialect': dialect, 'manifest_path': path,
             'manifest_object_id': manifest_owner, 'native_id': row['unique_id'],
-            'binding': 'package_original_path_exact_raw_code', 'sha256': sha(raw)})
+            'binding': 'package_original_path_exact_raw_code', 'sha256': sha(raw),
+            'dependency_evidence': 'supplied_manifest_nodes' if compatible else None})
 
     def resource(self, path, loc, key, row, allowed, disabled, metadata):
         if not isinstance(row, dict):
@@ -248,7 +253,7 @@ class _Parser:
                 self.r.object(path, cloc, 'dbt_column_declaration', data['name'],
                               parent_id=oid, raw_metadata=data, physical_presence='not_verified')
                 self.declarations(path, cloc, data, oid)
-        self.bind(path, loc, row, dialect, oid)
+        self.bind(path, loc, row, dialect, oid, disabled)
         return oid
 
     def manifest(self, path, value):
@@ -336,7 +341,24 @@ class _Parser:
             self.gap(path, 'python_unexecuted', 'Python model source is retained without importing, execution or dependency inference.')
         elif _templated(text):
             self.r.expression(path, '$code', 'dbt:sql+jinja', text, oid, interpretation='preserved_original')
-            self.gap(path, 'jinja_unrendered', 'Authored Jinja is preserved without extracting regex refs or rendering dynamic branches.')
+            self.gap(path, 'jinja_unrendered', 'Authored Jinja remains unrendered; bounded literal references do not establish runtime dependencies.')
+            references = extract_references(text)
+            # Keep the native manifest graph authoritative for a compatible
+            # exact binding, including an explicitly empty dependency array.
+            if not binding or not binding.get('dependency_evidence'):
+                for call in references['references']:
+                    span = call['span']
+                    loc = '$code[%d:%d]' % (span['start'], span['end'])
+                    self.r.dependency(path, loc, oid, call['key'], kind='authored_literal_' + call['kind'],
+                                      resolution='unbound_literal_declaration', literal_reference=call,
+                                      target_object_id=None, effective_runtime_dependency='not_verified')
+                    self.gap(path, 'literal_reference_unbound',
+                             'Literal ref/source names are authored declarations; native identity, version/package selection and physical binding remain unverified.', loc)
+            for unresolved in references['unresolved']:
+                span = unresolved['span']
+                self.gap(path, 'reference_extraction_unresolved',
+                         'Static reference extraction unresolved: ' + unresolved['reason'] + '.',
+                         '$code[%d:%d]' % (span['start'], span['end']))
         else:
             parse_sql(self.r, path, text, binding['dialect'] if binding else None, oid, '$code')
         if not binding:

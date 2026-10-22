@@ -96,11 +96,12 @@ def check_conformance(root, contract, paths, dialect):
                         if call and call['name'] == 'ref':
                             # Package-qualified refs cannot be assigned to a
                             # local model using its short name alone.
-                            candidates = stems.get(call['arguments'][-1], []) if len(call['arguments']) == 1 else []
+                            candidates = (stems.get(call['arguments'][-1], [])
+                                          if len(call['arguments']) == 1 and call['version'] is None else [])
                             require(len(candidates) <= 1, 'Ambiguous model identity')
-                            dependencies.add(candidates[0] if candidates else 'ref:' + '.'.join(call['arguments']))
+                            dependencies.add(candidates[0] if candidates else call['key'])
                         elif call:
-                            dependencies.add('source:' + '.'.join(call['arguments']))
+                            dependencies.add(call['key'])
                         else:
                             relation = source.copy(); relation.set('alias', None)
                             dependencies.add('table:' + relation.sql(dialect=dialect))

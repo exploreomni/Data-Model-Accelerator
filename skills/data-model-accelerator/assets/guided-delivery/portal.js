@@ -481,7 +481,7 @@ const actions=eng.next_actions||[],first=actions[0];
 el('next-title').textContent=first?.title||({discovery:'Complete the next discovery step',generation:'Review the model prerequisites',readiness:'Resolve the readiness findings',catalogue:'Ground the model in your raw data'}[first?.scope])||'Review readiness and outstanding decisions';
 const nextSection=reviewSections.includes(first?.section)?first.section:eng.delivery?.status==='prepared'?'delivery':'readiness';
 el('next-link').href='#'+nextSection;el('next-link').textContent=nextSection==='delivery'?'Inspect handoff →':'Review next step →';
-if(eng.delivery?.status==='prepared'){el('handoff-summary').hidden=false;el('handoff-summary').textContent=`${files.length?files.length+' registered files are included in this export.':'A prepared handoff is recorded; this status page has no embedded files.'} ${eng.delivery.qualification||'File integrity only; native runtime, business approval and deployment remain separate.'}`;}
+if(['prepared','provisional_prepared'].includes(eng.delivery?.status)){el('handoff-summary').hidden=false;el('handoff-summary').textContent=`${eng.delivery.status==='provisional_prepared'?'Provisional files prepared. ':''}${files.length?files.length+' registered files are included in this export.':'A prepared handoff is recorded; this status page has no embedded files.'} ${eng.delivery.qualification||'File integrity only; native runtime, business approval and deployment remain separate.'}`;}
 el('next-detail').textContent=typeof first==='object'?(first.action||first.detail||first.description||first.reason||''): first||'The agent retains your decisions and evidence. Continue with the outstanding item before claiming the next stage.';
 function effortPackageDetails(row){const box=make('div');box.append(make('p',row.rationale||row.summary||'No rationale supplied.'));const detail=make('details');detail.append(make('summary','Factors and prerequisites'));for(const item of row.dimensions||[])detail.append(make('p',`${pretty(item.name)} · ${pretty(item.level)}: ${item.rationale||'No rationale supplied.'}`));for(const key of ['assumptions','prerequisites','dependencies','included_work','excluded_work'])if(row[key]?.length)detail.append(make('p',`${pretty(key)}: ${row[key].join('; ')}`));box.append(detail);return box;}
 const workflow=data.workflow||null;
@@ -544,7 +544,7 @@ function primaryGuide(id,file,label){
   const target=clear(id);
   if(!file){target.append(make('p',`No ${label.toLowerCase()} is included in this view. Ask the agent to select the maintained document when packaging.`,'muted'));return;}
   target.append(make('h3',label),make('p',file.description||file.path,'muted'));
-  const detail=make('details'),summary=make('summary','Read '+label.toLowerCase()),body=bytes(file.base64),preview=make('pre',body.length>2*1024*1024?'Preview is limited to 2 MiB. Download the complete document.':new TextDecoder().decode(body),'guide-preview');
+  const detail=make('details'),summary=make('summary','Read '+label.toLowerCase()),body=bytes(file.base64),binary=/\.(xlsx|docx|pdf)$/i.test(file.path),preview=make('pre',binary?'Download this document to read it in its compatible application.':body.length>2*1024*1024?'Preview is limited to 2 MiB. Download the complete document.':new TextDecoder().decode(body),'guide-preview');
   const button=make('button','Download document','secondary');button.type='button';button.onclick=()=>download(file.path.split('/').pop(),body);
   detail.append(summary,preview,button);target.append(detail);
 }

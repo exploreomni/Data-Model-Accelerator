@@ -58,6 +58,15 @@ class ConformanceTests(unittest.TestCase):
         rows = self.check("select id from {{ ref('external', 'customers') }}")
         self.assertIn('dependencies_match', [r['code'] for r in rows])
 
+    def test_version_and_spacing_preserve_canonical_dependency_without_short_name_binding(self):
+        self.contract['models'][0]['depends_on'] = ['ref:orders@version=2']
+        rows = self.check("select id from {{ ref (\n 'orders', v = 2\n) }}")
+        self.assertIn('dependencies_match', [r['code'] for r in rows])
+        self.assertNotIn('observed_dependency_cycle', [r['code'] for r in rows])
+        self.contract['models'][0]['depends_on'] = ['ref:orders@version=1']
+        rows = self.check("select id from {{ref('orders',version=2)}}")
+        self.assertIn('dependencies_differ', [r['code'] for r in rows])
+
     def test_cte_column_aliases_and_qualified_star_modifiers_never_false_pass(self):
         for sql in ('with x(new_id) as (select id from raw) select * from x',
                     'with x as (select id, hidden from raw) select x.* exclude(hidden) from x'):

@@ -324,7 +324,12 @@ def _binding(state, domain_id, request):
     # Shared consumer contracts are included only where explicitly referenced.
     selected = scope | {m for c in request['consumers'] for m in c['model_ids']}
     config = {k: v for k, v in _config(state, domain_id).items() if k != 'request_reference'}
-    return hash_json({'version': VERSION, 'config': config, 'inventory': _inventory(state, domain_id),
+    inventory = _inventory(state, domain_id)
+    # Additive planning diagnostics do not rewrite existing material bindings;
+    # enriched reconciliation may consume this plan's own supplied lineage.
+    inventory.pop('reconciliation', None)
+    for mapping in inventory['mappings']: mapping.pop('target_status', None)
+    return hash_json({'version': VERSION, 'config': config, 'inventory': inventory,
                       'targets': {key: _target_pin(state, {'model_id': key, 'kind': 'table'}, cache) for key in sorted(selected)},
                       'known_consumers': _known_consumers(state, domain_id), 'migration_context': _migration_context(state, domain_id),
                       'evidence': _evidence_pins(state, request)})
@@ -467,6 +472,7 @@ def _summary(state, domain_id, allowed_models):
     if allowed is not None and (not scope or not scope <= allowed): return None
     inventory = _inventory(state, domain_id, allowed_models)
     upstream_freshness = inventory['freshness']
+    reconciliation_input = inventory
     inventory = {k: copy.deepcopy(inventory[k]) for k in ('baseline_status', 'tables', 'mappings', 'unmatched', 'coverage', 'omitted_details')}
     result = {'domain_id': domain_id, 'plan_sha256': None, 'freshness': 'unassessed',
               'config': {k: v for k, v in config.items() if k not in ('schema_version', 'request_reference')},
@@ -535,6 +541,11 @@ def _summary(state, domain_id, allowed_models):
             'missing': len(result['missing_consumers']), **{s: sum(c['status'] == s for c in result['consumers']) for s in sorted(STATUSES)},
             'retirement_candidates': sum(c['disposition'] == 'retire_candidate' for c in result['consumers']),
             'completeness': 'supplied_inventory_only'}
+        from legacy_alignment import reconciliation_summary
+        result['reconciliation'] = reconciliation_summary(
+            {**reconciliation_input, 'domain_id': domain_id, 'model_ids': sorted(scope)},
+            source_lineage=result['source_lineage'], consumers=result['consumers'],
+            known_consumers=list(known.values()), evidence_current=result['freshness'] == 'current')
         result['graph_edges'] = _edges(inventory, result['consumers'])
         if result['source_lineage']['status'] == 'unknown': result['warnings'].append('Upstream source lineage is unknown; no edges were inferred.')
         if result['missing_consumers']: result['warnings'].append('Known consumers are missing from the supplied planning crosswalk.')
@@ -612,6 +623,10 @@ def context_packet(state, domain_id, max_bytes=32768, *, record_ids=None):
              ('legacy_mapping', ('inventory', 'mappings')), ('unmatched', ('inventory', 'unmatched')),
              ('definition', ('migration_context', 'definitions')), ('validation_consumer', ('migration_context', 'consumer_crosswalk')),
              ('source_node', ('source_lineage', 'nodes')), ('source_edge', ('source_lineage', 'edges'))]
+    if 'reconciliation' in summary:
+        paths += [('reconciliation_item', ('reconciliation', 'items')),
+                  ('reconciliation_consumer', ('reconciliation', 'consumers')),
+                  ('reconciliation_question', ('reconciliation', 'follow_up_questions'))]
     records = {}
     for kind, path in paths:
         parent = summary

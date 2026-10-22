@@ -26,6 +26,8 @@ record_decisions(state, request)
 scope_bindings(state)                  # model_id -> material hash
 gaps(state, selected)                  # scoped material decision issues
 public_summary(state, allowed_models=None)
+reconciliation_summary(domain_summary, source_lineage=None, consumers=None,
+                       known_consumers=None, evidence_current=False) # keyword-only optional inputs
 fingerprint(state)                     # handoff/display freshness
 candidates(state, domain_id)           # names suggest candidates only
 context_packet(state, domain_id, max_bytes=32768, record_ids=None)
@@ -195,6 +197,49 @@ escaping. Package subsets omit a domain unless its entire model scope fits;
 shared source tables require all known consumer-domain scopes to fit. Counts
 describe only the disclosed inventory. The engine does not silently truncate
 summary rows; the UI may paginate while preserving complete scoped exports.
+
+Each domain also exposes an additive `reconciliation` projection. Existing
+mapping enums, request schemas, `coverage` counts and approval records are
+unchanged. Its `counts` retain **separate table, column, rule and consumer
+denominators**, counting each source item or consumer identity once even when
+several mappings mention it. Unknown inventories use a null denominator.
+The derived classifications are:
+
+- `replacement_mapping`: an explicit, supported current placement declaration;
+  this does not imply accepted review, executed migration or native parity.
+- `upstream_only`: an unmapped legacy table has a directed path through current,
+  supplied **observed** dependency edges to an explicitly mapped legacy table.
+  Every edge needs evidence. Canonical target ancestry, name similarity and
+  proposed edges do not establish this status. It never increases replacement
+  coverage and cannot establish column or business-rule lineage.
+- `missing_evidence`: current source evidence or a supported placement basis is
+  absent, stale, conflicting or rejected.
+- `missing_target`: no replacement placement is recorded, or the referenced
+  target model/column is missing. Prior legacy `mapped` counts stay untouched;
+  this separate diagnostic makes the missing target actionable.
+- `explicit_exclusion`: a retirement/exclusion was explicitly recorded. Proposed
+  exclusions retain a review requirement; only the existing current accepted
+  decision changes the original `coverage.excluded` count. Consumer disposition
+  declarations also retain review requirements and never create approval.
+
+`items` preserve mapping IDs, referenced model IDs, review statuses and evidence
+status; remaining `requirements` are separate from the classification. Proposed
+`follow_up_questions` contain stable IDs, domain and source/consumer IDs,
+current scoped `model_ids`, original `referenced_model_ids` when applicable,
+and concrete requirements such as supplying evidence, repairing a missing
+target, reviewing exclusion, or deciding whether an upstream input needs its
+own replacement. Domain fallback model IDs scope the question; they are not an
+inferred target mapping. These are planning suggestions, not assigned tasks,
+commitments, decisions or code-generation gates.
+
+Migration planning enriches this projection from its supplied consumer inventory
+and observed lineage only after checking its existing evidence binding. The
+legacy summary never reads the plan back into its own material inputs, avoiding
+a plan becoming stale merely by saving itself. Derived diagnostics are excluded
+from existing planning material hashes. Planning context packets expose
+`reconciliation_item`, `reconciliation_consumer`, and `reconciliation_question`
+record IDs so callers can partition this added context without merging counts
+or silently dropping rows from the saved summary.
 
 Private `context_packet` contains relevant baseline tables, scoped target models
 and dependencies, business-rule context, evidence descriptors, mappings and

@@ -68,6 +68,22 @@ values. Input approval and downstream disclosure controls still apply.
   inferred from comments, regular expressions, YAML `ref` strings, remote package
   declarations or code filenames. Parent/child/group maps and selectors are retained
   as separate supplied metadata; graph-map consistency is not certified.
+- When compatible native node-dependency evidence is unavailable for an exact
+  authored-file binding, the shared [`dbt_references.py`](../../scripts/dbt_references.py)
+  reader records literal `{{ ref(...) }}` / `{{ source(...) }}` declarations.
+  Whitespace, multiline calls, package-qualified refs and literal `v`/`version`
+  arguments are supported. Keys preserve package/version identity, for example
+  `ref:shared.orders@version=2` and `source:raw.orders`; separators inside names
+  are percent-escaped. These edges are `unbound_literal_declaration`, never native
+  IDs or physical relations. Compatible manifest evidence takes priority,
+  including an explicitly empty `depends_on.nodes` array; no source-text graph
+  is substituted to repair that supplied evidence.
+- SQL comments, quoted strings/identifiers, Jinja comments and raw blocks cannot
+  invent source-only edges. Templates in SQL comments/strings remain a coverage
+  gap because native dbt can evaluate them. Dynamic arguments, statements,
+  control flow, macro bodies/calls, expression wrappers and unsupported syntax
+  stay unresolved. The reader never evaluates Jinja or infers package resolution,
+  latest versions, macro overrides, warehouse schema or complete runtime lineage.
 - SQL file binding requires one supplied `dbt_project.yml` with matching package,
   a safe exact `original_file_path`, exact raw-code/file text, and a matching
   SHA-256 if that checksum algorithm is declared. Multiple manifests do not get
@@ -84,10 +100,12 @@ values. Input approval and downstream disclosure controls still apply.
   macros, packages, vars, target, incremental state or environment.
 
 The official [ref reference](https://docs.getdbt.com/reference/dbt-jinja-functions/ref)
-describes package/version references and native graph construction. The
+describes package/version references and native graph construction; the
+[source reference](https://docs.getdbt.com/reference/dbt-jinja-functions/source)
+defines literal source/table arguments. The
 [parsing guide](https://docs.getdbt.com/reference/parsing) describes context-sensitive
-and partial-parsing limitations. Those are why this adapter consumes native ID
-edges instead of guessing a graph from text. Dynamic branches and macro dispatch
+and partial-parsing limitations. Those are why this adapter keeps native ID
+edges separate from unbound source declarations. Dynamic branches and macro dispatch
 remain explicit review gaps even when a supplied manifest has dependencies.
 
 Materializations, incremental/snapshot strategies, unique keys, contracts and

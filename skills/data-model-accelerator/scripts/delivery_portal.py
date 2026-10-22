@@ -31,7 +31,7 @@ AUDIENCES = {'reviewer', 'engineer', 'audit'}
 FOLDERS = {'documentation': '01_Model', 'diagrams': '01_Model', 'dictionary': '01_Model',
            'implementation': '02_Implementation', 'validation': '03_Validation',
            'sample_data': '04_Sample_Data', 'technical_audit': 'Technical_Audit'}
-SUFFIXES = {'.md', '.txt', '.sql', '.yml', '.yaml', '.json', '.csv', '.tsv', '.svg', '.mmd', '.py', '.toml', '.lock'}
+SUFFIXES = {'.md', '.txt', '.sql', '.yml', '.yaml', '.json', '.csv', '.tsv', '.svg', '.mmd', '.py', '.toml', '.lock', '.xlsx', '.docx', '.pdf'}
 MAX_ARTIFACT_BYTES = 20 * 1024 * 1024
 MAX_PACKAGE_BYTES = 100 * 1024 * 1024
 MAX_ARTIFACTS = 5000
@@ -64,8 +64,8 @@ def _validate_handoff(review):
         require(len(matches) == 1, 'Handoff must reference one uniquely registered artifact')
         artifact = matches[0]
         require(artifact.get('category') in HANDOFF_ROLES[role]
-                and _relative(artifact.get('path')).suffix.lower() in {'.md', '.txt'},
-                'Handoff roles require a registered design document or setup guide in Markdown or text')
+                and _relative(artifact.get('path')).suffix.lower() in {'.md', '.txt', '.docx', '.pdf'},
+                'Handoff roles require a registered design document or setup guide in Markdown, text, Word or PDF')
     return handoff
 
 
@@ -90,7 +90,8 @@ def _check_disclosure_bytes(content, filename):
     from sensitive_data import scan_bytes
     report = scan_bytes(content, filename)
     require(report['status'] == 'clear',
-            'Disclosure scan blocked this output; inspect value-free scan findings in the approved environment.')
+            'Disclosure scan blocked ' + filename + ': ' + report['status'] +
+            '. Inspect value-free scan findings in the approved environment; do not rewrite source logic to hide a finding.')
     return {'status': report['status'], 'artifact_sha256': report['artifact_sha256'],
             'assurance': 'Bounded content scan only; classification and destination approval remain required.'}
 
@@ -720,12 +721,16 @@ def select_artifacts(review, root, audience, include):
             content = stream.read(MAX_ARTIFACT_BYTES + 1)
         require(len(content) <= MAX_ARTIFACT_BYTES, 'Artifact grew beyond the size limit')
         require(_sha(content) == record.get('sha256'), 'Artifact changed: ' + record['id'])
-        require(not content.startswith(b'PK'), 'Nested archives cannot be disguised as text artifacts')
+        require(not content.startswith(b'PK') or relative.suffix.lower() in {'.xlsx', '.docx'},
+                'Nested archives cannot be disguised as text artifacts')
+        if relative.suffix.lower() in {'.xlsx', '.docx', '.pdf'}:
+            require(record['category'] in {'documentation', 'dictionary'},
+                    'Rich documents must be registered as documentation or dictionary')
         if native_omni:
             require('\x00' not in content.decode('utf-8'), 'Native Omni artifacts must be UTF-8 model text')
-        _check_disclosure_bytes(content, str(relative))
         if relative.suffix.lower() == '.svg':
             _validate_svg(content)
+        _check_disclosure_bytes(content, str(relative))
         if 'diagram_model_ids' in record:
             require(relative.suffix.lower() == '.svg', 'diagram_model_ids requires a registered SVG artifact')
             from portal_checks import _diagram_ids, svg_model_coverage
@@ -2053,6 +2058,11 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
                               'qualification': 'Checkpoint only. Retained files may be partial, provisional or unchecked; resume the same engagement.'}
     require('readme.md' not in {path.casefold() for path in files}, 'Root README.md collides with a selected file')
     files['README.md'] = package_readme(data)
+    from delivery_preflight import completion
+    data['completion'] = completion(state, checkpoint)
+    from portable_site import should_partition, package as partitioned_package
+    if should_partition(data):
+        return partitioned_package(state, review, selected, data, files, output_path, checkpoint)
     disclosure = _check_share_policy(state, review, selected, data, audience)
     files['START_HERE.html']=_html(data).encode('utf-8')
     from portal_checks import validate_page
@@ -2102,6 +2112,9 @@ def verify_delivery(path):
             require(not info.is_dir() and not stat.S_ISLNK(info.external_attr >> 16), 'Unexpected archive entry')
         require('DELIVERY_MANIFEST.json' in names, 'Delivery manifest missing')
         manifest=json.loads(archive.read('DELIVERY_MANIFEST.json'))
+        if manifest.get('presentation_contract') == 'partitioned_v1':
+            from portable_site import verify
+            return verify(archive, manifest)
         require(manifest.get('schema_version') == 1 and manifest.get('kind') == 'portable_delivery_integrity', 'Unknown manifest format')
         context = manifest.get('context_sha256')
         require('package_layout_version' not in manifest or context is not None,
@@ -2228,6 +2241,19 @@ def check_page(path, javascript=False):
         verify_delivery(path)
         with zipfile.ZipFile(path) as archive:
             page = archive.read('START_HERE.html')
+            manifest = json.loads(archive.read('DELIVERY_MANIFEST.json'))
+            if manifest.get('presentation_contract') == 'partitioned_v1':
+                from portable_site import check_page as check_partition
+                result = check_partition(page)
+                if javascript:
+                    # Each of the two maintained programs is checked once. Every
+                    # emitted page is structurally checked by verify_delivery.
+                    representatives = [page]
+                    detail = next((r for r in manifest['files'] if r['role'] == 'review_page'), None)
+                    if detail:
+                        representatives.append(archive.read(detail['path']))
+                    result['javascript'] = [check_javascript(body) for body in representatives]
+                return result
     else:
         require(path.stat().st_size <= MAX_PACKAGE_BYTES*3, 'Page exceeds size limit')
         page = path.read_bytes()

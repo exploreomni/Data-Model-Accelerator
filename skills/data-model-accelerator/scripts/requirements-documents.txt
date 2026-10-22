@@ -1,0 +1,4 @@
+# Qualified optional local rich-document disclosure readers. Missing or different
+# versions fail closed; install this file with the scanner's Python interpreter.
+pypdf==6.21.2
+Pillow==13.0.0

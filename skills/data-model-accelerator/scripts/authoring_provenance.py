@@ -30,7 +30,6 @@ For SQL embedded in YAML, span also contains value_start/value_end offsets in
 the decoded scalar; start/end identify that exact raw YAML scalar. Only hashes
 and locations leave the scanner. This is not a complete Omni contract checker.
 """
-import ast
 import csv
 import hashlib
 import io
@@ -42,6 +41,7 @@ import threading
 
 from ae_common import _path, hash_file, hash_json, require, safe_relative
 from authoring_evidence import finding, validate_contract
+from dbt_references import extract_references
 
 MAX_BYTES = 1024 * 1024
 MAX_TOTAL = 8 * 1024 * 1024
@@ -78,8 +78,8 @@ def _read(root, relative):
 
 
 def _protected_offsets(text):
-    # Quotes/comments protect their contents from becoming executable-looking
-    # refs. A template inside a quoted value remains unsupported, not masked.
+    # Omni scalar SQL uses this separate protection map for ${field} references.
+    # dbt extraction is owned by the shared literal-reference reader below.
     protected, i = set(), 0
     while i < len(text):
         if text.startswith('--', i):
@@ -105,8 +105,9 @@ def mask_static_dbt_sql(text):
     """Return (same-length SQL, calls, gap_codes); no evaluation or imports.
 
     Calls contain name, arguments, identifier and span. Only ref('model'),
-    ref('package', 'model') and source('source', 'table') are accepted. Statements,
-    keyword arguments, dynamic calls and templates inside SQL strings are gaps.
+    ref('package', 'model'), versioned refs and source('source', 'table') are
+    accepted by the shared literal reader. Statements, dynamic calls and
+    templates inside SQL strings/comments remain gaps.
     """
     calls, gaps, output = [], [], list(text)
     # A synthetic relation must not shadow an existing table, CTE or alias.
@@ -114,31 +115,22 @@ def mask_static_dbt_sql(text):
     # in comments/strings too; this never requires executing the template.
     reserved = {word.casefold() for word in re.findall(r'[A-Za-z_][A-Za-z_0-9$]*', text)}
     next_identifier = 0
-    protected = _protected_offsets(text)
-    for match in re.finditer(r'\{\{.*?\}\}|\{%.*?%\}|\{#.*?#\}', text, re.S):
-        token = match.group()
-        if match.start() in protected:
-            gaps.append('sql_template_in_literal_or_comment'); continue
-        if token.startswith('{#'):
-            output[match.start():match.end()] = ['\n' if c == '\n' else ' ' for c in token]
-            continue
-        try:
-            require(token.startswith('{{'), 'Dynamic template')
-            call = ast.parse(token[2:-2].strip(), mode='eval').body
-            require(isinstance(call, ast.Call) and isinstance(call.func, ast.Name)
-                    and call.func.id in {'ref', 'source'} and not call.keywords, 'Dynamic template')
-            args = [arg.value for arg in call.args if isinstance(arg, ast.Constant) and type(arg.value) is str]
-            require(len(args) == len(call.args) and all(0 < len(arg) <= 200 for arg in args)
-                    and (len(args) in (1, 2) if call.func.id == 'ref' else len(args) == 2), 'Dynamic template')
-            while 'd' + str(next_identifier) in reserved:
-                next_identifier += 1
-            identifier = 'd' + str(next_identifier)
-            reserved.add(identifier); next_identifier += 1
-            output[match.start():match.end()] = list(identifier + ' ' * (len(token) - len(identifier)))
-            calls.append({'name': call.func.id, 'arguments': args, 'identifier': identifier,
-                          'span': {'start': match.start(), 'end': match.end()}})
-        except (ValueError, SyntaxError, TypeError, RecursionError):
-            gaps.append('sql_template_unsupported')
+    extracted = extract_references(text)
+    for template in extracted['templates']:
+        if template['kind'] == 'comment':
+            start, end = template['span']['start'], template['span']['end']
+            output[start:end] = ['\n' if c == '\n' else ' ' for c in text[start:end]]
+    for call in extracted['references']:
+        start, end = call['span']['start'], call['span']['end']
+        while 'd' + str(next_identifier) in reserved:
+            next_identifier += 1
+        identifier = 'd' + str(next_identifier)
+        reserved.add(identifier); next_identifier += 1
+        output[start:end] = list(identifier + ' ' * (end - start - len(identifier)))
+        calls.append({'name': call['kind'], 'arguments': call['arguments'], 'identifier': identifier,
+                      'span': call['span'], 'key': call['key'], 'version': call['version']})
+    gaps += ['sql_template_in_literal_or_comment' if item['reason'] == 'template_in_literal_or_comment'
+             else 'sql_template_unsupported' for item in extracted['unresolved']]
     masked = ''.join(output)
     if any(marker in masked for marker in ('{{', '{%', '{#')):
         gaps.append('sql_template_unsupported')

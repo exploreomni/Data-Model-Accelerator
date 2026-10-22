@@ -344,6 +344,13 @@ Lead model review with one top-down upstream pipeline per gold output: raw sourc
 
 Maintain that one working entrypoint and one current design narrative. Use Data model, Code & files and Validation as the primary choices, with detailed inventory and evidence available on demand. Register the maintained narrative and setup guide through the shared review's `handoff` references. Refresh existing records instead of creating another portal or summary at each milestone. Report meaningful progress, learning, next action and material blockers in chat; retain durable decisions in canonical records. Finish with one primary link, the outcome, material limits and the next action. Keep old exports immutable and generated, local, native and accepted states distinct.
 
+Run `scripts/delivery_preflight.py --run-dir <engagement>` during intake, then repeat
+with `--review <manifest> --artifacts <candidate>` before finalization. Resolve
+format, audience, source-role, size and disclosure questions early. These are
+delivery diagnostics, not new gates on explicitly requested provisional authoring.
+Use the existing scoped draft-request record when physical context is missing;
+complete selected provisional files must not be mislabeled as an interrupted checkpoint.
+
 Before handing over a completed selected delivery, run `scripts/finalize_delivery.py`
 using the saved state, review manifest and artifact root, as shown in
 [review-surface.md](references/review-surface.md#finalize-the-selected-handoff).
@@ -358,6 +365,15 @@ selected files or report an incomplete handoff; never silently narrow the reques
 Design-only and explicitly selected partial deliveries remain valid, with their
 scope and outstanding work stated. Preserve the separate model-documentation,
 native-validation and approval checks.
+
+Large simple-layout packages automatically use linked offline review pages under
+the design folder instead of repeating all code and diagrams inside Start Here.
+The finalizer retains the same selected-file, classification and integrity checks.
+Register supported Excel, Word and PDF files as dictionary/documentation; use the
+qualified rich-document scanner dependencies in `scripts/requirements-documents.txt`.
+Do not invent a separate exporter or rewrite business SQL merely to silence a
+disclosure finding. Unsupported document content requires a supported export or
+an explicit unresolved finding, not a clean-scan claim.
 
 Read [model-documentation.md](references/model-documentation.md). Every model delivery requires an internal ERD with layer views, a complete data dictionary, and full bronze, silver and gold documentation, even when the user selects a smaller export. For a selected SVG deliverable, render connected table blocks with keys, relationship roles, cardinality and evidence labels; split dense models into coherent layer/domain views. Cover every scoped table/view and column, including reused objects. Document grain, keys, lineage, types/nulls/units, transformations, quality, history/refresh, dependencies, governance, ownership and recovery; distinguish evidence, proposals and unknowns. The warehouse architect owns these artifacts, the semantic architect supplies downstream definitions/crosswalks, and independent QA checks agreement with actual code and metadata. Bind the dictionary to the model inventory and register each layer's document/ERD coverage in the review manifest. Missing or stale documentation prevents complete model-review status.
 

@@ -95,6 +95,11 @@ def finalize_delivery(state, review, artifact_root, output, audience=None, inclu
                 'Final delivery must be separate from the source and candidate artifact directories.')
     audience = audience or state.get('answers', {}).get('audience') or 'engineer'
     include = portal.resolve_selection(state, audience, include)
+    from delivery_preflight import assess as preflight, completion
+    delivery_preflight = preflight(state, review, artifact_root, audience, include)
+    require(not delivery_preflight['issues'], 'Delivery preflight needs attention: '
+            + ', '.join(sorted({row['code'] for row in delivery_preflight['issues']}))
+            + '. Resolve these delivery issues before finalization; provisional authoring remains available.')
     if not checkpoint and 'implementation' in include and state.get('workflow', {}).get('tasks'):
         # A caller may pass a saved engagement. Recheck current source and
         # artifact bindings instead of trusting an earlier reusable-task plan.
@@ -154,6 +159,7 @@ def finalize_delivery(state, review, artifact_root, output, audience=None, inclu
         from migration_intent import summary as migration_summary
         from migration_artifacts import summary as artifact_summary
         return {'status': 'checkpoint_verified' if checkpoint else 'handoff_verified',
+                'completion': completion(state, checkpoint), 'preflight': delivery_preflight,
                 'entrypoint': str(output / 'handoff' / 'START_HERE.html'),
                 'zip': str(output / 'handoff.zip'), 'folder': str(output / 'handoff'),
                 'design_folder': str(output / 'handoff' / design_folder) if any(

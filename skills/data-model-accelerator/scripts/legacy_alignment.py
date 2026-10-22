@@ -583,6 +583,136 @@ def _source_view(source, tables):
     return result
 
 
+def reconciliation_summary(domain, *, source_items=None, source_lineage=None,
+                           consumers=None, known_consumers=None, evidence_current=False):
+    """Derived planning diagnostics; never alter mappings, counts or approval.
+
+    Source lineage must be an explicitly supplied observed graph with evidence
+    labels, and its caller must establish current evidence. Only table-to-table
+    paths can support upstream-only: they never map columns/rules or replacements.
+    Consumer inventory is a separate denominator, unknown when not supplied.
+    """
+    categories = ('replacement_mapping', 'upstream_only', 'missing_evidence',
+                  'missing_target', 'explicit_exclusion')
+    items = copy.deepcopy(source_items if source_items is not None else domain.get('reconciliation', {}).get('items', []))
+    mappings = domain.get('mappings', [])
+    by_source = {}
+    for mapping in mappings:
+        for source in mapping['legacy_sources']:
+            by_source.setdefault(_source_key(source), []).append(mapping)
+    for item in items:
+        rows = by_source.get(_source_key(item), [])
+        replacement = [r for r in rows if r['status'] == 'mapped' and r['basis'] != 'unassessed'
+                       and r.get('target_status', 'present') == 'present'
+                       and r['review_status'] not in {'stale', 'rejected'}]
+        excluded = [r for r in rows if r['disposition'] in {'out_of_scope', 'retire_candidate'}
+                    and not r['targets']]
+        requirements = []
+        if replacement and excluded:
+            classification = 'missing_evidence'; requirements.append('resolve_conflicting_dispositions')
+        elif excluded:
+            classification = 'explicit_exclusion'
+            if any(r['review_status'] != 'accepted' for r in excluded): requirements.append('review_explicit_exclusion')
+        elif rows and not replacement and any(r.get('target_status') == 'missing' for r in rows):
+            classification = 'missing_target'; requirements.append('repair_missing_target')
+        elif item['evidence_status'] != 'current' or any(r['review_status'] == 'stale' for r in rows):
+            classification = 'missing_evidence'; requirements.append('supply_current_source_evidence')
+        elif replacement:
+            classification = 'replacement_mapping'
+        elif rows and any(r['targets'] and r.get('target_status') != 'missing' for r in rows):
+            classification = 'missing_evidence'; requirements.append('establish_supported_mapping')
+        else:
+            classification = 'missing_target'; requirements.append('select_target_or_explicit_exclusion')
+        if any(r.get('target_status') == 'missing' for r in rows): requirements.append('repair_missing_target')
+        if any(r['review_status'] == 'rejected' for r in rows): requirements.append('resolve_rejected_mapping')
+        item.update(classification=classification, mapping_ids=sorted({r['id'] for r in rows}),
+                    model_ids=sorted({key for r in rows for key in r['model_ids']}),
+                    review_statuses=sorted({r['review_status'] for r in rows}), requirements=sorted(set(requirements)))
+    # Preserve directed, observed source dependency evidence. Do not use name
+    # resemblance or canonical target ancestors as a source-identity crosswalk.
+    lineage = source_lineage or {'nodes': [], 'edges': []}
+    node_ids = {n['id'] for n in lineage.get('nodes', [])}
+    table_nodes = {n['id']: n['legacy_table_id'] for n in lineage.get('nodes', []) if n.get('kind') == 'legacy_table'}
+    reverse = {}
+    if evidence_current:
+        for edge in lineage.get('edges', []):
+            if (edge.get('status') == 'observed' and edge.get('evidence_labels')
+                    and edge['source_id'] in node_ids and edge['target_id'] in node_ids):
+                reverse.setdefault(edge['target_id'], set()).add(edge['source_id'])
+    replacement_tables = {r['table_id'] for r in items if r['kind'] == 'table' and r['classification'] == 'replacement_mapping'}
+    pending = [node for node, table in table_nodes.items() if table in replacement_tables]
+    upstream, visited = set(), set(pending)
+    while pending:
+        node = pending.pop()
+        for parent in reverse.get(node, set()):
+            if parent in visited: continue
+            visited.add(parent); pending.append(parent)
+            if parent in table_nodes: upstream.add(table_nodes[parent])
+    for item in items:
+        if (item['kind'] == 'table' and item['table_id'] in upstream
+                and item['classification'] in {'missing_target', 'missing_evidence'}
+                and not item['mapping_ids']):
+            item['classification'] = 'upstream_only'
+            item['requirements'] = sorted(set(item['requirements']) | {'confirm_upstream_role_or_replacement'})
+            item['dependency_basis'] = 'supplied_observed_source_lineage'
+    consumer_items = []
+    if consumers is not None or known_consumers is not None:
+        supplied = {r['id']: r for r in (consumers or [])}
+        known = {r['id']: r for r in (known_consumers or [])}
+        for key in sorted(set(known) | set(supplied)):
+            row = supplied.get(key); model_ids = sorted(set((row or known[key]).get('model_ids', [])))
+            requirements = []
+            if row and row.get('disposition') in {'out_of_scope', 'retire_candidate'}:
+                classification = 'explicit_exclusion'; requirements = ['review_consumer_exclusion']
+            elif not row or not evidence_current or row.get('status') != 'observed' or not row.get('evidence_labels'):
+                classification = 'missing_evidence'; requirements = ['supply_consumer_crosswalk_evidence']
+            elif not model_ids and not row.get('topic_ids'):
+                classification = 'missing_target'; requirements = ['select_consumer_target']
+            else:
+                classification = 'replacement_mapping'
+            consumer_items.append({'id': key, 'kind': 'consumer', 'model_ids': model_ids,
+                                   'classification': classification, 'requirements': requirements})
+    counts = {}
+    for name, kind in (('tables', 'table'), ('columns', 'column'), ('rules', 'rule'), ('consumers', 'consumer')):
+        rows = consumer_items if kind == 'consumer' else [r for r in items if r['kind'] == kind]
+        unknown = (kind == 'consumer' and consumers is None and known_consumers is None or
+                   kind != 'consumer' and domain['baseline_status'] in {'not_supplied', 'unavailable'})
+        counts[name] = {'total': None if unknown else len(rows),
+                        **{category: None if unknown else sum(r['classification'] == category for r in rows) for category in categories},
+                        'denominator': 'not_supplied' if unknown else 'disclosed_unique_inventory'}
+    questions = []
+    domain_models = set(domain['model_ids'])
+    prompts = {'replacement_mapping': 'What independent cases will verify the stated replacement behavior?',
+               'upstream_only': 'Should this upstream dependency remain an input, or does it also need an explicit replacement mapping?',
+               'missing_evidence': 'Which current source evidence and supported mapping establish the intended behavior?',
+               'missing_target': 'Which target should replace this item, or should an explicit exclusion be recorded?',
+               'explicit_exclusion': 'Has the proposed exclusion or retirement been reviewed for affected consumers?'}
+    for item in items + consumer_items:
+        if not item['requirements']: continue
+        identity = item['id'] if item['kind'] == 'consumer' else list(_source_key(item))
+        questions.append({'id': 'reconcile.' + hash_json([domain['domain_id'], identity])[:20],
+                          'domain_id': domain['domain_id'], 'text': prompts[item['classification']],
+                          'source': ({'consumer_id': item['id']} if item['kind'] == 'consumer' else
+                                     {k: item[k] for k in ('table_id', 'kind', 'field_id') if k in item}),
+                          'model_ids': sorted(set(item['model_ids']) & domain_models) or list(domain['model_ids']),
+                          'referenced_model_ids': item['model_ids'],
+                          'consumer_ids': [item['id']] if item['kind'] == 'consumer' else [],
+                          'requirements': item['requirements'], 'status': 'proposed'})
+    if domain['baseline_status'] in {'not_supplied', 'unavailable'}:
+        questions.append({'id': 'reconcile.' + domain['domain_id'] + '.baseline', 'domain_id': domain['domain_id'],
+                          'text': 'Which historical tables, columns and rules belong in this domain baseline?',
+                          'source': {}, 'model_ids': list(domain['model_ids']), 'consumer_ids': [],
+                          'requirements': ['supply_domain_baseline'], 'status': 'proposed'})
+    if consumers is None and known_consumers is None:
+        questions.append({'id': 'reconcile.' + domain['domain_id'] + '.consumers', 'domain_id': domain['domain_id'],
+                          'text': 'Which dashboards and charts consume this domain, and what target crosswalk is evidenced?',
+                          'source': {}, 'model_ids': list(domain['model_ids']), 'consumer_ids': [],
+                          'requirements': ['supply_consumer_inventory'], 'status': 'proposed'})
+    return {'counts': counts, 'items': items, 'consumers': consumer_items, 'follow_up_questions': questions,
+            'qualification': 'Derived planning classification only; replacement and exclusion declarations are not approval or parity. '
+                             'Upstream paths never count as replacement coverage. Each inventory retains its own denominator.'}
+
+
 def _domain_summary(state, domain_id, allowed_models):
     config = _config(state, domain_id)
     models = _domain_models(state, domain_id)
@@ -609,7 +739,7 @@ def _domain_summary(state, domain_id, allowed_models):
         stale = stale or any(value == 'unavailable' for key, value in cache.items() if isinstance(key, tuple) and key[0] == 'source_bytes')
         result['freshness'] = 'stale' if stale else 'current'
         result['alignment_status'] = 'stale' if stale else 'recorded' if doc else 'unassessed'
-        states = {}
+        states, target_models, target_columns = {}, _models(state), {}
         for mapping in mappings:
             if any(s['table_id'] not in tables for s in mapping['sources']): continue
             target_ids = {t['model_id'] for t in mapping['targets']}
@@ -627,6 +757,16 @@ def _domain_summary(state, domain_id, allowed_models):
                 targets=copy.deepcopy(mapping['targets']), model_ids=sorted(target_ids), relationship=relationship,
                 disposition=mapping.get('disposition', relationship if relationship in DISPOSITIONS else 'preserve'),
                 review_status=review, evidence_labels=sorted({evidence[e]['kind'] for key in source_tables for e in tables[key]['evidence_ids']}))
+            missing = False
+            for target in mapping['targets']:
+                model_id = target['model_id']
+                if model_id not in target_models:
+                    missing = True
+                elif target['kind'] == 'column':
+                    if model_id not in target_columns:
+                        target_columns[model_id] = {c['name'] for c in target_models[model_id]['columns']}
+                    missing = missing or target['field'] not in target_columns[model_id]
+            result['mappings'][-1]['target_status'] = 'missing' if missing else 'present'
         all_keys = {'tables': [], 'columns': [], 'rules': []}
         for table in tables.values():
             keys = {'tables': [(table['id'], 'table', None)],
@@ -642,9 +782,20 @@ def _domain_summary(state, domain_id, allowed_models):
             result['tables'].append({'id': table['id'], 'name': table['label'], 'model_ids': sorted(linked),
                 'completeness': table['completeness'], 'coverage': {k: _coverage(keys[k], states) for k in ('columns', 'rules')}})
         result['coverage'] = {k: _coverage(v, states) for k, v in all_keys.items()}
+        source_items = []
+        for keys in all_keys.values():
+            for key in keys:
+                item = _source_view({'table_id': key[0], 'kind': key[1], **({'field_id': key[2]} if key[2] else {})}, tables)
+                relevant = [evidence[e] for e in tables[key[0]]['evidence_ids']
+                            if evidence[e]['kind'] in ({'rules', 'sql'} if key[1] == 'rule' else {'schema', 'sql'})]
+                item['evidence_status'] = ('current' if relevant and all(_evidence_pin(state, e, cache)['freshness'] == 'current' for e in relevant)
+                                           else 'missing_or_stale')
+                source_items.append(item)
+        result['reconciliation'] = reconciliation_summary(result, source_items=source_items)
         return result
     except (OSError, ValueError, KeyError, TypeError):
         result.update(baseline_status='unavailable', alignment_status='unavailable', freshness='unavailable', comparison_sha256=None)
+        result['reconciliation'] = reconciliation_summary({**result, 'mappings': []}, source_items=[])
         return result
 
 

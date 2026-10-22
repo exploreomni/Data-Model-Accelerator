@@ -338,6 +338,13 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include, *, c
                            'sha256': a['sha256'], 'bytes': len(a['content'])} for a in artifacts]}
 
 
+def _provisional_handoff_allowed(state):
+    """A current scoped draft request permits delivery, never native approval."""
+    from engagement_stages import draft_entities
+    models = {e['id'] for e in (state.get('workflow', {}).get('design') or {}).get('entities', [])}
+    return bool(models and models <= draft_entities(state))
+
+
 def _delivery_progress(state):
     prepared = next((item for item in reversed(state['evidence'])
                      if item['kind'] in {'prepared_handoff', 'checkpoint_handoff'} and item['status'] == 'current'
@@ -356,14 +363,15 @@ def _delivery_progress(state):
         state['next_actions'].insert(0, {'id': 'review_checkpoint_handoff', 'scope': 'review',
             'action': 'Run finalize_delivery.py --checkpoint to review the available files, then resume outstanding work. This is not a completed handoff.'})
         return
-    if prepared is None or not state['readiness']['generation_ready']:
+    provisional = not state['readiness']['generation_ready'] and _provisional_handoff_allowed(state)
+    if prepared is None or (not state['readiness']['generation_ready'] and not provisional):
         if state['status'] == 'handoff_prepared':
             state['status'] = 'candidate_preparation_ready' if state['readiness']['generation_ready'] else 'needs_evidence'
             state['next_actions'] = [a for a in state['next_actions'] if a['id'] != 'review_prepared_handoff']
         return
     snapshot = prepared['handoff']
     state['status'] = 'handoff_prepared'
-    state['delivery'] = {'status': 'prepared', 'artifact_count': len(snapshot['artifacts']),
+    state['delivery'] = {'status': 'provisional_prepared' if provisional else 'prepared', 'artifact_count': len(snapshot['artifacts']),
                          'assurance': 'file_integrity_only', 'audience': snapshot['audience'],
                          'deliverables': snapshot['deliverables'],
                          'qualification': 'Prepared files only; business, native runtime and deployment approval remain separate.'}
@@ -583,21 +591,27 @@ def _save(run_dir, state, action, *, changed_answers=(), invalidated=()):
                              'changed_answers': sorted(changed_answers), 'invalidated_evidence': list(invalidated)})
     state.pop('state_sha256', None)
     state['state_sha256'] = _digest(state)
-    payload = _bytes(state)
-    _require(len(payload) <= MAX_JSON_BYTES, 'State exceeds 16 MiB; start a linked new engagement instead of discarding history.')
+    from engagement_state_store import encode
+    payload = encode(run_dir, state)
     _atomic_write(run_dir / revision_path, payload, replace=False)
     _atomic_write(run_dir / 'state.json', payload)
     return state
 
 
 def _validate_state(run_dir, state):
+    from engagement_state_store import hydrate, is_index
+    stored = state
+    state = hydrate(run_dir, stored)
     _require(type(state) is dict, 'Engagement state must be a JSON object.')
     _require(state.get('schema_version') == SCHEMA_VERSION and state.get('kind') == 'guided_engagement', 'Unsupported engagement state schema.')
     _require(state.get('status') in STATUSES, 'State contains an unsupported claimed lifecycle status.')
     _require(type(state.get('revision')) is int and state['revision'] > 0, 'State revision must be a positive integer.')
     _require(state.get('state_sha256') == _digest({k: v for k, v in state.items() if k != 'state_sha256'}), 'State integrity check failed; restore the last committed revision.')
     revision = run_dir / 'revisions' / ('%06d.json' % state['revision'])
-    _require(revision.is_file() and _json(revision) == state, 'State does not match its immutable revision.')
+    _require(revision.is_file(), 'State does not match its immutable revision.')
+    committed = _json(revision)
+    _require(committed == stored if is_index(stored) else hydrate(run_dir, committed) == state,
+             'State does not match its immutable revision.')
     from source_roots import ensure_output
     ensure_output(state, run_dir)
     return state
@@ -661,8 +675,9 @@ def resume_engagement(run_dir):
         if not (run_dir / 'state.json').exists():
             revisions = sorted((run_dir / 'revisions').glob('[0-9]*.json'))
             _require(bool(revisions), 'No committed state or recovery revision exists; start a new engagement.')
-            state = _validate_state(run_dir, _json(revisions[-1]))
-            _atomic_write(run_dir / 'state.json', _bytes(state))
+            stored = _json(revisions[-1])
+            _validate_state(run_dir, stored)
+            _atomic_write(run_dir / 'state.json', _bytes(stored))
             recovered = True
         state = load_engagement(run_dir)
         invalidated = _refresh(state)
@@ -694,8 +709,8 @@ def record_handoff(run_dir, review_path, artifact_root, audience=None, include=N
     with _lock(run_dir):
         state = load_engagement(run_dir)
         invalidated = _refresh(state)
-        _require(checkpoint or state['readiness']['generation_ready'],
-                 'Resolve interview and evidence prerequisites before recording a prepared handoff; use --checkpoint to retain incomplete or provisional work now.')
+        _require(checkpoint or state['readiness']['generation_ready'] or _provisional_handoff_allowed(state),
+                 'Record a current scoped provisional request or resolve interview prerequisites before recording a prepared handoff; use --checkpoint for incomplete work.')
         audience = audience or state['answers'].get('audience') or 'engineer'
         snapshot = _handoff_snapshot(state, review_path, artifact_root, audience, include, checkpoint=checkpoint)
         for item in state['evidence']:

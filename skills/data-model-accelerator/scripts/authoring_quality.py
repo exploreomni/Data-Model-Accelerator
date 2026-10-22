@@ -12,7 +12,7 @@ from importlib import metadata
 from ae_common import _path, hash_file, hash_json, load_json, require, write_json
 from authoring_evidence import capture, finding, make_receipt, validate_contract, fields
 
-CHECKER_FILES = ('authoring_evidence.py', 'authoring_provenance.py',
+CHECKER_FILES = ('authoring_evidence.py', 'authoring_provenance.py', 'dbt_references.py',
                  'authoring_conformance.py', 'authoring_quality.py', 'artifact_syntax.py', 'source_adapters/base.py')
 
 
