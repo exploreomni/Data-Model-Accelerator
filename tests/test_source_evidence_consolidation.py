@@ -143,11 +143,18 @@ class LosslessEvidenceTests(unittest.TestCase):
         merged = merge([report])
         self.assertEqual(merged['source_contracts'], [report])
 
-    def test_authored_dbt_ref_whitespace_is_retained_without_inventing_lineage(self):
+    def test_authored_dbt_ref_whitespace_retains_literal_without_claiming_runtime_lineage(self):
         text = "-- comment {{ ref('not_a_dependency') }}\nselect * from {{ ref ('orders') }}\n" + '/*' + 'long-source-' * 100 + '*/'
         report = parse_dbt({'models/inert.sql': text})
         self.assertIn(text, [x['text'] for x in report['expressions']])
-        self.assertEqual(report['dependencies'], [])
+        self.assertEqual([row['target'] for row in report['dependencies']], ['ref:orders'])
+        dependency = report['dependencies'][0]
+        self.assertEqual(dependency['details']['resolution'], 'unbound_literal_declaration')
+        self.assertIsNone(dependency['details']['target_object_id'])
+        self.assertEqual(dependency['details']['effective_runtime_dependency'], 'not_verified')
+        span = dependency['details']['literal_reference']['span']
+        self.assertEqual(text[span['start']:span['end']], "{{ ref ('orders') }}")
+        self.assertIn('dbt.literal_reference_unbound', {x['code'] for x in report['gaps']})
         self.assertIn('dbt.jinja_unrendered', {x['code'] for x in report['gaps']})
         self.assertFalse(report['execution_performed'])
 
