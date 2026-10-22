@@ -82,6 +82,28 @@ Existing domain IDs and names are retained so progress is never silently reset.
 
 ## Design, review and build
 
+Show the scope preview before dispatch: model, column, source-file and asset
+counts. More than 25 models, 500 columns, 100 source files or 20 assets triggers
+a recommendation to select a smaller batch. These are review-size heuristics,
+not hard gates, dollar estimates or promised duration. Before a model inventory
+exists, use source/asset counts to narrow discovery with the user.
+
+For a large discovered domain, `select-batch --document PATH` takes
+`schema_version: 1`, the active `domain_id`, stable `batch_id`, `name`, exact
+primary `entity_ids`, and the user's `request_reference`. The coordinator writes
+this from conversational choices. Dependency closure is retained automatically;
+unchanged completed dependencies reuse their prior code. New task registration,
+dispatch and design changes stay inside the selected batch and its dependencies.
+Keep cumulative design records for the remaining models.
+
+Use `complete-batch` or `pause-batch` with `schema_version: 1`, `batch_id`, and
+`request_reference`. Completion requires current reviewed design and selected
+warehouse/semantic outputs; provisional files remain available but do not claim
+reviewed completion. Then ask which batch to design next. Explicit pause permits
+a different choice without losing files. Completing one batch does not complete
+the rest of the domain. Existing whole-domain journeys remain supported when
+no batch is selected; domain completion still checks the entire domain.
+
 Set each primary entity's `domain` to the selected candidate's ID or name.
 `shared_dependency_ids` contains stable **model IDs**, not domain IDs. Declare
 necessary shared interfaces up front and reuse their canonical model identities;

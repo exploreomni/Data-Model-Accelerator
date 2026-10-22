@@ -5,6 +5,7 @@ No model generation, source execution, native validation or approval is implied.
 Existing partial exports remain available through delivery_portal.py package.
 """
 import argparse
+import copy
 import json
 import os
 from pathlib import Path
@@ -44,6 +45,9 @@ def check_selected_delivery(state, review, audience, include, manifest):
             + '. Generate/register the requested files, or record an explicit smaller delivery selection; do not claim completion.')
     require(sum(row['path'] == 'START_HERE.html' for row in files) == 1,
             'Final handoff requires exactly one root START_HERE.html.')
+    if 'implementation' in selected:
+        from deliverable_contract import check_packaged_code
+        check_packaged_code(state, manifest)
     design_selected = bool(selected & {'documentation', 'diagrams', 'dictionary'}) and audience != 'audit'
     if design_selected:
         require(review.get('models'), 'Selected model review has no models. Supply the current design inventory.')
@@ -86,6 +90,12 @@ def finalize_delivery(state, review, artifact_root, output, audience=None, inclu
                 'Final delivery must be separate from the source and candidate artifact directories.')
     audience = audience or state.get('answers', {}).get('audience') or 'engineer'
     include = portal.resolve_selection(state, audience, include)
+    if not checkpoint and 'implementation' in include and state.get('workflow', {}).get('tasks'):
+        # A caller may pass a saved engagement. Recheck current source and
+        # artifact bindings instead of trusting an earlier reusable-task plan.
+        from engagement_stages import plan_tasks
+        state = copy.deepcopy(state)
+        state['workflow']['last_plan'] = plan_tasks(state, artifact_root)
     output.parent.mkdir(parents=True, exist_ok=True)
     parent_identity = _directory_identity(output.parent)
     def check_destination():

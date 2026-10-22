@@ -4,6 +4,7 @@ Discovery proposes a portfolio. A host-attributed user choice selects one scope.
 Completion derives from current review and recorded file bytes, never a UI flag.
 """
 import copy
+import domain_batches
 
 from ae_common import hash_json, require, safe_relative
 
@@ -116,6 +117,11 @@ def pause_domain(state, request):
 
 def scope(state, domain=None, doc=None):
     import engagement_stages as stages
+    if domain is None:
+        from domain_batches import selected_scope
+        selected = selected_scope(state, doc)
+        if selected is not None:
+            return selected
     domain = domain or _domain(state)
     doc = doc if doc is not None else state['workflow'].get('design') or {}
     primary = _models(state, domain, doc)
@@ -128,9 +134,15 @@ def require_scope(state, selected, stage='design'):
         return
     import engagement_stages as stages
     domain = _domain(state)
+    batch = domain_batches.active(state)
+    require(not batch or batch['status'] == 'active', 'Select a batch before continuing domain work')
     doc = stages.design(state)
     primary = _models(state, domain, doc)
     allowed = primary | set(domain['shared_dependency_ids'])
+    from domain_batches import selected_scope
+    batch_scope = selected_scope(state, doc)
+    if batch_scope is not None:
+        allowed &= batch_scope
     graph = {e['id']: e['depends_on'] for e in doc['entities']}
     stages.ids(selected, graph, True)
     expanded = set(stages.closure(graph, selected))
@@ -143,11 +155,17 @@ def guard_design(state, value):
         return
     domain = _domain(state)
     previous = state['workflow'].get('design') or {}
+    batch = domain_batches.active(state)
+    require(not batch or batch['status'] == 'active', 'Select a batch before revising domain design')
     old = {e['id']: e for e in previous.get('entities', [])}
     new = {e['id']: e for e in value['entities']}
     require(all(key not in old or entity['domain'] == old[key]['domain'] for key, entity in new.items()),
             'Preserve existing model domain ownership; relabeling cannot expand the selected scope')
     allowed = (_models(state, domain, value) - set(old)) | _models(state, domain, previous) | set(domain['shared_dependency_ids'])
+    from domain_batches import selected_scope
+    batch_scope = selected_scope(state, previous) if previous else None
+    if batch_scope is not None:
+        allowed &= batch_scope
     require(all(key in new and new[key] == entity for key, entity in old.items() if key not in allowed),
             'Preserve designs for other domains; import a cumulative design')
     require(all(key in allowed or (key in old and old[key] == entity) for key, entity in new.items()),
@@ -155,7 +173,10 @@ def guard_design(state, value):
     known_labels = {label.casefold() for d in ledger(state)['domains'] for label in (d['id'], d['name'])}
     require(all(e['domain'].casefold() in known_labels or e['id'] in {key for d in ledger(state)['domains'] for key in d['shared_dependency_ids']} for e in value['entities']),
             'Map model domains to the discovered domain IDs or names')
-    require(scope(state, domain, value) <= allowed, 'Declare required shared dependencies before designing their interfaces')
+    from engagement_stages import closure
+    required = (set(closure({e['id']: e['depends_on'] for e in value['entities']}, sorted(batch_scope)))
+                if batch_scope is not None else scope(state, domain, value))
+    require(required <= allowed, 'Declare required shared dependencies before designing their interfaces or revise the selected batch')
     # A cumulative import may amend selected/shared contracts, not unrelated
     # relationships, decisions, asset labels or existing-model evidence.
     active_assets = set(domain['asset_ids']) | {a for e in value['entities'] if e['id'] in allowed for a in e['asset_ids']}
@@ -200,6 +221,7 @@ def guard_dispatch(state, request):
     if request.get('task_id'):
         require_scope(state, request['scope_ids'])
     elif request['role'] == 'warehouse_architect' and request['scope_ids'] == [domain['id']]:
+        require(not domain_batches.active(state), 'A selected batch requires exact entity scope, not a whole-domain architect dispatch')
         require(set(request['source_paths']) <= set(domain['source_paths']),
                 'Domain design packet must use the selected discovery source paths')
     else:
@@ -222,9 +244,10 @@ def _plan(state):
     return stages.plan_tasks(state, wf['artifact_root'])['tasks']
 
 
-def _progress(state, domain, tasks):
+def _progress(state, domain, tasks, selected=None):
     import engagement_stages as stages
-    selected = scope(state, domain)
+    batch_scoped = selected is not None
+    selected = scope(state, domain) if selected is None else selected
     statuses = {'design_status': 'not_started', 'implementation_status': 'not_requested', 'semantic_status': 'not_requested'}
     required = _required_stages(state)
     binding, gaps = None, []
@@ -239,7 +262,8 @@ def _progress(state, domain, tasks):
             gaps.extend(stages._design_gaps(state, sorted(selected)))
     represented_assets = {asset for e in (state['workflow'].get('design') or {}).get('entities', [])
                           if e['id'] in selected for asset in e.get('asset_ids', [])}
-    missing_assets = set(domain['asset_ids']) - represented_assets
+    required_assets = set(domain['asset_ids']) & represented_assets if batch_scoped else set(domain['asset_ids'])
+    missing_assets = required_assets - represented_assets
     if selected and missing_assets:
         gaps.append('Map the discovered domain assets to its models before completion: ' + ', '.join(sorted(missing_assets)))
     finished = []
@@ -259,7 +283,8 @@ def _progress(state, domain, tasks):
             gaps.append('Record current reviewed ' + stage + ' outputs for: ' + ', '.join(sorted(physical - covered)))
         finished.extend(t for t in current if set(t['entity_ids']) <= selected)
     if not gaps:
-        binding = hash_json({'domain': domain, 'entities': stages.entity_bindings(state, sorted(selected)), 'required_stages': required,
+        domain_binding = {'id': domain['id'], 'asset_ids': sorted(required_assets)} if batch_scoped else domain
+        binding = hash_json({'domain': domain_binding, 'entities': stages.entity_bindings(state, sorted(selected)), 'required_stages': required,
             'target': state['inputs']['target'], 'discovery': state['inputs']['discovery'],
             'tasks': {t['id']: {'fingerprint': t['fingerprint'], 'outputs': t['outputs']} for t in finished}})
     return statuses, gaps, binding
@@ -301,13 +326,16 @@ def public_summary(state, allowed_models=None):
                   'Ask the user to select this domain before continuing.')
         rows.append({**{k: copy.deepcopy(domain[k]) for k in ('id', 'name', 'description', 'shared_dependency_ids')},
             'model_ids': sorted(primary), 'asset_count': len(domain['asset_ids']), 'status': status, **statuses,
+            'scope_preview': domain_batches.scope_preview(state, domain),
             'completion_kind': receipt['completion_kind'] if completed else None, 'next_action': action})
     active = value['active_domain_id'] if any(r['id'] == value['active_domain_id'] for r in rows) else None
     all_done = bool(rows) and all(r['status'] == 'completed' for r in rows)
     next_action = (next(r['next_action'] for r in rows if r['id'] == active) if active else
         'All discovered domains have recorded candidate deliveries. Review validation and package the selected outputs.' if all_done else
         'Show the domain choices and ask which domain the user would like to design next. Do not select automatically.')
+    batch = domain_batches.public_summary(state, tasks=tasks) if active else None
     return {'schema_version': 1, 'kind': 'domain_journey', 'candidates_sha256': value['candidates_sha256'],
+        'active_batch': batch,
         'active_domain_id': active, 'needs_selection': active is None and not all_done and bool(rows),
         'domains': rows, 'counts': {s: sum(r['status'] == s for r in rows) for s in ('queued', 'active', 'paused', 'completed', 'stale')},
         'next_action': next_action, 'qualification': QUALIFICATION}

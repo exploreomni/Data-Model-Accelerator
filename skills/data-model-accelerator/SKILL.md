@@ -107,6 +107,19 @@ Before implementation or semantic generation, check the selected entity scope
 with `guided_workflow.py stage` and its dependency task plan. The host must invoke
 actual available specialists for unblocked tasks and record their outputs; a
 plan does not execute them. Direct helper availability never supplies approval.
+Record the promised stages with `record-delivery-plan` before dispatch. Reconcile
+that plan against intake: a dbt + Omni request needs separate warehouse,
+semantic and validation work. A design-only checkpoint must say which requested
+code remains deferred and why. Never request Omni authoring while excluding the
+warehouse implementation/reuse-binding stage. When the user asks to continue,
+update the recorded deferral using that request; do not ask for the same approval
+again. Explicit provisional authoring remains available without design approval.
+Record actual host invocation with `record-dispatch` (or disclose an inline pass)
+and retain the output manifest even if the host summary is truncated. Inspect
+and verify those files before retrying a worker. See [reliable-runs.md](references/reliable-runs.md).
+At intake, report the installed revision and content identity. Unknown freshness
+is not "latest"; compare against an explicitly reviewed reference when available.
+Never update a plugin or restart an active engagement as an incidental repair.
 After design review, assess development effort using
 [development-effort.md](references/development-effort.md). Keep difficulty,
 confidence and unresolved prerequisites separate; do not estimate run charges.

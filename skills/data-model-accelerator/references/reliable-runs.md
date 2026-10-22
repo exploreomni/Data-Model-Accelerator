@@ -80,6 +80,22 @@ and actually invoke its worker. `already_active` means use the existing worker.
 invocation. None proves host isolation, model identity or correct interpretation.
 Keep actual host observations with the existing execution receipt.
 
+After invoking a worker, record `record-dispatch --document PATH`. Supply
+`schema_version: 1`, the reserved `attempt_id` and returned `fingerprint`,
+`execution_mode` (`specialist` or `inline`), `host_run_reference`, and
+`observed_model` / `observed_effort` (null when unavailable). Optional
+`requested_model`, `requested_effort`, and `packet_sha256` retain actual routing
+preferences and context identity. An inline pass requires `fallback_reason`;
+do not call it independent review. The observation is immutable and checked
+against current inputs; host reporting does not establish authenticated execution.
+The existing detailed `record-task.execution` packet receipt remains supported.
+Task output receipts link to matching dispatch observations; missing observations
+are labeled unobserved rather than fabricated. Older tasks remain usable.
+
+The Start Here page shows reserved attempts separately from reported specialist
+invocations, inline passes and unobserved work. Never equate a reservation, plan,
+truncated summary or missing model telemetry with successful delegation.
+
 The default ceiling is two simultaneous specialists across all roles, including
 architects and semantic modelers. A small sequential task can use
 `execution_mode: "inline"`; that is not independent review. The ceiling is not a
@@ -106,6 +122,10 @@ On a host limit or interruption, checkpoint each affected active attempt once.
 Do not restart finished domains or fan out a new batch of all workers. Resume
 the same `work_id` with a new `attempt_id`; matching files are reused, and a
 matching interrupted attempt is linked. Changed inputs or outputs prevent reuse.
+If only the host summary was truncated, inspect the expected files first. Verify
+the bounded manifest and specialist result, then record the existing outputs and
+checkpoint them. A matching next claim reuses those bytes without a new worker.
+If verification fails, retain the finding and retry only the incomplete scope.
 The runtime reserves slots only in this engagement; it cannot stop an agent host
 that ignores the protocol or measure other sessions' concurrency.
 

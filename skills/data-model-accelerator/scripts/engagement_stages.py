@@ -17,7 +17,8 @@ SHA = re.compile(r'[a-f0-9]{64}\Z')
 ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.:-]{0,199}\Z')
 DIMENSIONS = {'grain', 'keys', 'definitions', 'history', 'security', 'dependencies'}
 COMPONENT_FILES = {
-    'workflow': ('scripts/engagement_stages.py',),
+    'workflow': ('scripts/engagement_stages.py', 'scripts/deliverable_contract.py', 'scripts/delivery_plan.py',
+                 'scripts/domain_batches.py', 'scripts/domain_workflow.py'),
     'design': ('references/modeling-and-validation.md', 'references/semantic-placement.md',
                'references/design-reliability.md', 'scripts/design_builder.py'),
     'implementation': ('references/analytics-engineering.md', 'scripts/plan_refactor.py'),
@@ -587,6 +588,8 @@ def require_stage(state, stage, selected, *, _planning=False, _approved=None):
     if not _planning:
         from domain_workflow import require_scope
         require_scope(state, selected, stage)
+    from delivery_plan import require_not_deferred
+    require_not_deferred(state, stage)
     doc = design(state)
     scope = closure({e['id']: e['depends_on'] for e in doc['entities']}, ids(selected, [e['id'] for e in doc['entities']], True))
     if stage not in {'design', 'packaging'}:
@@ -618,14 +621,8 @@ def _code_artifacts(state, task):
         return []
     native_names = set()
     if task['stage'] == 'implementation':
-        entities = {entity['id']: entity for entity in design(state)['entities']}
-        reuse_only = all(entities[key]['disposition'] == 'reuse' for key in task['entity_ids'])
-        framework = state['answers'].get('framework')
-        suffixes = ({'.json', '.yaml', '.yml'} if framework == 'coalesce'
-                    else {'.sql', '.py', '.yaml', '.yml'} if framework == 'dbt'
-                    else {'.sql', '.sqlx', '.py'})
-        if reuse_only:
-            suffixes = suffixes | {'.json'}  # Explicit existing-model binding record.
+        from deliverable_contract import entity_artifacts
+        return sorted({p for paths in entity_artifacts(state, task).values() for p in paths})
     else:
         if state['answers'].get('semantic_target') == 'omni':
             suffixes = {'.yaml', '.yml', '.view', '.topic'}
@@ -647,7 +644,9 @@ def register_tasks(state, request):
     task_ids = ids([t.get('id') for t in request['tasks']], nonempty=True)
     output_owners = set()
     for task in request['tasks']:
-        fields(task, {'id', 'stage', 'entity_ids', 'depends_on', 'components', 'outputs'})
+        fields(task, {'id', 'stage', 'entity_ids', 'depends_on', 'components', 'outputs'}, {'entity_outputs'})
+        require('entity_outputs' not in task or task['stage'] == 'implementation',
+                'entity_outputs belongs to warehouse implementation tasks')
         require(task['stage'] in STAGES and task['stage'] != 'deployment', 'Deployment uses the separate release workflow')
         ids(task['entity_ids'], [e['id'] for e in doc['entities']], True)
         if task['stage'] in {'implementation', 'semantic'}:
@@ -748,6 +747,9 @@ def plan_tasks(state, artifact_root):
                     continue
                 try:
                     require(_output_hashes(artifact_root, task['outputs']) == run['outputs'], 'Output bytes changed')
+                    if task['stage'] == 'implementation':
+                        from deliverable_contract import verify_entity_files
+                        verify_entity_files(state, task, artifact_root)
                     action, reason, original = 'reuse', 'Inputs, component versions and output bytes match', run
                     break
                 except (ValueError, OSError):
@@ -772,7 +774,7 @@ def plan_tasks(state, artifact_root):
             'plan_sha256': hash_json(results), 'qualification': 'Dependency plan only; reuse retains original execution assurance.'}
 
 
-def record_task(state, artifact_root, request):
+def record_task(state, artifact_root, request, *, refresh_plan=True):
     fields(request, {'task_id', 'run_id', 'plan_sha256', 'fingerprint', 'outputs', 'evidence_reference'}, {'authoring_contract', 'execution'})
     identifier(request['run_id']); text(request['evidence_reference'])
     require(all(r['run_id'] != request['run_id'] for r in workflow(state)['runs']), 'Run ID already recorded')
@@ -786,6 +788,9 @@ def record_task(state, artifact_root, request):
     from deployment_workflow import _stable_bytes
     for path in _code_artifacts(state, specification):
         require(_stable_bytes(Path(artifact_root) / path).strip(), 'Native code artifact is empty: ' + path)
+    if specification['stage'] == 'implementation':
+        from deliverable_contract import verify_entity_files
+        verify_entity_files(state, specification, artifact_root)
     require(request['outputs'] == outputs, 'Output manifest does not match generated files')
     execution = None
     if 'execution' in request:
@@ -804,6 +809,8 @@ def record_task(state, artifact_root, request):
                      observation_id='checks-' + hash_json(request['run_id'])[:32], run_id=request['run_id'],
                      contract=request.get('authoring_contract'))
     recorded = {key: copy.deepcopy(value) for key, value in request.items() if key not in {'authoring_contract', 'execution'}}
+    from run_control import task_execution
+    recorded['dispatch'] = task_execution(state, request['task_id'], request['fingerprint'])
     if execution is not None:
         recorded['execution_observation'] = execution
     from artifact_syntax import check_structured_artifacts
@@ -816,7 +823,8 @@ def record_task(state, artifact_root, request):
     workflow(state)['runs'].append({**recorded, 'recorded_at': guided._now(),
         'generation_mode': task['generation_mode'],
         'assurance': 'host_reported_file_integrity', 'qualification': 'Output registration is not native validation or deployment approval.'})
-    workflow(state)['last_plan'] = plan_tasks(state, artifact_root)
+    if refresh_plan:
+        workflow(state)['last_plan'] = plan_tasks(state, artifact_root)
 
 
 def effort_request(state, supplied):
@@ -969,6 +977,8 @@ def public_view(state, *, _refresh=True):
               'qualification': 'Review recorded means a human decision attributed by the host, not independently authenticated identity. Signature verified means an external issuer signature was checked. Neither authorizes execution or deployment.',
               'stages': [], 'decisions': [], 'models': [], 'relationships': [], 'assets': [], 'effort': None}
     result['review_assurance'] = public_summary(state)
+    from delivery_plan import public_summary as plan_summary
+    result['delivery_plan'] = plan_summary(state)
     if doc:
         from design_consistency import assess_design
         from design_readiness import summarize as design_readiness

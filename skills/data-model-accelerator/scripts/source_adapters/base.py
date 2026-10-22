@@ -8,6 +8,7 @@ import json
 import math
 import unicodedata
 from pathlib import PurePosixPath
+from .errors import SourceAdapterError
 
 MAX_FILE_BYTES = 8 * 1024 * 1024
 MAX_TOTAL_BYTES = 32 * 1024 * 1024
@@ -36,17 +37,17 @@ def bounded(value):
         item, depth = stack.pop()
         count += 1
         if count > MAX_NODES or depth > MAX_DEPTH:
-            raise ValueError('source.structure_limit')
+            raise SourceAdapterError('source.structure_limit')
         if isinstance(item, dict):
             if not all(isinstance(k, str) for k in item):
-                raise ValueError('source.non_string_key')
+                raise SourceAdapterError('source.non_string_key')
             stack.extend((v, depth + 1) for v in item.values())
         elif isinstance(item, list):
             stack.extend((v, depth + 1) for v in item)
         elif isinstance(item, float) and not math.isfinite(item):
-            raise ValueError('source.nonfinite_number')
+            raise SourceAdapterError('source.nonfinite_number')
         elif item is not None and type(item) not in (str, bool, int, float):
-            raise ValueError('source.non_json_value')
+            raise SourceAdapterError('source.non_json_value')
     return value
 
 
@@ -54,28 +55,28 @@ def unique_pairs(pairs):
     value = {}
     for k, v in pairs:
         if k in value:
-            raise ValueError('source.duplicate_key')
+            raise SourceAdapterError('source.duplicate_key')
         value[k] = v
     return value
 
 
 def read_json(text):
     if len(text.encode('utf-8')) > MAX_FILE_BYTES:
-        raise ValueError('source.byte_limit')
+        raise SourceAdapterError('source.byte_limit')
     try:
         return bounded(json.loads(text, object_pairs_hook=unique_pairs,
                                   parse_constant=lambda _: (_ for _ in ()).throw(ValueError('source.nonfinite_number'))))
     except (RecursionError, UnicodeError, json.JSONDecodeError):
-        raise ValueError('source.invalid_json') from None
+        raise SourceAdapterError('source.invalid_json') from None
 
 
 def read_yaml(text):
     import yaml
     if len(text.encode('utf-8')) > MAX_FILE_BYTES:
-        raise ValueError('source.byte_limit')
+        raise SourceAdapterError('source.byte_limit')
     try:
         if any(isinstance(t, (yaml.tokens.AliasToken, yaml.tokens.AnchorToken)) for t in yaml.scan(text)):
-            raise ValueError('source.yaml_alias')
+            raise SourceAdapterError('source.yaml_alias')
         class Loader(yaml.SafeLoader):
             pass
         def mapping(loader, node, deep=False):
@@ -83,40 +84,40 @@ def read_yaml(text):
         Loader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)
         return bounded(yaml.load(text, Loader=Loader))
     except (yaml.YAMLError, RecursionError, TypeError):
-        raise ValueError('source.invalid_yaml') from None
+        raise SourceAdapterError('source.invalid_yaml') from None
 
 
 def validate_files(files):
     if not isinstance(files, dict) or len(files) > MAX_FILES:
-        raise ValueError('source.file_limit')
+        raise SourceAdapterError('source.file_limit')
     total = 0
     prefixes, file_keys = {}, set()
     for path, content in files.items():
         if not isinstance(path, str) or not path or not isinstance(content, str):
-            raise ValueError('source.invalid_file')
+            raise SourceAdapterError('source.invalid_file')
         p = PurePosixPath(path)
         if p.is_absolute() or '..' in p.parts or '\\' in path or ':' in path or str(p) != path or any(ord(c) < 32 for c in path):
-            raise ValueError('source.unsafe_path')
+            raise SourceAdapterError('source.unsafe_path')
         if len(p.parts) > MAX_DEPTH:
-            raise ValueError('source.path_depth_limit')
+            raise SourceAdapterError('source.path_depth_limit')
         # Staging on case-insensitive or Unicode-normalizing filesystems must
         # never bind one file's parsed values to another file's byte hash.
         for i in range(1, len(p.parts) + 1):
             prefix = '/'.join(p.parts[:i])
             key = unicodedata.normalize('NFC', prefix).casefold()
             if key in prefixes and prefixes[key] != prefix:
-                raise ValueError('source.path_collision')
+                raise SourceAdapterError('source.path_collision')
             if i < len(p.parts) and key in file_keys:
-                raise ValueError('source.file_directory_collision')
+                raise SourceAdapterError('source.file_directory_collision')
             prefixes[key] = prefix
         key = unicodedata.normalize('NFC', path).casefold()
         if any(other.startswith(key + '/') for other in prefixes):
-            raise ValueError('source.file_directory_collision')
+            raise SourceAdapterError('source.file_directory_collision')
         file_keys.add(key)
         size = len(content.encode('utf-8'))
         total += size
         if size > MAX_FILE_BYTES or total > MAX_TOTAL_BYTES:
-            raise ValueError('source.byte_limit')
+            raise SourceAdapterError('source.byte_limit')
 
 
 class Report:
@@ -129,7 +130,7 @@ class Report:
 
     def evidence(self, path, locator):
         if path not in self.files or not isinstance(locator, str) or not locator:
-            raise ValueError('source.invalid_evidence')
+            raise SourceAdapterError('source.invalid_evidence')
         return {'path': path, 'locator': locator, 'sha256': sha(self.files[path])}
 
     def _id(self, category, path, locator, name):
@@ -138,7 +139,7 @@ class Report:
     def object(self, path, locator, kind, name, native_id=None, **details):
         identity = self._id('object', path, locator, native_id if native_id is not None else name)
         if identity in self._ids:
-            raise ValueError('source.duplicate_object')
+            raise SourceAdapterError('source.duplicate_object')
         self._ids.add(identity)
         self.objects.append({'id': identity, 'native_id': None if native_id is None else str(native_id),
                              'kind': kind, 'name': str(name), 'evidence': self.evidence(path, locator),
@@ -147,7 +148,7 @@ class Report:
 
     def expression(self, path, locator, language, text, object_id=None, **details):
         if not isinstance(text, str):
-            raise ValueError('source.invalid_expression')
+            raise SourceAdapterError('source.invalid_expression')
         identity = self._id('expression', path, locator, text)
         self.expressions.append({'id': identity, 'object_id': object_id, 'language': language,
                                  'text': text, 'evidence': self.evidence(path, locator), 'details': bounded(details)})
@@ -164,7 +165,7 @@ class Report:
 
     def cover(self, path, status='parsed', reason=''):
         if path not in self.files or status not in ('parsed', 'partial', 'unsupported'):
-            raise ValueError('source.invalid_coverage')
+            raise SourceAdapterError('source.invalid_coverage')
         self.coverage[path] = {'path': path, 'sha256': sha(self.files[path]), 'status': status, 'reason': reason}
 
     def finish(self):

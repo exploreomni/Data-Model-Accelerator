@@ -35,17 +35,25 @@ def content_manifest(skill_root=None):
 
 
 def runtime_identity():
-    manifest = content_manifest()
-    return {'kind': 'accelerator_runtime_identity', 'schema_version': 1,
-            'runtime_sha256': hash_json(manifest), 'file_count': len(manifest),
-            'identity_scope': 'skill_scripts_references_agents_assets',
-            'qualification': 'Installed content identity, including specialist instructions and templates; not a release or execution attestation.'}
+    from accelerator_runtime import inspect_runtime
+    return inspect_runtime()
 
 
 def observe_runtime(state):
-    current = runtime_identity()
     records = state.setdefault('runtime_observations', [])
-    if not records or records[-1]['runtime_sha256'] != current['runtime_sha256']:
+    # The run observes code identity on content changes. Repeated stage actions
+    # still hash the live files, but do not spawn Git for unchanged code. An
+    # explicit installation preflight always re-reads repository metadata.
+    if records:
+        try:
+            if (records[-1].get('identity_scope') == 'skill_scripts_references_agents_assets'
+                    and records[-1].get('installed_revision') is not None
+                    and records[-1].get('runtime_sha256') == hash_json(content_manifest())):
+                return
+        except (OSError, ValueError):
+            pass
+    current = runtime_identity()
+    if not records or records[-1] != current:
         records.append(current)
 
 
@@ -225,14 +233,71 @@ def checkpoint_work(state, request, artifact_root):
             'qualification': 'Local checkpoint only; output presence does not establish validation.'}
 
 
+def record_dispatch(state, request):
+    """Record an actual host invocation or an explicit inline pass, not a claim.
+
+    This is attributable host evidence, not authentication or proof of isolation.
+    Unknown models stay null; there is no model selection or price calculation.
+    """
+    import engagement_stages as stages
+    from guided_workflow import _now
+    stages.fields(request, {'schema_version', 'attempt_id', 'fingerprint', 'execution_mode',
+                            'host_run_reference', 'observed_model', 'observed_effort'},
+                  {'requested_model', 'requested_effort', 'packet_sha256', 'fallback_reason'})
+    require(type(request['schema_version']) is int and request['schema_version'] == 1, 'Unsupported dispatch observation')
+    ops = copy.deepcopy(state.get('operations', {}))
+    attempt = next((a for a in ops.get('attempts', []) if a['attempt_id'] == request['attempt_id']), None)
+    require(attempt is not None and attempt['status'] == 'active', 'Record dispatch against the active reserved attempt')
+    require(request['fingerprint'] == attempt['fingerprint'], 'Dispatch binding changed')
+    current, _ = _binding(state, attempt)
+    require(hash_json(current) == attempt['fingerprint'], 'Inputs changed before dispatch was recorded')
+    require(request['execution_mode'] == attempt['execution_mode'], 'Dispatch mode differs; checkpoint and reserve the correct mode')
+    from agent_execution import _text
+    _text(request['host_run_reference'], 1024)
+    for key in ('requested_model', 'observed_model', 'requested_effort', 'observed_effort'):
+        _text(request.get(key), 256, nullable=True)
+    if request.get('packet_sha256') is not None:
+        require(stages.SHA.fullmatch(request['packet_sha256']), 'Invalid packet hash')
+    if request['execution_mode'] == 'inline':
+        _text(request.get('fallback_reason'), 1024)
+    elif request.get('fallback_reason') is not None:
+        _text(request['fallback_reason'], 1024)
+    observation = {**copy.deepcopy(request), 'assurance': 'host_reported_execution',
+                   'execution_verified': False}
+    previous = attempt.get('dispatch_observation')
+    if previous:
+        require({k: v for k, v in previous.items() if k != 'recorded_at'} == observation,
+                'A dispatch observation is immutable; use a new attempt for a different invocation')
+        return previous
+    observation['recorded_at'] = _now()
+    attempt['dispatch_observation'] = observation
+    state['operations'] = ops
+    return observation
+
+
+def task_execution(state, task_id, fingerprint):
+    matches = [a for a in (state.get('operations') or {}).get('attempts', [])
+               if a.get('task_id') == task_id and a['fingerprint'] == hash_json({'task_id': task_id, 'fingerprint': fingerprint})]
+    attempt = next((a for a in reversed(matches) if a.get('dispatch_observation')), None)
+    if attempt:
+        return {'status': 'host_reported', 'attempt_id': attempt['attempt_id'],
+                'execution_mode': attempt['execution_mode'], 'observation': copy.deepcopy(attempt['dispatch_observation'])}
+    return {'status': 'unobserved', 'execution_mode': 'unknown',
+            'qualification': 'Files may be retained; no specialist invocation or inline execution was recorded.'}
+
+
 def public_summary(state):
     ops = state.get('operations')
     attempts = (ops or {}).get('attempts', [])
     return {'status': 'tracked' if ops else 'untracked',
             'runtime_sha256': (state.get('runtime_observations') or [{}])[-1].get('runtime_sha256'),
+            'runtime_identity': copy.deepcopy((state.get('runtime_observations') or [None])[-1]),
             'max_workers': (ops or {}).get('max_workers', DEFAULT_LIMIT),
             'counts': {status: sum(a['status'] == status for a in attempts)
                        for status in ('active', 'interrupted', 'outputs_recorded')},
             'attempts': len(attempts), 'reused': (ops or {}).get('reuse_count', 0),
+            'dispatch_counts': {'specialist_reported': sum(bool(a.get('dispatch_observation')) and a['execution_mode'] == 'specialist' for a in attempts),
+                                'inline_reported': sum(bool(a.get('dispatch_observation')) and a['execution_mode'] == 'inline' for a in attempts),
+                                'unobserved': sum(not a.get('dispatch_observation') for a in attempts)},
             'cost': None, 'execution_verified': False,
             'qualification': 'Coordinator records only. Host invocation, token usage, cost and native validation remain separate evidence.'}

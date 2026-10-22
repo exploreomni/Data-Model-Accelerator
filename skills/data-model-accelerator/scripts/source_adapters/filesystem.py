@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import stat
 from .base import MAX_FILE_BYTES, validate_files
+from .errors import SourceAdapterError
 
 
 def _identity(info):
@@ -37,8 +38,12 @@ def new_json_output(path):
     still-matching entry through the retained directory descriptor.
     """
     path = Path(path).absolute()
-    if path.parent.resolve() != path.parent:
-        raise ValueError('source.redirected_output')
+    try:
+        redirected = path.parent.resolve() != path.parent
+    except RuntimeError:  # pathlib on a symlink loop (Python < 3.13)
+        raise SourceAdapterError('source.redirected_output') from None
+    if redirected:
+        raise SourceAdapterError('source.redirected_output')
     parent_fd, ancestors = _open_directory(path.parent)
     created, output_fd, written = None, None, False
 
@@ -46,18 +51,18 @@ def new_json_output(path):
         current_fd, current_ancestors = _open_directory(path.parent)
         try:
             if current_ancestors != ancestors:
-                raise ValueError('source.output_parent_changed')
+                raise SourceAdapterError('source.output_parent_changed')
         finally:
             os.close(current_fd)
         if created is not None:
             current = os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
             if _identity(current) != created or not stat.S_ISREG(current.st_mode):
-                raise ValueError('source.output_replaced')
+                raise SourceAdapterError('source.output_replaced')
 
     def write(value):
         nonlocal created, output_fd, written
         if created is not None:
-            raise ValueError('source.output_already_written')
+            raise SourceAdapterError('source.output_already_written')
         check()
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
         output_fd = os.open(path.name, flags, 0o600, dir_fd=parent_fd)
@@ -81,7 +86,7 @@ def new_json_output(path):
             raise FileExistsError('source.output_exists')
         yield write
         if not written:
-            raise ValueError('source.output_not_written')
+            raise SourceAdapterError('source.output_not_written')
         check()
     except BaseException:
         if created is not None:
@@ -101,7 +106,7 @@ def read_assigned(root, relative):
     validate_files({relative: ''})
     root = Path(root).absolute()
     if root.resolve() != root:
-        raise ValueError('source.redirected_root')
+        raise SourceAdapterError('source.redirected_root')
     flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
     fd = os.open('/', flags)
     try:
@@ -113,11 +118,11 @@ def read_assigned(root, relative):
         with os.fdopen(file_fd, 'rb') as stream:
             before = os.fstat(stream.fileno())
             if not stat.S_ISREG(before.st_mode) or before.st_size > MAX_FILE_BYTES:
-                raise ValueError('source.unsafe_or_oversized_file')
+                raise SourceAdapterError('source.unsafe_or_oversized_file')
             raw = stream.read(MAX_FILE_BYTES + 1)
             after = os.fstat(stream.fileno())
             if before.st_size != len(raw) or after.st_size != len(raw) or before.st_mtime_ns != after.st_mtime_ns or len(raw) > MAX_FILE_BYTES:
-                raise ValueError('source.changed_file')
+                raise SourceAdapterError('source.changed_file')
         return raw
     finally:
         os.close(fd)

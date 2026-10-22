@@ -25,9 +25,9 @@ def capability(source):
 def component_fingerprint(source, _ancestors=()):
     if source in _ancestors:
         raise ValueError('source.component_dependency_cycle')
-    from . import base, sql
+    from . import base, errors, sql
     selected = module(source)
-    paths = {Path(__file__), Path(base.__file__), Path(sql.__file__), Path(selected.__file__)}
+    paths = {Path(__file__), Path(base.__file__), Path(errors.__file__), Path(sql.__file__), Path(selected.__file__)}
     # Include legacy adapter implementations used by compatibility wrappers.
     scripts = Path(__file__).resolve().parent.parent
     research = scripts.parent / 'references' / 'source-adapters' / (source + '.md')

@@ -1114,6 +1114,9 @@ def _presentation(state, review=None, audience='engineer'):
             for key in ('models', 'relationships', 'assets'):
                 workflow.pop(key, None)
         allowed_models = {m['id'] for m in data['review'].get('models', [])}
+        if review is not None:
+            from delivery_plan import public_summary as delivery_plan_summary
+            workflow['delivery_plan'] = delivery_plan_summary(state, allowed_models)
         if review is not None and 'design_readiness' in workflow:
             from design_readiness import summarize
             workflow['design_readiness'] = _readiness_presentation(summarize(state, allowed_models))
@@ -1206,6 +1209,13 @@ def _domain_presentation(raw):
                                       'shared_dependency_ids', 'design_status', 'implementation_status',
                                       'semantic_status', 'completion_kind', 'next_action'))
                          for row in raw.get('domains', [])]
+    for projected, row in zip(result['domains'], raw.get('domains', [])):
+        if row.get('scope_preview'):
+            projected['scope_preview'] = fields(row['scope_preview'], ('models', 'columns', 'source_files', 'assets',
+                                                                        'batching_recommended', 'qualification'))
+    if raw.get('active_batch'):
+        result['active_batch'] = fields(raw['active_batch'], ('batch_id', 'name', 'entity_ids', 'dependency_ids', 'status',
+            'design_status', 'implementation_status', 'semantic_status', 'next_action', 'qualification'))
     result['counts'] = {key: count for key, count in raw.get('counts', {}).items()
                         if key in ('total', 'proposed', 'queued', 'active', 'paused', 'completed', 'stale')
                         and type(count) is int and count >= 0}
@@ -1441,6 +1451,10 @@ def _workflow_presentation(raw):
         return {key:json.loads(json.dumps(value[key])) for key in names if isinstance(value, dict) and key in value}
     result = fields(raw, ('schema_version', 'engagement_id', 'design_id', 'design_revision', 'design_sha256',
                           'current_stage', 'next_action', 'qualification', 'delivery_status', 'requested_stages'))
+    if raw.get('delivery_plan'):
+        plan = raw['delivery_plan']
+        result['delivery_plan'] = fields(plan, ('status', 'deferred_stages', 'unplanned_code_stages', 'qualification'))
+        result['delivery_plan']['stages'] = [fields(row, ('stage', 'plan_status', 'reason', 'task_count')) for row in plan.get('stages', [])]
     if raw.get('design_readiness'):
         result['design_readiness'] = _readiness_presentation(raw['design_readiness'])
     if raw.get('review_assurance'):

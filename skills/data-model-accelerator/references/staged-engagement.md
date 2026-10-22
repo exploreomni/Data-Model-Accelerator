@@ -1,5 +1,45 @@
 # Independent stages, one engagement
 
+## Account for the requested delivery before dispatch
+
+The coordinator creates `record-delivery-plan --document PATH` from the user's
+existing choices; the user does not need to write JSON. The document has
+`schema_version: 1`, a trusted-conversation `request_reference`, and `stages`:
+each row has `stage`, `status` (`planned`, `deferred`, or `not_selected`) and
+`reason`. Deferred rows also retain the request reference that explains the
+deferral. Account for design, packaging and every requested code/validation
+stage. A selected stage cannot be marked `not_selected`. A planned semantic
+stage requires planned warehouse code or existing-model bindings. This records
+scope, not design approval. Change a deferral to planned when the user requests
+continuation; explicit provisional code does not require extra design approval.
+
+The stage view lists unplanned and deferred outputs separately. Older runs with
+no delivery plan remain readable and can author provisional files; absence of a
+plan never implies that selected deliverables are complete.
+
+## Bind code coverage to each model
+
+An implementation task may declare `entity_outputs`, mapping each of its exact
+entity IDs to nonempty lists of declared output paths. Single-model legacy tasks
+retain their filenames; multi-model tasks can omit the mapping only when every
+model has a uniquely matching filename. One dbt SQL/Python file cannot fulfill
+multiple models. Tests, macros, configuration and Omni YAML do not fulfill a
+dbt model. Python models require a non-executed `model(dbt, session)` definition.
+An entity explicitly classified as a source may use source YAML that actually
+declares its table. A shared source YAML must cover each mapped source.
+
+Reused models may use a JSON binding with `schema_version: 1`,
+`kind: existing_model_binding`, `entity_id`, `existing_id`, and nonempty
+`evidence_refs` from the inventoried existing model. This identifies retained
+evidence; it does not prove physical existence or native validation. Coalesce
+node formats and native warehouse code retain their existing paths.
+
+The finalizer checks warehouse and semantic coverage independently for staged
+engagements and rechecks current files. Partial exports use the explicit
+checkpoint path; they cannot claim a complete selected delivery. Portable legacy
+reviews remain exportable with native warehouse files, but do not gain per-model
+or native validation assurance from packaging.
+
 An explicit request for code despite missing catalogue evidence or pending design
 review uses the separate [provisional authoring path](provisional-generation.md).
 It opens draft implementation/semantic tasks, not approval or execution. Track

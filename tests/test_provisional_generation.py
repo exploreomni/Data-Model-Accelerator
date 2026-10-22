@@ -167,6 +167,9 @@ class ProvisionalGenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'native code artifacts'):
             stages._code_artifacts(state, task)
         task['outputs'] = ['sources.yml']
+        with self.assertRaisesRegex(ValueError, 'native code artifacts'):
+            stages._code_artifacts(state, task)
+        state['workflow']['design']['entities'][0]['object_kind'] = 'source'
         self.assertEqual(stages._code_artifacts(state, task), ['sources.yml'])
         task['outputs'] = ['binding.json']
         state['workflow']['design']['entities'][0]['disposition'] = 'reuse'

@@ -61,8 +61,49 @@ The adapter CLI emits value-free counts; its JSON includes source expressions
 and must remain in the approved retention boundary. The collector excludes
 credential filenames, binary files, symlinks and generated/vendor directories;
 all omissions remain visible. Limits are 512 text files, 8 MiB per file and
-32 MiB total, with at most 48 path components. Split larger scopes along coherent project/dependency boundaries;
+32 MiB total, with at most 48 path components and 2,048 visited directory entries.
+Split larger scopes along coherent project/dependency boundaries;
 never silently truncate or treat an excerpt as a complete asset.
+
+### Diagnostics and retry recovery
+
+The standalone CLI keeps its successful stdout/count envelope and private
+`source_adapter_result` schema unchanged. Component hashes still track parser
+implementation changes. Exit `0` means the declared subset parsed;
+`2` means retained partial evidence, not failed acquisition or native acceptance;
+`1` means an input, output or parser failure. Invalid CLI arguments retain exit
+`2` but have no extraction result. Inspect the diagnostic status as well as the
+exit code.
+
+Failures and partial results emit JSON lines to stderr with
+`kind: source_adapter_diagnostic`, `schema_version: 1`, `status`, `code`,
+`stage`, a static `hint`, and `retry: investigate_before_retry`. They contain no
+source paths, expressions, parser exception messages or credentials. They do
+not authorize disclosure of the private result. Successful complete parses emit
+no diagnostic. A partial result can have several diagnostics, with the full
+file-level explanation retained only in its private artifact.
+
+| Code or family | Operator action |
+| --- | --- |
+| `source.dependency_missing`, `source.dependency_unavailable` | Verify the selected interpreter and pinned optional requirements. Missing imports and adapter-reported dependency gaps are distinguished from arbitrary parser failures. |
+| `source.manifest_missing` | Authored dbt code has no usable extracted manifest. Supply a matching supported manifest explicitly; generated directories can be excluded from collection. The adapter never runs dbt to create it. |
+| `source.manifest_unsupported`, `source.manifest_binding_unresolved` | Inspect the supported schema, resource IDs, source revision and paths. A present manifest does not necessarily bind every authored file. |
+| `source.input_missing`, `source.unsafe_root`, `source.input_*` | Confirm an approved, stable, readable directory without redirected ancestors. Investigate changes or access failures instead of broadening scope. |
+| `source.output_exists` | Preserve the existing result. Verify its pinned evidence before reuse, or select a new private output filename. Never delete it merely to retry. |
+| `source.output_*`, `source.redirected_output` | Check the existing private destination, permissions and concurrent changes. Output must remain outside the source. |
+| `source.byte_limit`, `source.snapshot_limit`, `source.file_limit`, `source.entry_limit`, `source.path_depth_limit`, `source.structure_limit` | Split a coherent approved scope within the documented bounds. Keep its inventory and dependency denominator; do not silently truncate or raise bounds. |
+| `source.unsupported_input`, `source.empty_snapshot` | Check the selected adapter's capabilities and retained omissions. Binary/unrecognized exports do not establish a completed inventory. |
+| `source.invalid_input`, `source.import_failed`, `source.parser_io_error` | The cause is not classified more precisely. Investigate the format or installation; no missing manifest, dependency or automatic repair is inferred from an arbitrary error message. |
+
+Retry only after a concrete input, environment or destination correction.
+For unchanged pinned inputs, reuse an already verified extraction when its
+input bytes, source/format scope, component fingerprint and applicable decisions
+still match. For specialist results, use the existing verification contract;
+an existing filename alone is not verification. A verified partial result
+remains partial and can inform requested provisional work. Read its gaps once,
+record unresolved decisions, and investigate those gaps instead of rerunning the
+same parser or guessing different commands. Changed bytes or parser components
+require fresh extraction and affected-scope review; never relabel old hashes.
 
 ## Common evidence contract
 

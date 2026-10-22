@@ -468,7 +468,7 @@ def _stage_progress(state):
                                  'scope': 'stage', 'action': stage_view['next_action']})
 
 
-def _refresh(state, *, catalogue=UNSET, readiness_options=None):
+def _refresh(state, *, catalogue=UNSET, readiness_options=None, stage_progress=True):
     from run_control import observe_runtime
     observe_runtime(state)
     repo = state['inputs']['source']['path']
@@ -546,7 +546,8 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None):
         if generation_ready:
             state['next_actions'].append({'id': 'prepare_selected_handoff', 'action': 'Verify the physical catalogue and review the scoped model contract before generating selected artifacts. Independent baseline and execution gates remain separate qualified actions.', 'scope': 'generation'})
     _delivery_progress(state)
-    _stage_progress(state)
+    if stage_progress:
+        _stage_progress(state)
     bindings = _bindings(state)
     assessment_dependencies = ('source', 'target', 'runtime') if 'dbt_runtime' in a else ('source', 'target')
     state['evidence'].append({'id': 'assessment-' + uuid.uuid4().hex, 'kind': 'static_readiness',
@@ -726,11 +727,20 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
     run_dir = _path(run_dir)
     with _lock(run_dir):
         state = load_engagement(run_dir)
-        invalidated = _refresh(state)
+        invalidated = _refresh(state, stage_progress=False)
         if document is not None:
             _secrets(document)
         if action == 'migrate-stages':
             stages.migrate(state)
+        elif action == 'record-delivery-plan':
+            from delivery_plan import record_plan
+            record_plan(state, document)
+        elif action in ('select-batch', 'pause-batch', 'complete-batch'):
+            import domain_batches
+            if action == 'select-batch':
+                domain_batches.select(state, document)
+            else:
+                domain_batches.finish(state, document, pause=action == 'pause-batch')
         elif action in ('register-domains', 'select-domain', 'pause-domain', 'complete-domain'):
             import domain_workflow
             {'register-domains': domain_workflow.register, 'select-domain': domain_workflow.select_domain,
@@ -826,6 +836,9 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
             import run_control
             state['last_work_action'] = (run_control.claim_work(state, document) if action == 'claim-work'
                                          else run_control.configure(state, document))
+        elif action == 'record-dispatch':
+            from run_control import record_dispatch
+            state['last_work_action'] = record_dispatch(state, document)
         elif action == 'checkpoint-work':
             import run_control
             root = _path(artifact_root)
@@ -843,7 +856,7 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
                 stages.register_tasks(state, document)
             state['workflow']['artifact_root'] = str(root)
             if action == 'record-task':
-                stages.record_task(state, root, document)
+                stages.record_task(state, root, document, refresh_plan=False)
             elif action == 'check-task':
                 from authoring_quality import recheck_task
                 recheck_task(state, root, document)
@@ -869,13 +882,13 @@ def main(argv=None):
     stage_commands = ('migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
                       'independent-review-bindings', 'record-independent-review', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
-                      'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design',
+                      'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
                       'record-business-rules', 'review-business-rules', 'recommend-shared-models',
                       'extract-periscope', 'record-migration-validation', 'migration-bindings',
                       'configure-legacy-comparison', 'record-legacy-baseline',
                       'record-legacy-alignment', 'review-legacy-alignment',
                       'configure-migration-planning', 'record-migration-plan', 'edit-migration-items',
-                      'register-domains', 'select-domain', 'pause-domain', 'complete-domain')
+                      'register-domains', 'select-domain', 'pause-domain', 'complete-domain', 'select-batch', 'pause-batch', 'complete-batch')
     for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence') + stage_commands:
         p = sub.add_parser(command)
         p.add_argument('--run', type=Path, required=True, help='Local engagement folder outside the input repository.')
@@ -902,13 +915,13 @@ def main(argv=None):
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
         if command in ('import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
                        'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
-                       'claim-work', 'checkpoint-work', 'configure-work', 'record-coverage', 'record-reuse', 'reconcile-design',
+                       'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
                        'record-business-rules', 'review-business-rules', 'recommend-shared-models',
                        'extract-periscope', 'record-migration-validation',
                        'configure-legacy-comparison', 'record-legacy-baseline',
                        'record-legacy-alignment', 'review-legacy-alignment',
                        'configure-migration-planning', 'record-migration-plan', 'edit-migration-items',
-                       'register-domains', 'select-domain', 'pause-domain', 'complete-domain'):
+                       'register-domains', 'select-domain', 'pause-domain', 'complete-domain', 'select-batch', 'pause-batch', 'complete-batch'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
         if command in ('review-bindings', 'independent-review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):
             p.add_argument('--entities', nargs='+', required=True)
@@ -959,7 +972,10 @@ def main(argv=None):
         else:
             print('Engagement ' + state['engagement_id'] + ' — ' + state['status'])
             print('State: ' + str(_path(args.run) / 'state.json'))
-            if args.command in ('claim-work', 'checkpoint-work', 'configure-work'):
+            runtime = (state.get('runtime_observations') or [{}])[-1]
+            print('Accelerator revision: ' + str(runtime.get('installed_revision') or 'unavailable (portable install)')
+                  + '; freshness: ' + runtime.get('freshness', {}).get('status', 'unknown'))
+            if args.command in ('claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work'):
                 print('Work action: ' + json.dumps(state['last_work_action'], sort_keys=True))
             for action in state['next_actions']:
                 print('- ' + action['action'])
