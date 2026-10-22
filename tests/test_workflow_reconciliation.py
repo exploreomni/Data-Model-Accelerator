@@ -159,6 +159,31 @@ class WorkflowReconciliationTests(unittest.TestCase):
                           document=self.human_review(['customers']))
         self.assertNotIn('customers', fixtures.stages.approved_entities(self.h.state))
 
+    def test_many_unknowns_use_bounded_scope_index_and_keep_exact_owners(self):
+        from unittest.mock import patch
+        count = 2400
+        design = {'entities': [{'id': 'model-' + str(i), 'name': 'model_' + str(i),
+                               'layer': 'gold'} for i in range(count)],
+                  'decisions': [], 'relationships': []}
+        diagnostics = {'findings': [], 'unknowns': [
+            {'path': '/entities/' + str(i) + '/grain', 'code': 'unknown_grain'}
+            for i in range(count)]}
+        with patch.object(self.reconciliation, 'reconcile_proposals', return_value=diagnostics), \
+             patch.object(self.reconciliation, 'hash_json', wraps=self.reconciliation.hash_json) as hashes:
+            result = self.reconciliation._checks([design])
+            self.assertLess(hashes.call_count, count * 4)
+        self.assertEqual([r['model_ids'] for r in result['unknowns']],
+                         [['model-' + str(i)] for i in range(count)])
+
+    def test_scope_index_unions_decision_and_relationship_claims(self):
+        first = {'entities': [{'id': 'a'}, {'id': 'b'}],
+                 'decisions': [{'id': 'shared', 'model_ids': ['a']}], 'relationships': []}
+        second = {'entities': [{'id': 'c'}],
+                  'decisions': [{'id': 'shared', 'model_ids': ['c']}], 'relationships': []}
+        index = self.reconciliation._scope_index([first, second])
+        self.assertEqual(self.reconciliation._scope({'path': '/decisions/0'}, [first, second], index), ['a', 'c'])
+        self.assertEqual(self.reconciliation._scope({'path': '/entities/2'}, [first, second], index), ['c'])
+
     def test_legacy_absence_and_repeat_views_preserve_saved_state(self):
         legacy = copy.deepcopy(self.h.state)
         legacy['workflow'].pop('review_assurance', None)

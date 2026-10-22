@@ -630,6 +630,25 @@ def validate_review(state, review):
     for edge in review.get('relationships', []):
         require(edge.get('from') in ids and edge.get('to') in ids, 'Relationship references an absent model')
         require(edge.get('kind') in ('lineage', 'relationship'), 'Relationship kind must distinguish lineage from joins')
+    if 'partition' in review:
+        from engagement_stages import closure
+        partition = review['partition']
+        required = {'kind', 'domain', 'owned_model_ids', 'shared_dependency_ids'}
+        require(current_design and isinstance(partition, dict) and set(partition) in (
+            required, required | {'batch_index', 'batch_size'}) and partition['kind'] == 'domain_design_review',
+            'Unsupported design partition contract')
+        canonical = {row['id']: row for row in current_design['entities']}
+        owned = {key for key, row in canonical.items() if row['domain'] == partition['domain']}
+        if 'batch_index' in partition:
+            number, size = partition['batch_index'], partition['batch_size']
+            require(type(number) is int and type(size) is int and number >= 1 and 1 <= size <= MAX_REVIEW_ITEMS,
+                    'Invalid deterministic domain batch')
+            owned = set(sorted(owned)[(number - 1) * size:number * size])
+        included = set(closure({key: row['depends_on'] for key, row in canonical.items()}, owned))
+        require(owned and partition['owned_model_ids'] == sorted(owned)
+                and partition['shared_dependency_ids'] == sorted(included - owned) and set(ids) == included,
+                'A domain partition must retain every owned entity and declared dependency')
+        require(not review.get('artifacts'), 'Domain partition export is design-only; retain implementation in its original delivery')
     from portal_checks import erd_inventory
     erd_inventory(review)
     for name in ('changes', 'decisions', 'validation'):
@@ -1142,6 +1161,9 @@ def _presentation(state, review=None, audience='engineer'):
         if review is not None and 'design_readiness' in workflow:
             from design_readiness import summarize
             workflow['design_readiness'] = _readiness_presentation(summarize(state, allowed_models))
+        if state['workflow'].get('migration_intents') or 'migration_intent' in workflow:
+            from migration_intent import summary as intent_summary
+            workflow['migration_intent'] = _intent_presentation(intent_summary(state, allowed_models))
         workflow['authoring_checks'] = [row for row in workflow.get('authoring_checks', [])
                                        if set(row['model_ids']) <= allowed_models]
         workflow['artifact_checks'] = [row for row in workflow.get('artifact_checks', [])
@@ -1173,6 +1195,22 @@ def _presentation(state, review=None, audience='engineer'):
             summary = planning_summary(state, allowed_models if review is not None else None)
             if summary is not None:
                 data['migration_planning'] = summary
+        if review is not None and review.get('partition'):
+            # Full design binding was checked above. This explicitly declared
+            # projection compares only included facts; boundary edges retain
+            # their original definitions in domain_proposals and the index.
+            scoped = copy_quality(state['workflow']['design'])
+            scoped.pop('sha256', None)  # Derived subset; original binding was verified before projection.
+            scoped['entities'] = [row for row in scoped['entities'] if row['id'] in allowed_models]
+            scoped['relationships'] = [row for row in scoped['relationships'] if {row['from'], row['to']} <= allowed_models]
+            scoped['decisions'] = [row for row in scoped['decisions'] if set(row['model_ids']) <= allowed_models]
+            compared = {key: value for key, value in review.items() if key != 'design_binding'}
+            workflow['design_checks'] = _design_check_summary(compare_review(scoped, compared))
+            workflow['design_checks']['qualification'] += ' Scoped to included models and internal relationships; boundary records remain in the relationship ledger.'
+            workflow['decisions'] = [row for row in workflow.get('decisions', []) if row.get('model_ids') and set(row['model_ids']) <= allowed_models]
+            for key in ('effort', 'task_plan', 'review_assurance'):
+                workflow.pop(key, None)
+            data.pop('deployment', None)
     return data
 
 
@@ -1467,6 +1505,24 @@ def _readiness_presentation(raw):
     return result
 
 
+def _intent_presentation(raw):
+    """Architecture intent and conformance are separate from readiness/approval."""
+    def fields(value, names):
+        return {key: json.loads(json.dumps(value[key])) for key in names if isinstance(value, dict) and key in value}
+    result = fields(raw, ('schema_version', 'status', 'qualification', 'native_validation', 'business_acceptance'))
+    result['domains'] = []
+    for row in raw.get('domains', []):
+        item = fields(row, ('domain_id', 'status', 'structural_objective', 'behavior', 'model_ids', 'objective_ids', 'gaps', 'review_authority'))
+        for key in ('transitional_dependency_count', 'semantic_purpose_count'):
+            if type(row.get(key)) is int and row[key] >= 0:
+                item[key] = row[key]
+        item['model_disposition_counts'] = {key: row['model_disposition_counts'][key]
+            for key in ('create', 'reuse', 'extend', 'replace', 'undetermined')
+            if type(row.get('model_disposition_counts', {}).get(key)) is int and row['model_disposition_counts'][key] >= 0}
+        result['domains'].append(item)
+    return result
+
+
 def _workflow_presentation(raw):
     """Allowlisted review prose only; never transport full state or approval receipts."""
     def fields(value, names):
@@ -1479,6 +1535,8 @@ def _workflow_presentation(raw):
         result['delivery_plan']['stages'] = [fields(row, ('stage', 'plan_status', 'reason', 'task_count')) for row in plan.get('stages', [])]
     if raw.get('design_readiness'):
         result['design_readiness'] = _readiness_presentation(raw['design_readiness'])
+    if raw.get('migration_intent'):
+        result['migration_intent'] = _intent_presentation(raw['migration_intent'])
     if raw.get('review_assurance'):
         assurance = raw['review_assurance']
         projected = fields(assurance, ('schema_version', 'qualification'))
@@ -1556,7 +1614,7 @@ def _trim_workflow_details(data):
     for key in ('assets', 'models', 'relationships', 'domain_proposals', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
-        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness'):
+        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness', 'migration_intent'):
             data['workflow'].pop(key, None)
 
 

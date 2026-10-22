@@ -25,7 +25,7 @@ BRIEF_FIELDS = {'objective', 'scope_ids', 'summary', 'decisions', 'unknowns',
                 'constraints', 'output_contract', 'stop_conditions'}
 REQUEST_FIELDS = {'schema_version', 'kind', 'task_id', 'role', 'bindings', 'brief',
                   'evidence', 'policy', 'classification', 'mode'}
-OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta', 'source_type'}
+OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta', 'source_type', 'migration_intents', 'design_evidence'}
 
 
 def _text(value, label):
@@ -102,6 +102,8 @@ def _validate(request):
             last_end = bounds[1]
             ranges_count += 1
     require(ranges_count <= 64, 'Too many evidence excerpts; split by dependency closure')
+    from migration_context import packet_evidence
+    packet_evidence(request)
     return limit
 
 
@@ -150,6 +152,11 @@ def build_packet(root, request, output):
             data['delta'] = request['delta']
         data['evidence'] = excerpts
         data['file_coverage'] = coverage
+        from migration_context import packet_evidence
+        intent_evidence = packet_evidence(request)
+        if intent_evidence is not None:
+            data['migration_intents'] = request['migration_intents']
+            data['design_evidence'] = intent_evidence
         instructions = (
             '# Bounded specialist task\n\n'
             'Use this briefing and selected evidence only. The coordinator owns full discovery, '
@@ -173,6 +180,13 @@ def build_packet(root, request, output):
             'references, changed findings, unresolved questions, validation limits and required '
             'context expansions. Preserve native expressions and their filter, grain, history '
             'and access context. Never rewrite independent expected results to match a candidate. '
+            'Preserving business behavior does not mean preserving legacy table boundaries or SQL. '
+            'Follow explicit repository roles and structural objectives. Evaluate target reuse by grain, '
+            'keys, definitions, history, security and dependencies; do not assume a target label approves reuse. '
+            'Folder names/counts cannot establish a domain design. Consumer inventories constrain coverage, '
+            'not the target entity boundaries. Label retained legacy dependencies as transitions; never '
+            'claim refactoring complete from copied files or renamed wrappers. Missing evidence allows '
+            'provisional authoring, but not a verified refactoring claim. '
             'For delta work, check changed scope and affected dependencies; carry forward '
             'unresolved findings. Do not redraft the whole design.\n\n'
             'No source writes, arbitrary code execution, external research or deployment is '

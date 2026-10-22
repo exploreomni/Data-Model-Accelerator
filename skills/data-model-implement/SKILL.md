@@ -44,3 +44,5 @@ provenance and independently established expression expectations. `record-task`
 records automatic checks; repair affected findings without suppressing explicitly
 requested provisional outputs. Preserve configured model/effort defaults.
 Code generation does not authorize project execution, semantic generation or deployment.
+
+Carry the scoped [migration intent](../data-model-accelerator/references/migration-intent.md) into engineering tasks. Generate from target grains, relationships and source bindings. Copied legacy marts or thin wrappers are retained implementation, not evidence of completed refactoring. Record transitions and reviewed exceptions; provisional files remain available while outcome assessment is pending.

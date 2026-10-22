@@ -121,6 +121,10 @@ def _binding(state, request):
     if request['role'] not in {'source_specialist', 'catalogue_specialist'}:
         binding['design_sha256'] = (state.get('workflow', {}).get('design') or {}).get('sha256')
         binding['target'] = state.get('inputs', {}).get('target')
+    from migration_context import task_contracts, contract_bindings
+    intent = contract_bindings(task_contracts(state, request['scope_ids']))
+    if intent:
+        binding['migration_intents'] = intent
     return binding, None
 
 

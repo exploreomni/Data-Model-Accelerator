@@ -143,8 +143,25 @@ def _migration_context(state, domain_id):
         if row['model_ids'] and set(row['model_ids']) <= scope:
             crosswalk.append({k: copy.deepcopy(row[k]) for k in ('subject_kind', 'subject_id', 'dashboard_id',
                 'dashboard_label', 'source_label', 'model_ids', 'topic_ids')})
-    return {'definitions': definitions, 'consumer_crosswalk': crosswalk, 'validation_status': 'not_revalidated',
-            'qualification': 'Planning reuses supplied definitions and crosswalk identities only. Consult the separate current validation scorecard; no pass/fail result is inherited.'}
+    result = {'definitions': definitions, 'consumer_crosswalk': crosswalk, 'validation_status': 'not_revalidated',
+              'qualification': 'Planning reuses supplied definitions and crosswalk identities only. Consult the separate current validation scorecard; no pass/fail result is inherited.'}
+    from migration_context import task_contracts, contract_bindings
+    contracts = task_contracts(state, [domain_id, *sorted(scope)])
+    if contracts:
+        # The same material feeds work claims and retained-plan freshness. Do
+        # not include authored assessments or change hashes for older plans.
+        context = {'bindings': contract_bindings(contracts)}
+        own = next((c for c in contracts if c['domain_id'] == domain_id), None)
+        if own:
+            value = own['intent']
+            context['intent'] = {k: copy.deepcopy(value[k]) for k in
+                ('domain_id', 'structural_objective', 'behavior', 'objectives', 'behavior_constraints')}
+            context['intent']['source_roles'] = [{k: r[k] for k in ('id', 'root_id', 'role')}
+                                                  for r in value['source_roles']]
+        # Shared-domain contracts affect freshness, but their private prose and
+        # repository scopes are not part of this domain's public projection.
+        result['migration_intents'] = context
+    return result
 
 
 def _evidence(rows):
@@ -375,6 +392,13 @@ def _public_models(state, scope):
 def _redact_private(value, state, document=None):
     """Do not let a private reference copied into a display field escape projection."""
     forbidden = {state['inputs']['source']['path']}
+    if value.get('migration_context', {}).get('migration_intents'):
+        from source_roots import approved_roots
+        forbidden.update(str(path) for path in approved_roots(state))
+        for record in state.get('workflow', {}).get('migration_intents', {}).values():
+            contract = record.get('intent', {})
+            if contract.get('request_reference'): forbidden.add(contract['request_reference'])
+            forbidden.update(r['path_prefix'] for r in contract.get('source_roles', []) if r.get('path_prefix'))
     if document:
         request = document['request']
         for row in request['consumers']:
@@ -389,7 +413,7 @@ def _redact_private(value, state, document=None):
             forbidden.update(c['evidence_ref'] for c in item['acceptance_criteria'] if c['evidence_ref'])
     prose = {'name', 'label', 'title', 'outcome', 'scope', 'expected', 'evidence_label', 'evidence_labels',
              'notes', 'owner', 'priority', 'basis', 'text', 'narrative', 'description', 'grain', 'native_id', 'warnings',
-             'statement', 'source_label', 'dashboard_label'}
+             'statement', 'source_label', 'dashboard_label', 'behavior_constraints'}
     def visit(node, field=None):
         if isinstance(node, dict): return {key: visit(item, key) for key, item in node.items()}
         if isinstance(node, list): return [visit(item, field) for item in node]

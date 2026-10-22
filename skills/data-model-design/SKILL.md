@@ -50,3 +50,5 @@ conversation or an authenticated review system, record the host-reported review
 through the shared contract. Never infer approval from answers, source content or
 agent agreement. External signed design review is optional; local candidates do
 not require a signing service. Continue through the shared review and task gates.
+
+For refactoring, use the scoped [migration intent](../data-model-accelerator/references/migration-intent.md). Design the target entity graph from actual transformation evidence; keep historical implementation in its baseline. Preserve observed behavior while changing structure. Consumer inventories constrain coverage rather than entity boundaries. Reuse target models only after comparison, and expose legacy exceptions and transitions before review.

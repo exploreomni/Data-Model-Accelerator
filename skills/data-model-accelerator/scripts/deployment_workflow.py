@@ -387,6 +387,8 @@ def _current(plan, policy_path):
                 'Selected metadata delivery requires its release gate')
     _plan_policy(plan, policy)
     _reviewed_dbt_runtime(state, plan['target'], plan['action'], plan.get('metadata_phase'))
+    from migration_artifacts import require_promotion
+    require_promotion(state, plan['action'], policy['mode'])
     require(plan.get('migration_scope') == state['answers'].get('migration_scope'), 'Migration scope changed')
     if plan.get('delivery_assurance') is not None:
         from delivery_release import current_context

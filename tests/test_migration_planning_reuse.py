@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'skills/data-model-
 import migration_planning as planning
 import run_control
 import legacy_alignment
+import migration_intent
 import test_migration_planning as fixtures
 from test_legacy_alignment import mapping
 
@@ -99,6 +100,49 @@ class PlanningReuseTests(unittest.TestCase):
         self.h.save({'schema_version': 1, 'domain_id': 'commerce', 'consumers': [], 'work_items': []})
         (self.h.source / 'orders.sql').write_text('changed retained discovery source')
         with self.assertRaisesRegex(ValueError, 'PM inputs changed'): self.checkpoint()
+
+    def test_intent_change_stales_registered_plan_and_work_but_unrelated_domain_does_not(self):
+        self.complete()
+        before = planning.work_input_binding(self.state, 'commerce')
+        old_context = planning.domain_snapshot(self.state, 'commerce')['migration_context']
+        self.assertNotIn('migration_intents', old_context)
+        request = {'schema_version': 1, 'kind': 'migration_intent', 'domain_id': 'unrelated',
+            'structural_objective': 'refactor', 'behavior': 'preserve',
+            'objectives': [{'id': 'replace', 'statement': 'Eliminate legacy dependencies.', 'kind': 'eliminate_legacy_dependencies'}],
+            'source_roles': [{'id': 'old', 'root_id': 'primary', 'role': 'legacy_baseline', 'path_prefix': 'orders.sql'}],
+            'behavior_constraints': [], 'request_reference': 'synthetic://private/new-objective'}
+        migration_intent.configure(self.state, request)
+        self.assertEqual(planning.work_input_binding(self.state, 'commerce'), before)
+        self.assertEqual(planning.domain_snapshot(self.state, 'commerce')['migration_context'], old_context)
+        self.assertEqual(self.claim('unrelated')['action'], 'reuse')
+        request['domain_id'] = 'commerce'
+        request['objectives'][0]['statement'] += ' Source: ' + request['request_reference']
+        request['behavior_constraints'] = ['Inspect orders.sql within ' + str(self.h.source)]
+        migration_intent.configure(self.state, request)
+        self.assertEqual(planning.domain_snapshot(self.state, 'commerce')['freshness'], 'stale')
+        with self.assertRaisesRegex(ValueError, 'inputs changed'):
+            planning.retained_result_binding(self.state, 'commerce')
+        self.assertEqual(self.claim('changed')['action'], 'dispatch')
+        packet = planning.context_packet(self.state, 'commerce')
+        shown = packet['plan']['migration_context']['migration_intents']['intent']
+        self.assertEqual(shown['structural_objective'], 'refactor')
+        self.assertNotIn('path_prefix', str(shown))
+        self.assertNotIn(request['request_reference'], str(shown))
+        self.assertNotIn(str(self.h.source), str(shown))
+        self.assertNotIn('orders.sql', str(shown))
+
+    def test_registered_intent_plan_reuses_until_its_objective_changes(self):
+        request = {'schema_version': 1, 'kind': 'migration_intent', 'domain_id': 'commerce',
+            'structural_objective': 'refactor', 'behavior': 'preserve',
+            'objectives': [{'id': 'shape', 'statement': 'Recover the target entities.'}],
+            'source_roles': [], 'behavior_constraints': [], 'request_reference': 'synthetic://refactor'}
+        migration_intent.configure(self.state, request)
+        self.complete()
+        self.assertEqual(self.claim('unchanged')['action'], 'reuse')
+        request['objectives'][0]['statement'] = 'Recover shared entities and retire redundant dependencies.'
+        migration_intent.configure(self.state, request)
+        self.assertEqual(planning.domain_snapshot(self.state, 'commerce')['freshness'], 'stale')
+        self.assertEqual(self.claim('changed')['action'], 'dispatch')
 
 
 if __name__ == '__main__': unittest.main()

@@ -10,7 +10,12 @@ STAGES = ('design', 'implementation', 'semantic', 'validation', 'packaging')
 def binding(state):
     from domain_workflow import ledger
     journey = ledger(state) or {}
-    return hash_json({'selection': {k: state['answers'].get(k) for k in
+    intent = {}
+    if state.get('workflow', {}).get('migration_intents'):
+        from migration_context import task_contracts, contract_bindings
+        selected = [journey['active_domain_id']] if journey.get('active_domain_id') else None
+        intent = {'migration_intents': contract_bindings(task_contracts(state, selected))}
+    return hash_json({**intent, 'selection': {k: state['answers'].get(k) for k in
         ('deliverables', 'framework', 'warehouse', 'semantic_target', 'migration_scope')},
         'active_domain_id': journey.get('active_domain_id'),
         'active_batch': (state.get('workflow', {}).get('domain_batches') or {}).get(journey.get('active_domain_id'))})

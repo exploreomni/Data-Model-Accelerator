@@ -151,11 +151,15 @@ def finalize_delivery(state, review, artifact_root, output, audience=None, inclu
             _remove_owned_directory(output, output_identity)
             raise
         design_folder = '03_Design_Documents' if manifest.get('package_layout_version') == 2 else '01_Model'
+        from migration_intent import summary as migration_summary
+        from migration_artifacts import summary as artifact_summary
         return {'status': 'checkpoint_verified' if checkpoint else 'handoff_verified',
                 'entrypoint': str(output / 'handoff' / 'START_HERE.html'),
                 'zip': str(output / 'handoff.zip'), 'folder': str(output / 'handoff'),
                 'design_folder': str(output / 'handoff' / design_folder) if any(
                     row['path'].startswith(design_folder + '/') for row in manifest['files']) else None,
+                'migration_intent': migration_summary(state),
+                'legacy_retention_observations': artifact_summary(state),
                 'selected_deliverable_counts': counts, 'integrity': integrity,
                 'page_check': page_check, 'browser_review': 'not_performed_by_finalizer',
                 'qualification': ('Checkpoint integrity only; selected deliverables may be missing and work remains incomplete.' if checkpoint else

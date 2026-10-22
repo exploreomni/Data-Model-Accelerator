@@ -14,6 +14,14 @@ reviews do not establish warehouse truth or authenticated reviewer identity.
 Older engagements remain compatible and report missing companions as unassessed.
 Explicitly requested provisional code remains available when evidence is missing.
 
+[Migration intent](../skills/data-model-accelerator/references/migration-intent.md)
+separates preserved business semantics from requested structural change. Scoped
+repository roles, evidence-bearing specialist briefs and current objective
+assessments prevent file coverage from silently becoming a refactor claim.
+Bounded legacy-copy/wrapper observations expose retained implementation; they do
+not establish semantic equivalence or guarantee detection of all wrappers.
+Provisional generation and older engagements remain supported.
+
 Optional [migration planning](../skills/data-model-accelerator/references/migration-planning.md)
 turns retained, domain-scoped design and historical alignment into an editable
 Excel inventory, Word migration plan, and ticket templates/import candidates.

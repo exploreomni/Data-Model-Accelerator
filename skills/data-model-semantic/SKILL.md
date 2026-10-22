@@ -42,3 +42,5 @@ Preserve the coordinator's configured model and bounded context. Record
 for supported literal-bearing SQL and filters; unparsed semantic structures stay
 unsupported. Do not replace the Omni modeler/native validator with this narrower
 check or infer business acceptance from a well-formed YAML file.
+
+Carry the scoped [migration intent](../data-model-accelerator/references/migration-intent.md) into semantic tasks. Bind topics to the target model and explicit consumer/metric purposes. Consolidate genuinely shared semantics when grain and access permit; do not create one topic per legacy final table simply because it exists. Record semantic-purpose evidence in the independent architecture assessment.

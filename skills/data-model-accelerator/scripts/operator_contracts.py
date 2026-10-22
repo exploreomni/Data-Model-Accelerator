@@ -20,7 +20,7 @@ QUALIFICATION = ('Read-only operator guidance. Examples are synthetic; no workfl
 MODEL_GUIDANCE = ('Preserve the host-configured model and reasoning effort. Do not choose cheaper settings, '
                   'silently downgrade or infer observed settings from a role label. Record actual settings only '
                   'from attributable host telemetry. Model and effort are host settings, not intake answer keys.')
-NAMES = ('intake', 'import-design', 'decision-responses', 'source-registration', 'design-coverage', 'design-evidence', 'design-assembly')
+NAMES = ('intake', 'import-design', 'decision-responses', 'source-registration', 'design-coverage', 'design-evidence', 'design-assembly', 'migration-intent')
 LIST_ANSWERS = {'deliverables', 'trusted_outputs', 'retained_behavior', 'corrected_behavior'}
 
 
@@ -72,6 +72,18 @@ def examples(name='all'):
         raise ValueError('Unknown contract; choose all, ' + ', '.join(NAMES))
     design = _design_example()
     contracts = [
+        {'id': 'migration-intent', 'validator': 'migration_intent.configure',
+         'example': {'schema_version': 1, 'kind': 'migration_intent', 'domain_id': 'commerce',
+                     'structural_objective': 'refactor', 'behavior': 'preserve',
+                     'objectives': [{'id': 'shared-model', 'statement': 'Replace report-specific transformations with shared grain-defined entities'}],
+                     'source_roles': [{'id': 'legacy', 'root_id': 'primary', 'role': 'legacy_baseline'},
+                                      {'id': 'staging', 'root_id': 'primary', 'role': 'raw_staging', 'path_prefix': 'models/staging'}],
+                     'behavior_constraints': ['Preserve observed rules; flag conflicts'],
+                     'request_reference': 'synthetic://example/request'},
+         'command_argv': ['guided_workflow.py', 'configure-migration-intent', '--run', '<existing-run-directory>', '--document', '<intent.json>'],
+         'guidance': ['Replace synthetic choices with the actual user request. Register additional target roots before naming them here.',
+                      'Preserved behavior does not mean preserved legacy table structure. Target roles never approve reuse or source writes.',
+                      'Carry current migration-intent-packet bindings into specialists. Missing context does not remove provisional generation.']},
         {'id': 'intake', 'validator': 'guided_workflow._answers', 'fields': answer_fields(),
          'example': {'engagement_type': 'migration', 'priority_domain': 'commerce', 'framework': 'dbt',
                      'warehouse': 'bigquery', 'semantic_target': 'omni', 'migration_scope': 'model_semantic',

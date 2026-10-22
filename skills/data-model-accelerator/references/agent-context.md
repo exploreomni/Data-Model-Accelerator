@@ -230,3 +230,12 @@ An updated checker can invalidate its own observation and validation task while
 retaining unchanged generated files. Use `check-task` to refresh evidence; never
 invent a new authoring run to make an older receipt look current. Material source,
 design, target or generator changes retain the existing conservative reuse rules.
+
+## Preserve migration direction
+
+For refactor work include the [scoped intent contract](migration-intent.md) and its
+bindings, plus evidence-role references to actual supplied excerpts. Stage task
+plans expose the applicable contracts, including shared dependency domains.
+When an execution receipt is recorded, its scoped intent pins must match those
+of the current task. Do not turn a behavior-preservation instruction into
+structural preservation or treat an inventory as the target architecture.

@@ -74,6 +74,16 @@ class DomainBatchTests(unittest.TestCase):
             domains.complete_domain(self.state, self.h.request())
         self.assertEqual(domains.ledger(self.state)['active_domain_id'], 'sales')
 
+    def test_refactor_intent_does_not_require_future_batch_assessment(self):
+        from migration_intent import configure, summary
+        configure(self.state, {'schema_version': 1, 'kind': 'migration_intent', 'domain_id': 'sales',
+            'structural_objective': 'refactor', 'behavior': 'preserve',
+            'objectives': [{'id': 'reshape', 'statement': 'Refactor all selected domain objects'}],
+            'source_roles': [{'id': 'old', 'root_id': 'primary', 'role': 'legacy_baseline'}],
+            'behavior_constraints': ['Preserve current rules'], 'request_reference': 'synthetic://user/refactor'})
+        self.test_complete_one_batch_keeps_domain_incomplete()
+        self.assertFalse(next(r for r in summary(self.state)['domains'] if r['domain_id'] == 'sales')['refactor_complete'])
+
     def test_large_scope_advisory_does_not_guess_cost_or_block_work(self):
         domain = copy.deepcopy(domains._domain(self.state))
         domain['source_paths'] = ['model-%d.sql' % n for n in range(101)]

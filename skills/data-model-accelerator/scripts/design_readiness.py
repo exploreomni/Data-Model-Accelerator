@@ -1,6 +1,7 @@
 """Read-only, scoped readiness projection; never an approval or execution gate."""
 import copy
 
+from ae_common import hash_json
 from design_builder import counts
 from design_consistency import assess_design
 from design_coverage import summarize as coverage_summary
@@ -13,13 +14,18 @@ def summarize(state, selected=None):
     scope = set(selected) if selected is not None else {e['id'] for e in models}
     # Assess only disclosed objects and internal edges; count boundary interfaces
     # as objects if and only if the package actually includes them.
+    integrity_mismatch = 'sha256' in doc and doc['sha256'] != hash_json({k: v for k, v in doc.items() if k != 'sha256'})
     scoped = copy.deepcopy(doc)
-    scoped['entities'] = [e for e in models if e['id'] in scope]
+    scoped.pop('sha256', None)  # A derived subset is not the original hashed document.
+    scoped['entities'] = [copy.deepcopy(e) for e in models if e['id'] in scope]
     for entity in scoped['entities']:
         entity['depends_on'] = [p for p in entity['depends_on'] if p in scope]
     scoped['relationships'] = [r for r in doc.get('relationships', []) if {r['from'], r['to']} <= scope]
     scoped['decisions'] = [d for d in doc.get('decisions', []) if set(d['model_ids']) <= scope]
     checks = assess_design(scoped)
+    if integrity_mismatch:
+        checks['status'] = 'findings'
+        checks['findings'].append({'code': 'design_hash_mismatch'})
     from engagement_stages import approved_entities
     approved = approved_entities(state) if models else set()
     return {'schema_version': 1, 'counts': counts(scoped['entities']),

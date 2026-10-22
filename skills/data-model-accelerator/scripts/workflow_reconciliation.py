@@ -10,52 +10,63 @@ from review_assurance import records, save, save_document, load_document
 DIMENSIONS = {'currency', 'time', 'population', 'security', 'history', 'grain', 'keys'}
 
 
-def _scope(finding, designs):
+def _scope_index(designs):
+    """Index diagnostic ownership once, retaining original and merged positions."""
     def identity(collection, row):
         keys = ('from', 'to', 'kind', 'role') if collection == 'relationships' else ('id',)
         return hash_json([row.get(key) for key in keys])
 
-    all_rows = {collection: [row for doc in designs for row in doc.get(collection, [])]
-                for collection in ('entities', 'decisions', 'relationships')}
+    index = {'merged': {}, 'claims': {}, 'names': {}, 'all_ids': []}
+    all_ids = set()
+    for collection in ('entities', 'decisions', 'relationships'):
+        merged, known, claims = [], set(), {}
+        for position, doc in enumerate(designs):
+            for row in doc.get(collection, []):
+                key = identity(collection, row)
+                claims.setdefault(key, []).append(row)
+                if position == 0 or key not in known:
+                    merged.append(row)
+                known.add(key)
+                if collection == 'entities':
+                    all_ids.add(row['id'])
+                    name = hash_json([row.get('name'), row.get('layer')])
+                    index['names'].setdefault(name, set()).add(row['id'])
+        index['merged'][collection] = merged
+        index['claims'][collection] = claims
+    index['all_ids'] = sorted(all_ids)
+    index['identity'] = identity
+    return index
+
+
+def _scope(finding, designs, index=None):
+    index = index if index is not None else _scope_index(designs)
     match = re.match(r'^/(entities|decisions|relationships)/(\d+)(?:/|$)', finding.get('path', ''))
     if match:
         collection = match[1]
         proposal_index = finding.get('proposal_index')
         if type(proposal_index) is int and 0 <= proposal_index < len(designs):
-            # Proposal diagnostics use the original list positions, including
-            # malformed duplicates. Deduplication here can blame another model.
+            # Keep malformed duplicate rows at their original diagnostic index.
             values = designs[proposal_index].get(collection, [])
         else:
-            # Match reconcile_proposals' merged ordering exactly: retain the
-            # first proposal verbatim and append only subsequent new identities.
-            values = list(designs[0].get(collection, [])) if designs else []
-            known = {identity(collection, row) for row in values}
-            for doc in designs[1:]:
-                for row in doc.get(collection, []):
-                    key = identity(collection, row)
-                    if key not in known:
-                        values.append(row)
-                        known.add(key)
+            values = index['merged'][collection]
         if int(match[2]) < len(values):
             row = values[int(match[2])]
-            claims = [r for r in all_rows[collection] if identity(collection, r) == identity(collection, row)]
             if collection == 'entities':
-                result = [row['id']]
-                # Duplicate physical names implicate both declarations.
                 if finding.get('code') == 'duplicate_model_name':
-                    result = [e['id'] for e in all_rows['entities']
-                              if e.get('name') == row.get('name') and e.get('layer') == row.get('layer')]
-                return sorted(set(result))
+                    return sorted(index['names'][hash_json([row.get('name'), row.get('layer')])])
+                return [row['id']]
+            claims = index['claims'][collection][index['identity'](collection, row)]
             return sorted({model for claim in claims for model in
                            (claim['model_ids'] if collection == 'decisions' else [claim['from'], claim['to']])})
-    return sorted({row['id'] for row in all_rows['entities']})
+    return list(index['all_ids'])
 
 
 def _checks(designs):
     result = reconcile_proposals(designs)
+    scope_index = _scope_index(designs)
     for kind in ('findings', 'unknowns'):
         for row in result[kind]:
-            row['model_ids'] = _scope(row, designs)
+            row['model_ids'] = _scope(row, designs, scope_index)
     return result
 
 
@@ -163,8 +174,9 @@ def _evaluate(state):
         return {'status': 'unassessed', 'findings': [], 'unknowns': []}
     doc = state.get('workflow', {}).get('design')
     canonical = assess_design(doc) if doc else {'findings': [], 'unknowns': []}
-    findings = [{**f, 'model_ids': _scope(f, [doc])} for f in canonical['findings']]
-    unknowns = [{**f, 'model_ids': _scope(f, [doc])} for f in canonical['unknowns']]
+    scope_index = _scope_index([doc]) if doc else _scope_index([])
+    findings = [{**f, 'model_ids': _scope(f, [doc], scope_index)} for f in canonical['findings']]
+    unknowns = [{**f, 'model_ids': _scope(f, [doc], scope_index)} for f in canonical['unknowns']]
     stale, rules, proposal_hashes, assertions = [], {}, [], {}
     if record.get('mode') == 'proposals':
         try:

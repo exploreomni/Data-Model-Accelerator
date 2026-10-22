@@ -266,6 +266,15 @@ def _progress(state, domain, tasks, selected=None):
     missing_assets = required_assets - represented_assets
     if selected and missing_assets:
         gaps.append('Map the discovered domain assets to its models before completion: ' + ', '.join(sorted(missing_assets)))
+    from migration_intent import require_complete as require_intent
+    from migration_artifacts import require_complete as require_artifacts
+    # A completed authoring batch does not claim the whole domain is refactored.
+    # Future batches must not prevent retaining this batch's reviewed outputs.
+    for check in (() if batch_scoped else (require_intent, require_artifacts)):
+        try:
+            check(state, selected)
+        except ValueError as error:
+            gaps.append(str(error))
     finished = []
     graph = {e['id']: e['depends_on'] for e in (state['workflow'].get('design') or {}).get('entities', [])}
     physical = selected - {e['id'] for e in (state['workflow'].get('design') or {}).get('entities', [])

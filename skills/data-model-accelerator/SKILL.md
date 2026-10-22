@@ -52,6 +52,14 @@ recreate navigation, design files or packaging evidence.
 
 ## Start with the engagement
 
+For refactoring, follow [migration intent](references/migration-intent.md). Record
+the structural objective separately from preserved business behavior and identify
+legacy, target, raw/staging and consumer-requirement roles before design. Carry
+that contract into every affected specialist packet. Legacy code is evidence to
+reverse-engineer; reuse the target only after compatibility comparison. Preserve
+requested provisional authoring and separate file completeness from achieved
+refactoring outcomes.
+
 For new design work, follow [design reliability](references/design-reliability.md):
 identify the actual installed runtime, validate retained intake, register every
 supplied source and expected consumer before assigning targets, assemble one

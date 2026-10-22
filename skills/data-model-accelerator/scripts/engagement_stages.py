@@ -320,6 +320,9 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
     if 'design_evidence_scope' not in cache:
         from design_evidence import scope_bindings
         cache['design_evidence_scope'] = scope_bindings(state)
+    if 'migration_intent_scope' not in cache:
+        from migration_intent import scope_bindings
+        cache['migration_intent_scope'] = scope_bindings(state)
     import guided_workflow as guided
     catalogue = state['inputs']['catalogue']
     if 'catalogue_data' not in cache:
@@ -356,7 +359,7 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
         reconciliation = {'reconciliation': cache['reconciliation_scope'][key]} if key in cache['reconciliation_scope'] else {}
         business = {'business_rules': cache['business_rules_scope'][key]} if key in cache['business_rules_scope'] else {}
         alignment = {'legacy_alignment': cache['legacy_alignment_scope'][key]} if key in cache['legacy_alignment_scope'] else {}
-        reliability = {name: cache[name][key] for name in ('design_coverage_scope', 'design_evidence_scope') if key in cache[name]}
+        reliability = {name: cache[name][key] for name in ('design_coverage_scope', 'design_evidence_scope', 'migration_intent_scope') if key in cache[name]}
         result[key] = hash_json({'entity': entity, 'inputs': inputs, 'relationships': edges,
                                 'decisions': decisions, 'responses': responses, 'existing': existing,
                                 **coverage, **reuse_evidence, **reconciliation, **business, **alignment, **reliability})
@@ -766,6 +769,10 @@ def plan_tasks(state, artifact_root):
                         'generation_mode': mode if fingerprint is not None else None,
                         'reason': reason, 'fingerprint': fingerprint, 'original_run_id': original['run_id'] if original else None,
                         'outputs': original['outputs'] if original else None}
+        from migration_context import task_contracts
+        intent_context = task_contracts(state, task['entity_ids'])
+        if intent_context:
+            results[key]['migration_intents'] = intent_context
         # Attach only rules for this task's dependency slice, not the whole
         # interview. The same scoped hashes already participate in reuse.
         from business_rules import context_packet
@@ -804,6 +811,10 @@ def record_task(state, artifact_root, request, *, refresh_plan=True):
         execution = record_execution(Path(request['execution']['packet_dir']), host)
         require(execution['context_bindings'].get('task_fingerprint') == request['fingerprint'],
                 'Execution packet is not bound to the current task fingerprint')
+        from migration_context import task_contracts, contract_bindings
+        pins = contract_bindings(task_contracts(state, specification['entity_ids']))
+        require(all(execution['context_bindings'].get(k) == v for k, v in pins.items()),
+                'Execution packet omitted or changed the scoped migration intent')
     import guided_workflow as guided
     if specification['stage'] in {'implementation', 'semantic'}:
         from authoring_quality import observe_task
@@ -819,6 +830,8 @@ def record_task(state, artifact_root, request, *, refresh_plan=True):
     from authoring_evidence import summarize
     from authoring_quality import checker_version
     syntax = check_structured_artifacts(artifact_root, specification['outputs'])
+    from migration_artifacts import inspect_task
+    recorded['migration_artifact_checks'] = inspect_task(state, specification, artifact_root)
     recorded['artifact_checks'] = {**summarize(syntax), 'findings': syntax,
                                    'checker_sha256': checker_version(),
                                    'qualification': 'Syntax only; unsupported and unchecked formats are not native validation.'}
@@ -1052,6 +1065,8 @@ def public_view(state, *, _refresh=True):
     _requested_progress(state, result)
     from authoring_quality import summaries
     result['authoring_checks'] = summaries(state)
+    from migration_intent import summary as migration_summary
+    result['migration_intent'] = migration_summary(state)
     result['artifact_checks'] = []
     latest = {r['task_id']: r for r in wf['runs']}
     specifications = {t['id']: t for t in wf['tasks']}

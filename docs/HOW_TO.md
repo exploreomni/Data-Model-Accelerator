@@ -32,6 +32,29 @@ documents multi-source inventory, canonical design assembly, provenance and revi
 commands. These shared contracts work across the supported frameworks and warehouses;
 they do not substitute for testing in the selected native environment.
 
+## Tell the agent which architecture should change
+
+For a refactor, identify the legacy implementation and the go-forward repository
+separately. A useful request is:
+
+> Reverse-engineer the legacy repository into shared domain models. Preserve its
+> observed business behavior and flag conflicts. Reuse suitable completed models
+> in our target repository after comparison. Treat dashboard inventories as
+> requirements to satisfy, not model boundaries. Show old-to-new mappings and
+> retained dependencies before review; keep provisional code available.
+
+The agent records [migration intent](../skills/data-model-accelerator/references/migration-intent.md)
+once, carries it into specialist tasks and checks objectives separately from file
+coverage. Review the target graph and architecture assessment as well as the code.
+A complete ZIP or passing syntax check does not mean a refactor is complete.
+
+For a large design, ask for separate domain review packages from the saved run.
+The [domain export guide](../skills/data-model-accelerator/references/migration-intent.md#review-a-large-design-by-domain)
+keeps each domain's full dependency chain and an index accounting for every table
+and relationship. Optional presentation batches make individual packages smaller
+without changing domain ownership or approval scope. These are design reviews;
+registered code stays in the original implementation delivery.
+
 ## Explain what replaces your historical tables
 
 For each domain, tell the agent whether it is new, refactoring, or mixed. Reuse

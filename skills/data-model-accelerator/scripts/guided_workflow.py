@@ -305,6 +305,12 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include, *, c
     if state.get('workflow', {}).get('review_assurance'):
         from review_assurance import records, public_summary
         review_evidence['review_evidence_sha256'] = _digest({'records': records(state), 'current': public_summary(state)})
+    if state.get('workflow', {}).get('migration_intents'):
+        from migration_intent import summary as intent_summary
+        from migration_artifacts import summary as artifact_summary
+        review_evidence['migration_intent_sha256'] = _digest({
+            'records': state['workflow']['migration_intents'], 'current': intent_summary(state),
+            'candidate_retention': artifact_summary(state)})
     if state.get('workflow', {}).get('migration_review'):
         from migration_review import fingerprint
         review_evidence['migration_review_sha256'] = fingerprint(state)
@@ -739,6 +745,19 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
             from source_roots import register
             register(state, document, run_dir)
             invalidated.extend(_refresh(state, stage_progress=False))
+        elif action in ('configure-migration-intent', 'migration-assessment-bindings',
+                        'record-migration-assessment', 'migration-intent-packet'):
+            import migration_intent
+            if action == 'configure-migration-intent':
+                migration_intent.configure(state, document)
+            elif action == 'record-migration-assessment':
+                migration_intent.record_assessment(state, document)
+            else:
+                stages.fields(document, {'domain_id'})
+                if action == 'migration-assessment-bindings':
+                    state['workflow']['migration_assessment_request'] = migration_intent.assessment_bindings(state, document['domain_id'])
+                else:
+                    state['workflow']['migration_intent_packet'] = migration_intent.packet_contract(state, document['domain_id'])
         elif action == 'migrate-stages':
             stages.migrate(state)
         elif action == 'record-delivery-plan':
@@ -891,7 +910,7 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
-    stage_commands = ('migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
+    stage_commands = ('configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
                       'independent-review-bindings', 'record-independent-review', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
                       'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
@@ -925,7 +944,7 @@ def main(argv=None):
         if command == 'record-evidence':
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
-        if command in ('import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
+        if command in ('configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
                        'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
                        'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
                        'record-business-rules', 'review-business-rules', 'recommend-shared-models',

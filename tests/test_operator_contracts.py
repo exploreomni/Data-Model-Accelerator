@@ -18,6 +18,8 @@ class OperatorContractTests(unittest.TestCase):
     def test_discoverable_examples_roundtrip_actual_answer_and_design_validators(self):
         catalog=contracts.examples();examples={r['id']:r for r in catalog['contracts']}
         self.assertEqual(set(examples),set(contracts.NAMES))
+        import migration_intent
+        migration_intent._validate_intent(examples['migration-intent']['example'])
         intake=examples['intake']['example']
         self.assertEqual(guided._answers(intake),intake)
         self.assertEqual(contracts.validate_answers(intake)['missing_answers'],[])

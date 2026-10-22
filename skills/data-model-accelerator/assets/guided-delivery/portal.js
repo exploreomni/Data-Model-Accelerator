@@ -148,7 +148,7 @@ function trimWorkflowDetails(snapshot,categories){
   delete snapshot.legacy_alignment;
   delete snapshot.migration_planning;
   for(const key of ['assets','models','relationships','domain_proposals','decisions','changes'])delete snapshot.review?.[key];
-  for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance','design_readiness'])delete snapshot.workflow?.[key];
+  for(const key of ['decisions','effort','models','relationships','assets','task_plan','design_checks','artifact_checks','review_assurance','design_readiness','migration_intent'])delete snapshot.workflow?.[key];
 }
 // Coverage/reuse counts describe supplied associations, never native validation.
 function reviewEvidenceCount(value){return Number.isSafeInteger(value)&&value>=0?String(value):'Unassessed';}
@@ -751,6 +751,22 @@ function renderDesignReadiness(){
   const classifications=evidenceCounts&&bases.some(([key])=>Object.hasOwn(evidenceCounts,key))?' Evidence classifications: '+bases.map(([key,label])=>label+': '+reviewEvidenceCount(evidenceCounts[key])).join(' · ')+'. Counts classify host-reported claims only; warehouse verification requires separate execution evidence.':'';
   el('design-readiness-note').textContent='Included design scope. Diagram filters change the visible counts, not these checks. '+(readiness.qualification||'Structural consistency does not establish complete discovery, independent review, human approval, or native validation.')+classifications;
 }
+function renderArchitectureIntent(){
+  const intent=workflow?.migration_intent,enabled=data.audience!=='audit'&&(data.page_mode==='status'||!Array.isArray(data.selected_categories)||['documentation','diagrams','dictionary'].some(key=>data.selected_categories.includes(key)));
+  el('architecture-intent').hidden=!enabled||!intent;if(!enabled||!intent)return;
+  const target=clear('architecture-intent-domains');
+  for(const domain of intent.domains||[]){
+    const line=make('p'),counts=domain.model_disposition_counts||{};
+    line.append(make('strong',domain.domain_id+' · '+pretty(domain.structural_objective||'unassessed')),make('span',' · Conformance review: '+pretty(domain.status||'unassessed')));
+    line.append(make('span',' · Target models: '+['create','reuse','extend','replace','undetermined'].map(key=>pretty(key)+': '+reviewEvidenceCount(counts[key])).join(' · ')));
+    line.append(make('span',' · Transitional dependencies: '+reviewEvidenceCount(domain.transitional_dependency_count)));
+    if(domain.behavior)line.append(make('span',' · Behavior: '+pretty(domain.behavior)));
+    line.append(make('span',' · Unresolved: '+(domain.gaps?.length?domain.gaps.map(pretty).join('; '):'None reported; see review qualification')));
+    target.append(line);
+  }
+  if(!intent.domains?.length)target.append(make('p','Architecture intent is unassessed in the included scope.','muted'));
+  el('architecture-intent-note').textContent=(intent.qualification||'Host-attributed architecture review only.')+' Native validation and business acceptance remain separate; this summary grants no approval or completion authority.';
+}
 function buildViews(){
   const priorPipelineId=pipelineMode?currentDiagram?.id:null;
   let allowed;
@@ -780,6 +796,7 @@ function buildViews(){
   for(const kind of ['fact','dimension']){const count=visibleModels.filter(m=>m.entity_type===kind).length;if(count)summary.append(make('span',`${count} ${kind}${count===1?'':'s'}`,'pill'));}
   summary.append(make('span',`${erdSelection.edges.filter(e=>e.kind==='relationship').length} declared relationship occurrences`));
   renderDesignReadiness();
+  renderArchitectureIntent();
   const unresolved=decisions.filter(d=>!['resolved','accepted','approved'].includes(d.status)).length;if(unresolved){const link=make('a',`${unresolved} decisions to review`);link.href='#changes';summary.append(link);}
   el('diagram-download-all').disabled=!diagramEnabled||!models.length||(pipelineMode&&!shownViews.length);
   showDiagram();showLineage();relationshipTable();tableNavigator();

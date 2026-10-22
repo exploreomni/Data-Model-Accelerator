@@ -142,9 +142,16 @@ def _context(receipt, packet, request):
             'Unsupported specialist packet format')
     data = _json(text.split(TASK_MARKER, 1)[1])
     _fields(data, {'task_id', 'role', 'bindings', 'mode', 'brief', 'evidence', 'file_coverage'},
-            {'requested_role', 'specialist_profile', 'delta'})
+            {'requested_role', 'specialist_profile', 'delta', 'migration_intents', 'design_evidence'})
     require(all(data[key] == receipt[key] for key in ('task_id', 'role', 'bindings', 'mode', 'file_coverage')),
             'Context packet identity or bindings differ')
+    if 'migration_intents' in data or any(k.startswith('migration_intent.') for k in data['bindings']):
+        from migration_context import packet_evidence
+        request_view = {'bindings': data['bindings'], 'migration_intents': data.get('migration_intents', []),
+                        'evidence': data['evidence'],
+                        'design_evidence': (data.get('design_evidence') or {}).get('evidence_roles', [])}
+        require(packet_evidence(request_view) == data.get('design_evidence'),
+                'Migration evidence assessment differs from supplied packet context')
     require(type(data['mode']) is str and data['mode'] in {'initial', 'delta'}
             and type(data['brief']) is dict and type(data['evidence']) is list,
             'Malformed specialist packet metadata')
