@@ -18,7 +18,7 @@ ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.:-]{0,199}\Z')
 DIMENSIONS = {'grain', 'keys', 'definitions', 'history', 'security', 'dependencies'}
 COMPONENT_FILES = {
     'workflow': ('scripts/engagement_stages.py', 'scripts/deliverable_contract.py', 'scripts/delivery_plan.py',
-                 'scripts/domain_batches.py', 'scripts/domain_workflow.py'),
+                 'scripts/domain_batches.py', 'scripts/domain_workflow.py', 'scripts/source_roots.py'),
     'design': ('references/modeling-and-validation.md', 'references/semantic-placement.md',
                'references/design-reliability.md', 'scripts/design_builder.py'),
     'implementation': ('references/analytics-engineering.md', 'scripts/plan_refactor.py'),
@@ -244,16 +244,10 @@ def _pointer(value, pointer):
 
 
 def _source_hash(state, relative):
-    import guided_workflow as guided
-    path = guided._path(Path(state['inputs']['source']['path']) / safe_relative(relative))
-    root = guided._path(state['inputs']['source']['path'])
-    require(root in path.parents, 'Source slice escapes input repository')
-    require(not any(p.name.lower() in guided.SECRET_FILES or p.name.lower().startswith('.env')
-                    or guided.SECRET_PATH.search(p.name) or p.suffix.lower() in {'.key', '.pem', '.p12', '.pfx'}
-                    for p in path.relative_to(root).parents) and
-            path.name.lower() not in guided.SECRET_FILES and not guided.SECRET_PATH.search(path.name)
-            and not path.name.lower().startswith('.env') and path.suffix.lower() not in {'.key', '.pem', '.p12', '.pfx'},
-            'Credential files cannot be source slices')
+    from source_roots import PREFIX, capture, resolve
+    if state['inputs']['source'].get('roots') and relative.startswith(PREFIX):
+        return capture(state, [relative])[relative]
+    path = resolve(state, relative)
     from deployment_workflow import _stable_bytes
     return hashlib.sha256(_stable_bytes(path)).hexdigest()
 
@@ -347,6 +341,10 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
                   if entity['source_paths'] else state['inputs']['source']['fingerprint'],
                   'catalogue': {p: _pointer(catalogue_data, p) for p in entity['catalogue_pointers']}
                   if entity['catalogue_pointers'] and catalogue_data is not None else catalogue}
+        from source_roots import reference_bindings
+        root_bindings = reference_bindings(state, entity['source_paths'])
+        if root_bindings:
+            inputs['source_roots'] = root_bindings
         edges = [r for r in doc['relationships'] if key in (r['from'], r['to'])]
         decisions = [d for d in doc['decisions'] if key in d['model_ids'] and
                      (stage is None or presentation or _decision_applies(d, doc, stage))]
@@ -448,7 +446,8 @@ def approve_design(state, selected, policy_path, envelope):
     require(state['readiness']['generation_ready'], 'Resolve catalogue and discovery prerequisites')
     gaps = _design_gaps(state, selected)
     require(not gaps, '; '.join(gaps))
-    policy, policy_hash = load_policy(policy_path, excluded_roots=(state['inputs']['source']['path'],))
+    from source_roots import approved_roots
+    policy, policy_hash = load_policy(policy_path, excluded_roots=approved_roots(state))
     require(policy['mode'] == 'live', 'Simulation approvals cannot open a real design scope')
     bindings = review_bindings(state, selected)
     payload = verify_attestation(envelope, policy, purpose='model_signoff', bindings=bindings)
@@ -496,7 +495,8 @@ def _current_reviews(state, *, stage='implementation', _cache=None):
                     'decision': 'approve', 'reviewer': approval['reviewer'], 'review_reference': approval['review_reference'],
                     'bindings': approval['bindings']}), 'Human review record changed')
             else:
-                policy, policy_hash = load_policy(approval['policy_path'], excluded_roots=(state['inputs']['source']['path'],))
+                from source_roots import approved_roots
+                policy, policy_hash = load_policy(approval['policy_path'], excluded_roots=approved_roots(state))
                 require(policy_hash == approval['policy_sha256'] and policy['mode'] == 'live', 'Approval policy changed')
                 verify_attestation(approval['envelope'], policy, purpose='model_signoff', bindings=approval['bindings'])
             pins = approval['bindings']
@@ -695,6 +695,8 @@ def _output_hashes(root, paths):
 
 
 def plan_tasks(state, artifact_root):
+    from source_roots import ensure_output
+    ensure_output(state, artifact_root)
     tasks = workflow(state)['tasks']
     require(tasks, 'Register stage tasks first')
     versions = component_versions()

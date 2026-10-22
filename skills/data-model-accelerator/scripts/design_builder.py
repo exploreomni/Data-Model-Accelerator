@@ -149,7 +149,7 @@ def narrative(design):
     return '\n'.join(lines) + '\n'
 
 
-def export_design(design, destination):
+def export_design(design, destination, *, diagram_mode='classic'):
     """Derive portable design files once. No customer source corpus is exported."""
     from design_consistency import project_review
     from delivery_portal import model_svg, diagram_views
@@ -160,13 +160,24 @@ def export_design(design, destination):
     projected = project_review(design)
     destination = _path(destination)
     require(not destination.exists(), 'Use a new design export directory; existing evidence is immutable')
+    require(diagram_mode in ('classic', 'pipelines'), 'Unknown design diagram mode')
     payloads = {'design.json': json.dumps(design, indent=2).encode() + b'\n',
                 'DESIGN.md': narrative(design).encode(),
-                'model-graph.json': json.dumps(projected, indent=2).encode() + b'\n',
-                'ERD.svg': model_svg(projected['models'], projected['relationships']).encode()}
-    for index, view in enumerate(diagram_views(projected['models'], projected['relationships'])):
-        # Shared renderer supplies bounded readable views; use its actual node lists below.
-        payloads['ERD-view-' + str(index + 1) + '.svg'] = base64.b64decode(view['base64'], validate=True)
+                'model-graph.json': json.dumps(projected, indent=2).encode() + b'\n'}
+    if diagram_mode == 'classic':
+        payloads['ERD.svg'] = model_svg(projected['models'], projected['relationships']).encode()
+        for index, view in enumerate(diagram_views(projected['models'], projected['relationships'])):
+            payloads['ERD-view-' + str(index + 1) + '.svg'] = base64.b64decode(view['base64'], validate=True)
+    else:
+        from pipeline_diagrams import pipeline_views
+        from delivery_portal import diagram_export_path, _markdown_cell
+        from urllib.parse import quote
+        lines = ['# Model pipelines', '', 'Choose one gold output. Read each diagram from raw inputs down to its output. Joins remain in the model graph and design document.', '']
+        for index, view in enumerate(pipeline_views(projected['models'], projected['relationships']), 1):
+            name = diagram_export_path(view, index, 2).split('/', 1)[1]
+            payloads[name] = base64.b64decode(view['base64'], validate=True)
+            lines.append('- [' + _markdown_cell(view['label']) + '](' + quote(name, safe='/') + ')')
+        payloads['PIPELINES.md'] = ('\n'.join(lines) + '\n').encode()
     stream = io.StringIO(newline='')
     writer = csv.writer(stream)
     def safe(value):
@@ -182,6 +193,7 @@ def export_design(design, destination):
                 'qualification': QUALIFICATION}
     destination.mkdir(parents=True)
     for name, raw in payloads.items():
+        (destination / name).parent.mkdir(parents=True, exist_ok=True)
         _atomic_write(destination / name, raw, replace=False)
     _atomic_write(destination / 'DESIGN_MANIFEST.json', json.dumps(manifest, indent=2).encode() + b'\n', replace=False)
     return manifest
@@ -194,6 +206,8 @@ def main(argv=None):
         command = sub.add_parser(name)
         command.add_argument('--document', type=Path, required=True)
         command.add_argument('--output', type=Path, required=True)
+        if name == 'export':
+            command.add_argument('--diagram-mode', choices=('pipelines', 'classic'), default='pipelines')
     args = parser.parse_args(argv)
     try:
         from guided_workflow import _nonsecret_json, _atomic_write
@@ -203,7 +217,7 @@ def main(argv=None):
             _atomic_write(args.output, json.dumps(result, indent=2).encode() + b'\n', replace=False)
             print(json.dumps({'design_id': result['id'], 'counts': counts(result['entities']), 'qualification': QUALIFICATION}))
         else:
-            print(json.dumps(export_design(value, args.output), indent=2))
+            print(json.dumps(export_design(value, args.output, diagram_mode=args.diagram_mode), indent=2))
         return 0
     except (ValueError, OSError, KeyError, TypeError) as error:
         parser.exit(2, 'Design authoring: ' + str(error) + '\n')

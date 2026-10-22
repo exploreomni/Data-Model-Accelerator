@@ -88,3 +88,20 @@
 .planning-narrative{white-space:pre-wrap;overflow-wrap:anywhere}
 /* Compact, distinct evidence dimensions within the existing model workspace. */
 .design-readiness{margin:-4px 0 18px;padding:0 4px}.design-readiness .tags{gap:8px}.design-readiness p{margin:8px 0 0}.interface-kind{background:#eef3ff;border-color:#b7afd5;color:#493e75}
+
+/* Readable pipeline workspace: details open on selection, leaving the diagram room. */
+.review-context{margin-bottom:16px}.review-context>summary,.table-picker>summary{cursor:pointer;font-size:1rem;color:var(--muted);padding:8px 0}.review-context[open] .review-start{margin-top:10px}
+.pipeline-mode .model-workspace{grid-template-columns:minmax(0,1fr)}
+.pipeline-mode .table-inspector{display:none}
+.pipeline-mode .table-inspector.drawer-open{display:block;position:fixed;inset:20px 20px 20px auto;width:min(540px,calc(100vw - var(--sidebar-width) - 40px));max-height:calc(100vh - 40px);z-index:30;background:white;box-shadow:0 0 0 100vmax #12283b66}
+.pipeline-mode .diagram{background:#f4f7fb;min-height:300px;max-height:76vh}
+.pipeline-mode .diagram-toolbar{flex-wrap:wrap}
+.pipeline-mode .diagram-legend{font-size:1rem}
+@media(max-width:1000px){.pipeline-mode .table-inspector.drawer-open{inset:12px;width:auto;max-height:calc(100vh - 24px)}}
+@media(max-width:700px){.pipeline-mode .table-inspector.drawer-open{inset:8px;max-height:calc(100vh - 16px)}.review-context{margin-bottom:10px}}
+
+.pipeline-selectors{display:grid;grid-template-columns:minmax(180px,1fr) minmax(300px,2fr);gap:18px;align-items:end}.pipeline-mode .pipeline-selectors{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.pipeline-mode .pipeline-selectors>div:last-child{grid-column:1/-1}.pipeline-selectors>div{min-width:0}.pipeline-selectors .filters{margin:0}.pipeline-selectors select{margin-bottom:0}.pipeline-mode header{margin-bottom:12px}.pipeline-mode .review-context{margin-bottom:6px}
+@media(max-width:1000px){.pipeline-selectors,.pipeline-mode .pipeline-selectors{grid-template-columns:1fr}}
+@media(max-width:700px){.pipeline-selectors{gap:10px}}
+
+.diagram{overflow-anchor:none}

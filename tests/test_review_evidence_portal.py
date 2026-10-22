@@ -125,7 +125,7 @@ class ReviewEvidencePortalTests(unittest.TestCase):
         primary = template.split('id="primary-navigation"')[1].split('</nav>')[0]
         # Optional planning is hidden unless selected; the existing three
         # primary choices remain the default (runtime coverage is separate).
-        self.assertEqual(primary.count('data-nav='), 4)
+        self.assertEqual(primary.count('data-nav='), 6)
         self.assertIn('data-nav="migration-plan" hidden', primary)
         self.assertNotIn('data-nav="coverage-reuse"', primary)
         self.assertIn('href="#coverage-reuse" data-nav="coverage-reuse"', template)

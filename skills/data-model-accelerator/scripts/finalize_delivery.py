@@ -48,6 +48,8 @@ def check_selected_delivery(state, review, audience, include, manifest):
     if 'implementation' in selected:
         from deliverable_contract import check_packaged_code
         check_packaged_code(state, manifest)
+    from package_layout import SECTIONS
+    design_folder = SECTIONS['design'][0] if manifest.get('package_layout_version') == 2 else '01_Model'
     design_selected = bool(selected & {'documentation', 'diagrams', 'dictionary'}) and audience != 'audit'
     if design_selected:
         require(review.get('models'), 'Selected model review has no models. Supply the current design inventory.')
@@ -62,12 +64,12 @@ def check_selected_delivery(state, review, audience, include, manifest):
                 require(not differences, 'Review content differs from the canonical design: '
                         + ', '.join(sorted({row['code'] for row in differences}))
                         + '. Regenerate the projection or export an explicitly incomplete checkpoint.')
-        require(any(row['path'].startswith('01_Model/') for row in files),
-                'Selected design deliverables are missing from 01_Model/.')
+        require(any(row['path'].startswith(design_folder + '/') for row in files),
+                'Selected design deliverables are missing from ' + design_folder + '/.')
         if 'documentation' in selected:
             identifier = review.get('handoff', {}).get('design_artifact_id')
             artifact = next((row for row in review.get('artifacts', []) if row['id'] == identifier), None)
-            require(artifact is not None and any(row['path'] == '01_Model/' + artifact['path']
+            require(artifact is not None and any(row['path'] == design_folder + '/' + artifact['path']
                     and row.get('bytes', 0) > 0 for row in files),
                     'Selected documentation requires the maintained design narrative: register handoff.design_artifact_id for this audience.')
     return counts
@@ -81,6 +83,9 @@ def finalize_delivery(state, review, artifact_root, output, audience=None, inclu
     """
     output, artifact_root = portal._path(output), portal._path(artifact_root)
     require(not output.exists(), 'Final delivery already exists; choose a new versioned output directory.')
+    from source_roots import ensure_output
+    if state.get('inputs', {}).get('source', {}).get('path'):
+        ensure_output(state, output)
     protected = [artifact_root]
     source = state.get('inputs', {}).get('source', {}).get('path')
     if source:
@@ -145,11 +150,12 @@ def finalize_delivery(state, review, artifact_root, output, audience=None, inclu
         except OSError:
             _remove_owned_directory(output, output_identity)
             raise
+        design_folder = '03_Design_Documents' if manifest.get('package_layout_version') == 2 else '01_Model'
         return {'status': 'checkpoint_verified' if checkpoint else 'handoff_verified',
                 'entrypoint': str(output / 'handoff' / 'START_HERE.html'),
                 'zip': str(output / 'handoff.zip'), 'folder': str(output / 'handoff'),
-                'design_folder': str(output / 'handoff' / '01_Model') if any(
-                    row['path'].startswith('01_Model/') for row in manifest['files']) else None,
+                'design_folder': str(output / 'handoff' / design_folder) if any(
+                    row['path'].startswith(design_folder + '/') for row in manifest['files']) else None,
                 'selected_deliverable_counts': counts, 'integrity': integrity,
                 'page_check': page_check, 'browser_review': 'not_performed_by_finalizer',
                 'qualification': ('Checkpoint integrity only; selected deliverables may be missing and work remains incomplete.' if checkpoint else
@@ -167,6 +173,7 @@ def main(argv=None):
     parser.add_argument('--audience', choices=sorted(portal.AUDIENCES))
     parser.add_argument('--include', help='Explicit comma-separated subset; omission uses saved selections.')
     parser.add_argument('--javascript', action='store_true', help='Also syntax-check the emitted scripts with Node.')
+    parser.add_argument('--layout', choices=('simple', 'classic'), default='simple', help='New handoffs use five readable folders; classic preserves older registered document paths.')
     parser.add_argument('--checkpoint', action='store_true', help='Export interrupted work with explicit missing categories; never a completed handoff.')
     args = parser.parse_args(argv)
     try:
@@ -177,7 +184,9 @@ def main(argv=None):
         require(output != state_path.parent and state_path.parent not in output.parents
                 and output not in state_path.parent.parents, 'Keep the final handoff separate from the engagement work directory.')
         state = assess_engagement(state_path.parent)
-        result = finalize_delivery(state, load_json(args.review), args.artifacts, output, args.audience,
+        review = load_json(args.review)
+        review['package_layout_version'] = 2 if args.layout == 'simple' else 1
+        result = finalize_delivery(state, review, args.artifacts, output, args.audience,
                                    args.include.split(',') if args.include is not None else None, args.javascript,
                                    checkpoint=args.checkpoint)
         print(json.dumps(result, indent=2))

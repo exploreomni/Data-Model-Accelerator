@@ -16,6 +16,10 @@ python3 skills/data-model-accelerator/scripts/guided_workflow.py start \
 
 The run folder must be outside the input repository. It starts a saved interview and writes `START_HERE.html` through the offline renderer. `init` is an alias for `start`. Existing source contents remain unchanged. Symlink paths are rejected; use the canonical physical path. For an existing engagement, use `resume` rather than starting over.
 
+For multiple repositories, use the additive `register-source-roots` command and
+explicit named references described in [multiple source roots](source-roots.md).
+Keep repositories in place; original unqualified paths still refer to `--repo`.
+
 The next round contains at most three unanswered questions. Supply only new or corrected answers; existing answers are retained:
 
 ```sh

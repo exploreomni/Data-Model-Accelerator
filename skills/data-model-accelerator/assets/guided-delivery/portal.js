@@ -71,9 +71,9 @@ async function browserSubsetManifest(snapshot,audience,categories,entries,page=n
       next_action:'Return this exact ZIP to the agent for content scanning and destination disclosure review before sharing or deploying.'},
     integrity_scope:'Selected embedded artifact hashes were checked; checksums below bind the newly rendered files only.',
     authority:'File integrity only; no new content scan, authenticated review, business acceptance or deployment authority.',files:[]};
-  if(page?.package_layout_version===1)manifest.package_layout_version=1;
+  if([1,2].includes(page?.package_layout_version))manifest.package_layout_version=page.package_layout_version;
   if(page?.checkpoint){manifest.delivery_kind='checkpoint';manifest.checkpoint=structuredClone(page.checkpoint);}
-  for(const [path,body]of entries){const record={path,sha256:await sha256(body),bytes:body.length};if(page?.package_layout_version===1){const registered=page.files.find(f=>f.path===path),generated=page.generated_deliverables.find(f=>f.path===path),file=registered||generated;if(file)Object.assign(record,{role:registered?'registered_artifact':'generated_deliverable',category:file.category,embedded:true});else if(path==='START_HERE.html'||path==='README.md')Object.assign(record,{role:path==='START_HERE.html'?'entrypoint':'index',embedded:false});else throw new Error('Unclassified package file: '+path);}manifest.files.push(record);}
+  for(const [path,body]of entries){const record={path,sha256:await sha256(body),bytes:body.length};if([1,2].includes(page?.package_layout_version)){const registered=page.files.find(f=>f.path===path),generated=page.generated_deliverables.find(f=>f.path===path),file=registered||generated;if(file)Object.assign(record,{role:registered?'registered_artifact':'generated_deliverable',category:file.category,embedded:true});else if(path==='START_HERE.html'||path==='README.md')Object.assign(record,{role:path==='START_HERE.html'?'entrypoint':'index',embedded:false});else throw new Error('Unclassified package file: '+path);}manifest.files.push(record);}
   return manifest;
 }
 function updateCheckpointDeficits(snapshot){
@@ -371,7 +371,7 @@ function table(id,columns,rows,pageSize=30){let page=0;const draw=()=>{const tar
 const migrationReview=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.migration_review:null;
 const domainJourney=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.domain_journey:null;
 const migrationPlanning=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','dictionary'].every(c=>data.selected_categories?.includes(c)))?data.migration_planning:null;
-const reviewSections=['overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[]),...(migrationPlanning?['migration-plan']:[])];
+const reviewSections=['input-files','overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[]),...(migrationPlanning?['migration-plan']:[])];
 const sectionRoutes={architecture:'model',lineage:'model','table-dictionary':'model','implementation-code':'delivery','replacement-map':'delivery'};
 let firstNavigation=true,modelWorkspaceReady=false,pendingInspectorModel=null;
 function navigate(){
@@ -589,8 +589,8 @@ if(dbtRuntime){
   el('dbt-runtime-setup').append(box);
 }
 for(const key of ['assessment','generation','execution']){const value=caps[key];card(el('capabilities'),pretty(key),typeof value==='object'?pretty(value.status):pretty(value||'not assessed'),typeof value==='object'?(value.summary||value.reason||value.note||'See findings and the selected platform contract.'):'No native validation is inferred from static inspection.');}
-const coverage=platform.coverage||{};el('coverage').append(make('p',`${coverage.scanned_files??'Unknown'} files inspected · ${coverage.scanned_bytes??'Unknown'} bytes · ${coverage.complete?'Selected static inventory complete':'Inventory gaps remain'}`));const coverageDetails=make('details');coverageDetails.append(make('summary',`${(coverage.gaps||[]).length} gaps · ${(coverage.exclusions||[]).length} exclusions`));for(const item of [...(coverage.gaps||[]),...(coverage.exclusions||[])].slice(0,100)){coverageDetails.append(make('p',`${item.path} — ${pretty(item.reason)}`,'muted'));}if((coverage.gaps||[]).length+(coverage.exclusions||[]).length>100)coverageDetails.append(make('p','First 100 entries shown. Full coverage remains in the engagement assessment.','muted'));el('coverage').append(coverageDetails);
-(platform.findings||[]).forEach(f=>{const box=make('article',undefined,'finding');box.append(make('span',pretty(f.severity||f.status||'review'),'pill'),make('h3',f.summary||f.title||f.id),make('p',f.next_action||f.remedy||f.description||'Review the recorded scope with the agent.'));if(f.paths?.length)box.append(make('code',f.paths.join(', ')));el('findings').append(box);});
+const coverage=platform.coverage||{};el('coverage').append(make('p',`${coverage.scanned_files??'Unknown'} files inspected · ${coverage.scanned_bytes??'Unknown'} bytes · ${coverage.complete?'Selected static inventory complete':'Inventory gaps remain'}`));const coverageDetails=make('details');coverageDetails.append(make('summary',`${coverage.gaps_total??(coverage.gaps||[]).length} gaps · ${coverage.exclusions_total??(coverage.exclusions||[]).length} exclusions`));for(const item of [...(coverage.gaps||[]),...(coverage.exclusions||[])].slice(0,100)){coverageDetails.append(make('p',`${item.path} — ${pretty(item.reason)}`,'muted'));}if((coverage.gaps_total??(coverage.gaps||[]).length)+(coverage.exclusions_total??(coverage.exclusions||[]).length)>100)coverageDetails.append(make('p','First 100 entries shown. Full coverage remains in the engagement assessment.','muted'));el('coverage').append(coverageDetails);
+(platform.findings||[]).forEach(f=>{const box=make('article',undefined,'finding');box.append(make('span',pretty(f.severity||f.status||'review'),'pill'),make('h3',f.summary||f.title||f.id),make('p',f.next_action||f.remedy||f.description||'Review the recorded scope with the agent.'));if(f.paths?.length)box.append(make('code',f.paths.join(', ')));if(f.paths_total>f.paths?.length)box.append(make('p',`Showing ${f.paths.length} of ${f.paths_total} paths. Full detail remains in the original assessment.`,'muted'));el('findings').append(box);});
 if(!(platform.findings||[]).length)empty('findings','No findings are recorded. This is not proof of runtime compatibility.');
 function allFiles(){return [...files,...(data.generated_deliverables||[])];}
 function openArtifact(id){const file=allFiles().find(f=>f.id===id);if(!file)return notice('This artifact is outside the selected package. Ask the agent for the engineering handoff.');el('file-search').value=file.path;el('file-category').value='';fileList();showFile(file);location.hash='#implementation-code';navigate();}
@@ -602,7 +602,7 @@ function trimMetadataEvidence(next,selected){if(next.review?.metadata&&!selected
 const metadata=review.metadata;
 // BEGIN OMNI SUBSET HELPERS — unselected semantic details never survive export.
 function omniOmitted(ref){return{artifact_id:ref.artifact_id,sha256:ref.sha256,evidence_state:'not_included',status:'unknown',summary:'Omni semantic evidence is not included in this page.',next_action:'Include the registered Omni semantic review to inspect topics, metrics, dependencies and gaps.'};}
-function trimOmniEvidence(next,selected){if(next.review?.omni&&!selected.some(f=>f.id===next.review.omni.artifact_id))next.review.omni=omniOmitted(next.review.omni);}
+function trimOmniEvidence(next,selected){if(next.review?.omni&&!selected.some(f=>f.id===next.review.omni.artifact_id)){next.review.omni=omniOmitted(next.review.omni);delete next.review.omni_warehouse_bindings;if(next.warehouse_diagrams)next.diagrams=next.warehouse_diagrams;delete next.warehouse_diagrams;next.pipeline_semantic_status='Semantic evidence is not included in this subset.';}}
 // END OMNI SUBSET HELPERS
 const omni=review.omni;
 el('omni-nav').hidden=!omni;
@@ -705,6 +705,9 @@ const lineageOptions={focus:'',direction:'both',search:'',layer:'',newOnly:false
 const erdOptions={focus:'',domain:'',dependencies:false,search:'',layer:'',disposition:''};
 for(const domain of [...new Set(graph.nodes.flatMap(m=>[m.domain,...(m.proposal_domains||[])]).filter(Boolean))].sort()){const option=make('option',domain);option.value=domain;el('erd-domain').append(option);}
 let diagramFitMode=false,tableLimit=50;
+let pipelineMode=data.diagram_view_mode==='pipelines',pipelineDomain='';
+el('diagram-mode-controls').hidden=!pipelineMode;el('diagram-mode').value=pipelineMode?'pipeline':'relationships';
+el('diagram-mode').onchange=()=>{pipelineMode=el('diagram-mode').value==='pipeline';diagramFitMode=false;diagramZoom=1;buildViews();};
 let shownViews=[],lineageViews=[],currentDiagram=null,currentLineageDiagram=null,lineageSelection=selectLineage(graph),erdSelection=selectErd(graph),diagramZoom=1,lineageZoom=1,inspectedModel='',inspectorFile=null;
 for(const id of ['architecture-model','lineage-model'])for(const model of graph.nodes){
   if(id==='architecture-model'&&!designInventoryObject(model))continue;
@@ -712,6 +715,28 @@ for(const id of ['architecture-model','lineage-model'])for(const model of graph.
 }
 el('lineage-joins').checked=true;
 function setViewOptions(id,views){const prior=Number(el(id).value)||0,select=clear(id);views.forEach((v,i)=>{const option=make('option',v.label);option.value=String(i);select.append(option);});select.value=String(Math.min(prior,Math.max(0,views.length-1)));}
+function pipelineDomains(view){
+  // Gold ownership comes from the output, never from its upstream dependencies.
+  const nodes=(view.target_model_id?[view.target_model_id]:(view.model_ids||[])).map(id=>graph.byId.get(id)).filter(Boolean);
+  return [...new Set(nodes.flatMap(node=>[node.domain,...(node.proposal_domains||[])]).filter(value=>typeof value==='string'&&value.trim()))].sort();
+}
+function pipelineMatchesDomain(view,value){const domains=pipelineDomains(view);return !value||(value==='unassigned'?!domains.length:domains.includes(value.slice(7)));}
+function pipelineGroup(view){const domains=pipelineDomains(view);return domains.length===1?domains[0]:domains.length?'Shared / multiple domains':'Unassigned';}
+function setPipelineOptions(views,priorId){
+  const select=clear('diagram-view'),groups=new Map();
+  views.forEach((view,index)=>{const label=pipelineGroup(view);if(!groups.has(label)){const group=make('optgroup');group.setAttribute('label',label);groups.set(label,group);select.append(group);}const option=make('option',view.label);option.value=String(index);groups.get(label).append(option);});
+  const prior=views.findIndex(view=>view.id===priorId);select.value=String(Math.max(0,prior));
+}
+function populatePipelineDomains(){
+  const views=data.diagrams||[],select=clear('pipeline-domain'),all=make('option','All domains');all.value='';select.append(all);
+  const domains=[...new Set(views.flatMap(pipelineDomains))].sort();
+  const choices=domains.map(domain=>({value:'domain:'+domain,label:domain}));
+  if(views.some(view=>!pipelineDomains(view).length))choices.push({value:'unassigned',label:'Unassigned'});
+  for(const choice of choices){const rows=views.filter(view=>pipelineMatchesDomain(view,choice.value)),gold=rows.filter(view=>view.target_model_id).length,supporting=rows.length-gold;const option=make('option',choice.label+' · '+[gold?`${gold} gold`:null,supporting?`${supporting} supporting`:null].filter(Boolean).join(', '));option.value=choice.value;select.append(option);}
+  select.value=pipelineDomain;
+}
+populatePipelineDomains();
+el('pipeline-domain').onchange=()=>{pipelineDomain=el('pipeline-domain').value;buildViews();el('diagram').scrollTop=0;el('diagram').scrollLeft=0;};
 function renderDesignReadiness(){
   const readiness=workflow?.design_readiness,enabled=data.audience!=='audit'&&(data.page_mode==='status'||!Array.isArray(data.selected_categories)||['documentation','diagrams','dictionary'].some(key=>data.selected_categories.includes(key)));
   el('design-readiness').hidden=!enabled||!readiness;
@@ -727,13 +752,27 @@ function renderDesignReadiness(){
   el('design-readiness-note').textContent='Included design scope. Diagram filters change the visible counts, not these checks. '+(readiness.qualification||'Structural consistency does not establish complete discovery, independent review, human approval, or native validation.')+classifications;
 }
 function buildViews(){
+  const priorPipelineId=pipelineMode?currentDiagram?.id:null;
   let allowed;
   if(assetId){allowed=new Set(selection.visible);if(assetId==='__unmapped__')for(const node of graph.nodes)if(node.object_kind==='semantic')allowed.add(node.id);}
   lineageSelection=selectLineage(graph,{...lineageOptions,allowed});
   erdSelection=selectErd(graph,{...erdOptions,allowed});
-  shownViews=diagramEnabled?erdPages(erdSelection):[];
+  shownViews=diagramEnabled?(pipelineMode?(data.diagrams||[]).filter(view=>(!allowed||view.model_ids.every(id=>allowed.has(id)))&&pipelineMatchesDomain(view,pipelineDomain)).map(view=>({...view,nodes:view.model_ids.map(id=>graph.byId.get(id)).filter(Boolean),svg:new TextDecoder().decode(bytes(view.base64)),edges:(view.edges||[]).map(edge=>({...edge})),compact:true})).sort((a,b)=>pipelineGroup(a).localeCompare(pipelineGroup(b))||Number(!a.target_model_id)-Number(!b.target_model_id)||a.label.localeCompare(b.label)):erdPages(erdSelection)):[];
+  document.body.classList.toggle('pipeline-mode',pipelineMode);
+  el('pipeline-domain-controls').hidden=!pipelineMode;
+  el('pipeline-help').hidden=!pipelineMode;
+  if(pipelineMode)el('pipeline-help').textContent='Raw → staging → intermediate → gold. Click a table for columns, keys and code.';
+  el('diagram-title').textContent=pipelineMode?'Pipeline to a gold table':'Entity relationship diagram';
+  el('diagram-view-label').textContent=pipelineMode?'Choose a gold output or additional input group':'Diagram page';
+  el('diagram-download').textContent=pipelineMode?'Download this pipeline':'Download current view + ledger';
+  el('diagram-download-all').textContent=pipelineMode?(pipelineDomain?'Download domain pipelines':'Download all pipelines'):'Download complete domain ERD';
+  document.querySelectorAll('.advanced-erd-controls,.workspace-options').forEach(node=>node.hidden=pipelineMode);
+  el('diagram-legend').textContent=pipelineMode?'Read top to bottom. Arrows show recorded transformation dependencies. New and reused objects are labeled. Joins and cardinality remain in table details. Unresolved external interfaces are marked. '+(data.pipeline_semantic_status||''):'Lines show declared joins; optional teal arrows show dependencies. No constraint enforcement is implied.';
   lineageViews=diagramEnabled?graphPages(lineageSelection,36,data.diagrams||[]):[];
-  setViewOptions('diagram-view',shownViews);setViewOptions('lineage-view',lineageViews);
+  if(pipelineMode)setPipelineOptions(shownViews,priorPipelineId);else setViewOptions('diagram-view',shownViews);
+  setViewOptions('lineage-view',lineageViews);
+  el('pipeline-domain-summary').hidden=!pipelineMode;
+  el('pipeline-domain-summary').textContent=pipelineMode?`${pipelineDomain?(pipelineDomain==='unassigned'?'Unassigned':pipelineDomain.slice(7)):'All domains'} · ${shownViews.filter(view=>view.target_model_id).length} gold pipelines · ${shownViews.filter(view=>!view.target_model_id).length} supporting views. Shared upstream tables remain visible. This filter does not change the full delivery package.`:'';
   el('lineage-summary').textContent=diagramEnabled?`${lineageSelection.selected.size} selected + ${lineageSelection.dependencies.size} dependency-context objects of ${graph.nodes.length} included objects. ${lineageSelection.hidden} hidden by filters; ${graph.unresolved} unresolved endpoint references. Joins are separate from transformation dependencies.`:'Diagrams were not selected for this package.';
   const summary=clear('model-summary'),visible=erdSelection.nodes.filter(m=>erdSelection.selected.has(m.id)),visibleModels=visible.filter(m=>designObjectKind(m)==='model');
   summary.append(make('strong',`Models: ${visibleModels.length}`),make('span',`Sources: ${visible.filter(m=>designObjectKind(m)==='source').length}`,'pill'),make('span',`External interfaces: ${visible.filter(m=>designObjectKind(m)==='interface').length}`,'pill interface-kind'),make('span','Candidate design','pill'));
@@ -742,11 +781,11 @@ function buildViews(){
   summary.append(make('span',`${erdSelection.edges.filter(e=>e.kind==='relationship').length} declared relationship occurrences`));
   renderDesignReadiness();
   const unresolved=decisions.filter(d=>!['resolved','accepted','approved'].includes(d.status)).length;if(unresolved){const link=make('a',`${unresolved} decisions to review`);link.href='#changes';summary.append(link);}
-  el('diagram-download-all').disabled=!diagramEnabled||!models.length;
+  el('diagram-download-all').disabled=!diagramEnabled||!models.length||(pipelineMode&&!shownViews.length);
   showDiagram();showLineage();relationshipTable();tableNavigator();
   const inspector=clear('inspect-model');const prompt=make('option','Choose a table');prompt.value='';inspector.append(prompt);
   for(const model of graph.nodes.filter(m=>designInventoryObject(m)||erdSelection.visible.has(m.id))){const option=make('option',`${model.full_name} · ${model.reference_only?'Reference only':dispositionLabel(model)}`);option.value=model.id;inspector.append(option);}
-  if(!graph.byId.has(inspectedModel))inspectedModel=erdSelection.nodes[0]?.id||'';
+  if(!graph.byId.has(inspectedModel))inspectedModel=(pipelineMode?shownViews[0]?.target_model_id:'')||erdSelection.nodes[0]?.id||'';
   inspector.value=inspectedModel;inspectModel(inspectedModel);
   table('model-roster',[['Table',m=>{const b=make('button',m.full_name,'secondary');b.type='button';b.onclick=()=>revealModel(m.id);return b;}],['Change',dispositionLabel],['One row represents',m=>m.grain||'Not supplied'],['Declared keys',m=>(m.columns||[]).filter(c=>c.key||(m.keys||[]).includes(c.name)).map(c=>`${columnRole(m,c)}: ${c.name}`).join('; ')||'Not supplied']],erdSelection.nodes);
   const unverified=(data.diagram_coverage?.registered||[]).filter(r=>r.status==='unverified');
@@ -804,7 +843,7 @@ function showDiagram(){
   const view=shownViews[Number(el('diagram-view').value)||0];currentDiagram=view||null;
   el('diagram-download').disabled=!view;el('diagram-view').hidden=shownViews.length<2;el('diagram-view-label').hidden=shownViews.length<2;
   drawDiagram('diagram','diagram',view);
-  el('diagram-coverage').textContent=view?`${view.model_ids.length} tables on this page · ${erdSelection.domain_count} of ${erdSelection.domain_total} included tables · ${erdSelection.shared_count} shared references · ${erdSelection.missing_count} missing definitions · ${erdSelection.hidden} hidden domain tables · ${erdSelection.hidden_references} references omitted by scope · ${erdSelection.hidden_connections} joins hidden by scope${erdSelection.hidden?` · ${erdSelection.hidden} hidden by filters`:''}${view.cross_view_connections?` · ${view.cross_view_connections} joins continue on another page`:''}${view.omitted_graph_connections?` · ${view.omitted_graph_connections} connectors in the relationship table only`:''}.`:diagramEnabled?'No tables match. Show all tables to reset this view.':'Diagrams were not included in this package.';
+  el('diagram-coverage').textContent=pipelineMode?(view?`${view.model_ids.length} warehouse objects in this pipeline · ${view.internal_connections} dependency paths · ${view.join_relationship_count??(view.join_relationships||[]).length} joins available in table details.${view.cycles?.length?' Cycle detected; execution order is unresolved.':''}`:'No complete pipeline matches these domain and asset filters. Choose All domains, clear the asset filter, or use the detailed relationship view.'):view?`${view.model_ids.length} tables on this page · ${erdSelection.domain_count} of ${erdSelection.domain_total} included tables · ${erdSelection.shared_count} shared references · ${erdSelection.missing_count} missing definitions · ${erdSelection.hidden} hidden domain tables · ${erdSelection.hidden_references} references omitted by scope · ${erdSelection.hidden_connections} joins hidden by scope${erdSelection.hidden?` · ${erdSelection.hidden} hidden by filters`:''}${view.cross_view_connections?` · ${view.cross_view_connections} joins continue on another page`:''}${view.omitted_graph_connections?` · ${view.omitted_graph_connections} connectors in the relationship table only`:''}.`:diagramEnabled?'No tables match. Show all tables to reset this view.':'Diagrams were not included in this package.';
 }
 function showLineage(){currentLineageDiagram=lineageViews[Number(el('lineage-view').value)||0]||null;el('lineage-download').disabled=!currentLineageDiagram;el('lineage-view').hidden=lineageViews.length<2;drawDiagram('lineage-diagram','lineage',currentLineageDiagram);}
 function fitDiagram(){
@@ -827,8 +866,8 @@ function tableNavigator(){
 }
 el('table-search').oninput=()=>{tableLimit=50;tableNavigator();};el('table-more').onclick=()=>{tableLimit+=50;tableNavigator();};
 for(const prefix of ['diagram','lineage']){
-  el(prefix+'-view').onchange=prefix==='diagram'?showDiagram:showLineage;
-  el(prefix+'-download').onclick=()=>{const view=prefix==='diagram'?currentDiagram:currentLineageDiagram;if(view){if(prefix==='diagram')exportErd('erd-current-view.zip',[view],erdSelection,'Current diagram page; ledger includes its cross-page relationships.');else download('lineage-current-view.svg',view.downloadSvg||viewSvg(view),'image/svg+xml');}};
+  el(prefix+'-view').onchange=()=>{if(prefix==='diagram')showDiagram();else showLineage();const viewport=el(prefix==='diagram'?'diagram':'lineage-diagram');viewport.scrollTop=0;viewport.scrollLeft=0;};
+  el(prefix+'-download').onclick=()=>{const view=prefix==='diagram'?currentDiagram:currentLineageDiagram;if(view){if(prefix==='diagram'&&pipelineMode)download((view.export_path||'pipeline.svg').split('/').pop(),view.downloadSvg||viewSvg(view),'image/svg+xml');else if(prefix==='diagram')exportErd('erd-current-view.zip',[view],erdSelection,'Current diagram page; ledger includes its cross-page relationships.');else download('lineage-current-view.svg',view.downloadSvg||viewSvg(view),'image/svg+xml');}};
   for(const [action,delta]of [['in',.25],['out',-.25],['reset',0]])el(prefix+'-zoom-'+action).onclick=()=>{let value=prefix==='diagram'?diagramZoom:lineageZoom;value=delta?Math.max(.25,Math.min(3,value+delta)):1;if(prefix==='diagram'){diagramZoom=value;diagramFitMode=false;}else lineageZoom=value;applyDiagramZoom(prefix==='diagram'?'diagram':'lineage-diagram',prefix,value);};
 }
 function exportErd(filename,pages,scope,label,complete=false){
@@ -842,6 +881,7 @@ function exportErd(filename,pages,scope,label,complete=false){
 }
 el('diagram-download-all').onclick=()=>{
   try{if(!diagramEnabled||!models.length)return;
+    if(pipelineMode){if(!shownViews.length)return;const entries=shownViews.map(view=>[(view.export_path||view.id+'.svg').split('/').pop(),new TextEncoder().encode(view.downloadSvg||viewSvg(view))]);download(pipelineDomain?'domain-pipelines.zip':'model-pipelines.zip',zip(entries),'application/zip');notice('Exported the visible pipeline set with its shared dependencies. The complete model, dictionary and detailed joins remain in the full handoff.');return;}
     const allowed=assetId?new Set(selection.visible):undefined,complete=selectErd(graph,{domain:erdOptions.domain,allowed,dependencies:erdOptions.dependencies}),pages=erdPages(complete),ids=pages.flatMap(p=>p.model_ids);
     if(ids.length!==complete.nodes.length||new Set(ids).size!==complete.nodes.length)throw new Error('Complete ERD coverage failed.');
     exportErd('complete-domain-erd.zip',pages,complete,'Complete selected domain and connected references within the included asset/audience scope. Search, layer, change and focus filters are ignored.',true);
@@ -865,7 +905,7 @@ function relationshipTable(){table('relationships',[['From',r=>graph.byId.get(r.
 function showInspectorTab(name){for(const tab of ['columns','relationships','code']){el('inspect-'+tab).hidden=tab!==name;el('inspect-'+tab+'-tab').setAttribute('aria-selected',String(tab===name));}}
 let inspectorReturn=null;
 function closeInspector(){el('table-inspector').classList.toggle('drawer-open',false);el('table-inspector').removeAttribute('role');el('table-inspector').removeAttribute('aria-modal');inspectorReturn?.focus?.({preventScroll:true});}
-function revealModel(id){inspectorReturn=document.activeElement;const page=shownViews.findIndex(view=>view.model_ids.includes(id));if(page>=0&&page!==(Number(el('diagram-view').value)||0)){el('diagram-view').value=String(page);showDiagram();}inspectModel(id);const panel=el('table-inspector');if((globalThis.innerWidth||1400)<=1200){panel.classList.toggle('drawer-open',true);panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.focus?.({preventScroll:true});}}
+function revealModel(id){inspectorReturn=document.activeElement;const page=shownViews.findIndex(view=>view.model_ids.includes(id));if(page>=0&&page!==(Number(el('diagram-view').value)||0)){el('diagram-view').value=String(page);showDiagram();}inspectModel(id);const panel=el('table-inspector');if(pipelineMode||(globalThis.innerWidth||1400)<=1200){panel.classList.toggle('drawer-open',true);panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.focus?.({preventScroll:true});}}
 el('inspector-close').onclick=closeInspector;
 addEventListener('keydown',event=>{if(event.key==='Escape'){closeInspector();if(el('diagram-expand').getAttribute('aria-expanded')==='true')el('diagram-expand').onclick();}if(event.key==='Tab'&&el('table-inspector').getAttribute('aria-modal')==='true'){const nodes=[...el('table-inspector').querySelectorAll('button, select, textarea, a')].filter(n=>!n.disabled&&!n.hidden&&n.getClientRects?.().length);if(!nodes.length)return;const first=nodes[0],last=nodes[nodes.length-1];if(event.shiftKey&&(document.activeElement===first||document.activeElement===el('table-inspector'))){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
 
@@ -978,18 +1018,52 @@ const implementationFiles=files.filter(f=>f.category==='implementation');
 if(implementationFiles.length){const ids=new Set(models.flatMap(m=>[m.artifact_id,...(m.artifact_ids||[])]).filter(Boolean));el('file-category').value='implementation';showFile(implementationFiles.find(f=>ids.has(f.id))||implementationFiles[0]);}
 fileList();
 renderDeliverableIndex();
+const sourceSummary=clear('input-source-summary');sourceSummary.append(make('h3','Input sources'),make('p','Source repositories are referenced, not cloned into this handoff. See the input-source index for supplied snapshots and gaps.'));
+for(const root of data.input_roots||[])sourceSummary.append(make('p',root.id||'Primary source'));
+const inputFiles=allFiles().filter(f=>/^(01_Input_Sources|02_Input_Context_Files)\//.test(f.path));
+const inputIndex=clear('input-file-index');for(const file of inputFiles){const b=make('button',file.path,'secondary');b.type='button';b.onclick=()=>openArtifact(file.id);inputIndex.append(b);}if(!inputFiles.length)inputIndex.append(make('p','No input snapshots or context files are embedded in this page. Original inputs remain in the engagement.'));
+const mappingFiles=allFiles().filter(f=>f.path.startsWith('05_Mappings/')&&!f.id.startsWith('generated:section:'));
+const mappingIndex=clear('mapping-file-index');for(const file of mappingFiles){const b=make('button',file.path.split('/').slice(1).join('/'),'secondary');b.type='button';b.onclick=()=>openArtifact(file.id);mappingIndex.append(b);}
 el('implementation-state').textContent=implementationFiles.length?`${implementationFiles.length} implementation files included. Review the selected code and its validation evidence before deployment.`:data.page_mode==='status'?'This is a status page with no embedded code. Ask the agent to package the registered engineering deliverables; if code is still pending, generate and register the requested candidates first.':data.audience==='reviewer'?'Implementation code is excluded from reviewer packages. Ask the agent for an engineering package to inspect generated code.':!data.selected_categories?.includes('implementation')?'Implementation was not selected for this export. Request an engineering package with implementation included if code is needed.':'No implementation files are included. The requested code is still pending or unavailable; this page does not establish completion.';
 el('copy-code').onclick=()=>{setFilePreview(false);return copyText(el('file-content').textContent,el('file-content'),'File text copied.');};
 el('download-file').onclick=()=>activeFile&&download(activeFile.path.split('/').pop(),bytes(activeFile.base64));
 function renderDeliverableIndex(){
+  if(data.package_layout_version===2){
+    table('deliverable-index',[['Folder',r=>r.title],['Included files',r=>allFiles().filter(f=>f.path.startsWith(r.folder+'/')&&!f.id.startsWith('generated:section:')).length],['Open',r=>{const button=make('button','Browse','secondary');button.type='button';button.onclick=()=>{el('file-search').value=r.folder+'/';el('file-category').value='';fileList();location.hash='#implementation-code';};return button;}]],data.layout_sections||[]);return;
+  }
   const categories=[...new Set([...(eng.delivery?.deliverables||[]),...(data.selected_categories||[]),...allFiles().map(f=>f.category)])];
   table('deliverable-index',[['Deliverable',r=>pretty(r.category)],['Included / location',r=>{const cell=make('div');const records=allFiles().filter(f=>f.category===r.category);if(records.length){for(const file of records){const button=make('button',file.path,'secondary');button.type='button';button.onclick=()=>openArtifact(file.id);cell.append(button);}return cell;}return (data.selected_categories||[]).includes(r.category)?'Selected; no standalone file included. Inspect the page or ask the agent to complete this deliverable.':'Not included in this export.';}]],categories.map(category=>({category})),10);
+}
+function simpleGeneratedPath(path,snapshot){
+  if(snapshot.package_layout_version!==2)return path;
+  if(path.startsWith('05_Migration/'))return '05_Mappings/Migration_Plan/'+path.slice(13);
+  if(path.startsWith('01_Model/legacy-table-')||path==='01_Model/migration-review.md')return '05_Mappings/'+path.slice(9);
+  return path.startsWith('01_Model/')?'03_Design_Documents/'+path.slice(9):path;
+}
+function simpleMarkdown(value){return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('\\','\\\\').replace(/([`*_[\]()!|])/g,'\\$1').replace(/\r\n|\r|\n/g,'<br>');}
+async function finishSimpleGuides(snapshot,records,add){
+  if(snapshot.package_layout_version!==2||!snapshot.selected_categories.includes('documentation'))return records;
+  const files=[...(snapshot.files||[]),...records];
+  for(const section of snapshot.layout_sections||[]){
+    const included=files.filter(f=>f.path.startsWith(section.folder+'/')).sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0);
+    const lines=['# '+section.title,'',section.description,''];
+    if(included.length){lines.push('## Included files','');for(const file of included){const relative=file.path.slice(section.folder.length+1),url=relative.split('/').map(p=>encodeURIComponent(p).replace(/[!'()*]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase())).join('/');lines.push('- ['+simpleMarkdown(relative)+']('+url+')');}}
+    else lines.push('No files are included in this section yet.','This is an explicit gap or an unselected deliverable, not a completed stage.');
+    if(section.id==='input_sources'){
+      lines.push('','Source inventory is retained in the engagement. This package does not clone input repositories.');
+      const fingerprint=snapshot.engagement?.source_fingerprint||{},digest=fingerprint.sha256||fingerprint.content_sha256;
+      if(digest)lines.push('Source content fingerprint: `'+digest+'`.');
+      for(const root of snapshot.input_roots||[])lines.push('- Registered source: '+simpleMarkdown(root.id||'primary')+'.');
+    }
+    await add('generated:section:'+section.id,section.folder+'/README.md','documentation',section.title+' index and inclusion status.',lines.join('\n')+'\n');
+  }
+  return records;
 }
 async function rebuildGenerated(snapshot){
   const models=snapshot.review?.models||[],relationships=snapshot.review?.relationships||[],chosen=new Set(snapshot.selected_categories||[]),records=[];
   if(snapshot.audience==='audit')return records;
   const encode=body=>btoa(Array.from(body,b=>String.fromCharCode(b)).join(''));
-  const add=async(id,path,category,description,body,ids)=>{const bytes=new TextEncoder().encode(body);if(bytes.length>5*1024*1024)throw new Error('Generated file exceeds size limit; ask the agent to partition it.');const record={id,path,category,description,requires:[],origin:'review_projection',sha256:await sha256(bytes),size:bytes.length,base64:encode(bytes)};if(ids)record.diagram_model_ids=ids;records.push(record);};
+  const add=async(id,path,category,description,body,ids)=>{path=simpleGeneratedPath(path,snapshot);const bytes=new TextEncoder().encode(body);if(bytes.length>5*1024*1024)throw new Error('Generated file exceeds size limit; ask the agent to partition it.');const record={id,path,category,description,requires:[],origin:'review_projection',sha256:await sha256(bytes),size:bytes.length,base64:encode(bytes)};if(ids)record.diagram_model_ids=ids;records.push(record);};
   if(chosen.has('documentation')&&snapshot.migration_review){
     await add('generated:migration-review','01_Model/migration-review.md','documentation','Scoped business rules, shared model proposals, source coverage and parity evidence.',snapshot.migration_review.summary_markdown);
   }
@@ -1001,13 +1075,13 @@ async function rebuildGenerated(snapshot){
     // Preserve the already generated, hash-checked portable Office files. Browser
     // export does not regenerate binary documents or create cloud documents.
     for(const file of snapshot.generated_deliverables||[]){
-      if(file.path.startsWith('05_Migration/')&&file.category==='documentation')records.push(structuredClone(file));
+      if((file.path.startsWith('05_Migration/')||file.path.startsWith('05_Mappings/Migration_Plan/'))&&file.category==='documentation')records.push(structuredClone(file));
     }
   }
-  if(!models.length)return records;
+  if(!models.length)return finishSimpleGuides(snapshot,records,add);
   if(chosen.has('diagrams')){
-    for(const [i,view]of(snapshot.diagrams||[]).entries()){const suffix=String(i+1).padStart(3,'0');await add('generated:erd:'+suffix,'01_Model/ERD/model-'+suffix+'.svg','diagrams','Model view '+(i+1)+'; part of the complete included table inventory.',new TextDecoder().decode(bytes(view.base64)),view.model_ids);}
-    await add('generated:erd-source','01_Model/ERD/model-source.json','diagrams','Editable model source with every included table and declared connection.',JSON.stringify({schema_version:1,kind:'portable_model_source',qualification:'Editable presentation source; not implementation or approval.',models,relationships,...(snapshot.review?.domain_proposals?.length?{domain_proposals:snapshot.review.domain_proposals,relationship_ledger:modelGraph(models,relationships,null,snapshot.review.domain_proposals).edges.filter(e=>e.record_origin)}:{})},null,2)+'\n');
+    for(const [i,view]of(snapshot.diagrams||[]).entries()){const suffix=String(i+1).padStart(3,'0');await add('generated:erd:'+suffix,(snapshot.diagram_view_mode==='pipelines'?view.export_path:'01_Model/ERD/model-'+suffix+'.svg'),'diagrams','Model view '+(i+1)+'; part of the complete included table inventory.',new TextDecoder().decode(bytes(view.base64)),view.model_ids);}
+    await add('generated:erd-source','01_Model/ERD/model-source.json','diagrams','Editable model source with every included table and declared connection.',JSON.stringify({schema_version:1,kind:'portable_model_source',qualification:'Editable presentation source; not implementation or approval.',models,relationships,...(snapshot.review?.domain_proposals?.length?{domain_proposals:snapshot.review.domain_proposals,relationship_ledger:modelGraph(models,relationships,null,snapshot.review.domain_proposals).edges.filter(e=>e.record_origin)}:{})},null,snapshot.package_layout_version===2?undefined:2)+'\n');
   }
   if(chosen.has('dictionary')){
     // A category-only subset never changes the selected dictionary. Preserve the
@@ -1016,7 +1090,7 @@ async function rebuildGenerated(snapshot){
     if(dictionary.length!==2)throw new Error('The portable dictionary inventory is incomplete. Ask the agent to repackage.');
     records.push(...structuredClone(dictionary));
   }
-  return records;
+  return finishSimpleGuides(snapshot,records,add);
 }
 function subsetReadme(snapshot){return [snapshot.checkpoint?'# Checkpoint — work is incomplete':'# Open START_HERE.html','',snapshot.checkpoint?'Missing selected categories: '+(snapshot.checkpoint.missing_categories.join(', ')||'none; work remains incomplete')+'.':'', 'Extract the entire ZIP, then open START_HERE.html in a browser. The review works offline.', '', snapshot.migration_planning_omitted||'', 'Data model: inspect tables, keys and joins. Code & files: inspect and download selected deliverables. Validation: review pending and reported checks.', '', 'Candidate review only. File integrity is not native execution, business acceptance or deployment authorization. This browser subset requires a fresh content scan and disclosure review before sharing.', '', 'Included files:',...[(snapshot.files||[]),(snapshot.generated_deliverables||[])].flat().map(f=>'- '+f.path),''].join('\n');}
 
@@ -1076,7 +1150,7 @@ el('download-package').onclick=async()=>{
       }
       next.deployment.receipts=(next.deployment.receipts||[]).filter(r=>selectedIds.has(r.evidence_artifact_id));
     }
-    if(!chosen.has('diagrams')){delete next.diagram;delete next.diagrams;}
+    if(!chosen.has('diagrams')){delete next.diagram;delete next.diagrams;delete next.warehouse_diagrams;}
     if(next.diagram_coverage){const ids=new Set(selected.map(f=>f.id));next.diagram_coverage.registered=next.diagram_coverage.registered.filter(r=>ids.has(r.artifact_id));if(!chosen.has('diagrams'))next.diagram_coverage.generated={status:'not_included',model_count:0,page_count:0};}
     if(next.review.quality_checks){
       const selectedIds=new Set(selected.map(f=>f.id));
@@ -1089,12 +1163,21 @@ el('download-package').onclick=async()=>{
       (next.review.models||[]).forEach(m=>delete m.columns);
       // Rebuild auxiliary projections from the reduced dictionary; registered files stay byte-identical.
       const reducedGraph=modelGraph(next.review.models||[],next.review.relationships||[],null,next.review.domain_proposals||[]);
-      for(const view of next.diagrams||[]){const ids=new Set(view.model_ids),rows=reducedGraph.nodes.filter(m=>ids.has(m.id)),edges=reducedGraph.edges.filter(e=>ids.has(e.from)&&ids.has(e.to));
-        const svg=filteredModelSvg(rows,edges.slice(0,120),new Set(),Math.max(0,edges.length-120),false,true);
-        view.base64=btoa(Array.from(new TextEncoder().encode(svg),byte=>String.fromCharCode(byte)).join(''));
+      for(const view of [...(next.diagrams||[]),...(next.warehouse_diagrams||[])]){const ids=new Set(view.model_ids),rows=reducedGraph.nodes.filter(m=>ids.has(m.id)),edges=reducedGraph.edges.filter(e=>ids.has(e.from)&&ids.has(e.to));
+        if(next.diagram_view_mode==='pipelines'){
+          if(!view.without_dictionary_base64)throw new Error('Pipeline subset is unavailable; ask the agent to repackage.');
+          view.base64=view.without_dictionary_base64;
+        }else{const svg=filteredModelSvg(rows,edges.slice(0,120),new Set(),Math.max(0,edges.length-120),false,true);
+          view.base64=btoa(Array.from(new TextEncoder().encode(svg),byte=>String.fromCharCode(byte)).join(''));}
+
       }
     }
-    if(data.package_layout_version===1){
+    if(next.diagram_coverage&&chosen.has('diagrams')){
+      const seen=new Set((next.diagrams||[]).flatMap(view=>view.model_ids)),modelIds=new Set((next.review.models||[]).map(model=>model.id));
+      const references=[...seen].filter(id=>!modelIds.has(id)).length;
+      next.diagram_coverage.generated={status:next.diagrams?.length?'verified':'not_included',model_count:seen.size-references,page_count:(next.diagrams||[]).length,...(references?{reference_count:references}:{})};
+    }
+    if([1,2].includes(data.package_layout_version)){
       next.generated_deliverables=await rebuildGenerated(next);
       updateCheckpointDeficits(next);
       const generated=await checkedSubsetFiles(next.generated_deliverables,next.generated_deliverables,chosen,true);entries.push(...generated);
@@ -1197,7 +1280,7 @@ function renderMigrationPlanning(){
   table('migration-plan-questions',[['Domain / ID',r=>`${r.domain_id} · ${r.id}`],['Decision or question',r=>r.text]],[...rows('decisions'),...rows('questions'),...domains.flatMap(d=>(d.missing_consumers||[]).map(c=>({domain_id:d.domain_id,id:c.id,text:'Map the missing consumer: '+(c.label||c.id)})))]);
   const narrative=clear('migration-plan-narrative');
   for(const d of domains){narrative.append(make('h3',d.domain_id));if(d.narrative)narrative.append(make('p',d.narrative,'planning-narrative'));for(const warning of d.warnings||[])narrative.append(make('p',warning,'scope-note'));}
-  const links=clear('migration-plan-files'),exports=allFiles().filter(f=>f.path.startsWith('05_Migration/'));
+  const links=clear('migration-plan-files'),exports=allFiles().filter(f=>(f.path.startsWith('05_Migration/')||f.path.startsWith('05_Mappings/Migration_Plan/')));
   for(const file of exports){const button=make('button',file.path.split('/').slice(-2).join(' / '),'secondary');button.type='button';button.title=file.path;button.onclick=()=>download(file.path.split('/').pop(),bytes(file.base64));links.append(button);}
   el('migration-plan-files-note').textContent=exports.length?'Download the inventory first, then the plan and selected ticket import. Google content files require native host creation; they are not cloud documents.':'No planning files are embedded in this page. Ask the agent to finalize the selected documentation, or complete the planning record first.';
 }

@@ -112,3 +112,17 @@ class BuilderTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class PipelineExportTests(unittest.TestCase):
+    def test_new_pipeline_export_preserves_inventory_without_whole_domain_svg(self):
+        with tempfile.TemporaryDirectory() as folder:
+            dest = Path(folder).resolve() / 'pipelines'
+            design = builder.assemble(request())
+            manifest = builder.export_design(design, dest, diagram_mode='pipelines')
+            self.assertFalse((dest / 'ERD.svg').exists())
+            self.assertTrue((dest / 'PIPELINES.md').is_file())
+            self.assertEqual(len(list((dest / 'Pipelines').glob('*.svg'))), 1)
+            self.assertEqual(json.loads((dest / 'design.json').read_text()), design)
+            for name, digest in manifest['files'].items():
+                self.assertEqual(hashlib.sha256((dest / name).read_bytes()).hexdigest(), digest)

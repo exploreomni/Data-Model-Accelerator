@@ -135,6 +135,7 @@ def check_packaged_code(state, manifest):
                 else {e['id'] for e in doc['entities']})
     expected -= {e['id'] for e in doc['entities'] if e.get('object_kind') == 'interface'}
     packaged = {r['path']: r for r in rows}
+    code_folder = '04_Code_Generation/' if manifest.get('package_layout_version') == 2 else '02_Implementation/'
     plan = {t['id']: t for t in (wf.get('last_plan') or {}).get('tasks', [])}
     graph = {e['id']: e['depends_on'] for e in doc['entities']}
     for stage in [s for s in required_stages(state) if s in {'implementation', 'semantic'}] or ['implementation']:
@@ -145,8 +146,8 @@ def check_packaged_code(state, manifest):
                 continue
             from engagement_stages import _code_artifacts
             paths = _code_artifacts(state, task)
-            if not all('02_Implementation/' + p in packaged
-                       and packaged['02_Implementation/' + p].get('sha256') == (current.get('outputs') or {}).get(p)
+            if not all(code_folder + p in packaged
+                       and packaged[code_folder + p].get('sha256') == (current.get('outputs') or {}).get(p)
                        for p in paths):
                 continue
             covered.update(task['entity_ids'] if stage == 'implementation' else closure(graph, task['entity_ids']))

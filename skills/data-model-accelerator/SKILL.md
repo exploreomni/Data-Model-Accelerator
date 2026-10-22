@@ -332,13 +332,19 @@ Check the recorded discovery choices, then read [delivery-experience.md](referen
 
 Maintain the full review package: assessment, conceptual/logical/physical model with ERD, source graph and original-ID crosswalk, rule placement plan, decision register, selected target code, applicable test evidence, and development/cutover/rollback runbook. Publish a small user handoff containing the requested outputs, with a `START_HERE.html` or `START_HERE.md` entrypoint; retain the complete versioned technical audit separately. Export selection never reduces required internal evidence or documentation coverage. Separate warehouse artifacts from semantic artifacts/recommendations and bind both to the same accepted specification. Tie documentation and ERD to that version and input snapshot. Proposed ingestion changes require their own source/connector contracts; do not silently replace replication.
 
+Lead model review with one top-down upstream pipeline per gold output: raw sources, staging, intermediate transformations and the selected gold model. Keep full column definitions and mapped code in the table inspector, and joins in the detailed relationship view. Supplemental views retain uncovered inputs and interfaces. Show semantic views/topics only with explicit physical model bindings; names alone are insufficient.
+
 Maintain that one working entrypoint and one current design narrative. Use Data model, Code & files and Validation as the primary choices, with detailed inventory and evidence available on demand. Register the maintained narrative and setup guide through the shared review's `handoff` references. Refresh existing records instead of creating another portal or summary at each milestone. Report meaningful progress, learning, next action and material blockers in chat; retain durable decisions in canonical records. Finish with one primary link, the outcome, material limits and the next action. Keep old exports immutable and generated, local, native and accepted states distinct.
 
 Before handing over a completed selected delivery, run `scripts/finalize_delivery.py`
 using the saved state, review manifest and artifact root, as shown in
 [review-surface.md](references/review-surface.md#finalize-the-selected-handoff).
 It produces one verified ZIP and matching extracted folder with `START_HERE.html`
-at the root; selected design files live in `01_Model/`. Do not manually ZIP the
+at the root. Its default `--layout simple` organizes selected files into input sources,
+input context, design documents, code generation and mappings; design files live
+in `03_Design_Documents/`. Original input repositories stay at their registered
+roots and are not cloned into the handoff. Use `--layout classic` only when the
+older folder paths are needed. Do not manually ZIP the
 work directory or report completion from file registration alone. Repair missing
 selected files or report an incomplete handoff; never silently narrow the request.
 Design-only and explicitly selected partial deliveries remain valid, with their

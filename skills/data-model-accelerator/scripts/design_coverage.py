@@ -8,8 +8,10 @@ This module never executes source code, approves a design or requires a layer.
 """
 import copy
 import hashlib
+import math
 import os
 from pathlib import Path
+import stat
 import unicodedata
 
 from ae_common import hash_json, require, safe_relative
@@ -17,8 +19,12 @@ from engagement_stages import fields, identifier, ids, text, SHA
 from review_assurance import load_document
 
 MAX_ROWS = 20000
-MAX_FILES = 2000
-MAX_TOTAL_BYTES = 32 * 1024 * 1024
+MAX_FILES = 20000
+MAX_TOTAL_BYTES = 128 * 1024 * 1024
+MAX_ENTRIES = 80000
+MAX_DEPTH = 48
+MAX_STRUCTURE_DEPTH = 48
+MAX_NODES = 1000000
 QUALIFICATION = ('Coverage of the supplied, bounded source inventory only. File hashes establish local '
                  'integrity, not authenticated provenance; parser results, external completeness and '
                  'review attribution are host-declared. Coverage is not semantic correctness, design '
@@ -27,8 +33,20 @@ QUALIFICATION = ('Coverage of the supplied, bounded source inventory only. File 
 
 def _safe(value):
     import guided_workflow as guided
-    from source_adapters.base import bounded
-    bounded(value)
+    # Coverage inventories are metadata, not parser input packets. Keep their
+    # own node bound so large exact inventories need not be copied or truncated.
+    stack, count = [(value, 0)], 0
+    while stack:
+        item, depth = stack.pop(); count += 1
+        require(count <= MAX_NODES and depth <= MAX_STRUCTURE_DEPTH, 'Design coverage structure exceeds its bounded scope')
+        if isinstance(item, dict):
+            require(all(type(k) is str for k in item), 'Coverage keys must be strings')
+            stack.extend((v, depth + 1) for v in item.values())
+        elif isinstance(item, list):
+            stack.extend((v, depth + 1) for v in item)
+        else:
+            require(item is None or type(item) in (str, bool, int, float), 'Coverage must contain JSON values')
+            require(type(item) is not float or math.isfinite(item), 'Coverage numbers must be finite')
     guided._secrets(value)
     require(len(guided._bytes(value)) <= guided.MAX_JSON_BYTES, 'Design coverage exceeds 16 MiB; partition the engagement')
 
@@ -87,9 +105,9 @@ def _validate(request):
         inv = source['inventory']
         fields(inv, {'status', 'reference', 'files'}); text(inv['reference'])
         require(inv['status'] in {'complete', 'partial', 'not_supplied'}, 'Invalid inventory status')
-        require(type(inv['files']) is list and len(inv['files']) <= MAX_FILES, 'File inventory exceeds bounded scope')
+        require(type(inv['files']) is list and len(inv['files']) <= MAX_FILES, 'File inventory exceeds the 20,000-file bound')
         file_count += len(inv['files'])
-        require(file_count <= MAX_FILES, 'Combined source file inventory exceeds bounded scope')
+        require(file_count <= MAX_FILES, 'Combined source file inventory exceeds the 20,000-file bound')
         paths = set()
         for item in inv['files']:
             fields(item, {'path', 'sha256', 'status', 'object_ids'})
@@ -225,7 +243,8 @@ def record(state, document, run_dir):
     folder = run / 'design-coverage'
     primary = state.get('inputs', {}).get('source', {}).get('path')
     if primary:
-        guided._outside(run, guided._path(primary)); guided._outside(folder, guided._path(primary))
+        from source_roots import ensure_output
+        ensure_output(state, run); ensure_output(state, folder)
     for source in request['sources']:
         if 'root' in source:
             root = _root(source['root']); guided._outside(run, root); guided._outside(folder, root)
@@ -237,7 +256,9 @@ def record(state, document, run_dir):
         if source['status'] != 'available' or source['kind'] != 'repository': continue
         root = _root(source['root'])
         if not root.is_dir(): continue
-        discovered, _ = _scan_paths(root)
+        discovered, problems = _scan_paths(root)
+        if problems:
+            source['inventory']['status'] = 'partial'
         supplied = {f['path'] for f in source['inventory']['files']}
         for path in sorted(discovered - supplied):
             digest = None
@@ -269,25 +290,45 @@ def record(state, document, run_dir):
 
 
 def _scan_paths(root):
-    """Reuse planner exclusions without reading arbitrary repository contents."""
+    """Bounded, descriptor-relative filename inventory; never follow symlinks."""
     from plan_specialists import IGNORED_DIRS, ADMIN_NAMES, is_secret
-    found, problems = set(), []
-    def error(_): problems.append('inventory_unreadable')
-    for parent, directories, files in os.walk(root, topdown=True, followlinks=False, onerror=error):
-        parent = Path(parent)
-        allowed = []
-        for name in sorted(directories):
-            path = parent / name
-            if path.is_symlink(): problems.append('inventory_symlink')
-            elif name not in IGNORED_DIRS and not is_secret(path): allowed.append(name)
-        directories[:] = allowed
-        for name in sorted(files):
-            path = parent / name
-            if path.is_symlink(): problems.append('inventory_symlink'); continue
-            if name.lower() in ADMIN_NAMES or is_secret(path): continue
-            found.add(path.relative_to(root).as_posix())
-            if len(found) > MAX_FILES:
-                problems.append('inventory_limit'); return found, problems
+    from source_adapters.filesystem import _open_directory
+    found, problems, entries = set(), [], 0
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    def walk(fd, prefix='', depth=0):
+        nonlocal entries
+        if depth >= MAX_DEPTH:
+            problems.append('inventory_depth_limit'); return
+        names = []
+        with os.scandir(fd) as iterator:
+            for entry in iterator:
+                entries += 1
+                if entries > MAX_ENTRIES:
+                    problems.append('inventory_entry_limit'); return
+                names.append(entry.name)
+        for name in sorted(names):
+            if len(found) > MAX_FILES or entries > MAX_ENTRIES:
+                return
+            path = Path(name)
+            try:
+                info = os.stat(name, dir_fd=fd, follow_symlinks=False)
+                if stat.S_ISLNK(info.st_mode):
+                    problems.append('inventory_symlink'); continue
+                if stat.S_ISDIR(info.st_mode):
+                    if name in IGNORED_DIRS or is_secret(path): continue
+                    child = os.open(name, flags, dir_fd=fd)
+                    try: walk(child, prefix + name + '/', depth + 1)
+                    finally: os.close(child)
+                elif name.lower() not in ADMIN_NAMES and not is_secret(path):
+                    found.add(prefix + name)
+                    if len(found) > MAX_FILES: problems.append('inventory_limit')
+            except OSError:
+                problems.append('inventory_unreadable')
+    fd, _ = _open_directory(root)
+    try:
+        try: walk(fd)
+        except OSError: problems.append('inventory_unreadable')
+    finally: os.close(fd)
     return found, problems
 
 

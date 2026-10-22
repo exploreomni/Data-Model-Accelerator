@@ -486,6 +486,8 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None, stage_progress=T
         assessment_options['dbt_runtime'] = a['dbt_runtime']
     platform = _assess_repository(repo, framework, warehouse, **assessment_options)
     _require(type(platform) is dict and platform.get('schema_version') == 1, 'Readiness collector returned an unsupported schema.')
+    from source_roots import observe
+    platform = observe(state, platform, _assess_repository, framework, warehouse, assessment_options)
     fingerprint = platform['source_fingerprint']
     _require(re.fullmatch('[0-9a-f]{64}', fingerprint.get('value', '')) is not None, 'Readiness source fingerprint is invalid.')
     state['inputs']['source']['fingerprint'] = fingerprint
@@ -559,6 +561,8 @@ def _refresh(state, *, catalogue=UNSET, readiness_options=None, stage_progress=T
 
 
 def _save(run_dir, state, action, *, changed_answers=(), invalidated=()):
+    from source_roots import ensure_output
+    ensure_output(state, run_dir)
     revisions = run_dir / 'revisions'
     revisions.mkdir(exist_ok=True)
     _require(not revisions.is_symlink(), 'Revision directory must not be a symlink.')
@@ -588,7 +592,8 @@ def _validate_state(run_dir, state):
     _require(state.get('state_sha256') == _digest({k: v for k, v in state.items() if k != 'state_sha256'}), 'State integrity check failed; restore the last committed revision.')
     revision = run_dir / 'revisions' / ('%06d.json' % state['revision'])
     _require(revision.is_file() and _json(revision) == state, 'State does not match its immutable revision.')
-    _outside(run_dir, _path(state['inputs']['source']['path']))
+    from source_roots import ensure_output
+    ensure_output(state, run_dir)
     return state
 
 
@@ -730,7 +735,11 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
         invalidated = _refresh(state, stage_progress=False)
         if document is not None:
             _secrets(document)
-        if action == 'migrate-stages':
+        if action == 'register-source-roots':
+            from source_roots import register
+            register(state, document, run_dir)
+            invalidated.extend(_refresh(state, stage_progress=False))
+        elif action == 'migrate-stages':
             stages.migrate(state)
         elif action == 'record-delivery-plan':
             from delivery_plan import record_plan
@@ -828,7 +837,8 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
             else:
                 _require(policy is not None and attestation is not None, 'An attributable human review record or external signed attestation is required')
                 from deployment_authority import outside
-                outside(policy, (run_dir, state['inputs']['source']['path']))
+                from source_roots import approved_roots
+                outside(policy, (run_dir, *approved_roots(state)))
                 stages.approve_design(state, entities, policy, attestation)
         elif action == 'assess-effort':
             stages.assess_development(state, document)
@@ -842,13 +852,15 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
         elif action == 'checkpoint-work':
             import run_control
             root = _path(artifact_root)
-            _outside(root, _path(state['inputs']['source']['path']))
+            from source_roots import ensure_output
+            ensure_output(state, root)
             _require(root != run_dir and root not in run_dir.parents and run_dir not in root.parents,
                      'Checkpoint files must be separate from engagement state')
             state['last_work_action'] = run_control.checkpoint_work(state, document, root)
         elif action in ('plan-tasks', 'record-task', 'check-task'):
             root = _path(artifact_root)
-            _outside(root, _path(state['inputs']['source']['path']))
+            from source_roots import ensure_output
+            ensure_output(state, root)
             _require(root != run_dir and root not in run_dir.parents and run_dir not in root.parents,
                      'Candidate artifacts must be separate from engagement state')
             _require(root.is_dir(), 'Artifact root must be an existing directory')
@@ -888,7 +900,7 @@ def main(argv=None):
                       'configure-legacy-comparison', 'record-legacy-baseline',
                       'record-legacy-alignment', 'review-legacy-alignment',
                       'configure-migration-planning', 'record-migration-plan', 'edit-migration-items',
-                      'register-domains', 'select-domain', 'pause-domain', 'complete-domain', 'select-batch', 'pause-batch', 'complete-batch')
+                      'register-source-roots', 'register-domains', 'select-domain', 'pause-domain', 'complete-domain', 'select-batch', 'pause-batch', 'complete-batch')
     for command in ('init', 'start', 'answer', 'assess', 'status', 'resume', 'record-handoff', 'record-evidence') + stage_commands:
         p = sub.add_parser(command)
         p.add_argument('--run', type=Path, required=True, help='Local engagement folder outside the input repository.')
@@ -921,7 +933,7 @@ def main(argv=None):
                        'configure-legacy-comparison', 'record-legacy-baseline',
                        'record-legacy-alignment', 'review-legacy-alignment',
                        'configure-migration-planning', 'record-migration-plan', 'edit-migration-items',
-                       'register-domains', 'select-domain', 'pause-domain', 'complete-domain', 'select-batch', 'pause-batch', 'complete-batch'):
+                       'register-source-roots', 'register-domains', 'select-domain', 'pause-domain', 'complete-domain', 'select-batch', 'pause-batch', 'complete-batch'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
         if command in ('review-bindings', 'independent-review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):
             p.add_argument('--entities', nargs='+', required=True)

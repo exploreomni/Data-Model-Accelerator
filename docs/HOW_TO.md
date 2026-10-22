@@ -481,7 +481,9 @@ Ask for the package you will actually use:
 
 > Prepare an engineering handoff with the current model, connected diagrams, complete dictionary, layer documentation, runnable implementation and concise validation results. Include prerequisites and exact commands for the extracted folder. Exclude source rows unless explicitly selected and approved. Keep the full technical audit separate. Record the prepared handoff and verify the ZIP before delivery.
 
-An engineering ZIP contains `START_HERE.html`, selected numbered folders and `DELIVERY_MANIFEST.json`. Open the guide offline to start at **Data model**. Select a table in the ERD or table selector to review grain, new/reused status, column definitions, explicit PK/FK labels, relationships and linked code. Use **Find, filter, or focus tables** for a smaller view; **Download complete ERD** includes all warehouse tables in the review regardless of display filters. **Code & files** contains the selected implementation, and **Validation** retains reported results and missing checks. Engagement context, decisions and transformation lineage remain in supporting details. Missing table-to-code mappings are explicit; ask the agent to register them rather than guessing by filename. Selectable downloads retain required dependencies. A reviewer ZIP excludes implementation, samples and audit; audit material uses a separate export. Smaller exports do not shrink the required internal model, dictionary or validation coverage.
+An engineering ZIP contains `START_HERE.html`, selected files and `DELIVERY_MANIFEST.json`. In the simple layout, **Data model** starts with one gold output's upstream pipeline. Read raw/source → staging → intermediate → gold, then click a table for its columns, keys, joins and linked code. Supplemental views retain inputs outside those pipelines. **Detailed joins & relationships** opens the full ERD; joins are separate from transformation dependencies. Semantic views/topics require explicit physical model bindings, never name matching.
+
+**Code & files** contains the selected implementation, and **Validation** retains reported results and gaps. Missing table-to-code mappings stay explicit. Reviewer packages exclude implementation, samples and audit; audit uses a separate export. Smaller exports retain required dependencies and do not reduce internal model, dictionary or validation obligations.
 
 The agent prepares the review manifest and exact file hashes, then uses:
 
@@ -504,8 +506,14 @@ These commands need the actual prepared review/artifacts; they do not manufactur
 
 The finalizer creates `engineering-delivery-v1/handoff.zip` and the matching
 `engineering-delivery-v1/handoff/` folder. Open `handoff/START_HERE.html`.
-**`01_Model/` is the design folder**: it holds the selected design document,
-ERDs and dictionaries. The command fails if a selected category has no files or
+The default `--layout simple` has five sections: `01_Input_Sources/`,
+`02_Input_Context_Files/`, **`03_Design_Documents/`**, `04_Code_Generation/` and
+`05_Mappings/`. Design contains the narrative, pipeline SVGs and dictionary;
+code contains implementation, setup and validation; mappings contains selected
+comparisons and migration documents. Original inputs stay at their registered
+roots and are not cloned. With documentation selected, each section's guide states
+what is included or missing. Use `--layout classic` for the older `01_Model/`,
+`02_Implementation/` and `03_Validation/` paths. The command fails if a selected category has no files or
 the required design/navigation is missing, and never overwrites an older export.
 `--javascript` needs Node for syntax checks; browser review remains separate.
 Prepared files or successful specialist tasks alone are not a finished handoff.
@@ -594,13 +602,13 @@ Open the `START_HERE.html` in the printed run folder. Expect missing-catalogue e
 
 ## Review a delivered package
 
-Extract the current named ZIP and open `START_HERE.html`. Choose **Data model** to see every included table, then select a table for its grain, columns, keys, joins and mapped code. **Fit model** gives an overview; **Actual size** and **Expand diagram** provide detail. On narrow screens, use **Back to model** or Escape to close table details. Search and diagram filters never reduce export or approval scope.
+Extract the current named ZIP and open `START_HERE.html`. In **Data model**, use **Domain** to group and filter the recorded domains, then choose one gold output and follow its pipeline top to bottom. **All domains** resets the filter; **Unassigned** keeps missing assignments visible. Shared upstream tables stay in each selected pipeline. Click a table for grain, columns, keys, joins and mapped code; use **Back to model** or Escape to close details. **Actual size** and **Expand diagram** preserve readable labels. Use **Detailed joins & relationships** for the ERD and its filters. **Download this pipeline** saves one SVG; **Download all pipelines** saves the current asset-permitted set; with a domain selected, **Download domain pipelines** saves that domain’s visible set. The full delivery package and approval scope remain unchanged.
 
 **Code & files** identifies the selected implementation, setup guide and standalone ERD/dictionary paths. Selecting an indexed file opens its preview immediately. Generated ERDs and dictionaries open visually; **View source** exposes the original text, and downloads retain the original bytes. dbt SQL belongs in its project; native SQL and Coalesce follow their selected integration guides. **Validation** explains reported checks and what remains unverified. A generated file or clean package is not deployment approval.
 
 Use **Request a change** on a table, or **Prepare review feedback**, to download a version-bound correction/question. Return it to the agent with the current package. The agent checks freshness using `review_feedback.py --page /absolute/current/START_HERE.html --responses /absolute/model-review-feedback.json` before reconciling changes into the existing engagement. Feedback is not automatically applied and cannot approve a design or authorize deployment. Existing decision-answer and review workflows remain available.
 
-The numbered folders contain only selected deliverables. Selected ERDs include SVG views and editable source; selected dictionaries include CSV and Markdown. The root README identifies the entrypoint and files. Technical evidence and previous immutable exports stay outside the customer handoff.
+The numbered sections contain selected deliverables and, when documentation is selected, guides that expose empty sections. Selected diagrams include SVG views and editable model source. In simple layout, the dictionary includes the full supplied column CSV and a compact Markdown table index linking to it; classic layout retains the full Markdown column table. The root README identifies the entrypoint and files. Technical evidence and previous immutable exports stay outside the customer handoff.
 
 ## Work through domains one at a time
 

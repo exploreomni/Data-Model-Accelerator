@@ -291,11 +291,21 @@ def diagram_coverage(data, decoded_files=None):
         svg_model_coverage(content, scope)
         seen.extend(scope)
     if pages:
-        require(len(seen) == len(set(seen)) and set(seen) == set(identifiers + reference_ids),
-                'Diagram pages must cover every included model exactly once')
+        if data.get('diagram_view_mode') == 'pipelines':
+            require(set(seen) == set(identifiers + reference_ids), 'Pipeline views must cover every included model and reference')
+            targets = [page.get('target_model_id') for page in pages if page.get('kind') == 'gold_pipeline']
+            expected = {model['id'] for model in models if model['layer'] == 'gold'
+                        and model.get('object_kind', 'model') not in {'interface', 'source', 'reference'}
+                        and not model.get('reference_only')}
+            require(len(targets) == len(set(targets)) and set(targets) == expected
+                    and all(page.get('target_model_id') in page['model_ids'] for page in pages if page.get('kind') == 'gold_pipeline'),
+                    'Each concrete gold output requires exactly one primary pipeline')
+        else:
+            require(len(seen) == len(set(seen)) and set(seen) == set(identifiers + reference_ids),
+                    'Diagram pages must cover every included model exactly once')
     elif identifiers and (data.get('page_mode') == 'status' or 'diagrams' in data.get('selected_categories', [])):
         raise ValueError('Diagram pages are missing for the included model inventory')
-    generated = {'status': 'verified' if pages else 'not_included', 'model_count': len(seen) - (len(reference_ids) if pages else 0), 'page_count': len(pages)}
+    generated = {'status': 'verified' if pages else 'not_included', 'model_count': len(set(seen)) - (len(reference_ids) if pages else 0), 'page_count': len(pages)}
     if reference_ids and pages:
         generated['reference_count'] = len(reference_ids)
     registered = []
@@ -409,7 +419,7 @@ def validate_page(page, *, expected_files=None, expected_data=None, require_curr
                 and data['selected_categories'] == sorted(set(data['selected_categories'])),
                 'Page selected categories must be a sorted unique list')
         required_sections = REQUIRED_SECTIONS + (('table-dictionary',) if data.get('diagram_contract_version') == 1 else ())
-        if data.get('package_layout_version') == 1:
+        if data.get('package_layout_version') in (1, 2):
             required_sections += ('review-feedback',)
         for identifier in required_sections:
             node = parsed.nodes.get(identifier, {})

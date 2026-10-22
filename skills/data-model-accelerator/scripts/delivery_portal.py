@@ -400,6 +400,8 @@ def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
     matches=[a for a in selected if a.get('id')==ref.get('artifact_id')]
     require(len(matches)<=1,'Duplicate selected Omni artifact')
     included=bool(matches)
+    if not included:
+        data.get('review', {}).pop('omni_warehouse_bindings', None)
     # Agent packaging verifies the bound private inputs even for a reduced
     # export. Reclassifying an input must not disclose it when the catalog is
     # omitted from the selected categories.
@@ -591,6 +593,8 @@ def _select_quality_evidence(data, selected):
 
 def validate_review(state, review):
     require(isinstance(review, dict) and review.get('schema_version') == 1, 'Review schema_version must be 1')
+    from package_layout import version
+    version(review)
     require(bool(source_fingerprint(state)), 'Engagement has no source fingerprint; run assessment first')
     require(review.get('source_fingerprint') == source_fingerprint(state), 'Review is stale: source fingerprint differs')
     require(review.get('context_sha256') == context_fingerprint(state), 'Review is stale: input, catalogue, target or runtime context differs')
@@ -640,6 +644,18 @@ def validate_review(state, review):
     _validate_quality_checks(state, review)
     _validate_metadata_reference(review)
     _validate_omni_reference(review)
+    bindings = review.get('omni_warehouse_bindings', [])
+    require(isinstance(bindings, list) and len(bindings) <= MAX_REVIEW_ITEMS, 'Invalid Omni warehouse bindings')
+    require(not bindings or 'omni' in review, 'Omni pipeline bindings require pinned semantic evidence')
+    seen_views = set()
+    for binding in bindings:
+        require(isinstance(binding, dict) and set(binding) == {'view_id', 'model_ids'}
+                and isinstance(binding['view_id'], str) and binding['view_id']
+                and binding['view_id'] not in seen_views, 'Invalid or duplicate Omni pipeline view')
+        seen_views.add(binding['view_id'])
+        require(isinstance(binding['model_ids'], list) and binding['model_ids']
+                and all(isinstance(i, str) and i in ids for i in binding['model_ids'])
+                and len(set(binding['model_ids'])) == len(binding['model_ids']), 'Omni pipeline model binding is outside the review')
     _validate_handoff(review)
     return review
 
@@ -700,7 +716,8 @@ def select_artifacts(review, root, audience, include):
             svg_model_coverage(content, scope)
         total += len(content)
         require(total <= MAX_PACKAGE_BYTES, 'Package size limit exceeded; split by domain')
-        dest = FOLDERS[record['category']] + '/' + str(relative)
+        from package_layout import artifact_destination, version
+        dest = artifact_destination(dict(record, path=str(relative)), version(review), FOLDERS)
         require(dest.casefold() not in destinations, 'Portable output filename collision')
         destinations.add(dest.casefold())
         selected.append(dict(record, destination=dest, content=content))
@@ -1085,6 +1102,10 @@ def _presentation(state, review=None, audience='engineer'):
           'page_mode':'status','selected_categories':[],'file_count':0,
           'projection':{'selected_artifact_count':0,'excluded_artifact_count':0,
                         'qualification':'Status projection only. Registered artifact bytes are not read or embedded.'}}
+    from source_roots import public_summary as roots_summary
+    roots = roots_summary(state)
+    if roots:
+        data['input_roots'] = roots.get('roots', [])
     deployment = _deployment_presentation(state, audience)
     if deployment:
         data['deployment'] = deployment
@@ -1098,6 +1119,7 @@ def _presentation(state, review=None, audience='engineer'):
         if 'metadata' in review:
             data['review']['metadata'] = dict(review['metadata'])
         if 'omni' in review:data['review']['omni']=dict(review['omni'])
+        if review.get('omni_warehouse_bindings'):data['review']['omni_warehouse_bindings']=copy_quality(review['omni_warehouse_bindings'])
         if 'handoff' in review:data['review']['handoff']=dict(review['handoff'])
         if audience == 'reviewer':
             data['review']['validation']=[{k:v.get(k) for k in ('id','label','scope','status','details','evidence_id')} for v in review.get('validation',[])]
@@ -1540,7 +1562,7 @@ def _trim_workflow_details(data):
 
 def _html(data):
     template=(ASSETS/'portal.html').read_text(encoding='utf-8')
-    encoded=json.dumps(data,ensure_ascii=True,allow_nan=False).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
+    encoded=json.dumps(data,ensure_ascii=True,allow_nan=False,separators=(',', ':') if data.get('package_layout_version') == 2 else None).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
     rendered = (template.replace('/*__PORTAL_CSS__*/',(ASSETS/'portal.css').read_text(encoding='utf-8'))
                 .replace('/*__PORTAL_SVG_JS__*/',(ASSETS/'portal-svg.js').read_text(encoding='utf-8'))
                 .replace('/*__PORTAL_JS__*/',(ASSETS/'portal.js').read_text(encoding='utf-8'))
@@ -1575,8 +1597,90 @@ def _atomic_write(path, content, overwrite=False):
             temp.unlink(missing_ok=True)
 
 
+def _pipeline_semantics(review):
+    """Use explicit warehouse IDs plus the selected, verified semantic inventory."""
+    evidence = review.get('omni', {})
+    if evidence.get('evidence_state') != 'selected':
+        review.pop('omni_warehouse_bindings', None)
+        return None
+    bindings = review.get('omni_warehouse_bindings', [])
+    if not bindings:
+        return None
+    inventory = evidence.get('views', {})
+    known = {row['view_id'] for row in bindings}
+    require(known <= set(inventory), 'Omni pipeline view is absent from pinned semantic evidence')
+    topics = []
+    for topic in evidence.get('topics', []):
+        members = topic.get('scope', {}).get('views', [])
+        # Only fully bound topic populations are drawn; never imply a partial
+        # membership is complete or guess a physical binding from similar names.
+        if members and set(members) <= known:
+            topics.append({'id': topic['id'], 'name': topic.get('label') or topic['id'], 'view_ids': sorted(set(members))})
+    return {'views': [{'id': row['view_id'], 'name': row['view_id'], 'warehouse_model_ids': row['model_ids']} for row in bindings], 'topics': topics}
+
+
+def _review_diagrams(data, *, pipelines=False):
+    from portal_checks import erd_inventory
+    nodes, edges = erd_inventory(data['review'])
+    if pipelines:
+        from pipeline_diagrams import pipeline_views
+        platform = data.get('engagement', {}).get('readiness', {}).get('platform')
+        if isinstance(platform, dict):
+            platform = copy_quality(platform)
+            data['engagement']['readiness']['platform'] = platform
+            for finding in (platform.get('findings') or []) + (platform.get('detected_sources') or []):
+                if len(finding.get('paths', [])) > 20:
+                    finding['paths_total'] = len(finding['paths'])
+                    finding['paths'] = finding['paths'][:20]
+            coverage = platform.get('coverage') or {}
+            for key in ('gaps', 'exclusions'):
+                if len(coverage.get(key, [])) > 100:
+                    coverage[key + '_total'] = len(coverage[key])
+                    coverage[key] = coverage[key][:100]
+        semantic = _pipeline_semantics(data['review'])
+        data['diagram_view_mode'] = 'pipelines'
+        data['pipeline_semantic_status'] = ('Explicit candidate bindings shown; native validation remains separate.' if semantic else
+            'Semantic views and topics are not drawn: selected evidence with explicit warehouse bindings is not available.')
+        def views(rows, binding):
+            pages = pipeline_views(rows, edges, semantic=binding)
+            for index, page in enumerate(pages, 1):
+                # The canonical review retains every relationship and proposal.
+                # Per-output display records need routing identities and counts,
+                # not repeated copies of every outside join and its evidence.
+                page.pop('external_connections', None)
+                page['join_relationship_count'] = len(page.pop('join_relationships', []))
+                page['edges'] = [{key: edge[key] for key in ('id', 'from', 'to', 'kind', 'occurrence_count')} for edge in page['edges']]
+                page['export_path'] = diagram_export_path(page, index, 2)
+            return pages
+        reduced = [{key: value for key, value in node.items() if key != 'columns'} for node in nodes]
+        data['diagrams'] = views(nodes, semantic)
+        reduced_by_id = {page['id']: page for page in views(reduced, semantic)}
+        for page in data['diagrams']:
+            page['without_dictionary_base64'] = reduced_by_id[page['id']]['base64']
+        if semantic:
+            data['warehouse_diagrams'] = views(nodes, None)
+            warehouse_reduced = {page['id']: page for page in views(reduced, None)}
+            for page in data['warehouse_diagrams']:
+                page['without_dictionary_base64'] = warehouse_reduced[page['id']]['base64']
+
+    else:
+        data['diagrams'] = diagram_views(nodes, edges)
+
+
+def diagram_export_path(page, index, layout_version):
+    if layout_version == 2 and page.get('id'):
+        label = page.get('target_model_id') or page.get('label') or 'additional-inputs'
+        name = re.sub(r'[^A-Za-z0-9._-]+', '-', str(label)).strip('-.')[:100] or 'pipeline'
+        suffix = _sha(str(page['id']).encode())[:8]
+        return '03_Design_Documents/Pipelines/' + name + '-' + suffix + '.svg'
+    return f'01_Model/ERD/model-{index:03d}.svg'
+
+
 def render_engagement(state, output_path, review=None):
     """Render local status with no artifact payloads. May refresh an existing status page."""
+    from source_roots import ensure_output
+    if state.get('inputs', {}).get('source', {}).get('path'):
+        ensure_output(state, output_path)
     source=state.get('inputs',{}).get('source',{}).get('path')
     if source:
         destination=_path(output_path); source_root=_path(source)
@@ -1587,8 +1691,7 @@ def render_engagement(state, output_path, review=None):
     _select_metadata_evidence(data, [])
     _select_omni_evidence(data, [])
     if data['review'].get('models'):
-        from portal_checks import erd_inventory
-        data['diagrams']=diagram_views(*erd_inventory(data['review']))
+        _review_diagrams(data, pipelines=bool(state.get('workflow', {}).get('design')))
     _set_diagram_coverage(data)
     rendered = _html(data).encode('utf-8')
     _check_disclosure_bytes(rendered, 'START_HERE.html')
@@ -1641,6 +1744,8 @@ def generated_deliverables(data):
         return []
     selected, records = set(data.get('selected_categories', [])), []
     def add(identifier, path, category, description, body, model_ids=None):
+        from package_layout import generated_path
+        path = generated_path(path, data.get('package_layout_version', 1))
         require(len(body) <= MAX_ARTIFACT_BYTES, 'Generated deliverable exceeds size limit; partition explicitly')
         record = {'id': identifier, 'path': path, 'category': category, 'description': description,
                   'requires': [], 'origin': 'review_projection', 'sha256': _sha(body), 'size': len(body),
@@ -1665,11 +1770,16 @@ def generated_deliverables(data):
         add('generated:legacy-alignment-markdown', '01_Model/legacy-table-alignment.md', 'documentation',
             'Readable existing-table comparison, coverage and both mapping directions.',
             _legacy_alignment_markdown(data['legacy_alignment']).encode())
-    if not models:
+    def finish():
+        from package_layout import section_guides
+        for guide in section_guides(data, records):
+            add(guide['id'], guide['path'], guide['category'], guide['description'], guide['body'])
         return records
+    if not models:
+        return finish()
     if 'diagrams' in selected:
         for index, page in enumerate(data.get('diagrams', []), 1):
-            add(f'generated:erd:{index:03d}', f'01_Model/ERD/model-{index:03d}.svg', 'diagrams',
+            add(f'generated:erd:{index:03d}', diagram_export_path(page, index, data.get('package_layout_version', 1)), 'diagrams',
                 f'Model view {index}; part of the complete included table inventory.',
                 base64.b64decode(page['base64'], validate=True), page['model_ids'])
         source = {'schema_version': 1, 'kind': 'portable_model_source',
@@ -1680,7 +1790,7 @@ def generated_deliverables(data):
             source['relationship_ledger'] = erd_inventory(review)[1]
         add('generated:erd-source', '01_Model/ERD/model-source.json', 'diagrams',
             'Editable model source with every included table and declared connection, including cross-view connections.',
-            (json.dumps(source, indent=2, ensure_ascii=False, sort_keys=True) + '\n').encode())
+            (json.dumps(source, indent=None if data.get('package_layout_version') == 2 else 2, separators=(',', ':') if data.get('package_layout_version') == 2 else None, ensure_ascii=False, sort_keys=True) + '\n').encode())
     if 'dictionary' in selected:
         rows = _dictionary_rows(models)
         stream = io.StringIO(newline='')
@@ -1693,16 +1803,22 @@ def generated_deliverables(data):
         lines = ['# Data dictionary', '',
                  'Generated from the selected review inventory. Missing definitions remain unspecified; this is not native validation.', '',
                  '| ' + ' | '.join(DICTIONARY_FIELDS) + ' |', '| ' + ' | '.join(['---'] * len(DICTIONARY_FIELDS)) + ' |']
-        lines.extend('| ' + ' | '.join(_markdown_cell(value) for value in row) + ' |' for row in rows)
+        if data.get('package_layout_version') == 2:
+            lines = ['# Data dictionary', '', 'Open [data-dictionary.csv](data-dictionary.csv) for every supplied column, type, key and definition. The same columns are searchable in START_HERE.html.', '',
+                     'Missing definitions remain unspecified; this is not native validation.', '',
+                     '| Table | Layer | Supplied columns |', '| --- | --- | --- |']
+            lines.extend('| ' + _markdown_cell(model.get('name') or model['id']) + ' | ' + _markdown_cell(model['layer']) + ' | ' + str(len(model.get('columns', []))) + ' |' for model in models)
+        else:
+            lines.extend('| ' + ' | '.join(_markdown_cell(value) for value in row) + ' |' for row in rows)
         add('generated:dictionary-markdown', '01_Model/Dictionary/data-dictionary.md', 'dictionary',
-            'Readable dictionary with the same table and column inventory as the CSV.', ('\n'.join(lines) + '\n').encode())
-    return records
+            ('Table index linking the complete column CSV.' if data.get('package_layout_version') == 2 else 'Readable dictionary with the same table and column inventory as the CSV.'), ('\n'.join(lines) + '\n').encode())
+    return finish()
 
 
 def validate_generated_deliverables(data):
     """Check generated inventory, selected scope and bytes; SVG layout may differ."""
     from portal_checks import svg_model_coverage
-    require(type(data.get('package_layout_version')) is int and data['package_layout_version'] == 1,
+    require(type(data.get('package_layout_version')) is int and data['package_layout_version'] in (1, 2),
             'Unsupported portable package layout version')
     actual = data.get('generated_deliverables')
     require(isinstance(actual, list), 'Generated deliverables must be a list')
@@ -1750,6 +1866,18 @@ def package_readme(data):
     registered, generated = data.get('files', []), data.get('generated_deliverables', [])
     target = engagement.get('target', {})
     checkpoint = data.get('checkpoint')
+    if data.get('package_layout_version') == 2:
+        from package_layout import SECTIONS
+        lines = ['# Model review handoff', '', 'Open [START_HERE.html](START_HERE.html). Choose a gold table to trace its pipeline, then inspect its columns and code.', '',
+                 'Status: ' + ('Incomplete checkpoint; outstanding work remains.' if checkpoint else 'Candidate delivery; native validation and approval remain separate.') , '',
+                 '| Folder | What to review |', '| --- | --- |']
+        for folder, title, description in SECTIONS.values():
+            link = folder + '/README.md'
+            if any(row['path'] == link for row in generated):
+                lines.append('| [' + title + '](' + link + ') | ' + description + ' |')
+        lines += ['', 'Original repositories, previous drafts and run history are outside this handoff. Registered artifacts keep their original bytes.',
+                  'Missing code or context is stated in its folder. A folder or diagram is not proof of completed implementation.', '']
+        return ('\n'.join(lines)).encode()
     lines = ['# Checkpoint package' if checkpoint else '# Delivery package', '', 'Open [START_HERE.html](START_HERE.html) for the guided review.', '',
              'Audience: ' + _markdown_cell(data.get('audience', 'unresolved')) + '.',
              'Target: ' + _markdown_cell(target.get('framework') or 'unresolved') + ' / ' + _markdown_cell(target.get('warehouse') or 'unresolved') + '.',
@@ -1804,16 +1932,23 @@ def package_file_inventory(data, files):
 def package_delivery(state, review, artifact_root, output_path, audience='reviewer', include=None, *, checkpoint=False):
     validate_review(state,review)
     include=resolve_selection(state,audience,include)
+    from source_roots import ensure_output
+    if state.get('inputs', {}).get('source', {}).get('path'):
+        ensure_output(state, output_path)
     source=state.get('inputs',{}).get('source',{}).get('path')
     if source:
         destination=_path(output_path); source_root=_path(source)
         require(destination != source_root and source_root not in destination.parents, 'Package output must stay outside the source repository')
     selected=select_artifacts(review,artifact_root,audience,include)
     data=_presentation(state,review,audience)
-    data.update(page_mode='package', package_layout_version=1, selected_categories=sorted(set(include)), file_count=len(selected))
+    from package_layout import version
+    data.update(page_mode='package', package_layout_version=version(review), selected_categories=sorted(set(include)), file_count=len(selected))
     data['projection']={'selected_artifact_count':len(selected),
                         'excluded_artifact_count':len(review.get('artifacts',[]))-len(selected),
                         'qualification':'Only selected audience-permitted artifact bytes are embedded. Excluded artifacts remain outside this package.'}
+    if data['package_layout_version'] == 2:
+        from package_layout import SECTIONS
+        data['layout_sections'] = [dict(id=key, folder=value[0], title=value[1], description=value[2]) for key, value in SECTIONS.items()]
     _select_handoff(data, selected)
     _select_deployment_evidence(data, selected)
     _select_quality_evidence(data, selected)
@@ -1836,8 +1971,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         data.get('workflow', {}).pop('authoring_checks', None)
         data.get('workflow', {}).pop('artifact_checks', None)
     if 'diagrams' in include and data['review'].get('models'):
-        from portal_checks import erd_inventory
-        data['diagrams']=diagram_views(*erd_inventory(data['review']))
+        _review_diagrams(data, pipelines=data.get('package_layout_version') == 2)
     files={a['destination']:a['content'] for a in selected}
     for artifact in selected:
         data['files'].append({'id':artifact['id'],'path':artifact['destination'],'category':artifact['category'],
@@ -1867,7 +2001,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     validate_page(files['START_HERE.html'], expected_files={a['destination']:a['content'] for a in selected})
     scans = {name: _check_disclosure_bytes(body, name) for name, body in files.items()}
     manifest={'schema_version':1,'kind':'portable_delivery_integrity','engagement_id':state['engagement_id'],
-              'package_layout_version':1,
+              'package_layout_version':data['package_layout_version'],
               'export_origin': 'agent_packager',
               'disclosure_scans': scans,
               'migration_scope': state.get('answers', {}).get('migration_scope'),
@@ -2004,8 +2138,8 @@ def verify_delivery(path):
                                        'content':archive.read(item['path'])} for item in declared])
             from portal_checks import validate_page
             if 'package_layout_version' in manifest or 'package_layout_version' in embedded:
-                require(type(manifest.get('package_layout_version')) is int and manifest['package_layout_version'] == 1
-                        and embedded.get('package_layout_version') == 1, 'Package layout version differs from its Start Here page')
+                require(type(manifest.get('package_layout_version')) is int and manifest['package_layout_version'] in (1, 2)
+                        and embedded.get('package_layout_version') == manifest['package_layout_version'], 'Package layout version differs from its Start Here page')
                 generated = validate_generated_deliverables(embedded)
                 require(all(path in names and archive.read(path) == body for path, body in generated.items()),
                         'Generated delivery inventory differs from selected archive bytes')

@@ -32,7 +32,7 @@ Reuse the engagement's existing `START_HERE.html`, or its selected `START_HERE.m
 
 Offer at most three primary choices, appropriate to the selected stage and audience:
 
-- **Data model:** the connected ERD, visible searchable table list, new/reused status, table details and exact code links. Keep the project/target and candidate status visible on first open. Offer Fit model, Actual size and Expand; keep every scoped object discoverable across dense diagram pages.
+- **Data model:** choose one gold output and read its upstream pipeline from top to bottom. Show full names, brief keys and new/reused status at a readable natural size. Selecting a table opens its columns, joins and exact code links; the detailed ERD remains available separately. Keep the project/target and candidate status visible. Supplemental views retain inputs and interfaces outside the gold pipelines.
 - **Code & files:** the selected implementation, supporting configuration/tests, integration guide and file index. Default to a table-linked file; classify an unmapped file as supporting/unmapped rather than guessing which model it implements. Reviewer packages show explicit code omission. File-index selections scroll to the selected preview. Generated SVGs and dictionaries open visually with an original-source toggle; copy and download retain original file text/bytes.
 - **Validation:** concise readiness and next actions, with full required evidence and outside-scope checks available on demand. Failed, unsupported or stale evidence remains visible in the opening summary.
 
@@ -44,20 +44,24 @@ Maintain one current human-readable design document, bound to the canonical desi
 
 ## Keep two packages distinct
 
-The **user handoff** is the small working package. For a full delivery, use three to five numbered folders with one `START_HERE.html` or `START_HERE.md` at the root. A useful three-folder layout is:
+The **user handoff** uses the finalizer's default `--layout simple`: one root `START_HERE.html` and five sections for the selected files:
 
 ```text
-handoff/
+Handoff/
   START_HERE.html
-  01_Model/           selected model, connected diagrams, docs and dictionary
-  02_Implementation/ selected framework project or native SQL and setup guide
-  03_Validation/     selected tests, concise results and remaining checks
-Technical_Audit/     full versioned review and execution evidence (separate ZIP)
+  01_Input_Sources/        input inventory and permitted source artifacts
+  02_Input_Context_Files/  selected requirements, rules and catalogue context
+  03_Design_Documents/     design narrative, gold pipelines and dictionary
+  04_Code_Generation/     warehouse/semantic code, setup and validation
+  05_Mappings/            historical-to-target mappings and migration documents
+Technical_Audit/          separate optional export
 ```
 
-Omit unselected artifacts and unnecessary empty folders. A separate fourth folder for explicitly requested sample data can help when it is substantial. Use plain labels, portable relative links and a dependency/run order. The entrypoint states what was generated, which target it is for, what was actually tested, prerequisites, unresolved decisions, and the next concrete action. Link directly to each selected deliverable; do not make the user navigate execution receipts to find the model or code.
+Original repositories remain at their registered roots; packaging does not clone them. Only explicitly registered, selected and audience-permitted files enter the handoff. When documentation is selected, section guides explain missing or unselected content; an empty section does not establish stage completion. `--layout classic` retains the older `01_Model/`, `02_Implementation/`, `03_Validation/` and optional sample-data paths.
 
-The exporter preserves each registered path beneath its category folder. Write Markdown references for that final location; the exporter rejects unresolved or unsafe internal links and requires linked artifacts to remain selected. It does not rewrite bytes after review. Check the resulting extracted folder layout as well as the offline guide. New integrity manifests bind the package to the workflow's `context_sha256`; this digest is an integrity association, not an approval or execution receipt.
+Use plain labels, portable relative links and a dependency/run order. The entrypoint states what was generated, the target, actual checks, prerequisites, unresolved decisions and the next concrete action. Link directly to the selected design and code.
+
+The exporter preserves each registered path beneath its selected section/category folder. An optional type-compatible artifact `section` selects `input_sources`, `input_context`, `design`, `code` or `mappings`; see [review-surface.md](review-surface.md#content-contract). Write Markdown references for that final location; the exporter rejects unresolved or unsafe internal links and requires linked artifacts to remain selected. It does not rewrite bytes after review. Check the resulting extracted folder layout as well as the offline guide. New integrity manifests bind the package to the workflow's `context_sha256`; this digest is an integrity association, not an approval or execution receipt.
 
 Keep prior exports and their manifests immutable. The live entrypoint may be refreshed, while a newly requested export uses a new version and contains its own portable `START_HERE.html` snapshot. Those frozen copies do not become competing working portals. Do not revise an old ZIP, reviewed artifact or evidence receipt to make it appear current.
 
@@ -90,11 +94,12 @@ When a selected example implementation requires its bundled seeds, explain that 
 
 When selected, ship actual SVG files plus editable diagram sources. Use the model inventory and reviewed relationships from [model-documentation.md](model-documentation.md), with these presentation requirements:
 
-- One table block per physical object within a view, grouped by layer or coherent domain. Show qualified identity, grain and key columns with PK/FK roles; use stable identities across views.
-- Draw lines between the blocks. Show cardinality and optionality, including tenant/effective-time predicates where applicable. Label role-specific joins such as bill-to versus ship-to on distinct edges to the same dimension.
-- Distinguish transformation lineage from logical joins and observed/enforced constraints. Use separate views or explicit line styles with a legend; an ingestion arrow must not imply a foreign-key constraint. Mark unresolved/inferred edges truthfully.
-- For a dense model, provide a connected overview and coherent layer/domain views with cross-references. Preserve object/relationship coverage across those views. Do not replace the model with disconnected table pairs or repeat a central table once per edge.
-- Visually inspect the rendered output at a readable viewing scale. Resolve clipped text, overlapping labels/lines, detached endpoints and unreadable density. Confirm that isolated source objects remain represented, with their status explained.
+- Default to one upstream pipeline per concrete gold model. Read raw/source → staging/preparation → intermediate → gold from top to bottom; preserve actual dependencies even when they skip a stage or reuse another gold model. Retain isolated inputs and unresolved interfaces in labeled supplemental views.
+- Group pipeline choices by recorded domain and expose an All domains filter. Use the gold output's membership rather than its ancestors' domains; preserve cross-domain dependencies in each view. Keep Unassigned and shared/multiple-domain groups explicit. Domain filtering is navigation only, separate from the active-domain workflow and full package scope.
+- Use fixed-size readable cards with full names, brief supplied PK/FK or declared-key labels, and new/reused status. Keep the full dictionary and edge details outside the main diagram. Large pipelines scroll instead of shrinking all labels; explicitly flag cycles without dropping their edges or inventing execution order.
+- Transformation arrows come only from recorded lineage or `depends_on`. Keep logical joins, roles, predicates and cardinality in the detailed ERD/table inspector. A join never creates an inferred transformation dependency or proves an enforced constraint.
+- Add semantic views and topics only from explicit warehouse-model and view-membership bindings. Do not infer physical mappings from matching names or treat a semantic placement as native verification.
+- Inspect the actual rendered output for clipped text, overlaps, detached endpoints and density. Confirm complete supplied model coverage across primary and supplemental views.
 
 The diagram and dictionary must describe the same pinned model as the selected code and review evidence. A readable SVG is a presentation result; it does not establish actual constraint enforcement or production acceptance.
 
@@ -110,7 +115,7 @@ The shared [guided workflow](guided-workflow.md), [platform adapters](platform-a
 
 ## First-use acceptance
 
-The recipient receives one named current ZIP and one extracted handoff location. Keep work files, screenshots, superseded immutable exports and technical audit outside it; never overwrite frozen exports to clean the view. The generated root README is an extraction/file index, not another design narrative. Selected dictionaries ship as CSV and Markdown; selected diagrams ship as SVG views plus editable model source. Generated projections are identified separately from immutable registered files in the manifest, and must match the selected inventory. No diagram filter changes export scope.
+The recipient receives one named current ZIP and one extracted handoff location. Keep work files, screenshots, superseded immutable exports and technical audit outside it; never overwrite frozen exports to clean the view. The generated root README is an extraction/file index, not another design narrative. Selected dictionaries ship all supplied columns in CSV; simple layout adds a compact Markdown table index linking that CSV. Classic layout retains the full Markdown column table. Selected diagrams ship as SVG views plus editable model source. Generated projections are identified separately from immutable registered files in the manifest, and must match the selected inventory. Screen filters do not change the canonical model or approval scope. Diagram downloads state whether they contain the current pipeline/view or the complete permitted set; the selected handoff retains its declared scope.
 
 Before handoff, run page/package integrity, JavaScript syntax and stub-DOM checks, then inspect the actual extracted HTML in a browser. Check initial context, all scoped tables, responsive inspector/back behavior, table-to-code mapping, download/copy, first-click navigation, feedback freshness and code/readiness omissions. Test smaller exports and legacy packages as well. A fresh reviewer must complete open → model → table → code → readiness → feedback without chat history. Report browser limitations honestly and retain the observations outside the customer package. Synthetic usability exercises cannot establish native or business validation.
 
@@ -118,5 +123,5 @@ Use the [finalizer](review-surface.md#finalize-the-selected-handoff) for the fin
 selected delivery. It checks actual files and creates the ZIP plus extracted
 handoff together. The coordinator must not substitute a source clone, candidate
 folder, status-only page or `handoff_prepared` message for that result. Explain that
-`01_Model/` is the design folder. Missing outputs require repair or an explicit
+`03_Design_Documents/` is the simple layout's design folder (`01_Model/` in classic layout). Missing outputs require repair or an explicit
 incomplete status, not another full model run or a silent reduced selection.

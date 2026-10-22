@@ -1,5 +1,17 @@
 # Evidence-grounded design and review
 
+Coverage metadata supports up to 20,000 files across all supplied sources,
+20,000 rows per inventory section and a 16 MiB retained JSON document. Freshness
+reads remain bounded to 128 MiB combined and 8 MiB per file; safe filename scans
+stop at 80,000 visited entries or 48 directory levels. Structure is bounded to
+one million nodes and 48 levels. These are separate from the smaller worker
+extraction packet limits. An inventory such as 4,757 files can be retained at its
+original roots without copying an in-scope subset. Overflow is rejected or
+reported as partial/unreadable coverage, never silently truncated or complete.
+Observed scan omissions remain in the retained inventory state. Use
+[named source roots](source-roots.md) when canonical models depend on several
+repositories; no restart or source relocation is required.
+
 Use this workflow for new designs and when explicitly adopting improved coverage
 in an existing engagement. Existing saved engagements remain readable without
 invented coverage, reviews or migrated approval. Their new readiness fields say

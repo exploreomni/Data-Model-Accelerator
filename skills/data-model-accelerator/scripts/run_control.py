@@ -109,11 +109,15 @@ def _binding(state, request):
         require(set(request['scope_ids']) == set(task['entity_ids']), 'Dispatch scope differs from stage task')
         return {'task_id': task['id'], 'fingerprint': task['fingerprint']}, task
     require(paths, 'Non-stage work requires exact source paths; scope labels alone are not evidence')
-    source = Path(state['inputs']['source']['path'])
-    binding = {'source_files': capture(source, paths), 'role': request['role'],
+    from source_roots import capture as capture_sources
+    binding = {'source_files': capture_sources(state, paths), 'role': request['role'],
                'scope_ids': sorted(request['scope_ids']),
                'extractor_sha256': hash_json({name: component_fingerprint(name) for name in
                     ([source_type] if source_type else SOURCES)})}
+    from source_roots import reference_bindings
+    root_bindings = reference_bindings(state, paths)
+    if root_bindings:
+        binding['source_roots'] = root_bindings
     if request['role'] not in {'source_specialist', 'catalogue_specialist'}:
         binding['design_sha256'] = (state.get('workflow', {}).get('design') or {}).get('sha256')
         binding['target'] = state.get('inputs', {}).get('target')
@@ -208,9 +212,8 @@ def checkpoint_work(state, request, artifact_root):
     ops = copy.deepcopy(state.get('operations', {}))
     attempt = next((a for a in ops.get('attempts', []) if a['attempt_id'] == request['attempt_id']), None)
     require(attempt and attempt['status'] == 'active', 'Checkpoint requires an active attempt')
-    root, source = _path(artifact_root), _path(state['inputs']['source']['path'])
-    require(root != source and root not in source.parents and source not in root.parents,
-            'Checkpoint outputs must be separate from the source')
+    from source_roots import ensure_output
+    root = ensure_output(state, artifact_root)
     outputs = capture(root, request['outputs'])
     if request['status'] == 'outputs_recorded':
         require(outputs, 'Completed work needs retained output files')

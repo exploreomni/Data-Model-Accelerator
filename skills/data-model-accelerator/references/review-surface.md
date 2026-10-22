@@ -28,16 +28,18 @@ review state; omitted code is not evidence of completion or approval.
 
 The review is JSON schema version 1 with:
 
+- Optional `package_layout_version`: `2` selects the simple five-section layout; omission preserves classic version `1` for direct package/API callers. The finalizer CLI selects version `2` by default.
 - `title`, `description`: engagement-specific prose; synthetic examples explicitly identify themselves.
 - `source_fingerprint`: copy the exact current `state.inputs.source.fingerprint` object.
 - `context_sha256`: use `delivery_portal.context_fingerprint(state)` to bind source, catalogue, target, runtime and discovery context. A refreshed mismatch blocks rendering/export of stale content.
 - `target`: exact selected `framework` and `warehouse`.
 - `models`: `{id, name, layer, domain, grain, columns: [{name, type, key, description}]}`. Use optional `artifact_id` (one file) or `artifact_ids` (an array of file IDs) to link a table directly to its registered implementation code in an engineering export. Record explicit column `key` labels such as PK/FK; names alone never establish keys. `disposition` is create/reuse/extend/replace; missing values stay unspecified. Optional `reuse.existing_id` and `reuse.rationale` explain the existing table retained. Stable IDs are unique. `layer` is bronze/silver/gold. Include all scoped objects; unknown type/grain remains explicit. This presentation dictionary does not replace the full canonical dictionary.
-- `relationships`: `{from, to, kind, label, evidence}` with optional `predicate`, `cardinality`, `role`, and `status` (or `implementation_status`). Endpoints refer to model IDs. `kind` is `lineage` or `relationship`; existing descriptive `label` values remain supported. For example, a relationship may declare `predicate: "orders.bill_to_id = addresses.id"`, `cardinality: "many:0..1"`, `role: "bill_to"`, and `status: "authored"`. Authored means declared implementation, not successful execution or an enforced constraint; `proposed` marks design-only edges. Unspecified values remain unspecified. Connected blocks use distinct edge IDs and routes, with a complete predicate/cardinality/role ledger available beneath the diagram and in the selected-table inspector.
+- `relationships`: `{from, to, kind, label, evidence}` with optional `predicate`, `cardinality`, `role`, and `status` (or `implementation_status`). Endpoints refer to model IDs. `kind` is `lineage` or `relationship`; existing descriptive `label` values remain supported. For example, a relationship may declare `predicate: "orders.bill_to_id = addresses.id"`, `cardinality: "many:0..1"`, `role: "bill_to"`, and `status: "authored"`. Authored means declared implementation, not successful execution or an enforced constraint; `proposed` marks design-only edges. Unspecified values remain unspecified. The detailed relationship view retains edge IDs and the complete predicate/cardinality/role ledger. Pipeline diagrams use only recorded transformation dependencies; selecting a table still exposes its joins.
 - `changes`: `{id, source, target, disposition, rationale, consumers: [], decision}`. Retain unresolved consumers and proposed retirements. A disposition is not approval.
 - `decisions`: `{id, question, status, answer}`. These display recorded statements; use existing typed authority evidence for acceptance.
 - `validation`: `{id, label, scope, status, expected, actual, details, evidence_id}`. Scope is static/local/warehouse/semantic/business/operational; status is pass/fail/pending/skipped/not_applicable. Results are always **reported**, not authenticated by the viewer. Human approval cannot be represented as a passing test. Keep every required case, including missing/failing ones, and link its exact existing evidence ID.
-- `artifacts`: `{id, path, sha256, category, audiences, requires: [], description}`. Paths are relative to the selected artifact root; record actual hashes. Categories are documentation/diagrams/dictionary/implementation/validation/sample_data/technical_audit. Audiences are reviewer/engineer/audit. `requires` lists other artifact IDs that must be selected together. For a registered warehouse SVG with declared table coverage, add `diagram_model_ids` containing its exact scoped model IDs and annotate each visible table block with `<g data-model-id="...">`. Partial layer/domain scopes are allowed when declared; SVGs without a declared scope remain explicitly unverified. This checks identity and bounds, not relationship correctness or visual acceptance. Document externally supplied prerequisites explicitly; do not silently omit seed/configuration dependencies.
+- `artifacts`: `{id, path, sha256, category, audiences, requires: [], description}`. Paths are relative to the selected artifact root; record actual hashes. Optional `section` selects a type-compatible simple-layout destination listed below. Categories are documentation/diagrams/dictionary/implementation/validation/sample_data/technical_audit. Audiences are reviewer/engineer/audit. `requires` lists other artifact IDs that must be selected together. For a registered warehouse SVG with declared table coverage, add `diagram_model_ids` containing its exact scoped model IDs and annotate each visible table block with `<g data-model-id="...">`. Partial layer/domain scopes are allowed when declared; SVGs without a declared scope remain explicitly unverified. This checks identity and bounds, not relationship correctness or visual acceptance. Document externally supplied prerequisites explicitly; do not silently omit seed/configuration dependencies.
+- Optional `omni_warehouse_bindings`: `[{view_id, model_ids: [...]}]` explicitly maps pinned Omni views to included canonical warehouse IDs. Pipeline extensions require the selected semantic evidence artifact; topics appear only when every supplied view member has a binding. Omitted evidence removes its semantic extension. These are candidate bindings, not native verification.
 - Optional `handoff`: `{design_artifact_id, implementation_guide_artifact_id}`. Point to one maintained design narrative and one setup guide from the existing artifact inventory. Omit an unrequested role. IDs must be distinct; the design is `documentation`, the guide is `documentation` or `implementation`, and both use `.md` or `.txt`. They are navigation references, not an additional readiness record. The export drops references whose files are excluded by audience or category. Legacy reviews without these references still work; the page never guesses a primary document from a filename.
 
 The offline page opens to the Data model workspace when a design exists, with Code & files and Validation alongside it. Supporting sections stay behind a detail control. Its readiness summary derives from the current included files, scoped model, decisions and reported checks. It keeps local checks, native verification and business acceptance distinct; missing evidence and omitted exports never imply completion. The maintained design and setup guide can be read directly in their respective sections. Detailed dictionaries, evidence, file selection and audit remain secondary paths.
@@ -48,7 +50,21 @@ Only explicitly registered files are included. Registered audience labels expres
 
 Native Omni `.view`, `.topic` and the exact extensionless basenames `model` and `relationships` are accepted only as `implementation` artifacts. Preserve their names and bytes; no transport suffix or restoration script is needed. This exception does not allow other extensionless files, shell executables or HTML, and retains the ordinary audience, dependency and hash checks. It does not validate Omni YAML syntax or native behavior.
 
-Markdown links are verified against the **exported** path, including category prefixes: documentation/diagrams/dictionary use `01_Model/`, implementation uses `02_Implementation/`, validation uses `03_Validation/`, samples use `04_Sample_Data/`, and audit uses `Technical_Audit/`. For example, `03_Validation/validation/RESULTS.md` links to the shipped `01_Model/docs/METHODOLOGY.md` with `../../01_Model/docs/METHODOLOGY.md`. Original subdirectories are preserved beneath the prefix. Files are not rewritten because the registered hashes bind their exact bytes. Inline links, images, reference links and HTML href/src references must resolve to selected files; anchors and external HTTP(S), mailto and telephone URLs are allowed. Fragment heading existence and external availability are not checked. Unsafe paths/schemes and missing internal files stop export with the referring document and destination. Resolved file links become export dependencies, so deselecting a linked category in the browser cannot create a broken smaller package.
+The simple layout uses these explicit artifact sections. Categories still control audience and selection; choosing a section does not widen disclosure or permit another file type.
+
+| Section | Folder | Allowed categories |
+| --- | --- | --- |
+| `input_sources` | `01_Input_Sources/` | documentation, sample_data |
+| `input_context` | `02_Input_Context_Files/` | documentation, dictionary |
+| `design` | `03_Design_Documents/` | documentation, diagrams, dictionary |
+| `code` | `04_Code_Generation/` | implementation, validation, documentation |
+| `mappings` | `05_Mappings/` | documentation, dictionary |
+
+Without an explicit section, documentation/diagrams/dictionary go to design, implementation/validation to code, and selected samples to input sources. Validation adds a `Validation/` subfolder. Generated historical comparisons and migration planning files go to mappings. Original inputs stay at their registered roots; the handoff contains references/guides and explicitly registered permitted files, not repository clones. With documentation selected, all five sections receive guides explaining included files or gaps. Audit remains a separate `Technical_Audit/` export.
+
+Markdown links are checked against the **final exported path**, with original registered subdirectories preserved. Registered bytes are never rewritten to repair links. For simple layout, a file at `04_Code_Generation/Validation/validation/RESULTS.md` links to `03_Design_Documents/docs/METHODOLOGY.md` with `../../../03_Design_Documents/docs/METHODOLOGY.md`. Classic layout retains `01_Model/`, `02_Implementation/`, `03_Validation/` and `04_Sample_Data/`; use `--layout classic` for documents authored for those locations. Inline links, images, reference links and HTML href/src references must resolve to selected files; anchors and external HTTP(S), mailto and telephone URLs are allowed. Fragment existence and external availability are not checked. Unsafe schemes/paths or missing files stop export. Resolved file links remain export dependencies, including in browser subsets.
+
+In simple layout, the generated dictionary Markdown is a table index with supplied column counts and a link to the complete column CSV. The portal inspector retains the supplied column definitions. Classic layout retains the full Markdown column table. Compact JSON/HTML serialization changes whitespace only; editable model source retains its selected model and relationship data.
 
 ## Render and export
 
@@ -94,13 +110,16 @@ python scripts/finalize_delivery.py --state /absolute/engagement/state.json \
 ```
 
 Omit `--audience` to reuse the saved audience (otherwise engineer). Omit `--include`
-to honor saved deliverables. Use an explicit subset only when the user requested
+to honor saved deliverables. `--layout simple` is the default; `--layout classic`
+retains older exported paths. Use an explicit subset only when the user requested
 it, never to hide missing artifacts. `--javascript` requires Node and checks script
 syntax; omitting it leaves syntax checking unperformed, not passed.
 
 Successful output has exactly one `handoff.zip` and a matching `handoff/` folder:
-open `handoff/START_HERE.html`; selected design narrative, ERDs and dictionary
-are under `handoff/01_Model/`. No second `design/` folder is needed. The finalizer
+open `handoff/START_HERE.html`; selected design narrative, diagrams and dictionary
+are under `handoff/03_Design_Documents/` in simple layout (`handoff/01_Model/`
+in classic layout). Code and validation live under `04_Code_Generation/`;
+comparisons and migration mappings live under `05_Mappings/`. The finalizer
 checks selected category coverage, the registered design narrative when selected,
 current canonical entity coverage, page integrity, ZIP integrity and extracted
 bytes. It rejects missing selected deliverables and never overwrites a prior
@@ -118,7 +137,9 @@ any remaining limitation.
 
 ## Scale and failure behavior
 
-Review collections have an explicit 20,000-item ceiling; packaging permits 5,000 registered artifacts, 20 MiB per file and 100 MiB of selected source payloads. Rendered packages are bounded separately. Exceeding limits fails with a partitioning instruction; no truncation produces a complete badge. Use coherent domain waves and retain complete cross-domain scope/denominators. File preview is limited to 2 MiB without altering downloaded bytes. Tables paginate and files filter. Diagrams partition by domain, at most 36 objects, and connection density; cross-view connections retain explicit counts and the full page ledger. Reserved gutters route connectors outside unrelated table blocks; parallel roles use separate ports and lanes. Teal shows lineage, violet authored joins, dashed amber proposed joins, and dotted grey other/unspecified joins. Large diagrams scroll at a readable scale instead of shrinking every label to fit the page. Inspect rendered output for the actual inventory before delivery.
+Review collections have an explicit 20,000-item ceiling; packaging permits 5,000 registered artifacts, 20 MiB per file and 100 MiB of selected source payloads. Rendered packages are bounded separately. Exceeding limits fails with a partitioning instruction; no truncation produces a complete badge. Use coherent domain waves and retain complete cross-domain scope/denominators. File preview is limited to 2 MiB without altering downloaded bytes. Tables paginate and files filter. Simple pipeline views preserve complete upstream closure per gold output, with supplemental views for uncovered inputs; they do not impose a 36-node cut. The detailed/classic ERD partitions by domain, at most 36 objects, and connection density; cross-view connections retain explicit counts and the full page ledger. Reserved gutters route connectors outside unrelated table blocks; parallel roles use separate ports and lanes. Teal shows lineage, violet authored joins, dashed amber proposed joins, and dotted grey other/unspecified joins. Large diagrams scroll at a readable scale instead of shrinking every label to fit the page. Inspect rendered output for the actual inventory before delivery.
+
+Pipeline review pages cap displayed platform paths at 20 per finding/source and coverage gap/exclusion lists at 100 entries, with explicit original totals when capped. These are presentation samples; saved state and readiness outcomes are unchanged.
 
 An unsupported output format is a recorded generation request for the host, not a target label switch. Extending a platform requires its reviewed model, artifact, metadata and execution contracts plus qualification. The UI needs no platform-specific rewrite.
 
@@ -126,7 +147,8 @@ An unsupported output format is a recorded generation request for the host, not 
 
 The primary routes are Data model, Code & files and Validation. When a design
 exists, the page opens directly to the model workspace; an engagement without a
-design starts at the overview. The ERD and table inspector lead the review.
+design starts at the overview. Simple handoffs lead with the gold pipeline selector
+and table inspector; classic handoffs retain the detailed ERD.
 Supporting workflow context, design rationale and detailed inventories remain
 available through sidebar links or expandable details.
 
@@ -143,7 +165,37 @@ it never guesses filenames or exposes excluded code. Reviewer and status pages
 explain how to request an engineering package. Code & files remains discoverable
 for every audience, and engineering packages select an included implementation file.
 
-The ERD opens at 100% with every included model, including isolated tables. Choose
+In **Pipeline to one gold table**, choose an output and read its recorded upstream
+flow from raw sources through preparation/intermediate models to gold. Cards retain
+full names and brief keys; click one for complete columns and mapped code. Fixed
+natural size and scrolling keep text readable. Supplemental views retain otherwise
+uncovered inputs/interfaces, and cycles are marked with execution order unresolved.
+Only explicit warehouse-model/view-membership bindings may add semantic views/topics;
+name similarity never supplies a physical binding. The pipeline renderer supports
+those bindings; absent curated bindings, no semantic extension is asserted.
+
+Use **Domain** above the pipeline picker to narrow and group the choices. Gold
+pipelines use the output model's recorded domain and domain-proposal membership;
+supplemental views use their included objects' recorded memberships. Names never
+infer an assignment. Unassigned and shared/multiple-domain groups remain explicit.
+Counts distinguish gold outputs from supporting views. Shared upstream objects
+remain in the selected pipeline, even when they belong to another domain. The
+filter changes the visible pipeline set only; it does not select the engagement's
+active domain, change approvals, prune artifacts or narrow the full package export.
+
+**Download this pipeline** saves the current SVG. **Download all pipelines** saves
+the pipeline set permitted by the current asset scope. With a domain filter, the
+button becomes **Download domain pipelines** and saves that visible set including
+shared dependencies. The complete dictionary and
+join evidence remain in the handoff. Switch to **Detailed joins & relationships**
+for domain, search and relationship controls; joins never drive pipeline traversal.
+
+`design_builder.py export --document DESIGN --output NEW_DIRECTORY` defaults to
+`--diagram-mode pipelines`, producing `PIPELINES.md`, per-view SVGs, the canonical
+model graph and dictionary. `--diagram-mode classic` preserves the traditional ERD
+export; the existing Python `export_design` API retains its classic default.
+
+The detailed ERD opens at 100% with every included model, including isolated tables. Choose
 Entire domain to retain all of that domain's models plus connected shared references.
 Focus on table and table clicks inspect and highlight; they never prune the graph.
 Search, layer and change filters are explicit reductions with hidden counts. Shared

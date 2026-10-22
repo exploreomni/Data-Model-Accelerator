@@ -219,7 +219,7 @@ class CompactDeliveryTests(unittest.TestCase):
         self.assertEqual(output.read_bytes(), frozen)
         self.assertEqual(self.review, before)
 
-    def test_exactly_three_primary_links_secondary_details_closed(self):
+    def test_five_primary_review_links_secondary_details_closed(self):
         nav = Navigation()
         template = (portal.ASSETS / 'portal.html').read_text()
         nav.feed(template)
@@ -229,14 +229,14 @@ class CompactDeliveryTests(unittest.TestCase):
         self.assertEqual([link['href'] for link in primary_nav.links if link['hidden']], ['#migration-plan'])
         self.assertEqual({link['href'] for link in nav.links if not link['secondary'] and not link['hidden']} - {link['href'] for link in primary},
                          set())
-        self.assertEqual([link['href'] for link in primary], ['#model', '#delivery', '#validation'])
+        self.assertEqual([link['href'] for link in primary], ['#model', '#delivery', '#replacement-map', '#input-files', '#validation'])
         self.assertEqual([re.sub(r'^\s*\d+\s*', '', link['text']).strip() for link in primary],
-                         ['Data model', 'Code & files', 'Validation'])
+                         ['Model design', 'Code generation', 'Mappings', 'Inputs & context', 'Checks & decisions'])
         secondary = [details for details in nav.details if details['links']]
         self.assertTrue(secondary, 'Secondary navigation needs a collapsed details group')
         self.assertTrue(all('open' not in details['attrs'] for details in secondary))
         self.assertTrue({'#overview', '#lineage', '#readiness', '#changes', '#deployment', '#architecture',
-                         '#table-dictionary', '#implementation-code', '#replacement-map', '#review-feedback'} <=
+                         '#table-dictionary', '#implementation-code', '#review-feedback'} <=
                         {link['href'] for details in secondary for link in details['links']})
 
     def test_compact_helper_is_pure_and_has_only_five_evidence_stages(self):
