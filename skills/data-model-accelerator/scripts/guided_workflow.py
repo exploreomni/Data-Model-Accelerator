@@ -26,7 +26,7 @@ ANSWER_KEYS = {'engagement_type', 'priority_domain', 'framework', 'warehouse',
                'retained_behavior', 'corrected_behavior', 'host', 'environment',
                'execution_mode', 'audience', 'metadata_policy', 'naming_policy',
                'migration_scope', 'input_handling', 'security_reviewer',
-               'business_reviewer', 'catalogue_authority', 'dbt_runtime'}
+               'business_reviewer', 'catalogue_authority', 'dbt_runtime', 'delivery_destination'}
 DELIVERABLES = {'implementation', 'diagrams', 'documentation', 'dictionary',
                 'validation', 'sample_data', 'technical_audit'}
 ENUMS = {'engagement_type': {'migration', 'refactor', 'new_model', 'blind_test'},
@@ -54,6 +54,7 @@ QUESTIONS = {
     'warehouse': ('Which warehouse will the target use? If you mean GCP, confirm whether it is BigQuery.', list(WAREHOUSES)),
     'semantic_target': ('Should we retain the semantic engine, target a named engine, or leave semantic implementation out of scope?', ['retain_existing', 'omni', 'none']),
     'deliverables': ('Which handoff outputs do you want?', sorted(DELIVERABLES)),
+    'delivery_destination': ('Which new version directory should receive the verified handoff? Supply an absolute path.', []),
     'trusted_outputs': ('Which report IDs or versioned outputs provide the trusted comparison baseline?', []),
     'retained_behavior': ('Which existing behavior must remain compatible? Supply a list.', []),
     'corrected_behavior': ('Which behavior should intentionally change? Supply a list, or [] for no requested corrections.', []),
@@ -213,6 +214,9 @@ def _answers(answers):
         else:
             _require(type(value) is str and len(value) <= 4000, key + ' must be a nonsecret string.')
             value = value.strip()
+            if key == 'delivery_destination':
+                from delivery_transfer import validate_destination
+                value = str(validate_destination(value))
             if key in ENUMS and value.lower() not in UNKNOWN:
                 _require(value in ENUMS[key], 'Unsupported ' + key + '; choose ' + ', '.join(sorted(ENUMS[key])) + '.')
         result[key] = value
@@ -247,6 +251,8 @@ def _missing(answers):
 
 
 def _selection(answers):
+    # delivery_destination is private transfer logistics. It must not invalidate
+    # source/design/approval or artifact-content bindings when it alone changes.
     target = {key: answers.get(key) for key in ('framework', 'warehouse', 'semantic_target')}
     # Preserve historical fingerprints when the feature was never selected.
     # Once supplied, all choices participate in invalidation, including null.
@@ -308,6 +314,12 @@ def _handoff_snapshot(state, review_path, artifact_root, audience, include, *, c
     if state.get('workflow', {}).get('consumer_contracts'):
         from consumer_contracts import summarize as consumer_summary
         review_evidence['consumer_contracts_sha256'] = _digest(consumer_summary(state))
+    if state.get('workflow', {}).get('upstream_context'):
+        from upstream_context import scope_bindings as upstream_bindings
+        review_evidence['upstream_context_sha256'] = _digest(upstream_bindings(state))
+    if state.get('workflow', {}).get('staging_ports'):
+        from staging_ports import scope_bindings as port_bindings
+        review_evidence['staging_ports_sha256'] = _digest(port_bindings(state))
     if state.get('workflow', {}).get('naming_governance'):
         from naming_governance import summarize as naming_summary
         from naming_artifacts import summary as naming_artifact_summary
@@ -780,6 +792,35 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
         elif action == 'record-migration-inventory':
             from migration_inventory import register
             register(state, document, run_dir)
+        elif action == 'record-upstream-context':
+            from upstream_context import register
+            register(state, document, run_dir)
+            state['workflow'].pop('upstream_context_view', None)
+            state['workflow'].pop('upstream_context_packet', None)
+        elif action in ('upstream-context', 'upstream-context-packet'):
+            import upstream_context
+            stages.fields(document, set(), {'entity_ids', 'domain_id'})
+            _require(bool(document.get('entity_ids')) or bool(document.get('domain_id')),
+                     'Select entity_ids or domain_id for upstream context.')
+            selected, domain_id = document.get('entity_ids'), document.get('domain_id')
+            if selected is not None:
+                stages.ids(selected, {e['id'] for e in stages.design(state)['entities']})
+            if domain_id is not None:
+                stages.text(domain_id)
+                from domain_workflow import _domain, _models
+                domain = _domain(state, domain_id)
+                _require(selected is None or set(selected) <= _models(state, domain),
+                         'Upstream context entity selection exceeds its chosen domain.')
+            if action == 'upstream-context':
+                state['workflow']['upstream_context_view'] = upstream_context.derive(state, selected, domain_id)
+            else:
+                state['workflow']['upstream_context_packet'] = upstream_context.packet(state, selected, domain_id)
+        elif action in ('configure-staging-ports', 'record-staging-ports'):
+            import staging_ports
+            if action == 'configure-staging-ports':
+                staging_ports.configure(state, document)
+            else:
+                staging_ports.register(state, document, run_dir)
         elif action in ('record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes'):
             import consumer_contracts
             if action == 'record-consumer-contracts':
@@ -987,6 +1028,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
     stage_commands = ('configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'naming-packet', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
+                      'record-upstream-context', 'upstream-context', 'upstream-context-packet', 'configure-staging-ports', 'record-staging-ports',
                       'independent-review-bindings', 'record-independent-review', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
                       'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'work-bindings', 'prepare-dispatch', 'review-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
@@ -1021,6 +1063,7 @@ def main(argv=None):
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
         if command in ('configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
+                       'record-upstream-context', 'upstream-context', 'upstream-context-packet', 'configure-staging-ports', 'record-staging-ports',
                        'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
                        'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'work-bindings', 'prepare-dispatch', 'review-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
                        'record-business-rules', 'review-business-rules', 'recommend-shared-models',

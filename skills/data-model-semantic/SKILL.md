@@ -42,6 +42,14 @@ and source-bound AI context as requested. Keep unresolved meanings and unsupport
 constructs explicit. Register outputs, then use separate static, native, accuracy
 and access checks. Native publication is not authorized by this stage.
 
+Build the pinned [Omni handoff](../data-model-accelerator/references/omni-handoff.md)
+from the actual candidate; it automatically includes [native topic trees](../data-model-accelerator/references/omni-topic-trees.md).
+Retain aliases, join paths and query-view dependencies, and provide explicit
+`omni_warehouse_bindings` to reviewed warehouse IDs. The portal derives the shared
+Omni Topics panel and exports. Compare topic inventory separately from successful
+extraction and binding; unsupported or unbound topics remain visible, with native
+validation pending until independently established.
+
 Preserve the coordinator's configured model and bounded context. Record
 [authoring evidence](../data-model-accelerator/references/authoring-quality.md)
 for supported literal-bearing SQL and filters; unparsed semantic structures stay

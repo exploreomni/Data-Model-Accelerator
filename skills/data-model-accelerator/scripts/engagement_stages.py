@@ -20,14 +20,21 @@ COMPONENT_FILES = {
     'workflow': ('scripts/engagement_stages.py', 'scripts/deliverable_contract.py', 'scripts/delivery_plan.py',
                  'scripts/domain_batches.py', 'scripts/domain_workflow.py', 'scripts/source_roots.py'),
     'design': ('references/modeling-and-validation.md', 'references/semantic-placement.md',
-               'references/design-reliability.md', 'scripts/design_builder.py'),
-    'implementation': ('references/analytics-engineering.md', 'scripts/plan_refactor.py'),
-    'semantic': ('scripts/omni_modeler.py', 'references/omni-modeler.md'),
+               'references/design-reliability.md', 'scripts/design_builder.py',
+               'scripts/upstream_context.py', 'scripts/staging_ports.py',
+               'references/upstream-context-and-staging-ports.md'),
+    'implementation': ('references/analytics-engineering.md', 'scripts/plan_refactor.py',
+                       'scripts/upstream_context.py', 'scripts/staging_ports.py'),
+    'semantic': ('scripts/omni_modeler.py', 'references/omni-modeler.md', 'scripts/omni_topic_trees.py',
+                 'scripts/omni_handoff.py', 'references/omni-topic-trees.md'),
     'validation': ('references/modeling-and-validation.md', 'scripts/verify_refactor_run.py'),
     'packaging': ('scripts/delivery_portal.py', 'scripts/finalize_delivery.py', 'assets/guided-delivery/portal.js',
                   'assets/guided-delivery/portal.css', 'assets/guided-delivery/portal.html',
                   'scripts/design_consistency.py', 'scripts/run_control.py', 'scripts/portable_site.py',
-                  'scripts/delivery_preflight.py', 'references/delivery-experience.md', 'scripts/governance_delivery.py'),
+                  'scripts/delivery_preflight.py', 'references/delivery-experience.md', 'scripts/governance_delivery.py',
+                  'scripts/delivery_transfer.py', 'references/delivery-transfer.md', 'references/review-surface.md',
+                  'scripts/upstream_context.py', 'scripts/staging_ports.py', 'scripts/source_visuals.py',
+                  'scripts/topic_visuals.py', 'scripts/omni_topic_trees.py', 'assets/guided-delivery/topic-panel.js'),
     'deployment': ('scripts/deployment_workflow.py', 'scripts/deployment_authority.py'),
     # Diagnostic changes refresh evidence; they do not rewrite unchanged SQL.
     'authoring_checks': ('scripts/authoring_evidence.py', 'scripts/authoring_provenance.py',
@@ -327,7 +334,8 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
     if 'migration_intent_scope' not in cache:
         from migration_intent import scope_bindings
         cache['migration_intent_scope'] = scope_bindings(state)
-    for name, module in (('inventory_scope', 'migration_inventory'), ('consumer_scope', 'consumer_contracts')):
+    for name, module in (('inventory_scope', 'migration_inventory'), ('consumer_scope', 'consumer_contracts'),
+                         ('upstream_context_scope', 'upstream_context'), ('staging_ports_scope', 'staging_ports')):
         if name not in cache:
             from importlib import import_module
             cache[name] = import_module(module).scope_bindings(state)
@@ -370,7 +378,7 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
         reconciliation = {'reconciliation': cache['reconciliation_scope'][key]} if key in cache['reconciliation_scope'] else {}
         business = {'business_rules': cache['business_rules_scope'][key]} if key in cache['business_rules_scope'] else {}
         alignment = {'legacy_alignment': cache['legacy_alignment_scope'][key]} if key in cache['legacy_alignment_scope'] else {}
-        reliability = {name: cache[name][key] for name in ('design_coverage_scope', 'design_evidence_scope', 'migration_intent_scope', 'naming_scope', 'inventory_scope', 'consumer_scope') if key in cache[name]}
+        reliability = {name: cache[name][key] for name in ('design_coverage_scope', 'design_evidence_scope', 'migration_intent_scope', 'naming_scope', 'inventory_scope', 'consumer_scope', 'upstream_context_scope', 'staging_ports_scope') if key in cache[name]}
         result[key] = hash_json({'entity': entity, 'inputs': inputs, 'relationships': edges,
                                 'decisions': decisions, 'responses': responses, 'existing': existing,
                                 **coverage, **reuse_evidence, **reconciliation, **business, **alignment, **reliability})

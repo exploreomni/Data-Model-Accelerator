@@ -14,6 +14,7 @@ invent facts or treat the draft request as approval of the model or execution.
 - Is this a **migration**, a **refactor** of the existing implementation, a **new model**, or a **blind test**? Reuse an explicit description instead of asking for the label again.
 - What business decision, report, domain or failure should the work address? Who will use the result: business reviewers, analysts, analytics engineers, platform operators, or several of these?
 - Which outputs are wanted: model documentation, connected SVG diagrams, data dictionary, implementation for the selected target, validation tests/results, optional sample/seed data, or an optional technical audit export? See [delivery-experience.md](delivery-experience.md).
+- Optionally record `delivery_destination`: the private absolute path to the exact new version directory. Reuse an existing answer; leaving it unset does not block design or candidate generation. Finalization can supply an explicit output instead. See [local build and verified transfer](delivery-transfer.md).
 
 For a blind test, record the permitted evidence boundary and prohibit solution/example contamination. For a new model without existing reports, identify proposed definitions and independently specified expectations. Neither mode inherits a migration baseline or established business approval.
 
@@ -37,6 +38,15 @@ For migration, establish these before choosing what to translate:
 - Downstream consumers, exports, schedules and semantic/report dependencies; what moves, stays, changes, or is proposed for retirement. Establish pilot and cutover scope, compatibility criteria, recovery expectations and any explicitly stated timing. A retirement proposal grants no deletion authority.
 
 Across engagement types, establish the available physical catalogue, schemas and source-value evidence; row grains and tenant/key scope; replication, corrections, deletes and history; and representative permitted/denied security contexts when access testing is in scope. Unknown facts remain unknown. Do not invent source guarantees, owners or a business baseline to fill the questionnaire.
+
+For supplied multi-root projects, retain existing adapter extracts once through
+[upstream context](upstream-context-and-staging-ports.md), then reuse the selected
+dependency closure without another source scan. Keep supporting staging, macros
+and configuration visible without making them new generation targets. If missing
+staging may need a port, reuse or establish the domain's target/source roots,
+missing-staging policy and version preference before recording candidates.
+Prefer an evidence-backed compatible target; an absent target extraction or a
+similar name cannot establish that a port is needed or a version is newer.
 
 ## Round 3: target and execution boundary
 

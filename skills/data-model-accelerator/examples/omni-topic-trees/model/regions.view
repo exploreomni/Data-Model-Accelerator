@@ -1,0 +1,7 @@
+catalog: ANALYTICS
+schema: GOLD
+table_name: REGIONS
+dimensions:
+  id:
+    sql: '"ID"'
+    primary_key: true

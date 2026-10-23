@@ -61,6 +61,11 @@ don't copy the entire repository into each domain packet. Source/catalogue
 inventory may cover the portfolio once. Design, engineering and semantic workers
 receive only the selected scope and required shared interfaces.
 
+Use [upstream context and staging-port decisions](upstream-context-and-staging-ports.md)
+to derive source evidence from retained extraction without another repository scan.
+Upstream context is not target generation scope; missing staging needs its own
+recorded candidate policy and port/reuse decision before authoring.
+
 Show the choices, including shared dependencies, then use `select-domain` with a
 host-attributed user request from the trusted conversation:
 

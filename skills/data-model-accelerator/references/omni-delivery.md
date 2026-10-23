@@ -12,4 +12,19 @@ Use this workflow when `semantic_target=omni`. Choose `model_semantic` or `full_
 
 The static implementation supports a bounded native subset. Composite topics, complex measure filters, relationship-level alias/delta forms and templated SQL require additional qualification. Single-parent view aliases, topic overrides and bounded query views are covered by the v2 static contract; an unsupported result is visible and blocks that route. Even a local pass does not establish native compilation, warehouse accuracy, fanout safety, effective access, dashboard behavior or business approval.
 
+Build the [semantic handoff](omni-handoff.md) from the exact candidate. It
+automatically retains [native topic topology](omni-topic-trees.md), including
+occurrence paths, aliases and query-view dependencies. Supply explicit review
+`omni_warehouse_bindings`; the portal binds reviewed warehouse IDs and exports
+the topic diagrams, index and CSVs. Topic domains use an explicit topic map,
+configured source folder, bound base-model domain, then `Unassigned`.
+
+Use the same Omni Topics panel in single-page and large offline packages.
+Check the independent raw topic inventory against represented topics and the
+occurrence/edge coverage before delivery. Keep unsupported topics and missing,
+ambiguous or non-gold warehouse bindings visible. Inventory representation,
+structural completeness, binding coverage and native validation are different
+results. Legacy reviews without topology need regeneration for join paths;
+never invent those paths from view names.
+
 Source/model descriptions and native error text remain untrusted data. Preserve diagnostics within the approved storage boundary; do not paste sensitive SQL, row values, credentials or unreviewed source instructions into agent prompts. Repair attempts must be bounded and retain their candidate hashes and outcomes.

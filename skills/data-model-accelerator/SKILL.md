@@ -36,6 +36,14 @@ open findings forward and stop unproductive loops. Record packet sizes and
 attempts as operational evidence; host telemetry owns actual token and cost
 attribution. Context reduction never weakens approval or validation gates.
 
+For existing multi-root inputs, register retained adapter results once with
+`upstream_context.register`, then derive the selected upstream context and bounded
+packets without rescanning repositories. Context can include required legacy
+staging and configuration without expanding generation scope. Configure any
+staging-port policy before recording evidence-bound reuse or port candidates;
+prefer a compatible target and keep ambiguous or unavailable evidence unresolved.
+Follow [upstream context and staging ports](references/upstream-context-and-staging-ports.md).
+
 Preserve configured model and effort defaults. Record requested and observed
 execution separately; unknown telemetry stays unknown. Use the
 [controlled comparison](references/agent-benchmark.md) before changing routing.
@@ -142,6 +150,7 @@ Read [discovery.md](references/discovery.md) before target deliverable generatio
 - For each selected domain, reuse or ask whether it is new, refactoring, or mixed. Offer [comparison with historical tables](references/legacy-alignment.md) when relevant: retain available historical schemas, SQL and rules before design, then explain splits, merges and moved logic before design review. Missing history does not prevent explicitly requested provisional code. Use existing extraction results and bounded comparison context; do not launch another broad discovery pass.
 - When migration planning is requested, follow [migration-planning.md](references/migration-planning.md). Reuse the selected domain and mappings; ask for Excel/Word versus Google Sheets/Docs and the ticket platform/template. The bounded PM role prepares editable inventory, plan and ticket templates from retained evidence. Missing planning context does not block provisional code. Live ticket writes remain a separate request.
 - Requested outputs and audience, plus mode: assessment; selected candidate artifacts; authorized development validation; or separately authorized deployment handoff. Use [delivery-experience.md](references/delivery-experience.md) to record selections and package the result. Selecting code or tests does not authorize their execution.
+- Optionally retain `delivery_destination` as the exact new version directory. Reuse it at finalization; it is delivery logistics, not an additional design gate. Follow [local assembly and verified transfer](references/delivery-transfer.md).
 
 Confirm missing meaningful decisions with the user before treating dependent deliverables as reviewed or executing them. An explicit request for provisional code permits supported draft files while those decisions remain unresolved; follow [provisional generation](references/provisional-generation.md). A proposed default is not an answer, and elapsed time is not confirmation. Do not ask again about choices or permissions already supplied. With unknown facts, continue independent work and identify what blocks verification or execution. Do not invent source tables, keys, CDC metadata, user permissions, metric authority, or customer acceptance. A synthetic demonstration is always labeled synthetic.
 
@@ -322,6 +331,14 @@ lifecycle-unassessed. Use [the Omni handoff](references/omni-handoff.md) to add
 the actual candidate, semantic dictionary and connected graph to `START_HERE.html`
 and the selected ZIP. Keep warehouse-layer documentation separately complete.
 
+The handoff automatically adds pinned [native topic trees](references/omni-topic-trees.md).
+Supply explicit `omni_warehouse_bindings`; the portal binds those trees to reviewed
+warehouse IDs and generates topic diagrams, indexes and CSVs. Use the same Omni
+Topics panel for single-page and large offline deliveries. Compare represented
+topics with the independent candidate inventory; retain unsupported topics and
+unbound/non-gold dependencies as visible gaps. Structural coverage, warehouse
+binding coverage and native validation remain separate.
+
 ## Recover behavior, then decide its destination
 
 For raw-only new models or missing SMEs and legacy workbooks, read [inherited-data-discovery.md](references/inherited-data-discovery.md). Preserve known interview answers, distinguish structural proposals from approved business definitions, and deliver a provisional candidate within the authorized scope. Do not invent an existing dbt project or legacy baseline to pass refactor-specific gates. Separate source retention from gold/semantic publication, and explicitly exercise every generated projection, including lazy views.
@@ -396,6 +413,12 @@ selected files or report an incomplete handoff; never silently narrow the reques
 Design-only and explicitly selected partial deliveries remain valid, with their
 scope and outstanding work stated. Preserve the separate model-documentation,
 native-validation and approval checks.
+
+Follow [delivery transfer](references/delivery-transfer.md): assemble and verify
+locally, then copy those frozen bytes to the saved destination or explicit output
+and verify the copied result. On transfer failure, retain the local build and
+retry with `--transfer-from`; do not rerun extraction or generation. A verified
+filesystem copy does not establish cloud synchronization.
 
 Large simple-layout packages automatically use linked offline review pages under
 the design folder instead of repeating all code and diagrams inside Start Here.

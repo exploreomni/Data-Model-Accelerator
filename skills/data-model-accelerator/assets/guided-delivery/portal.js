@@ -73,6 +73,7 @@ async function browserSubsetManifest(snapshot,audience,categories,entries,page=n
     authority:'File integrity only; no new content scan, authenticated review, business acceptance or deployment authority.',files:[]};
   if([1,2].includes(page?.package_layout_version))manifest.package_layout_version=page.package_layout_version;
   if(page?.checkpoint){manifest.delivery_kind='checkpoint';manifest.checkpoint=structuredClone(page.checkpoint);}
+  if(page?.topic_coverage)manifest.topic_coverage=structuredClone(page.topic_coverage);
   for(const [path,body]of entries){const record={path,sha256:await sha256(body),bytes:body.length};if([1,2].includes(page?.package_layout_version)){const registered=page.files.find(f=>f.path===path),generated=page.generated_deliverables.find(f=>f.path===path),file=registered||generated;if(file)Object.assign(record,{role:registered?'registered_artifact':'generated_deliverable',category:file.category,embedded:true});else if(path==='START_HERE.html'||path==='README.md')Object.assign(record,{role:path==='START_HERE.html'?'entrypoint':'index',embedded:false});else throw new Error('Unclassified package file: '+path);}manifest.files.push(record);}
   return manifest;
 }
@@ -148,6 +149,8 @@ function trimWorkflowDetails(snapshot,categories){
   }
   if(snapshot.audience!=='audit'&&['documentation','diagrams','dictionary'].some(key=>categories.has(key)))return;
   delete snapshot.migration_review;
+  delete snapshot.source_lineage;
+  delete snapshot.staging_ports;
   delete snapshot.domain_journey;
   delete snapshot.legacy_alignment;
   delete snapshot.migration_planning;
@@ -376,7 +379,7 @@ const migrationReview=data.audience!=='audit'&&(data.page_mode==='status'||['doc
 const domainJourney=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.domain_journey:null;
 const migrationPlanning=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','dictionary'].every(c=>data.selected_categories?.includes(c)))?data.migration_planning:null;
 const frontendContinuation=data.audience!=='audit'&&(data.page_mode==='status'||data.selected_categories?.includes('documentation'))?data.workflow?.frontend_continuation:null;
-const reviewSections=[...(frontendContinuation?['dashboard-migration']:[]),'input-files','overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[]),...(migrationPlanning?['migration-plan']:[])];
+const reviewSections=[...(frontendContinuation?['dashboard-migration']:[]),'omni-topic-trees','input-files','overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[]),...(migrationPlanning?['migration-plan']:[])];
 const sectionRoutes={architecture:'model',lineage:'model','table-dictionary':'model','implementation-code':'delivery','replacement-map':'delivery'};
 let firstNavigation=true,modelWorkspaceReady=false,pendingInspectorModel=null;
 function navigate(){
@@ -394,6 +397,7 @@ function navigate(){
   if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{if(modelWorkspaceReady&&diagramFitMode)fitDiagram();});
   if(modelWorkspaceReady&&pendingInspectorModel){const modelId=pendingInspectorModel;pendingInspectorModel=null;if(requested==='architecture')revealModel(modelId);}
 }
+addEventListener('dma-topic-table',event=>{pendingInspectorModel=event.detail.id;if(location.hash==='#architecture')navigate();else location.hash='#architecture';});
 addEventListener('hashchange',navigate);navigate();
 // Repeated clicks on the same fragment still reveal its parent and focus the anchor.
 document.querySelectorAll('[data-nav]').forEach(link=>{link.onclick=()=>{if(location.hash==='#'+link.dataset.nav)navigate();};});
@@ -652,7 +656,7 @@ function trimMetadataEvidence(next,selected){if(next.review?.metadata&&!selected
 const metadata=review.metadata;
 // BEGIN OMNI SUBSET HELPERS — unselected semantic details never survive export.
 function omniOmitted(ref){return{artifact_id:ref.artifact_id,sha256:ref.sha256,evidence_state:'not_included',status:'unknown',summary:'Omni semantic evidence is not included in this page.',next_action:'Include the registered Omni semantic review to inspect topics, metrics, dependencies and gaps.'};}
-function trimOmniEvidence(next,selected){if(next.review?.omni&&!selected.some(f=>f.id===next.review.omni.artifact_id)){next.review.omni=omniOmitted(next.review.omni);delete next.review.omni_warehouse_bindings;if(next.warehouse_diagrams)next.diagrams=next.warehouse_diagrams;delete next.warehouse_diagrams;next.pipeline_semantic_status='Semantic evidence is not included in this subset.';}}
+function trimOmniEvidence(next,selected){if(next.review?.omni&&!selected.some(f=>f.id===next.review.omni.artifact_id)){next.review.omni=omniOmitted(next.review.omni);delete next.review.omni_warehouse_bindings;delete next.review.omni_topic_domains;delete next.review.topic_join_trees;delete next.topic_diagrams;delete next.topic_exports;delete next.topic_coverage;if(next.warehouse_diagrams)next.diagrams=next.warehouse_diagrams;delete next.warehouse_diagrams;next.pipeline_semantic_status='Semantic evidence is not included in this subset.';}}
 // END OMNI SUBSET HELPERS
 const omni=review.omni;
 el('omni-nav').hidden=!omni;
@@ -1129,8 +1133,11 @@ async function finishSimpleGuides(snapshot,records,add){
 async function rebuildGenerated(snapshot){
   const models=snapshot.review?.models||[],relationships=snapshot.review?.relationships||[],chosen=new Set(snapshot.selected_categories||[]),records=[];
   if(snapshot.audience==='audit')return records;
+  for(const file of snapshot.topic_exports||[]){if(chosen.has(file.category))records.push(structuredClone(file));}
+  for(const file of snapshot.generated_deliverables||[]){if(file.id.startsWith('generated:source-lineage')&&chosen.has(file.category))records.push(structuredClone(file));}
   const encode=body=>btoa(Array.from(body,b=>String.fromCharCode(b)).join(''));
   const add=async(id,path,category,description,body,ids)=>{path=simpleGeneratedPath(path,snapshot);const bytes=new TextEncoder().encode(body);if(bytes.length>5*1024*1024)throw new Error('Generated file exceeds size limit; ask the agent to partition it.');const record={id,path,category,description,requires:[],origin:'review_projection',sha256:await sha256(bytes),size:bytes.length,base64:encode(bytes)};if(ids)record.diagram_model_ids=ids;records.push(record);};
+  if(chosen.has('dictionary')&&snapshot.staging_ports)await add('generated:staging-ports',(snapshot.package_layout_version===2?'05_Mappings/':'01_Model/')+'STAGING_PORT_REGISTER.csv','dictionary','Scoped staging reuse and port decisions; candidate, unresolved and stale status remain explicit.',snapshot.staging_ports.summary_csv);
   if(chosen.has('documentation')&&snapshot.migration_review){
     await add('generated:migration-review','01_Model/migration-review.md','documentation','Scoped business rules, shared model proposals, source coverage and parity evidence.',snapshot.migration_review.summary_markdown);
   }

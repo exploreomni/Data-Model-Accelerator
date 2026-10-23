@@ -54,6 +54,21 @@ relationships:
         dependencies=report['descriptors']['by_tenant']['outputs']['value']['physical_columns']
         self.assertIn(('peers','VALUE'),{(v['view'],v['column']) for v in dependencies})
 
+    def test_reverse_topic_population_uses_documented_relationship_direction(self):
+        self.files['peers.view']=self.files['events.view'].replace('table_name: EVENTS','table_name: PEERS')
+        self.context['bindings']['peers']=copy.deepcopy(self.context['bindings']['events'])
+        self.context['bindings']['peers']['namespace']['table']='PEERS'
+        self.files['activity.topic']='''base_view: events
+joins: {peers: null}
+relationships:
+- {join_from_view: peers, join_to_view: events, join_type: left, relationship_type: many_to_one, reversible: true, on_sql: '${id} = ${events.id}'}
+'''
+        report=self.analyze();self.assertEqual('passed',report['status'],report['findings'])
+        columns=report['descriptors']['by_tenant']['population_columns']
+        self.assertIn(('peers','ID'),{(c['view'],c['column']) for c in columns})
+        self.files['activity.topic']=self.files['activity.topic'].replace('reversible: true','reversible: false')
+        self.assertEqual('failed',self.analyze()['status'])
+
     def test_array_fields_with_one_pair_alias_are_supported(self):
         self.definition['query']['fields']=[{'events.tenant_id':'tenant'},{'events.total':'value'}]
         self.assertEqual('passed',self.analyze()['status'])

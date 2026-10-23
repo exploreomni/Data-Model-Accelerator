@@ -27,9 +27,11 @@ class FinalizeDeliveryTests(unittest.TestCase):
         self.state['answers']['deliverables'] = ['documentation', 'diagrams', 'dictionary', 'implementation']
         self.review['handoff'] = {'design_artifact_id': '0'}
         self.output = self.root / 'delivery-v1'
+        self.working_dir = self.root / 'private-work'
 
     def finalize(self, **kwargs):
-        return finalizer.finalize_delivery(self.state, self.review, self.artifacts, self.output, **kwargs)
+        return finalizer.finalize_delivery(self.state, self.review, self.artifacts, self.output,
+                                           working_dir=self.working_dir, **kwargs)
 
     def test_full_handoff_has_navigation_design_and_matching_extracted_files(self):
         before = copy.deepcopy((self.state, self.review))
@@ -55,7 +57,7 @@ class FinalizeDeliveryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Selected deliverables are missing: validation'):
             self.finalize()
         self.assertFalse(self.output.exists())
-        self.assertEqual(list(self.root.glob('.dma-handoff-*')), [])
+        self.assertEqual(list(self.working_dir.glob('.dma-handoff-*')), [])
 
     def test_empty_design_document_does_not_satisfy_selected_documentation(self):
         (self.artifacts / 'docs/model.md').write_bytes(b'')
@@ -175,7 +177,7 @@ class FinalizeDeliveryTests(unittest.TestCase):
         replacement = []
         def replaced(*args, **kwargs):
             result = original(*args, **kwargs)
-            staging = next(self.root.glob('.dma-handoff-*'))
+            staging = next(self.working_dir.glob('.dma-handoff-*'))
             staging.rename(self.root / 'retained-original-staging')
             staging.mkdir()
             (staging / 'unrelated.txt').write_text('Keep this file')

@@ -1,0 +1,27 @@
+label: Sales
+base_view: orders
+joins:
+  buyer:
+    regions:
+  seller:
+views:
+  buyer:
+    extends: [customers]
+  seller:
+    extends: [customers]
+relationships:
+  - join_from_view: orders
+    join_to_view: buyer
+    relationship_type: many_to_one
+    join_type: left
+    on_sql: ${orders.id} = ${buyer.id}
+  - join_from_view: orders
+    join_to_view: seller
+    relationship_type: many_to_one
+    join_type: left
+    on_sql: ${orders.id} = ${seller.id}
+  - join_from_view: buyer
+    join_to_view: regions
+    relationship_type: many_to_one
+    join_type: left
+    on_sql: ${buyer.id} = ${regions.id}

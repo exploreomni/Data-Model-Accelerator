@@ -118,6 +118,12 @@ def _merge(base, override):
     return result
 
 
+def relationship_reversible(relation):
+    """Documented reverse traversal; omission is not blanket reversibility."""
+    return (relation.get('reversible') is True or
+            relation.get('relationship_type') in ('one_to_one', 'many_to_many', 'one_to_many'))
+
+
 def check_model(files, context=None, *, _scoped=False):
     """Check the documented bounded subset; unknown behavior is unsupported.
 
@@ -295,7 +301,10 @@ def check_model(files, context=None, *, _scoped=False):
             else:
                 for base in obj['extends']:
                     combined = _merge(combined,resolve_view(base))
-                    if name not in bindings and base in bindings:bindings[name]=copy.deepcopy(bindings[base])
+                    if (name not in bindings and base in bindings and
+                            not any(key in obj and obj[key] != combined.get(key)
+                                    for key in ('catalog','schema','table_name','query','sql'))):
+                        bindings[name]=copy.deepcopy(bindings[base])
         combined = _merge(combined,obj); visiting.remove(name); resolved[name] = combined
         return combined
     for name in definitions: resolve_view(name)
@@ -487,7 +496,7 @@ def check_model(files, context=None, *, _scoped=False):
                 issue('relationship.view_unresolved',path,at); continue
             if (left,right) in links: issue('relationship.ambiguous',path,at)
             links.add((left,right))
-            if item.get('reversible') is True: links.add((right,left))
+            if relationship_reversible(item): links.add((right,left))
             if 'reversible' in item and type(item['reversible']) is not bool: issue('parameter.boolean_required',path,at+'/reversible')
             if item.get('join_type') not in ('left','inner','full_outer','always_left','always_inner'):
                 issue('relationship.join_type_unqualified',path,at+'/join_type',True)
@@ -525,6 +534,7 @@ def check_model(files, context=None, *, _scoped=False):
         links=global_links|relationships(topic.get('relationships',[]),path,'/relationships'); included={base}
         if 'joins' not in topic and links: issue('topic.implicit_joins_unqualified',path,'/joins',True)
         def joins(tree,parent,trail,loc):
+            if tree is None and loc!='/joins':return
             if type(tree) is not dict: issue('topic.joins_mapping_required',path,loc); return
             for child,nested in tree.items():
                 at=loc+'/'+(child if NAME.fullmatch(child) else '?')

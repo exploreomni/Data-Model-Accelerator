@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "omni_model_context",
+  "warehouse": "snowflake",
+  "environment": "synthetic-development",
+  "catalogue_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "bindings": {
+    "orders": {
+      "namespace": {
+        "database": "ANALYTICS",
+        "schema": "GOLD",
+        "table": "ORDERS"
+      },
+      "columns": {
+        "ID": "number"
+      },
+      "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "customers": {
+      "namespace": {
+        "database": "ANALYTICS",
+        "schema": "GOLD",
+        "table": "CUSTOMERS"
+      },
+      "columns": {
+        "ID": "number"
+      },
+      "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "regions": {
+      "namespace": {
+        "database": "ANALYTICS",
+        "schema": "GOLD",
+        "table": "REGIONS"
+      },
+      "columns": {
+        "ID": "number"
+      },
+      "evidence_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  },
+  "inherited_views": {},
+  "default_catalog": null,
+  "user_attributes": [],
+  "access_grants": []
+}

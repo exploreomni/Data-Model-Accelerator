@@ -6,7 +6,7 @@ import json
 import posixpath
 import re
 from html.parser import HTMLParser
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from urllib.parse import quote, urlsplit, unquote
 
 from ae_common import require
@@ -36,7 +36,7 @@ if(svg)svg.querySelectorAll('[data-model-id]').forEach(n=>{n.setAttribute('tabin
 
 INDEX_JS = ''''use strict';
 const d=JSON.parse(document.getElementById('delivery-data').textContent), byId=id=>document.getElementById(id);
-function route(){const id=location.hash.slice(1)||'model';document.querySelectorAll('[data-section]').forEach(s=>s.hidden=s.id!==id);if(!['model','code','migration','validation'].includes(id)){location.hash='model';return;}document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+id?'page':'false'));}
+function route(){const id=location.hash.slice(1)||'model';document.querySelectorAll('[data-section]').forEach(s=>s.hidden=s.id!==id);if(!['model','code','migration','validation',...(d.topic_coverage?['omni-topic-trees']:[])].includes(id)){location.hash='model';return;}document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+id?'page':'false'));}
 window.addEventListener('hashchange',route);route();
 const domain=byId('domain'),output=byId('output'),frame=byId('pipeline');
 for(const name of d.domains){const o=document.createElement('option');o.value=name;o.textContent=name;domain.appendChild(o);}
@@ -56,6 +56,9 @@ def _encoded(value):
 
 def _page(title, content, data, *, index=False):
     script = INDEX_JS if index else DETAIL_JS
+    if index and data.get('topic_coverage'):
+        assets = Path(__file__).resolve().parent.parent / 'assets/guided-delivery'
+        script += '\n' + (assets / 'portal-svg.js').read_text() + '\n' + (assets / 'topic-panel.js').read_text()
     digest = base64.b64encode(hashlib.sha256(script.encode()).digest()).decode()
     policy = "default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-" + digest + "'; frame-src 'self' file:; img-src data:; base-uri 'none'; form-action 'none'"
     return ('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -136,6 +139,17 @@ def build(data, original_files):
         target = next((m for m in models if m['id'] == diagram.get('target_model_id')), {})
         pipelines.append({'path': path, 'title': title, 'domain': target.get('domain') or diagram.get('domain') or 'Unassigned',
                           'target_model_id': diagram.get('target_model_id'), 'model_ids': diagram['model_ids']})
+    topic_pages = []
+    for diagram in data.get('topic_diagrams', []):
+        from topic_visuals import STYLE
+        raw = base64.b64decode(diagram['base64'], validate=True)
+        _validate_svg(raw, trusted_styles=(STYLE,))
+        path = ROOT + '/topics/' + _sha(diagram['id'].encode())[:24] + '.html'
+        download = (_link(path, diagram['export_path'], 'Download SVG', download='') if diagram['export_path'] in original_files else '')
+        content = '<section class="review-section"><p>' + download + '</p><div class="controls"><button data-zoom="0.2">Zoom in</button><button data-zoom="-0.2">Zoom out</button><button data-zoom="reset">Actual size</button></div><div class="diagram">' + raw.decode() + '</div></section>'
+        files[path] = _page(diagram['name'], content, {'kind': 'topic_page', 'topic_id': diagram['id'], 'model_pages': {}})
+        page_roles[path] = {'role': 'review_page', 'category': 'diagrams'}
+        topic_pages.append({**{k:v for k,v in diagram.items() if k!='base64'}, 'page_path': path, 'download_available': diagram['export_path'] in original_files})
     inventory = [{k: v for k, v in r.items() if k != 'base64'} for r in data.get('files', []) + data.get('generated_deliverables', [])]
     compact = {'schema_version': 1, 'kind': 'partitioned_review', 'engagement': data['engagement'],
                'domains': sorted({p['domain'] for p in pipelines if p['target_model_id']}
@@ -148,7 +162,12 @@ def build(data, original_files):
     compact['diagram_model_ids'] = sorted(n['id'] for n in erd_inventory(data.get('review', {}))[0])
     # Large readiness/task inventories stay in their selected evidence files.
     compact['engagement'] = {k: v for k, v in data['engagement'].items() if k in ('engagement_id', 'source_fingerprint', 'context_sha256', 'target', 'status')}
-    nav = '<nav aria-label="Review"><strong>Data model review</strong>' + ''.join('<a data-nav="' + key + '" href="#' + key + '">' + label + '</a>' for key, label in [('model', '01 Data model'), ('code', '02 Code & files'), ('migration', '03 Migration plan'), ('validation', '04 Validation')]) + '</nav>'
+    if 'topic_coverage' in data:
+        compact['topic_coverage'] = data['topic_coverage']
+        compact['topic_diagrams'] = topic_pages
+        compact['topic_review'] = {key:data['review'].get(key) for key in ('omni', 'omni_warehouse_bindings', 'omni_topic_domains')}
+        compact['topic_review']['models'] = [{k:m.get(k) for k in ('id','layer','domain')} for m in models]
+    nav = '<nav aria-label="Review"><strong>Data model review</strong>' + ''.join('<a data-nav="' + key + '" href="#' + key + '">' + label + '</a>' for key, label in [('model', '01 Data model'), ('code', '02 Code & files'), ('migration', '03 Migration plan'), ('validation', '04 Validation')] + ([('omni-topic-trees', 'Omni Topics')] if 'topic_coverage' in data else [])) + '</nav>'
     model_rows = [[_link('START_HERE.html', model_pages[m['id']], m.get('name', m['id']), data_inspect=''), html.escape(m.get('domain') or 'Unassigned'), html.escape(m.get('disposition') or 'undetermined')] for m in models]
     body = nav + '<section id="model" class="review-section" data-section><h1>Review your data model</h1><p>' + str(len(models)) + ' tables and interfaces · ' + str(len(compact['domains'])) + ' domains. Choose a domain and an output to follow its pipeline.</p><p class="muted">' + QUALIFICATION + '</p><div class="controls"><div><label for="domain">Domain</label><select id="domain"><option value="">All domains</option></select></div><div><label for="output">Gold output / pipeline</label><select id="output"></select></div></div><p id="empty" hidden>No diagram was selected for this scope. Use the table inventory below.</p><iframe id="pipeline" title="Selected output pipeline"></iframe><details class="panel"><summary>All tables — columns, keys and code</summary>' + _table(['Table', 'Domain', 'Change'], model_rows, [m.get('domain') or 'Unassigned' for m in models]) + '</details></section>'
     code_rows = []
@@ -174,6 +193,9 @@ def build(data, original_files):
             body += '<details class="panel"><summary>' + title + '</summary><pre>' + html.escape(json.dumps(data[key], indent=2)) + '</pre></details>'
     decisions = data.get('review', {}).get('decisions', [])
     body += _table(['Decision', 'Status', 'Detail'], [[html.escape(str(r.get('id', ''))), html.escape(str(r.get('status', 'unresolved'))), html.escape(str(r.get('question') or r.get('rationale') or r.get('description') or 'Review the maintained design document.'))] for r in decisions]) + '</section><dialog id="inspector"><button id="close-inspector">Close table</button><iframe id="table-frame" title="Selected table"></iframe></dialog>'
+    if 'topic_coverage' in data:
+        from topic_visuals import panel
+        body += panel()
     files['START_HERE.html'] = _page('Data model review', body, compact, index=True)
     page_roles['START_HERE.html'] = {'role': 'entrypoint'}
     return files, page_roles, compact
@@ -183,12 +205,13 @@ def check_page(page):
     from portal_checks import parse_page
     parsed, data = parse_page(page)
     kind = data.get('kind')
-    require(kind in {'partitioned_review', 'pipeline_page', 'table_page', 'code_page'}, 'Unknown partitioned page')
+    require(kind in {'partitioned_review', 'pipeline_page', 'table_page', 'code_page', 'topic_page'}, 'Unknown partitioned page')
     sections = [node for node in parsed.nodes.values() if 'data-section' in node.get('attrs', {})]
     if kind == 'partitioned_review':
-        require({node['attrs'].get('id') for node in sections} == {'model', 'code', 'migration', 'validation'}, 'Large review routes are incomplete')
+        expected_sections = {'model', 'code', 'migration', 'validation'} | ({'omni-topic-trees'} if data.get('topic_coverage') else set())
+        require({node['attrs'].get('id') for node in sections} == expected_sections, 'Large review routes are incomplete')
         require(all('review-section' in node['attrs'].get('class', '').split() for node in sections), 'Every review section needs the shared layout')
-        require({n['attrs'].get('data-nav') for n in parsed.navigation} == {'model', 'code', 'migration', 'validation'}
+        require({n['attrs'].get('data-nav') for n in parsed.navigation} == expected_sections
                 and all(n['attrs'].get('href') == '#' + n['attrs']['data-nav'] for n in parsed.navigation), 'Every review section needs its direct sidebar link')
         require(data['model_count'] == len(data['models']) and data['file_count'] == len(data['files']), 'Partitioned page counts differ')
     return {'status': 'page_contract_verified', 'presentation': 'partitioned_v1', 'kind': kind}
@@ -224,6 +247,13 @@ def verify(archive, manifest):
                     destination = posixpath.normpath(posixpath.join(posixpath.dirname(row['path']), unquote(parts.path)))
                     require(destination in by_path, 'Review link has no packaged destination: ' + destination)
     _, data = parse_page(archive.read('START_HERE.html'))
+    from omni_handoff import artifact_id, REVIEW_PATH
+    semantic_inventory = next((item for item in data['files'] if item['id'] == artifact_id(REVIEW_PATH)), None)
+    if semantic_inventory:
+        native_summary = json.loads(archive.read(semantic_inventory['path']))
+        if 'topic_trees' in native_summary:
+            require('topic_coverage' in data and 'topic_review' in data and 'topic_diagrams' in data,
+                    'Selected semantic inventory requires its topic review and coverage')
     require(data['engagement'].get('context_sha256') == manifest.get('context_sha256'), 'Package context differs')
     require(manifest.get('package_layout_version') == 2 and data['selected_categories'] == manifest.get('deliverables'), 'Package scope differs')
     if manifest.get('delivery_kind') == 'checkpoint' or manifest.get('checkpoint') or data.get('checkpoint'):
@@ -232,6 +262,17 @@ def verify(archive, manifest):
     require(data.get('completion') == manifest.get('completion'), 'Completion labels differ')
     require(all(data['engagement'].get('target', {}).get(k) == manifest['target'].get(k)
                 for k in ('framework', 'warehouse')), 'Package target differs')
+    source_context = next((row for row in data['files'] if row['id'] == 'generated:source-lineage-json'), None)
+    if source_context:
+        from source_visuals import exports as source_exports
+        csv_record = next((row for row in data['files'] if row['id'] == 'generated:source-lineage-csv'), None)
+        source_data = {'review': {'models': data['models']}, 'package_layout_version': 2,
+            'source_lineage': {'projection': json.loads(archive.read(source_context['path'])),
+                              'csv': archive.read(csv_record['path']).decode() if csv_record else ''}}
+        for expected in source_exports(source_data):
+            if expected['category'] in data['selected_categories']:
+                require(expected['path'] in by_path and archive.read(expected['path']) == base64.b64decode(expected['base64']),
+                        'Source context export differs from its scoped source inventory')
     ids = {m['id'] for m in data['models']}
     require(len(ids) == len(data['models']), 'Repeated table identity')
     for item in data['files']:
@@ -258,6 +299,35 @@ def verify(archive, manifest):
         evidence = [{'id': item['id'], 'sha256': item['sha256'], 'content': archive.read(item['path'])} for item in data['files']]
         _select_quality_evidence(checked, evidence)
         require(checked['review']['quality_checks'] == data['quality_checks'], 'Quality evidence differs from the displayed summary')
+    require(manifest.get('topic_coverage') == data.get('topic_coverage'), 'Topic manifest coverage differs')
+    if 'topic_coverage' in data:
+        import copy
+        from delivery_portal import _select_omni_evidence
+        from topic_visuals import prepare as prepare_topics
+        checked = {'engagement': data['engagement'], 'review': copy.deepcopy(data['topic_review']), 'package_layout_version': 2}
+        # The diagram inventory is checked against separately selected semantic bytes.
+        evidence = [{'id': item['id'], 'sha256': item['sha256'], 'content': archive.read(item['path'])} for item in data['files']]
+        _select_omni_evidence(checked, evidence)
+        require(checked['review']['omni'] == data['topic_review']['omni'], 'Topic semantic evidence differs')
+        if canonical:
+            require(checked['review']['models'] == [{k:m.get(k) for k in ('id','layer','domain')} for m in source['models']],
+                    'Topic binding models differ from the canonical model inventory')
+        prepare_topics(checked)
+        require(checked['topic_coverage'] == data['topic_coverage'], 'Topic coverage differs from selected evidence')
+        expected = {row['id']:row for row in checked['topic_diagrams']}
+        require(len(data['topic_diagrams']) == len(expected) and {row['id'] for row in data['topic_diagrams']} == set(expected),
+                'Topic diagram inventory differs')
+        for row in data['topic_diagrams']:
+            wanted = expected[row['id']]
+            require({k:v for k,v in row.items() if k not in ('page_path','download_available')} == {k:v for k,v in wanted.items() if k!='base64'},
+                    'Topic page metadata differs')
+            body = archive.read(row['page_path'])
+            match = re.search(rb'(<svg\b.*?</svg>)', body, re.S)
+            require(match is not None and match[1] == base64.b64decode(wanted['base64']), 'Topic diagram differs from declared paths')
+        for record in checked['topic_exports']:
+            if record['category'] in data['selected_categories']:
+                require(record['path'] in by_path and archive.read(record['path']) == base64.b64decode(record['base64']),
+                        'Topic export missing or differs from the diagram inventory')
     covered = set()
     for item in data['pipelines']:
         body = archive.read(item['path'])
@@ -303,6 +373,8 @@ def package(state, review, selected, data, files, output, checkpoint=False):
         'source_fingerprint': portal.source_fingerprint(state), 'context_sha256': portal.context_fingerprint(state),
         'target': review['target'], 'audience': data['audience'], 'deliverables': data['selected_categories'],
         'completion': data['completion'], 'authority': QUALIFICATION, 'files': sorted(rows, key=lambda r: r['path'])}
+    if 'topic_coverage' in data:
+        manifest['topic_coverage'] = data['topic_coverage']
     if checkpoint:
         manifest.update(delivery_kind='checkpoint', checkpoint=data['checkpoint'])
     files['DELIVERY_MANIFEST.json'] = (json.dumps(manifest, indent=2, sort_keys=True) + '\n').encode()

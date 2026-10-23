@@ -129,6 +129,13 @@ def scope(state, domain=None, doc=None):
     return set(stages.closure(graph, sorted(primary))) if primary else set()
 
 
+def source_context(state, domain_id=None, selected=None):
+    """Derived evidence context; never a target-design or generation scope."""
+    from upstream_context import derive
+    domain = _domain(state, domain_id)
+    return derive(state, selected=selected, domain_id=domain['id'])
+
+
 def require_scope(state, selected, stage='design'):
     if not ledger(state) or stage == 'packaging':
         return
@@ -222,7 +229,10 @@ def guard_dispatch(state, request):
         require_scope(state, request['scope_ids'])
     elif request['role'] == 'warehouse_architect' and request['scope_ids'] == [domain['id']]:
         require(not domain_batches.active(state), 'A selected batch requires exact entity scope, not a whole-domain architect dispatch')
-        require(set(request['source_paths']) <= set(domain['source_paths']),
+        allowed_paths = set(domain['source_paths'])
+        if state['workflow'].get('upstream_context'):
+            allowed_paths.update(p['reference'] for p in source_context(state, domain['id'])['files'])
+        require(set(request['source_paths']) <= allowed_paths,
                 'Domain design packet must use the selected discovery source paths')
     else:
         require_scope(state, request['scope_ids'])
@@ -352,6 +362,13 @@ def public_summary(state, allowed_models=None):
             'model_ids': sorted(primary), 'asset_count': len(domain['asset_ids']), 'status': status, **statuses,
             'scope_preview': domain_batches.scope_preview(state, domain),
             'completion_kind': receipt['completion_kind'] if completed else None, 'next_action': action})
+        if state['workflow'].get('upstream_context'):
+            from upstream_context import summarize
+            rows[-1]['upstream_context'] = summarize(state, sorted(primary), domain['id'])
+        if state['workflow'].get('staging_ports'):
+            from staging_ports import summarize
+            port_summary = summarize(state, sorted(primary))
+            rows[-1]['staging_ports'] = {k: port_summary[k] for k in ('status', 'counts', 'qualification')}
     active = value['active_domain_id'] if any(r['id'] == value['active_domain_id'] for r in rows) else None
     all_done = bool(rows) and all(r['status'] == 'completed' for r in rows)
     next_action = (next(r['next_action'] for r in rows if r['id'] == active) if active else

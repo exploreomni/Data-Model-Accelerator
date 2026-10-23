@@ -109,6 +109,14 @@ python scripts/finalize_delivery.py --state /absolute/engagement/state.json \
   --output /absolute/delivery-v1 --audience engineer --javascript
 ```
 
+Omit `--output` to reuse the private `delivery_destination` recorded at intake;
+an explicit output overrides it for this invocation. This path names the exact
+new version directory, not its parent. The finalizer builds and verifies locally,
+then copies and verifies destination bytes. A transfer failure retains the local
+build for `--transfer-from` retry without regeneration. See
+[local build and verified copy](delivery-transfer.md) for private-cache selection,
+recovery, result fields and the separate cloud-sync boundary.
+
 Omit `--audience` to reuse the saved audience (otherwise engineer). Omit `--include`
 to honor saved deliverables. `--layout simple` is the default; `--layout classic`
 retains older exported paths. Use an explicit subset only when the user requested

@@ -35,6 +35,13 @@ bindings, then use the shared [review surface](../data-model-accelerator/referen
 and delivery helpers. Include the guided HTML, scoped ERD/dictionary/layer docs,
 selected artifact files and transparent pending decisions/evidence.
 
+For selected Omni evidence, use the shared [topic-tree workflow](../data-model-accelerator/references/omni-topic-trees.md).
+The handoff supplies pinned topology; the portal binds explicit warehouse IDs and
+exports diagrams, indexes and CSVs through the same Omni Topics panel in small
+and large offline deliveries. Preserve the independent expected topic inventory
+and show structural, binding and native status separately. Do not omit unsupported
+or unbound topics to make coverage appear complete.
+
 For existing repositories, package a focused patch with pinned source and
 runtime/dependency requirements; include a complete reference snapshot only when
 requested and permitted. Preserve required runtime files and tests. Disclose
@@ -57,9 +64,17 @@ Finish through the shared [finalizer](../data-model-accelerator/references/revie
 Require its successful result before describing the selected handoff as ready.
 `record-handoff` only registers prepared files. Finalization verifies the actual
 ZIP and extracted folder, root `START_HERE.html`, and files for each selected
-category. Design content is in `01_Model/`, not a second `design/` directory.
+category. Default simple-layout design content is in `03_Design_Documents/`;
+the explicitly selected classic layout retains `01_Model/`.
 Repair omissions without rerunning source extraction or unrelated specialists.
 Never silently deselect missing deliverables to pass this check.
+
+Reuse an optional saved `delivery_destination`, or provide the exact new output
+version directory. Follow [delivery transfer](../data-model-accelerator/references/delivery-transfer.md):
+assemble and verify locally before copying and verifying the destination. Retain
+the local build if copying fails and retry `--transfer-from` without regenerating.
+Keep local verification, successful destination copy and unverified cloud sync
+distinct; never overwrite an existing delivery version.
 
 Use concise chat milestones about outcome or learning, next action and material
 blockers. Persist decisions in canonical records. Finish with one primary link

@@ -8,7 +8,8 @@ import re
 from pathlib import PurePosixPath
 
 from omni_contract import (_load, _merge, _bounded, canonical_hash, yaml, sqlglot, exp,
-                           NAME, FIELD, REF, DIALECTS, NAMESPACE, DIM, MEASURE, TIMEFRAMES, _sha, MAX_FILES, MAX_BYTES, MAX_DEPTH)
+                           NAME, FIELD, REF, DIALECTS, NAMESPACE, DIM, MEASURE, TIMEFRAMES, _sha, MAX_FILES, MAX_BYTES, MAX_DEPTH,
+                           relationship_reversible)
 
 VERSION = 'omni-derived-lineage-v1-2026-10-05'
 
@@ -110,8 +111,18 @@ def analyze_query_views(files,context,topic=None):
             _need(type(parents) is list and len(parents)<=1 and all(type(p) is str for p in parents),'query.view_inheritance')
             origin=name if name in bindings else None
             if parents:
-                base=resolve(parents[0],trail+(name,));origin=origin or origins.get(parents[0])
-            resolved[name]=_merge(base,obj);origins[name]=origin;return resolved[name]
+                base=resolve(parents[0],trail+(name,))
+                if not any(key in obj and obj[key] != base.get(key) for key in ('catalog','schema','table_name','query','sql')):
+                    origin=origin or origins.get(parents[0])
+            resolved[name]=_merge(base,obj)
+            if origin is not None:
+                namespace=bindings[origin]['namespace'];effective=resolved[name]
+                if ('query' in effective or 'sql' in effective or
+                        any(effective.get(key) is not None and effective[key] != value for key,value in (
+                            ('catalog',namespace.get('database',namespace.get('catalog',namespace.get('project')))),
+                            ('schema',namespace.get('schema',namespace.get('dataset'))),('table_name',namespace['table'])))):
+                    origin=None
+            origins[name]=origin;return resolved[name]
         for name in definitions:resolve(name)
         result['effective_views']=copy.deepcopy(resolved);result['binding_origins']=copy.deepcopy(origins)
         descriptors={};active=set();field_active=set();field_cache={}
@@ -233,18 +244,21 @@ def analyze_query_views(files,context,topic=None):
             _need(not scoped.get('views') or topic==query_topic,'query.topic_scope_required')
             relations=global_relations+scoped.get('relationships',[])
             _need(type(relations) is list,'query.relationships')
-            def walk(tree,parent):
+            def walk(tree,parent,root=False):
+                if tree is None and not root:return
                 _need(type(tree) is dict,'query.joins_shape')
                 for child,nested in tree.items():
                     _need(child in resolved and child not in reachable,'query.join_ambiguous')
-                    matches=[r for r in relations if type(r) is dict and r.get('join_from_view')==parent and r.get('join_to_view')==child]
+                    matches=[r for r in relations if type(r) is dict and
+                             ((r.get('join_from_view')==parent and r.get('join_to_view')==child) or
+                              (r.get('join_from_view')==child and r.get('join_to_view')==parent and relationship_reversible(r)))]
                     _need(len(matches)==1,'query.relationship_unresolved')
                     reachable.add(child)
                     sql=matches[0].get('on_sql');_need(type(sql) is str,'query.relationship_sql')
                     for reference in REF.findall(sql):
-                        dep=field(parent,reference);refs.extend(dep['semantic_fields']);columns.extend(dep['physical_columns'])
+                        dep=field(matches[0]['join_from_view'],reference);refs.extend(dep['semantic_fields']);columns.extend(dep['physical_columns'])
                     walk(nested,child)
-            walk(scoped.get('joins',{}),base)
+            walk(scoped.get('joins',{}),base,root=True)
             for key in ('default_filters','always_where_filters'):
                 r,c=filter_refs(scoped.get(key,{}),base);refs+=r;columns+=c
             for access in scoped.get('access_filters',[]):

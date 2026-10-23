@@ -403,6 +403,7 @@ def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
     included=bool(matches)
     if not included:
         data.get('review', {}).pop('omni_warehouse_bindings', None)
+        data.get('review', {}).pop('omni_topic_domains', None)
     # Agent packaging verifies the bound private inputs even for a reduced
     # export. Reclassifying an input must not disclose it when the catalog is
     # omitted from the selected categories.
@@ -467,6 +468,9 @@ def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
         'next_actions':copy_quality(summary['next_actions']),
         'qualification':'Candidate review only. This page does not authenticate native execution, access, AI behavior, business sign-off or deployment.',
         'native_status':'pending','business_status':'pending','deployment_status':'not_authorized','acceptance_ready':False}
+    if 'topic_trees' in summary:
+        data['review']['omni']['topic_trees'] = copy_quality(summary['topic_trees'])
+        data['review']['omni']['topic_tree_pins'] = {key: pins[key] for key in ('model_candidate_sha256', 'model_context_sha256')}
 
 
 def _select_metadata_evidence(data, selected):
@@ -676,6 +680,15 @@ def validate_review(state, review):
         require(isinstance(binding['model_ids'], list) and binding['model_ids']
                 and all(isinstance(i, str) and i in ids for i in binding['model_ids'])
                 and len(set(binding['model_ids'])) == len(binding['model_ids']), 'Omni pipeline model binding is outside the review')
+    if 'topic_join_trees' in review:
+        from omni_topic_trees import topic_tree_coverage
+        require(topic_tree_coverage(review['topic_join_trees'])['status'] == 'complete', 'Topic review inventory is inconsistent')
+    if 'omni_topic_domains' in review:
+        mapping = review['omni_topic_domains']
+        require(isinstance(mapping, dict) and set(mapping) <= {'topics', 'source_folders'}
+                and all(isinstance(values, dict) and all(isinstance(k, str) and isinstance(v, str)
+                    and k and v and len(k) <= 2000 and len(v) <= 200 for k, v in values.items())
+                    for values in mapping.values()), 'Invalid Omni topic domain mapping')
     _validate_handoff(review)
     return review
 
@@ -753,7 +766,7 @@ def select_artifacts(review, root, audience, include):
     return selected
 
 
-def _validate_svg(content):
+def _validate_svg(content, *, trusted_styles=()):
     # Only generated inert diagrams; no scripts, foreign HTML, events, links or remote resources.
     import xml.etree.ElementTree as ET
     decoded=content.decode('utf-8')
@@ -765,9 +778,13 @@ def _validate_svg(content):
     except ET.ParseError as exc:
         raise ValueError('Malformed SVG XML: ' + str(exc)) from exc
     safe = {'svg', 'g', 'rect', 'path', 'line', 'polyline', 'polygon', 'circle', 'ellipse', 'text', 'tspan', 'title', 'desc', 'defs', 'marker'}
+    if trusted_styles:
+        safe.add('style')
     require(root.tag.split('}')[-1] == 'svg', 'Expected an SVG diagram')
     for node in root.iter():
         require(node.tag.split('}')[-1] in safe, 'Active or unsupported SVG element')
+        if node.tag.split('}')[-1] == 'style':
+            require(not list(node) and node.text in trusted_styles, 'Unrecognized generated SVG stylesheet')
         for key, value in node.attrib.items():
             require(not key.startswith('{'), 'Namespaced SVG attributes are not allowed')
             key = key.split('}')[-1].lower()
@@ -1144,6 +1161,7 @@ def _presentation(state, review=None, audience='engineer'):
             data['review']['metadata'] = dict(review['metadata'])
         if 'omni' in review:data['review']['omni']=dict(review['omni'])
         if review.get('omni_warehouse_bindings'):data['review']['omni_warehouse_bindings']=copy_quality(review['omni_warehouse_bindings'])
+        if review.get('omni_topic_domains'):data['review']['omni_topic_domains']=copy_quality(review['omni_topic_domains'])
         if 'handoff' in review:data['review']['handoff']=dict(review['handoff'])
         if audience == 'reviewer':
             data['review']['validation']=[{k:v.get(k) for k in ('id','label','scope','status','details','evidence_id')} for v in review.get('validation',[])]
@@ -1182,6 +1200,13 @@ def _presentation(state, review=None, audience='engineer'):
                                        if set(row['model_ids']) <= allowed_models]
         workflow['artifact_checks'] = [row for row in workflow.get('artifact_checks', [])
                                       if set(row['model_ids']) <= allowed_models]
+        if state['workflow'].get('staging_ports'):
+            from staging_ports import summarize as port_summary, csv_export as port_csv
+            data['staging_ports'] = port_summary(state, allowed_models)
+            data['staging_ports']['summary_csv'] = port_csv(state, allowed_models)
+        if state['workflow'].get('upstream_context'):
+            from source_visuals import prepare as prepare_source_visuals
+            prepare_source_visuals(state, data)
         if review and state['workflow'].get('design'):
             from design_consistency import compare_review
             workflow['design_checks'] = _design_check_summary(compare_review(state['workflow']['design'], review))
@@ -1625,6 +1650,8 @@ def _trim_workflow_details(data):
     data.pop('domain_journey', None)
     data.pop('legacy_alignment', None)
     data.pop('migration_planning', None)
+    data.pop('source_lineage', None)
+    data.pop('staging_ports', None)
     for key in ('assets', 'models', 'relationships', 'domain_proposals', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
@@ -1634,11 +1661,15 @@ def _trim_workflow_details(data):
 
 
 def _html(data):
-    template=(ASSETS/'portal.html').read_text(encoding='utf-8')
+    from topic_visuals import panel
+    template=(ASSETS/'portal.html').read_text(encoding='utf-8').replace('<!--__TOPIC_PANEL__-->', panel())
+    if not data.get('topic_coverage'):
+        template = template.replace('<script>/*__TOPIC_PANEL_JS__*/</script>', '')
     encoded=json.dumps(data,ensure_ascii=True,allow_nan=False,separators=(',', ':') if data.get('package_layout_version') == 2 else None).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
     rendered = (template.replace('/*__PORTAL_CSS__*/',(ASSETS/'portal.css').read_text(encoding='utf-8'))
                 .replace('/*__PORTAL_SVG_JS__*/',(ASSETS/'portal-svg.js').read_text(encoding='utf-8'))
                 .replace('/*__PORTAL_JS__*/',(ASSETS/'portal.js').read_text(encoding='utf-8'))
+                .replace('/*__TOPIC_PANEL_JS__*/',(ASSETS/'topic-panel.js').read_text(encoding='utf-8'))
                 .replace('/*__PORTAL_DATA__*/',encoded))
     from portal_checks import validate_page
     validate_page(rendered, expected_data=data)
@@ -1763,6 +1794,8 @@ def render_engagement(state, output_path, review=None):
     _select_quality_evidence(data, [])
     _select_metadata_evidence(data, [])
     _select_omni_evidence(data, [])
+    from topic_visuals import prepare as prepare_topics
+    prepare_topics(data)
     if data['review'].get('models'):
         _review_diagrams(data, pipelines=bool(state.get('workflow', {}).get('design')))
     _set_diagram_coverage(data)
@@ -1816,6 +1849,12 @@ def generated_deliverables(data):
     if data.get('audience') == 'audit':
         return []
     selected, records = set(data.get('selected_categories', [])), []
+    from topic_visuals import verify as verify_topics
+    if 'topic_coverage' in data or review.get('omni', {}).get('topic_trees') is not None:
+        verify_topics(data)
+    records.extend(copy_quality(row) for row in data.get('topic_exports', []) if row['category'] in selected)
+    from source_visuals import exports as source_exports
+    records.extend(row for row in source_exports(data) if row['category'] in selected)
     def add(identifier, path, category, description, body, model_ids=None):
         from package_layout import generated_path
         path = generated_path(path, data.get('package_layout_version', 1))
@@ -1826,6 +1865,11 @@ def generated_deliverables(data):
         if model_ids is not None:
             record['diagram_model_ids'] = list(model_ids)
         records.append(record)
+    if 'dictionary' in selected and data.get('staging_ports'):
+        path = ('05_Mappings/' if data.get('package_layout_version') == 2 else '01_Model/') + 'STAGING_PORT_REGISTER.csv'
+        add('generated:staging-ports', path, 'dictionary',
+            'Scoped staging reuse and port decisions; candidate, unresolved and stale status remain explicit.',
+            data['staging_ports']['summary_csv'].encode())
     if 'documentation' in selected and data.get('migration_review'):
         add('generated:migration-review', '01_Model/migration-review.md', 'documentation',
             'Scoped business rules, shared model proposals, source coverage and parity evidence.',
@@ -1937,7 +1981,15 @@ def validate_generated_deliverables(data):
                 and _sha(body) == record.get('sha256'), 'Generated deliverable bytes differ: ' + path)
         expected_body = base64.b64decode(wanted['base64'])
         if path.endswith('.svg'):
-            svg_model_coverage(body, record['diagram_model_ids'])
+            if identifier.startswith('generated:source-lineage:'):
+                _validate_svg(body)
+                require(body == expected_body, 'Source context SVG differs from its scoped evidence')
+            elif identifier.startswith('generated:topic:'):
+                from topic_visuals import STYLE
+                _validate_svg(body, trusted_styles=(STYLE,))
+                require(body == expected_body, 'Topic SVG differs from its selected join tree')
+            else:
+                svg_model_coverage(body, record['diagram_model_ids'])
         elif path.endswith('.json'):
             require(json.loads(body) == json.loads(expected_body), 'Editable model source differs from selected review')
         elif path.endswith('.csv'):
@@ -2068,6 +2120,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         data.get('workflow', {}).pop('artifact_checks', None)
     if 'diagrams' in include and data['review'].get('models'):
         _review_diagrams(data, pipelines=data.get('package_layout_version') == 2)
+    from topic_visuals import prepare as prepare_topics
+    prepare_topics(data)
     files={a['destination']:a['content'] for a in selected}
     for artifact in selected:
         data['files'].append({'id':artifact['id'],'path':artifact['destination'],'category':artifact['category'],
@@ -2113,6 +2167,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
               'target':review['target'],'audience':audience,
               'deliverables':sorted(include),'authority':'File integrity only; not execution, business approval or deployment.',
               'files':package_file_inventory(data, files)}
+    if 'topic_coverage' in data:
+        manifest['topic_coverage'] = copy_quality(data['topic_coverage'])
     if checkpoint:
         manifest.update(delivery_kind='checkpoint', checkpoint=data['checkpoint'])
     files['DELIVERY_MANIFEST.json']=json.dumps(manifest,indent=2,sort_keys=True).encode()+b'\n'
@@ -2160,6 +2216,15 @@ def verify_delivery(path):
                               archive.read('START_HERE.html').decode('utf-8'), re.S)
             require(match is not None, 'Start Here context is missing')
             embedded = json.loads(match.group(1))
+            from omni_handoff import artifact_id, REVIEW_PATH
+            semantic_inventory = next((item for item in embedded.get('files', []) if item['id'] == artifact_id(REVIEW_PATH)), None)
+            if semantic_inventory:
+                native_summary = json.loads(archive.read(semantic_inventory['path']))
+                if 'topic_trees' in native_summary:
+                    require('topic_coverage' in embedded and embedded.get('review', {}).get('omni', {}).get('evidence_state') == 'selected',
+                            'Selected semantic inventory requires topic review and coverage')
+            require(manifest.get('topic_coverage') == embedded.get('topic_coverage'),
+                    'Topic coverage differs between the manifest and review page')
             require(embedded.get('engagement', {}).get('context_sha256') == context,
                     'Package workflow context differs from its Start Here page')
             if 'checkpoint' in manifest or 'checkpoint' in embedded:

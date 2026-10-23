@@ -1,0 +1,42 @@
+{
+  "models": [
+    {
+      "id": "gold.orders",
+      "name": "orders",
+      "layer": "gold",
+      "domain": "Commerce"
+    },
+    {
+      "id": "gold.customers",
+      "name": "customers",
+      "layer": "gold",
+      "domain": "Commerce"
+    },
+    {
+      "id": "gold.regions",
+      "name": "regions",
+      "layer": "gold",
+      "domain": "Shared"
+    }
+  ],
+  "omni_warehouse_bindings": [
+    {
+      "view_id": "orders",
+      "model_ids": [
+        "gold.orders"
+      ]
+    },
+    {
+      "view_id": "customers",
+      "model_ids": [
+        "gold.customers"
+      ]
+    },
+    {
+      "view_id": "regions",
+      "model_ids": [
+        "gold.regions"
+      ]
+    }
+  ]
+}

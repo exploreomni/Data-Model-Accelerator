@@ -11,6 +11,7 @@ import shutil
 
 from omni_contract import _bounded, _load, canonical_hash, check_model, NAME
 from omni_query_views import analyze_query_views
+from omni_topic_trees import build_topic_trees
 
 VERSION='omni-handoff-v1'
 REVIEW_PATH='omni/SEMANTIC_REVIEW.json'
@@ -159,6 +160,7 @@ def build_handoff(state,model_files,model_context,decisions=None):
     summary={'schema_version':1,'kind':'omni_semantic_handoff','version':VERSION,'pins':pins,
              'inputs':{'model_files':native_records,'model_context':{'artifact_id':artifact_id(CONTEXT_PATH),'sha256':_sha(context_bytes)}},
              'dictionary':dictionary,'metrics':metrics,'topics':topics,'views':view_catalog,
+             'topic_trees':build_topic_trees(model_files,model_context),
              'dependencies':[{'from':a,'to':b,'kind':kind,'topic':scope} for a,b,kind,scope in sorted(dependencies,key=lambda v:tuple(x or '' for x in v))],
              'query_views':{name:{'kind':d['kind'],'outputs':list(d['outputs']),
                  'population_fields':d['population_fields'],'complete_population':d['complete_population'],
@@ -202,6 +204,11 @@ def verify_handoff(summary,state,model_files,model_context):
     """Pure rebuild verifies exact input/projection integrity, not authority."""
     _need(type(summary) is dict,'handoff.summary')
     rebuilt=build_handoff(state,model_files,model_context,summary.get('decisions'))['summary']
+    if 'topic_trees' not in summary:
+        # Historical pinned reviews remain verifiable; consumers disclose that
+        # native join paths require a regenerated semantic review.
+        rebuilt.pop('topic_trees',None);rebuilt.pop('handoff_sha256',None)
+        rebuilt['handoff_sha256']=canonical_hash(rebuilt)
     _need(summary==rebuilt,'handoff.stale_or_changed');return summary
 
 

@@ -47,6 +47,23 @@ class OmniHandoffTests(unittest.TestCase):
         self.assertEqual('pending',self.result['summary']['native_status'])
         self.assertFalse(self.result['summary']['acceptance_ready'])
 
+    def test_topic_trees_are_pinned_and_legacy_reviews_remain_verifiable(self):
+        summary=copy.deepcopy(self.result['summary'])
+        trees=summary['topic_trees']
+        self.assertEqual(['activity'],trees['expected_topic_ids'])
+        self.assertEqual(summary['pins']['model_candidate_sha256'],trees['pins']['model_candidate_sha256'])
+        self.assertEqual(summary['pins']['model_context_sha256'],trees['pins']['model_context_sha256'])
+        summary.pop('topic_trees');summary.pop('handoff_sha256')
+        summary['handoff_sha256']=omni.canonical_hash(summary)
+        self.assertEqual(summary,handoff.verify_handoff(summary,self.state,self.files,self.context))
+
+    def test_rehashed_forged_topology_does_not_match_native_candidate(self):
+        summary=copy.deepcopy(self.result['summary'])
+        summary['topic_trees']['topics'][0]['nodes']=[]
+        summary.pop('handoff_sha256');summary['handoff_sha256']=omni.canonical_hash(summary)
+        with self.assertRaisesRegex(ValueError,'stale_or_changed'):
+            handoff.verify_handoff(summary,self.state,self.files,self.context)
+
     def test_missing_catalogue_can_package_an_unverified_semantic_candidate(self):
         for missing in ('null', 'absent'):
             with self.subTest(catalogue=missing):
