@@ -114,7 +114,7 @@ def _json(body):
 
 
 def _context(receipt, packet, request):
-    _fields(receipt, CONTEXT_FIELDS, {'requested_role', 'specialist_profile'})
+    _fields(receipt, CONTEXT_FIELDS, {'requested_role', 'specialist_profile', 'assignment_sha256'})
     require(type(receipt['schema_version']) is int and receipt['schema_version'] == 1
             and receipt['kind'] == 'agent_context_receipt', 'Unsupported source context receipt')
     require(receipt['task_id'] == request['task_id'], 'Context task identity differs')
@@ -142,9 +142,16 @@ def _context(receipt, packet, request):
             'Unsupported specialist packet format')
     data = _json(text.split(TASK_MARKER, 1)[1])
     _fields(data, {'task_id', 'role', 'bindings', 'mode', 'brief', 'evidence', 'file_coverage'},
-            {'requested_role', 'specialist_profile', 'delta', 'migration_intents', 'design_evidence'})
+            {'requested_role', 'specialist_profile', 'delta', 'migration_intents', 'design_evidence', 'naming_contract', 'assignment'})
     require(all(data[key] == receipt[key] for key in ('task_id', 'role', 'bindings', 'mode', 'file_coverage')),
             'Context packet identity or bindings differ')
+    if 'assignment' in data or 'assignment_sha256' in receipt:
+        from task_routing import bind_assignment
+        assignment = bind_assignment(data.get('assignment'), task_id=data['task_id'], role=data['role'],
+                                     scope_ids=data['brief']['scope_ids'], bindings=data['bindings'])
+        require(hash_json(assignment) == receipt.get('assignment_sha256'), 'Context assignment differs')
+    from naming_context import validate_packet
+    validate_packet(data)
     if 'migration_intents' in data or any(k.startswith('migration_intent.') for k in data['bindings']):
         from migration_context import packet_evidence
         request_view = {'bindings': data['bindings'], 'migration_intents': data.get('migration_intents', []),

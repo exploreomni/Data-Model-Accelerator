@@ -195,6 +195,12 @@ checkpointing. Start or resume the guided engagement before specialist work;
 record the installed content identity, preserve source-adapter contracts, and
 derive shared review artifacts from the canonical design. Reserve work with
 `claim-work`, invoke only the returned dispatch, and checkpoint interruptions.
+For new tracked work, use [scoped task routing](references/task-routing.md): bind the
+assignment to the current task and actual context packet, preflight before host
+invocation, and collect applicable reviews into one bounded correction. Reuse
+configured model/effort and existing workers; review disciplines are not a fixed
+agent count. Legacy records remain readable and explicitly untracked. Requested
+provisional generation and existing human/native release checks stay available.
 During consolidation, use [review-evidence.md](references/review-evidence.md)
 to register every retained source occurrence and existing-model ownership.
 Register separate domain proposals with `reconcile-design` before deriving

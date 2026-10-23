@@ -481,6 +481,17 @@ el('page-title').textContent=review.title||'Your modeling engagement';
 el('subtitle').textContent=review.description||'A guided path from the current repository to a model you can inspect, test and adopt.';
 if(data.checkpoint){el('checkpoint-note').hidden=false;el('checkpoint-note').textContent='Checkpoint — work is incomplete. Missing selected categories: '+(data.checkpoint.missing_categories.join(', ')||'none; remaining tasks and validation still require review')+'. Resume the same engagement to continue.';}
 const runControl=eng.run_control;
+if(el('task-progress')){
+  const progress=runControl?.progress;
+  el('task-progress-note').textContent=progress?`${progress.qualification} Snapshot: ${progress.snapshot_at}`:'Detailed task tracking was not recorded for this older package.';
+  table('task-progress',[
+    ['Domain / task',row=>`${row.domain_id} · ${row.task_id}`],
+    ['Stage / specialist',row=>`${pretty(row.stage)} · ${pretty(row.role)}`],
+    ['Progress',row=>`${pretty(row.status)} · ${pretty(row.authoring_mode)}`],
+    ['Files / questions',row=>`${row.output_count} recorded · ${row.unknown_count===null?'untracked':row.unknown_count} open`],
+    ['Review',row=>pretty(row.review_status)],['Next action',row=>row.next_action]
+  ],progress?.tasks||[]);
+}
 el('run-progress').textContent=runControl?`${pretty(runControl.status)} coordination · ${runControl.attempts} attempts · ${runControl.counts.active} active · ${runControl.counts.interrupted} interrupted · ${runControl.reused} reused. Runtime ${runControl.runtime_sha256?.slice(0,12)||'not recorded'}. These counts do not establish host execution or cost.`:'Execution accounting was not recorded for this older package.';
 if(runControl?.dispatch_counts){const c=runControl.dispatch_counts;el('run-progress').textContent+=` Reported execution: ${c.specialist_reported} specialists, ${c.inline_reported} inline passes, ${c.unobserved} unobserved. Host reports do not prove isolation or model identity.`;}
 if(runControl?.runtime_identity){const r=runControl.runtime_identity;el('run-progress').textContent+=` Installed revision: ${r.installed_revision?.slice(0,12)||'unavailable (portable install)'}. Freshness: ${pretty(r.freshness?.status||'unknown')}. ${(r.advisories||[]).join(' ')}`;}

@@ -925,6 +925,18 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
                 stages.approve_design(state, entities, policy, attestation)
         elif action == 'assess-effort':
             stages.assess_development(state, document)
+        elif action == 'prepare-dispatch':
+            from run_control import prepare_dispatch
+            state['last_work_action'] = prepare_dispatch(state, document)
+        elif action == 'work-bindings':
+            from run_control import assignment_bindings
+            state['last_work_action'] = assignment_bindings(state, document)
+        elif action == 'review-work':
+            from run_control import review_work
+            root = _path(artifact_root)
+            _require(root != run_dir and root not in run_dir.parents and run_dir not in root.parents,
+                     'Review files must be separate from engagement state')
+            state['last_work_action'] = review_work(state, document, root)
         elif action in ('claim-work', 'configure-work'):
             import run_control
             state['last_work_action'] = (run_control.claim_work(state, document) if action == 'claim-work'
@@ -977,7 +989,7 @@ def main(argv=None):
     stage_commands = ('configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'naming-packet', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
                       'independent-review-bindings', 'record-independent-review', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
-                      'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
+                      'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'work-bindings', 'prepare-dispatch', 'review-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
                       'record-business-rules', 'review-business-rules', 'recommend-shared-models',
                       'extract-periscope', 'record-migration-validation', 'migration-bindings',
                       'configure-legacy-comparison', 'record-legacy-baseline',
@@ -1010,7 +1022,7 @@ def main(argv=None):
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
         if command in ('configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
                        'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
-                       'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
+                       'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'work-bindings', 'prepare-dispatch', 'review-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
                        'record-business-rules', 'review-business-rules', 'recommend-shared-models',
                        'extract-periscope', 'record-migration-validation',
                        'configure-legacy-comparison', 'record-legacy-baseline',
@@ -1024,7 +1036,7 @@ def main(argv=None):
             p.add_argument('--document', type=Path, help='Exact-scope human decision attributed by the trusted host; never an approval inferred from input files.')
             p.add_argument('--policy', type=Path)
             p.add_argument('--attestation', type=Path)
-        if command in ('plan-tasks', 'record-task', 'check-task', 'checkpoint-work', 'check-naming'):
+        if command in ('plan-tasks', 'record-task', 'check-task', 'checkpoint-work', 'review-work', 'check-naming'):
             p.add_argument('--artifact-root', type=Path, required=True)
         if command == 'record-consumer-contracts':
             p.add_argument('--artifact-root', type=Path)
@@ -1072,7 +1084,7 @@ def main(argv=None):
             runtime = (state.get('runtime_observations') or [{}])[-1]
             print('Accelerator revision: ' + str(runtime.get('installed_revision') or 'unavailable (portable install)')
                   + '; freshness: ' + runtime.get('freshness', {}).get('status', 'unknown'))
-            if args.command in ('claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work'):
+            if args.command in ('claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'work-bindings', 'prepare-dispatch', 'review-work'):
                 print('Work action: ' + json.dumps(state['last_work_action'], sort_keys=True))
             for action in state['next_actions']:
                 print('- ' + action['action'])

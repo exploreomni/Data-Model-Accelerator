@@ -25,7 +25,7 @@ BRIEF_FIELDS = {'objective', 'scope_ids', 'summary', 'decisions', 'unknowns',
                 'constraints', 'output_contract', 'stop_conditions'}
 REQUEST_FIELDS = {'schema_version', 'kind', 'task_id', 'role', 'bindings', 'brief',
                   'evidence', 'policy', 'classification', 'mode'}
-OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta', 'source_type', 'migration_intents', 'design_evidence', 'naming_contract'}
+OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta', 'source_type', 'migration_intents', 'design_evidence', 'naming_contract', 'assignment'}
 
 
 def _text(value, label):
@@ -106,6 +106,10 @@ def _validate(request):
     packet_evidence(request)
     from naming_context import validate_packet
     validate_packet(request)
+    if 'assignment' in request:
+        from task_routing import bind_assignment
+        bind_assignment(request['assignment'], task_id=request['task_id'], role=role,
+                        scope_ids=brief['scope_ids'], bindings=request['bindings'])
     return limit
 
 
@@ -158,6 +162,9 @@ def build_packet(root, request, output):
             data['naming_contract'] = naming
         data['evidence'] = excerpts
         data['file_coverage'] = coverage
+        if 'assignment' in request:
+            from task_routing import validate_assignment
+            data['assignment'] = validate_assignment(request['assignment'])
         from migration_context import packet_evidence
         intent_evidence = packet_evidence(request)
         if intent_evidence is not None:
@@ -218,6 +225,8 @@ def build_packet(root, request, output):
                    'assurance': 'Byte counts measure this packet only, not host tokens, cost, semantic completeness or approval.'}
         if receipt['role'] != request['role']:
             receipt['requested_role'] = request['role']
+        if 'assignment' in data:
+            receipt['assignment_sha256'] = hash_json(data['assignment'])
         if profile:
             receipt['specialist_profile'] = {key: value for key, value in profile.items() if key != 'text'}
         published = False
