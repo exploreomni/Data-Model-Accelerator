@@ -1551,7 +1551,7 @@
     "checker": {
       "description": "Bounded omni-static-v2-2026-10-05 core/query static contract; local synthetic tests, no native acceptance.",
       "path": "scripts/omni_contract.py",
-      "sha256": "e321e8bd82f2711b5872c6aa89be9e6297d26819117917e6dc35a7a530e5c090"
+      "sha256": "29082fe8cf9febf926e7c178d98ae53188f55e3d8c7cee32205a304b93c33289"
     },
     "generator": {
       "description": "Explicit reviewed physical, inherited and query mappings; synthetic candidate generation tests.",
@@ -1561,7 +1561,7 @@
     "handoff": {
       "description": "Curated exact-candidate semantic handoff rebuilt before export; no warehouse-layer or native acceptance claims.",
       "path": "scripts/omni_handoff.py",
-      "sha256": "3b2844cc8a7896cff85b7aed766d2d8beaed91c6bada584b6a49bc8887b6daf0"
+      "sha256": "3f9fa080232c007009fb9386eafad86ee82438cf1a1cc19ac837bc81f478e1c4"
     },
     "inventory": {
       "description": "Exact-byte native inventory, origin/dependency graph and hash-bound leaf patches; incomplete/opaque semantics stay explicit.",
@@ -1576,7 +1576,7 @@
     "modeler": {
       "description": "Pinned presanitized task callback and installation comparison; no SDK adapter or external-host qualification.",
       "path": "scripts/omni_modeler.py",
-      "sha256": "a697ab0b9c295a2d41dcc72b5e81c0ae2ab2f9f1f06c1a02d1c1ba8d7817f928"
+      "sha256": "507d31e8a9034965757e301cd9e4300d1f8c6645f376509d646d320fce04a72e"
     },
     "native": {
       "description": "Signed isolated synthetic-development adapter with optional lifecycle binding; simulated transport tests only.",
@@ -1586,7 +1586,7 @@
     "queries": {
       "description": "Bounded modeled/read-only SQL query output and population lineage; local independent comparisons, no native compiler.",
       "path": "scripts/omni_query_views.py",
-      "sha256": "80ff21b238543c0d00c0e3b11fe13c4affa482b5c1c2111889e2c3c9124536e7"
+      "sha256": "bec5ecf8bcc6e82b666a7102b6c33a2c4570c30e8a7f17e3380df16981911008"
     }
   },
   "schema_version": 1,

@@ -123,9 +123,10 @@ class ReviewEvidencePortalTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         template = (portal.ASSETS / 'portal.html').read_text()
         primary = template.split('id="primary-navigation"')[1].split('</nav>')[0]
-        # Optional planning and dashboard continuation are hidden unless selected;
+        # Optional topics, planning and dashboard continuation are hidden unless selected;
         # the existing five primary choices remain the default.
-        self.assertEqual(primary.count('data-nav='), 7)
+        self.assertEqual(primary.count('data-nav='), 8)
+        self.assertIn('data-nav="omni-topic-trees" hidden', primary)
         self.assertIn('data-nav="migration-plan" hidden', primary)
         self.assertIn('data-nav="dashboard-migration" hidden', primary)
         self.assertNotIn('data-nav="coverage-reuse"', primary)

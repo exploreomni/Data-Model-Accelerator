@@ -1160,7 +1160,9 @@ async function rebuildGenerated(snapshot){
   if(chosen.has('dictionary')){
     // A category-only subset never changes the selected dictionary. Preserve the
     // already checked projection bytes, including legacy scalar formatting.
-    const dictionary=(data.generated_deliverables||[]).filter(f=>f.category==='dictionary');
+    const dictionaryIds=['generated:dictionary-csv','generated:dictionary-markdown'];
+    const dictionary=(data.generated_deliverables||[]).filter(f=>dictionaryIds.includes(f.id));
+    if(dictionary.some(f=>f.category!=='dictionary')||new Set(dictionary.map(f=>f.id)).size!==2)throw new Error('The portable dictionary inventory is incomplete. Ask the agent to repackage.');
     if(dictionary.length!==2)throw new Error('The portable dictionary inventory is incomplete. Ask the agent to repackage.');
     records.push(...structuredClone(dictionary));
   }
