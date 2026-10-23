@@ -1160,6 +1160,11 @@ def _presentation(state, review=None, audience='engineer'):
             for key in ('models', 'relationships', 'assets'):
                 workflow.pop(key, None)
         allowed_models = {m['id'] for m in data['review'].get('models', [])}
+        from frontend_continuation import public_summary as frontend_summary
+        frontend = frontend_summary(state, allowed_models if review is not None else None,
+                                    {a['id'] for a in (review or {}).get('artifacts', [])})
+        if frontend is not None:
+            workflow['frontend_continuation'] = frontend
         from governance_delivery import project as governance_projection
         governance = governance_projection(state, allowed_models if review is not None else None)
         if governance is not None:
@@ -1623,6 +1628,7 @@ def _trim_workflow_details(data):
     for key in ('assets', 'models', 'relationships', 'domain_proposals', 'decisions', 'changes'):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
+        data['workflow'].pop('frontend_continuation', None)
         for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness', 'migration_intent', 'governance'):
             data['workflow'].pop(key, None)
 
@@ -1824,6 +1830,18 @@ def generated_deliverables(data):
         add('generated:migration-review', '01_Model/migration-review.md', 'documentation',
             'Scoped business rules, shared model proposals, source coverage and parity evidence.',
             _migration_markdown(data['migration_review']).encode())
+    frontend = data.get('workflow', {}).get('frontend_continuation')
+    if 'documentation' in selected and frontend:
+        lines = ['# Dashboard migration continuation', '', frontend['qualification'], '',
+                 'Use the existing Omni Artifact Accelerator handoff. These are selected scopes, not one-to-one dashboard bindings.', '']
+        for row in frontend['items']:
+            lines.extend(['## ' + _markdown_cell(row['domain_id'] or 'Selected scope'),
+                '- Continuation: ' + _markdown_cell(row['id']), '- Status: ' + _markdown_cell(row['status']),
+                '- Dashboards: ' + _markdown_cell(', '.join(row['dashboard_ids']) or 'Not selected'),
+                '- Topics: ' + _markdown_cell(', '.join(row['topic_names']) or 'Not selected'),
+                '- Next action: ' + _markdown_cell(row['next_action']), ''])
+        add('generated:frontend-continuation', '05_Migration/DASHBOARD_CONTINUATION.md', 'documentation',
+            'Selected frontend follow-up scopes and next actions; no deployment or acceptance claims.', ('\n'.join(lines) + '\n').encode())
     if {'documentation','dictionary'} <= selected and data.get('workflow', {}).get('governance'):
         from governance_delivery import files as governance_files
         for file in governance_files(data['workflow']['governance']):
@@ -2026,6 +2044,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
     _select_quality_evidence(data, selected)
     _select_metadata_evidence(data, selected)
     _select_omni_evidence(data, selected, state=state, review=review, root=artifact_root)
+    for row in data.get('workflow', {}).get('frontend_continuation', {}).get('items', []):
+        row['artifact_ids'] = [key for key in row['artifact_ids'] if key in {a['id'] for a in selected}]
     # Planning documents are an indivisible domain export and contain column
     # metadata. Do not retain their nested payload or binaries after exclusion.
     if data.get('migration_planning') and not {'documentation', 'dictionary'} <= set(include):
@@ -2034,6 +2054,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
             'and dictionary to export their complete mapping and column inventory.')
     if not {'documentation','dictionary'} <= set(include):
         data.get('workflow',{}).pop('governance',None)
+    if 'documentation' not in include:
+        data.get('workflow',{}).pop('frontend_continuation',None)
     # Data-heavy views must also obey deliverable selection, not just file omission.
     if not set(include)&{'documentation','dictionary','diagrams'}:
         _trim_workflow_details(data)

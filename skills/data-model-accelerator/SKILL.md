@@ -289,6 +289,14 @@ Then have warehouse and semantic architects review the same graph, with an indep
 
 ## Dedicated Omni Modeler
 
+After Omni candidate generation or separately authorized deployment, offer the
+optional [dashboard continuation](references/frontend-continuation.md) when source
+dashboards need migration. Reuse an existing end-to-end request. Discover the trusted
+installed Omni Artifact Accelerator, retain the selected domain and bounded evidence,
+and actually dispatch through the host when available. Missing companion support
+never blocks DMA or provisional code. Preserve independent backend-only scope,
+separate deployment authority and the existing frontend/backend return loop.
+
 When Omni is selected or an existing Omni model is being assessed, use [omni-modeler.md](references/omni-modeler.md) and [the task contract](references/omni-modeler-task.md). Select relevant modeling modules with `scripts/omni_knowledge.py`; retain source, knowledge and upstream pins. Check the installed skill against the intended checkout with `scripts/omni_modeler.py inspect-install` before relying on it. Do not silently use an older installed copy.
 
 The target request in the source plan and guided workflow is only planned. Prepare the reviewed pre-sanitized projection, invoke the host's actual available delegation through the callback contract, and record its returned task identity and artifacts. Disclose inline execution separately; it cannot substitute for input containment or independent QA. Missing adapters remain unavailable. Callback completion, static checks, native behavior, accuracy, effective access and SME acceptance remain distinct.

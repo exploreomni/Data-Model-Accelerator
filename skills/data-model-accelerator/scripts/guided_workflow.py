@@ -767,7 +767,13 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
         invalidated = _refresh(state, stage_progress=False)
         if document is not None:
             _secrets(document)
-        if action == 'register-source-roots':
+        if action in ('configure-frontend', 'record-frontend-progress'):
+            import frontend_continuation
+            if action == 'configure-frontend':
+                frontend_continuation.choose(state, document)
+            else:
+                frontend_continuation.record_progress(state, document)
+        elif action == 'register-source-roots':
             from source_roots import register
             register(state, document, run_dir)
             invalidated.extend(_refresh(state, stage_progress=False))
@@ -968,7 +974,7 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
-    stage_commands = ('record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'naming-packet', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
+    stage_commands = ('configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'naming-packet', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
                       'independent-review-bindings', 'record-independent-review', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
                       'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
@@ -1002,7 +1008,7 @@ def main(argv=None):
         if command == 'record-evidence':
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
-        if command in ('record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
+        if command in ('configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
                        'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
                        'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
                        'record-business-rules', 'review-business-rules', 'recommend-shared-models',

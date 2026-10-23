@@ -27,3 +27,9 @@ for scoped local candidate generation, but cannot replace this release workflow'
 external authority. Run only supported, authorized routes;
 retain explicit unsupported provider paths, independent acceptance and recovery
 requirements. Unknown submission outcomes must be reconciled before retrying.
+
+After the selected Omni candidate or authorized release is ready, follow the optional
+[dashboard continuation](../data-model-accelerator/references/frontend-continuation.md).
+Reuse known dashboard scope and decisions; ask once when the follow-up was not requested.
+Missing companion support never blocks this stage. A handoff is not Topic deployment,
+dashboard acceptance, or authorization for native writes.

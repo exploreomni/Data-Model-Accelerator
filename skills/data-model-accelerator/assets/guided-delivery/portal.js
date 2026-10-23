@@ -138,6 +138,9 @@ function decisionResponseDocument(workflow,engagementId,responses){
   return{schema_version:1,kind:'decision_responses',intent:'record_answers',engagement_id:engagementId,design_id:workflow.design_id,design_revision:workflow.design_revision,design_sha256:workflow.design_sha256,answers,request_only:true};
 }
 function trimWorkflowDetails(snapshot,categories){
+  if(!categories.has('documentation'))delete snapshot.workflow?.frontend_continuation;
+  const frontendFiles=new Set((snapshot.files||[]).map(f=>f.id));
+  for(const row of snapshot.workflow?.frontend_continuation?.items||[])row.artifact_ids=(row.artifact_ids||[]).filter(id=>frontendFiles.has(id));
   if(!(categories.has('documentation')&&categories.has('dictionary')))delete snapshot.workflow?.governance;
   if(snapshot.migration_planning&&!(categories.has('documentation')&&categories.has('dictionary'))){
     delete snapshot.migration_planning;
@@ -372,7 +375,8 @@ function table(id,columns,rows,pageSize=30){let page=0;const draw=()=>{const tar
 const migrationReview=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.migration_review:null;
 const domainJourney=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','diagrams','dictionary'].some(key=>data.selected_categories?.includes(key)))?data.domain_journey:null;
 const migrationPlanning=data.audience!=='audit'&&(data.page_mode==='status'||['documentation','dictionary'].every(c=>data.selected_categories?.includes(c)))?data.migration_planning:null;
-const reviewSections=['input-files','overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[]),...(migrationPlanning?['migration-plan']:[])];
+const frontendContinuation=data.audience!=='audit'&&(data.page_mode==='status'||data.selected_categories?.includes('documentation'))?data.workflow?.frontend_continuation:null;
+const reviewSections=[...(frontendContinuation?['dashboard-migration']:[]),'input-files','overview','readiness','changes','coverage-reuse','review-feedback','model','validation','delivery','deployment',...(review.metadata?['metadata']:[]),...(review.omni?['omni']:[]),...(migrationReview?['migration-review']:[]),...(domainJourney?['domain-journey']:[]),...(migrationPlanning?['migration-plan']:[])];
 const sectionRoutes={architecture:'model',lineage:'model','table-dictionary':'model','implementation-code':'delivery','replacement-map':'delivery'};
 let firstNavigation=true,modelWorkspaceReady=false,pendingInspectorModel=null;
 function navigate(){
@@ -396,6 +400,23 @@ document.querySelectorAll('[data-nav]').forEach(link=>{link.onclick=()=>{if(loca
 el('implementation-nav').hidden=false;el('files-nav').hidden=true;
 el('domain-journey-nav').hidden=!domainJourney;
 el('migration-plan-nav').hidden=!migrationPlanning;
+el('frontend-nav').hidden=!frontendContinuation;
+if(frontendContinuation){
+  el('frontend-qualification').textContent=frontendContinuation.qualification;
+  const rows=frontendContinuation.items||[], selector=el('frontend-domain');
+  [...new Set(rows.map(r=>r.domain_id).filter(Boolean))].sort().forEach(id=>{const option=make('option',id);option.value=id;selector.append(option);});
+  const renderFrontend=()=>{
+    const scoped=rows.filter(r=>!selector.value||r.domain_id===selector.value);
+    table('frontend-table',[['Domain',r=>r.domain_id||'Selected scope'],['Status',r=>pretty(r.status)],['Dashboards requested',r=>r.dashboard_ids.join(', ')||'Not selected'],['Topics selected',r=>r.topic_names.join(', ')||'Not selected'],['Next action',r=>r.next_action]],scoped);
+    el('frontend-prompt').value='Use the optional Omni Artifact Accelerator continuation for '+scoped.map(r=>r.id).join(', ')+'. Check compatibility, reuse the saved scope and decisions, and resume its linked frontend project. If not started, show the available continuation choices. Preserve provisional work and unresolved mappings; this request does not authorize deployment or publication.';
+    const target=clear('frontend-files');
+    const ids=new Set(scoped.flatMap(r=>r.artifact_ids||[]));
+    (data.files||[]).filter(f=>ids.has(f.id)||f.id==='generated:frontend-continuation').forEach(f=>{const b=make('button',f.description||f.path,'secondary');b.type='button';b.onclick=()=>openArtifact(f.id);target.append(b);});
+  };
+  selector.onchange=renderFrontend;renderFrontend();
+  el('frontend-copy').onclick=()=>copyText(el('frontend-prompt').value,el('frontend-prompt'),'Continuation request copied.');
+}
+
 if(domainJourney){
   const domains=domainJourney.domains||[],active=domains.find(row=>row.id===domainJourney.active_domain_id);
   el('domain-journey-qualification').textContent=domainJourney.qualification||'Recorded domain progress only; approval and execution authority remain separate.';

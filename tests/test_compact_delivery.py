@@ -226,7 +226,8 @@ class CompactDeliveryTests(unittest.TestCase):
         primary_nav = Navigation()
         primary_nav.feed('<nav id="primary-navigation"' + template.split('<nav id="primary-navigation"', 1)[1].split('</nav>', 1)[0] + '</nav>')
         primary = [link for link in primary_nav.links if not link['hidden']]
-        self.assertEqual([link['href'] for link in primary_nav.links if link['hidden']], ['#migration-plan'])
+        self.assertEqual([link['href'] for link in primary_nav.links if link['hidden']],
+                         ['#dashboard-migration', '#migration-plan'])
         self.assertEqual({link['href'] for link in nav.links if not link['secondary'] and not link['hidden']} - {link['href'] for link in primary},
                          set())
         self.assertEqual([link['href'] for link in primary], ['#model', '#delivery', '#replacement-map', '#input-files', '#validation'])

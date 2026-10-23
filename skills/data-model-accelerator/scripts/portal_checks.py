@@ -20,7 +20,7 @@ from ae_common import require
 REQUIRED_SECTIONS = ('architecture', 'lineage', 'implementation-code', 'replacement-map')
 SECTION_PARENTS = {'architecture': 'model', 'lineage': 'model',
                    'implementation-code': 'delivery', 'replacement-map': 'delivery',
-                   'table-dictionary': 'model', 'review-feedback': None}
+                   'table-dictionary': 'model', 'review-feedback': None, 'dashboard-migration': None}
 VOID_ELEMENTS = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta',
                  'param', 'source', 'track', 'wbr'}
 SCRIPT_TYPES = {'', 'module', 'application/ecmascript', 'application/javascript',
@@ -421,6 +421,8 @@ def validate_page(page, *, expected_files=None, expected_data=None, require_curr
         required_sections = REQUIRED_SECTIONS + (('table-dictionary',) if data.get('diagram_contract_version') == 1 else ())
         if data.get('package_layout_version') in (1, 2):
             required_sections += ('review-feedback',)
+        if data.get('workflow', {}).get('frontend_continuation'):
+            required_sections += ('dashboard-migration',)
         for identifier in required_sections:
             node = parsed.nodes.get(identifier, {})
             attrs = node.get('attrs', {})

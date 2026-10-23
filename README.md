@@ -61,6 +61,12 @@ verified there. Jira, Linear, Azure DevOps, Monday and Asana exports retain thei
 import limitations; GitHub and generic outputs are copyable templates. No live
 tickets are created. See [migration planning](docs/HOW_TO.md#migration-planning-and-ticket-templates).
 
+After Omni Topic generation, you can optionally continue into dashboard migration
+with an installed Omni Artifact Accelerator. Choose **continue now**, **prepare a
+handoff**, or **not now**. It reuses the selected domain, source dashboard IDs and
+decisions in a linked frontend project; provisional work and separate deployment
+approval remain intact. See [dashboard continuation](skills/data-model-accelerator/references/frontend-continuation.md).
+
 If you request code while the catalogue or design review is pending, the agent
 can produce **provisional dbt/native and semantic files** from available evidence.
 It records your request, labels unresolved bindings and leaves physical validation

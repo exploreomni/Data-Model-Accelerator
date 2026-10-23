@@ -49,3 +49,9 @@ unsupported. Do not replace the Omni modeler/native validator with this narrower
 check or infer business acceptance from a well-formed YAML file.
 
 Carry the scoped [migration intent](../data-model-accelerator/references/migration-intent.md) into semantic tasks. Bind topics to the target model and explicit consumer/metric purposes. Consolidate genuinely shared semantics when grain and access permit; do not create one topic per legacy final table simply because it exists. Record semantic-purpose evidence in the independent architecture assessment.
+
+After the selected Omni candidate or authorized release is ready, follow the optional
+[dashboard continuation](../data-model-accelerator/references/frontend-continuation.md).
+Reuse known dashboard scope and decisions; ask once when the follow-up was not requested.
+Missing companion support never blocks this stage. A handoff is not Topic deployment,
+dashboard acceptance, or authorization for native writes.
