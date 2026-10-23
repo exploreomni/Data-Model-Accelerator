@@ -123,10 +123,11 @@ class ReviewEvidencePortalTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         template = (portal.ASSETS / 'portal.html').read_text()
         primary = template.split('id="primary-navigation"')[1].split('</nav>')[0]
-        # Optional planning is hidden unless selected; the existing three
-        # primary choices remain the default (runtime coverage is separate).
-        self.assertEqual(primary.count('data-nav='), 6)
+        # Optional planning and dashboard continuation are hidden unless selected;
+        # the existing five primary choices remain the default.
+        self.assertEqual(primary.count('data-nav='), 7)
         self.assertIn('data-nav="migration-plan" hidden', primary)
+        self.assertIn('data-nav="dashboard-migration" hidden', primary)
         self.assertNotIn('data-nav="coverage-reuse"', primary)
         self.assertIn('href="#coverage-reuse" data-nav="coverage-reuse"', template)
         self.assertIn('Inspect source coverage and existing-model reuse', template)
