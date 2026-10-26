@@ -126,6 +126,8 @@ Candidate `customers.view` uses the same mapping pattern for `DIM_CUSTOMERS`, ex
 
 ## Relationships, topics, and user attributes
 
+Looker explores are requirements, not a topic inventory. Map explores to topics by base view and population under [topic population](omni-modeler-joins-topics.md#topic-population): `sql_always_where`/`always_filter` become always-where filters only after a recorded decision or open question; `conditionally_filter` and dashboard filters become removable default filters. Population differences between explores on the same base view are open questions.
+
 The special `relationships` file is a top-level YAML list:
 
 ```yaml

@@ -195,7 +195,7 @@ def build(data, original_files):
     body += _table(['Decision', 'Status', 'Detail'], [[html.escape(str(r.get('id', ''))), html.escape(str(r.get('status', 'unresolved'))), html.escape(str(r.get('question') or r.get('rationale') or r.get('description') or 'Review the maintained design document.'))] for r in decisions]) + '</section><dialog id="inspector"><button id="close-inspector">Close table</button><iframe id="table-frame" title="Selected table"></iframe></dialog>'
     if 'topic_coverage' in data:
         from topic_visuals import panel
-        body += panel()
+        body += panel(data)
     files['START_HERE.html'] = _page('Data model review', body, compact, index=True)
     page_roles['START_HERE.html'] = {'role': 'entrypoint'}
     return files, page_roles, compact

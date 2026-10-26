@@ -15,14 +15,38 @@ QUALIFICATION = 'Candidate topic structure and bindings. Native validation, fano
 STYLE = 'text{font-family:system-ui,sans-serif;fill:#173b46;font-size:18px}.title{font-size:25px;font-weight:700}.small{font-size:15px}.join{fill:none;stroke:#56818d;stroke-width:2}.card{fill:#fff;stroke:#087e83;stroke-width:2}.gap{fill:#fff5de;stroke:#b36b12}.caption{fill:#465d67}'
 
 
-def panel():
+def population_panel(data):
+    """Static, escaped report of topics sharing a base view; no script needed."""
+    population = (data or {}).get('review', {}).get('omni', {}).get('topic_population')
+    if not isinstance(population, dict): return ''
+    e = lambda value: html.escape(str(value if value is not None else ''), quote=True)
+    rows = ''.join('<tr><td><code>' + e(r['base_view']) + '</code></td><td>' + e(r['topic']) + '</td><td>' + e(r['role'])
+                   + '</td><td>' + e(r.get('extends') or '—') + '</td><td>' + e(', '.join(f.split('.')[-1] for f in r['always_where_fields']) or 'none')
+                   + '</td><td>' + e(', '.join(f.split('.')[-1] for f in r['default_filter_fields']) or 'none')
+                   + '</td><td>' + e(r.get('justification') or 'No recorded justification') + '</td></tr>'
+                   for r in population.get('shared_base_views', []))
+    questions = ''.join('<tr><td><code>' + e(q['finding_id']) + '</code></td><td>' + e(', '.join(q['topics'])) + '</td><td>'
+                        + e(q['question']) + '</td><td>' + e(q.get('reference') or 'unresolved') + '</td></tr>'
+                        for q in population.get('open_questions', []))
+    body = ('<details class="panel" id="topic-population" open><summary>Topics sharing a base view — population status: '
+            + e(population.get('status')) + '</summary><p>One topic per base view and population. A population is the base view plus its '
+            'always-where filters; default filters, access and field lists do not make a second population.</p>')
+    body += ('<div class="scroll"><table><thead><tr><th>Base view</th><th>Topic</th><th>Role</th><th>Extends</th><th>Always-where (population)</th>'
+             '<th>Default filters</th><th>Justification</th></tr></thead><tbody>' + rows + '</tbody></table></div>') if rows else '<p>No topics share a base view.</p>'
+    if questions:
+        body += ('<h3>Population questions</h3><div class="scroll"><table><thead><tr><th>Finding</th><th>Topics</th><th>Question</th>'
+                 '<th>Decision / question reference</th></tr></thead><tbody>' + questions + '</tbody></table></div>')
+    return body + '</details>'
+
+
+def panel(data=None):
     return '''<section id="omni-topic-trees" class="review-section" data-section hidden>
 <h1>Omni Topics</h1><p>Choose a domain and topic to see its declared join paths and warehouse tables. A diagram is not a fanout test or native validation.</p>
 <p id="topic-coverage" class="scope-note" aria-live="polite"></p>
 <div class="controls filters"><div><label for="topic-domain">Domain</label><select id="topic-domain"><option value="">All domains</option></select></div><div><label for="topic-picker">Topic</label><select id="topic-picker"></select></div></div>
 <p id="topic-empty" hidden>No topics match this selection.</p><div class="controls diagram-toolbar"><button id="topic-zoom-in" type="button">Zoom in</button><button id="topic-zoom-out" type="button">Zoom out</button><button id="topic-zoom-reset" type="button">Actual size</button><button id="topic-download" type="button">Download SVG</button></div>
 <div id="topic-diagram" class="diagram" tabindex="0" aria-label="Topic join tree, scroll to explore"></div>
-<div id="topic-findings" class="scope-note" role="status"></div><details class="panel"><summary>Views and warehouse tables</summary><div id="topic-bindings" class="scroll"></div></details></section>'''
+<div id="topic-findings" class="scope-note" role="status"></div><details class="panel"><summary>Views and warehouse tables</summary><div id="topic-bindings" class="scroll"></div></details>''' + population_panel(data) + '</section>'
 
 
 def _encoded(value):

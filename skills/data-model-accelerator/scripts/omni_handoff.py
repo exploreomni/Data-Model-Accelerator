@@ -12,6 +12,7 @@ import shutil
 from omni_contract import _bounded, _load, canonical_hash, check_model, NAME
 from omni_query_views import analyze_query_views
 from omni_topic_trees import build_topic_trees
+from omni_topic_population import assess as assess_topic_population
 
 VERSION='omni-handoff-v1'
 REVIEW_PATH='omni/SEMANTIC_REVIEW.json'
@@ -58,12 +59,14 @@ def _graph(views,dependencies):
     parts.append('</svg>');return ''.join(parts).encode()
 
 
-def build_handoff(state,model_files,model_context,decisions=None):
+def build_handoff(state,model_files,model_context,decisions=None,population_decisions=None):
     """Return artifacts + ready registration records; no disk/network mutations.
 
     Model context stays audit-only. Native files retain exact names/bytes. The
     reviewer JSON includes hashes and curated metadata, never source SQL bodies.
     All claims are local observations; imported metadata grants no authority.
+    population_decisions resolve topic-population findings by finding ID
+    (see omni_topic_population.assess); unresolved findings block delivery.
     """
     from delivery_portal import source_fingerprint,context_fingerprint
     _bounded(state);_bounded(model_files);_bounded(model_context)
@@ -161,6 +164,7 @@ def build_handoff(state,model_files,model_context,decisions=None):
              'inputs':{'model_files':native_records,'model_context':{'artifact_id':artifact_id(CONTEXT_PATH),'sha256':_sha(context_bytes)}},
              'dictionary':dictionary,'metrics':metrics,'topics':topics,'views':view_catalog,
              'topic_trees':build_topic_trees(model_files,model_context),
+             'topic_population':assess_topic_population(model_files,population_decisions),
              'dependencies':[{'from':a,'to':b,'kind':kind,'topic':scope} for a,b,kind,scope in sorted(dependencies,key=lambda v:tuple(x or '' for x in v))],
              'query_views':{name:{'kind':d['kind'],'outputs':list(d['outputs']),
                  'population_fields':d['population_fields'],'complete_population':d['complete_population'],
@@ -203,11 +207,15 @@ def build_handoff(state,model_files,model_context,decisions=None):
 def verify_handoff(summary,state,model_files,model_context):
     """Pure rebuild verifies exact input/projection integrity, not authority."""
     _need(type(summary) is dict,'handoff.summary')
-    rebuilt=build_handoff(state,model_files,model_context,summary.get('decisions'))['summary']
-    if 'topic_trees' not in summary:
+    population=summary.get('topic_population')
+    rebuilt=build_handoff(state,model_files,model_context,summary.get('decisions'),
+                          population.get('decisions') if type(population) is dict else None)['summary']
+    legacy=[key for key in ('topic_trees','topic_population') if key not in summary]
+    if legacy:
         # Historical pinned reviews remain verifiable; consumers disclose that
-        # native join paths require a regenerated semantic review.
-        rebuilt.pop('topic_trees',None);rebuilt.pop('handoff_sha256',None)
+        # native join paths and population checks require a regenerated review.
+        for key in legacy:rebuilt.pop(key,None)
+        rebuilt.pop('handoff_sha256',None)
         rebuilt['handoff_sha256']=canonical_hash(rebuilt)
     _need(summary==rebuilt,'handoff.stale_or_changed');return summary
 

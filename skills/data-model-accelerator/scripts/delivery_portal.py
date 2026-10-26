@@ -458,6 +458,12 @@ def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
         from omni_handoff import CONTEXT_PATH
         model_context=parse(read(summary['inputs']['model_context'],'technical_audit',['audit'],CONTEXT_PATH))
         verify_handoff(summary,state,model_files,model_context)
+    if 'topic_population' in summary:
+        # One topic per base view and population: unresolved findings block
+        # packaging until a human decision or open question is recorded.
+        from omni_topic_population import summary_line
+        require(type(summary['topic_population']) is dict and summary['topic_population'].get('status') in ('complete','open_questions'),
+                summary_line(summary['topic_population']) if type(summary['topic_population']) is dict else 'Invalid topic population evidence')
     if not included:data['review']['omni']=_omni_omitted(ref);return
     data['review']['omni']={'artifact_id':ref['artifact_id'],'sha256':ref['sha256'],'evidence_state':'selected',
         'status':'candidate','candidate_sha256':pins['model_candidate_sha256'],'static_status':summary['static_status'],
@@ -468,6 +474,8 @@ def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
         'next_actions':copy_quality(summary['next_actions']),
         'qualification':'Candidate review only. This page does not authenticate native execution, access, AI behavior, business sign-off or deployment.',
         'native_status':'pending','business_status':'pending','deployment_status':'not_authorized','acceptance_ready':False}
+    if 'topic_population' in summary:
+        data['review']['omni']['topic_population'] = copy_quality(summary['topic_population'])
     if 'topic_trees' in summary:
         data['review']['omni']['topic_trees'] = copy_quality(summary['topic_trees'])
         data['review']['omni']['topic_tree_pins'] = {key: pins[key] for key in ('model_candidate_sha256', 'model_context_sha256')}
@@ -1662,7 +1670,7 @@ def _trim_workflow_details(data):
 
 def _html(data):
     from topic_visuals import panel
-    template=(ASSETS/'portal.html').read_text(encoding='utf-8').replace('<!--__TOPIC_PANEL__-->', panel())
+    template=(ASSETS/'portal.html').read_text(encoding='utf-8').replace('<!--__TOPIC_PANEL__-->', panel(data))
     if not data.get('topic_coverage'):
         template = template.replace('<script>/*__TOPIC_PANEL_JS__*/</script>', '')
     encoded=json.dumps(data,ensure_ascii=True,allow_nan=False,separators=(',', ':') if data.get('package_layout_version') == 2 else None).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
