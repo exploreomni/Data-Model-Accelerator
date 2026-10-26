@@ -15,3 +15,21 @@ Policy and classification records have independent schema version 1. Construct u
 Keep projections, temporary files and private audit evidence in the approved storage boundary. Apply the engagement's retention and cleanup policy; no universal retention period is assumed. Never remove original evidence while cleaning a run. Scanner bounds intentionally fail closed on unsupported binary formats, oversized archives, malformed embedded data and incomplete coverage. It is a bounded local detector, not comprehensive DLP or a compliance certification.
 
 Deployment review exports add evidence after the original handoff. For scoped engagements, declare classifications under `review.disclosure.generated_evidence` for the selected `plan`, `receipt`, `lint-manifest`, `lint-target`, `lint-configuration`, `lint-findings`, `lint-guide` and `quality` outputs. Unclassified generated evidence blocks export. These declarations authorize a disclosure class only; final bytes are rescanned, and they do not constitute deployment approval.
+
+## Personal-data exclusion
+
+Personal data the user lists or the accelerator identifies must not appear in any gold model, gold implementation file or Omni view/topic. This applies to columns that already exist in the target, and it overrides any instruction to keep existing columns. Keep such columns in staging or integration only where a transformation needs them. Expose a hashed key to a dimension instead. Hiding a field in Omni does not count as removing it.
+
+1. At intake, build the register and record it as the `personal_data` answer:
+   ```sh
+   python scripts/personal_data.py import-csv --csv inventory.csv --output register.json \
+     --attribute CONTACT_EMAIL --attribute NAME_FIRST --attribute NAME_LAST
+   python scripts/personal_data.py from-dictionary --dictionary dictionary.json --merge register.json --output register-all.json
+   ```
+   Use `--attribute` when an inventory lists broader attributes (such as country) than the engagement must exclude; the user decides which attributes count. `from-dictionary` adds columns whose privacy classification includes PII, PCI or PHI.
+2. Build gold and Omni without registered columns. A changed register invalidates earlier reviews.
+3. `omni_handoff.build_handoff` and `delivery_portal` (status page and package) refuse output when a gold column, an identifier in a gold model's linked implementation file or an Omni field matches the register. Matching is by name: an exact match, or a name ending in `_<entry>` for multi-word entries and unambiguous identifier words (email, phone, iban and similar).
+4. A match that is not personal data (for example `n_msgs_from_email`) is recorded in `not_personal_data` as `{identifier, scope, reason, reference}`, with the model ID or file path (or `*`) as scope. This records a false positive. It never keeps real personal data in the output.
+
+Name matching cannot follow a rename the register never sees, and it does not replace warehouse access controls or a privacy review.
+

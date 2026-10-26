@@ -122,6 +122,42 @@ def _check_share_policy(state, review, selected, data, audience):
     return 'allowed_by_declared_policy_not_authenticated_approval'
 
 
+def personal_data_outputs(review, selected=()):
+    """Gold columns, gold implementation identifiers and Omni fields to check."""
+    from personal_data import omni_identifiers, sql_identifiers
+    outputs, gold_artifacts = [], set()
+    for model in review.get('models', []):
+        if model.get('layer') != 'gold': continue
+        for column in model.get('columns', []):
+            if isinstance(column, dict) and isinstance(column.get('name'), str):
+                outputs.append({'scope': model.get('id', ''), 'identifier': column['name'], 'kind': 'gold_column'})
+        gold_artifacts.update([model['artifact_id']] if isinstance(model.get('artifact_id'), str) else [])
+        gold_artifacts.update(i for i in model.get('artifact_ids', []) if isinstance(i, str))
+    for artifact in selected:
+        path = PurePosixPath(artifact.get('path', ''))
+        try:
+            text = artifact['content'].decode('utf-8')
+        except (KeyError, UnicodeError):
+            continue
+        if _native_omni_artifact(path):
+            names, kind = omni_identifiers(text), 'omni_field'
+        elif artifact.get('id') in gold_artifacts and artifact.get('category') == 'implementation':
+            names, kind = sql_identifiers(text), 'gold_code'
+        else:
+            continue
+        outputs.extend({'scope': str(path), 'identifier': name, 'kind': kind} for name in sorted(names))
+    return outputs
+
+
+def _check_personal_data(state, review, selected=()):
+    """Registered personal data never reaches gold models or Omni."""
+    register = state.get('answers', {}).get('personal_data')
+    if not register: return
+    from personal_data import check, message
+    findings = check(register, personal_data_outputs(review, selected))
+    require(not findings, message(findings))
+
+
 def _markdown_destination(value):
     """Read an angle-wrapped or balanced Markdown destination, excluding a title."""
     value = value.lstrip()
@@ -1797,6 +1833,8 @@ def render_engagement(state, output_path, review=None):
     if source:
         destination=_path(output_path); source_root=_path(source)
         require(destination != source_root and source_root not in destination.parents, 'Review output must stay outside the source repository')
+    if review is not None:
+        _check_personal_data(state,review)
     data=_presentation(state,review)
     _select_handoff(data, [])
     _select_quality_evidence(data, [])
@@ -2090,6 +2128,7 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         destination=_path(output_path); source_root=_path(source)
         require(destination != source_root and source_root not in destination.parents, 'Package output must stay outside the source repository')
     selected=select_artifacts(review,artifact_root,audience,include)
+    _check_personal_data(state,review,selected)
     data=_presentation(state,review,audience)
     from package_layout import version
     data.update(page_mode='package', package_layout_version=version(review), selected_categories=sorted(set(include)), file_count=len(selected))

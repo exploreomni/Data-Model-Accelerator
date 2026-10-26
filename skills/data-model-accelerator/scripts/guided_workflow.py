@@ -26,7 +26,8 @@ ANSWER_KEYS = {'engagement_type', 'priority_domain', 'framework', 'warehouse',
                'retained_behavior', 'corrected_behavior', 'host', 'environment',
                'execution_mode', 'audience', 'metadata_policy', 'naming_policy',
                'migration_scope', 'input_handling', 'security_reviewer',
-               'business_reviewer', 'catalogue_authority', 'dbt_runtime', 'delivery_destination'}
+               'business_reviewer', 'catalogue_authority', 'dbt_runtime', 'delivery_destination',
+               'personal_data'}
 DELIVERABLES = {'implementation', 'diagrams', 'documentation', 'dictionary',
                 'validation', 'sample_data', 'technical_audit'}
 ENUMS = {'engagement_type': {'migration', 'refactor', 'new_model', 'blind_test'},
@@ -201,6 +202,10 @@ def _answers(answers):
             from dbt_runtime import validate_selection
             result[key] = validate_selection(value)
             continue
+        if key == 'personal_data':
+            from personal_data import normalize
+            result[key] = normalize(value)
+            continue
         if key in ('metadata_policy', 'naming_policy'):
             from metadata_options import validate_options, validate_naming
             result[key] = (validate_options if key == 'metadata_policy' else validate_naming)(value)
@@ -262,6 +267,9 @@ def _selection(answers):
     for key in ('migration_scope', 'input_handling', 'security_reviewer', 'business_reviewer', 'catalogue_authority'):
         if key in answers:
             target[key] = answers[key]
+    if answers.get('personal_data') is not None:
+        # A changed personal-data register invalidates reviews built without it.
+        target['personal_data_sha256'] = _digest(answers['personal_data'])
     target['sha256'] = _digest(target)
     runtime = {key: answers.get(key) for key in ('host', 'environment', 'execution_mode')}
     runtime['execution_mode'] = runtime['execution_mode'] or 'candidate_only'

@@ -11,6 +11,11 @@ folders and selected key rules. Check actual outputs; request an explicit overri
 instead of inventing names. Public contract changes need separate review, while
 requested provisional generation remains available.
 
+Never carry a column registered in the engagement's `personal_data` answer into a
+gold model, even when it already exists in the target or an instruction says to keep
+existing columns. Use a hashed key to a dimension instead; see
+[personal-data exclusion](../data-model-accelerator/references/sensitive-data.md#personal-data-exclusion).
+
 If the user explicitly requests code with catalogue evidence or design review
 pending, use [provisional generation](../data-model-accelerator/references/provisional-generation.md).
 Record the actual request and author supported draft files now. Keep missing

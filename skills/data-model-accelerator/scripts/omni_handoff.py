@@ -83,6 +83,11 @@ def build_handoff(state,model_files,model_context,decisions=None,population_deci
     if catalogue.get('sha256') is not None:
         _need(catalogue['sha256']==model_context.get('catalogue_sha256'),'handoff.catalogue_changed')
     _need(type(model_files) is dict and bool(model_files),'handoff.files')
+    if state['answers'].get('personal_data'):
+        from personal_data import check,message,omni_identifiers
+        findings=check(state['answers']['personal_data'],[{'scope':path,'identifier':name,'kind':'omni_field'}
+                       for path,text in sorted(model_files.items()) for name in sorted(omni_identifiers(text))])
+        _need(not findings,'handoff.personal_data: '+message(findings))
     checked=check_model(model_files,model_context)
     _need(checked.get('candidate_sha256') is not None,'handoff.candidate')
     lineage=analyze_query_views(model_files,model_context)
