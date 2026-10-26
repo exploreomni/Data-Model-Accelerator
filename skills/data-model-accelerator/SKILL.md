@@ -51,7 +51,9 @@ For every code batch follow [authoring evidence](references/authoring-quality.md
 bind assumptions, provenance and expected structure, retain failed/unsupported
 checks, and recheck changed scope before another authoring pass. These diagnostics
 must not block explicitly requested provisional files or impersonate production
-qualification.
+qualification. Before an independent review of dbt SQL, run the deterministic
+[SQL contracts](references/sql-contracts.md) (column existence, shared keys,
+foreign-key populations, value domains) and give the reviewer only what remains.
 
 The coordinator also owns final delivery assembly. A completed specialist task,
 `handoff_prepared` state or cheaper run does not prove that a usable handoff exists.
