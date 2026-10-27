@@ -1,0 +1,254 @@
+'use strict';
+// Review page (references/review-page.md). Reads the checked delivery-data and the derived
+// review-page-data; nothing here approves, executes or changes the delivery.
+const D=JSON.parse(document.getElementById('delivery-data').textContent);
+const P=JSON.parse(document.getElementById('review-page-data').textContent);
+const $=s=>document.querySelector(s),byId=id=>document.getElementById(id);
+function e(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const tr=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
+const BADGE={served:'ok','partly served':'warn','not served':'bad',answered:'ok',covered:'ok','retire candidate':'info',pass:'ok',create:'ok',assumed:'warn','partially covered':'warn',extend:'warn',open:'bad',unresolved:'bad',fail:'bad',pending:'warn',reuse:''};
+const b=s=>`<span class="b ${BADGE[s]||''}">${e(s)}</span>`;
+const M={};P.models.forEach(m=>{m.disp=m.disposition||'reuse';m.cols=(m.columns||[]).map(c=>[c.name,c.type||c.data_type||'',c.key||'',c.description||'']);m.dep=m.depends_on||[];m.used=[];m.src=m.sources||[];M[m.id]=m});
+P.models.forEach(m=>m.dep.forEach(d=>{if(M[d])M[d].used.push(m.id)}));
+const FILE={};P.files.forEach(f=>FILE[f.id]=f);
+const EMB={};[...(D.files||[]),...(D.generated_deliverables||[])].forEach(f=>{if(f.base64)EMB[f.path]=f.base64});
+const decoder=new TextDecoder();
+function content(path){const b64=EMB[path];if(!b64)return null;const raw=atob(b64),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return decoder.decode(bytes)}
+const codeOf=m=>{const f=FILE[m.artifact_id]||FILE[(m.artifact_ids||[])[0]];return f?f.path:null};
+const areaName={};P.areas.forEach(a=>areaName[a.id]=a.name);
+const T={};P.topics.forEach(t=>T[t.topic]=t);
+const primary=P.areas.length?(()=>{const c={};P.models.filter(m=>m.layer==='gold'&&m.area&&!(P.areas.find(a=>a.id===m.area)||{}).shared).forEach(m=>c[m.domain]=(c[m.domain]||0)+1);return Object.entries(c).sort((x,y)=>y[1]-x[1])[0]?.[0]})():null;
+const shared=m=>m.layer!=='bronze'&&primary&&m.domain&&m.domain!==primary;
+const cls=m=>({create:'new',extend:'ext',reuse:'reuse'}[m.disp]||'reuse')+(shared(m)?' shared':'');
+const short=id=>id.replace(/^(stg|int|wh)_/,'');
+function link(n){return M[n]?`<a href="#" onclick="insp('${n}');return false">${e(n)}</a>`:e(n)}
+function go(v,label){return `<a href="#${v}">${e(label)}</a>`}
+function fileLink(path,label){const f=P.files.find(x=>x.path===path);if(P.inline_files)return `<a href="#implementation-code" onclick="openFile('${e(path)}')">${e(label||path)}</a>`;return `<a href="${e(f&&f.page||path)}">${e(label||path)}</a>`}
+function filt(inp,id){const q=inp.value.toLowerCase();document.querySelectorAll('#'+id+' tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none')}
+
+/* ---------- routing: eight tabs; Legacy coverage and Data dictionary live inside their parent sections ---------- */
+const PARENT={architecture:'model',lineage:'model','table-dictionary':'model','implementation-code':'delivery','replacement-map':'delivery'};
+const OWN_TAB={'table-dictionary':1,'replacement-map':1};
+const built={};
+function route(){let id=location.hash.slice(1)||'overview';if(!byId(id)||!(PARENT[id]||byId(id).hasAttribute('data-section')))id='overview';
+ const top=PARENT[id]||id;
+ document.querySelectorAll('[data-section]').forEach(s=>s.hidden=s.id!==top);
+ Object.keys(PARENT).forEach(k=>{if(PARENT[k]===top)byId(k).hidden=OWN_TAB[id]?k!==id:!!OWN_TAB[k]});
+ const tab=OWN_TAB[id]?id:top;
+ document.querySelectorAll('#primary-navigation a').forEach(a=>a.setAttribute('aria-current',a.dataset.nav===tab?'page':'false'));
+ document.querySelectorAll('.subnav a').forEach(a=>a.setAttribute('aria-current',a.dataset.nav===id?'page':'false'));
+ const k=OWN_TAB[id]?id:top;if(R[k]&&!built[k]){R[k]();built[k]=1}
+ if(top==='model'&&!OWN_TAB[id]&&!built.model){R.model();built.model=1}
+ if(top==='delivery'&&!OWN_TAB[id]&&!built.delivery){R.delivery();built.delivery=1}
+ if(PARENT[id]&&!OWN_TAB[id])byId(id).scrollIntoView();else window.scrollTo(0,0)}
+addEventListener('hashchange',route);
+
+/* ---------- overview ---------- */
+function rOverview(){
+ const L={bronze:{},silver:{},gold:{}};P.models.forEach(m=>{(L[m.layer]=L[m.layer]||{})[m.disp]=(L[m.layer][m.disp]||0)+1});
+ const n=(l,d)=>(L[l]||{})[d]||0,meta=P.meta||{},reg=P.decisions.filter(d=>'assumed_option' in d||'options' in d);
+ const dbt=P.files.filter(f=>/\/models\/.*\.sql$/.test(f.path)),sqlFor=d=>dbt.filter(f=>P.models.some(m=>m.disp===d&&codeOf(m)===f.path)).length;
+ const yml=P.files.filter(f=>/\/models\/.*\.ya?ml$/.test(f.path)).length,views=P.files.filter(f=>f.path.endsWith('.view')).length;
+ const rels=(()=>{const f=P.files.find(x=>x.path.endsWith('/relationships'));const t=f&&content(f.path);return t?(t.match(/^- join_from_view/mg)||[]).length:null})();
+ const cross=P.topics.filter(t=>M[t.base]&&shared(M[t.base])).length;
+ const leg=P.legacy||[],lc=s=>leg.filter(r=>r.status===s).length;
+ const dash=P.assets||[],ds=s=>dash.filter(a=>(a.coverage_status||a.mapping_status)===s).length;
+ const repos=meta.repositories||[];
+ const accel=repos.find(r=>r.commit);
+ const pending=P.validation.filter(v=>['pending','fail','skipped'].includes(v.status));
+ const readOrder=meta.read_order||['Data model: pipelines, relationships and topic lineage per subject area; click any table or topic.','Decisions, starting with the open ones.','Legacy coverage: what each legacy model becomes.','Code & files: how the dbt and Omni files are applied.','Validation and Open items.'];
+ const notDone=meta.not_done||(pending.length?pending.map(v=>v.label||v.id):['Native build, reconciliation and semantic-layer validation are not established by this page.']);
+ byId('overview').innerHTML=`
+<h1>${e(P.title)} <span class="sub">domain review${P.checkpoint?' · checkpoint':''}</span></h1>
+<p class="meta">${[meta.domain_position,P.target&&P.target.framework?`${P.target.framework} on ${P.target.warehouse||'the warehouse'}`:null,accel?`${accel.name} ${accel.commit.slice(0,7)}`:null].filter(Boolean).map(e).join(' · ')}</p>
+<div class="banner">${e(P.checkpoint&&P.checkpoint.qualification||P.qualification)}</div>
+<div class="cards">
+ <div class="card"><div class="n">${P.models.length}</div><div class="l">models in scope</div><div class="d">${['gold','silver','bronze'].map(l=>`${l}: reuse ${n(l,'reuse')} · extend ${n(l,'extend')} · create ${n(l,'create')}`).join('<br>')}</div></div>
+ <div class="card"><div class="n">${dbt.length+yml}</div><div class="l">dbt files to apply</div><div class="d">${sqlFor('create')} SQL for new models · ${sqlFor('extend')} SQL for changed models · ${yml} YAML</div></div>
+ <div class="card"><div class="n">${P.topics.length}</div><div class="l">Omni topics</div><div class="d">${views} views${rels!=null?' · '+rels+' relationships':''}<br>${cross} cross-domain topics</div></div>
+ ${leg.length?`<div class="card"><div class="n">${leg.length}</div><div class="l">legacy models accounted for</div><div class="d">covered ${lc('covered')} · partially ${lc('partially covered')} · retire candidate ${lc('retire candidate')}<br>out of domain ${lc('out of domain')} · unresolved ${lc('unresolved')}</div></div>`:''}
+ <div class="card"><div class="n">${P.decisions.length}</div><div class="l">decisions & questions</div><div class="d">${reg.length?['answered','assumed','open'].map(s=>s+' '+reg.filter(d=>d.status===s).length).join(' · '):P.decisions.filter(d=>!['resolved','accepted','approved'].includes(d.status)).length+' still open'}</div></div>
+ ${dash.length?`<div class="card"><div class="n">${dash.length}</div><div class="l">dashboards mapped</div><div class="d">served ${ds('served')} · partly served ${ds('partly_served')} · not served ${ds('not_served')}</div></div>`:''}
+</div>
+${repos.length?`<h2>Repositories</h2><div class="tw"><table><thead><tr><th>Role</th><th>Repository</th><th>Commit</th><th>Content fingerprint</th></tr></thead><tbody>${repos.map(r=>`<tr><td>${e(r.role)}</td><td>${e(r.name)}</td><td>${r.commit?`<code>${e(r.commit.slice(0,12))}</code>`:'<span class="note">not recorded</span>'}</td><td>${r.fingerprint?`<code>${e(r.fingerprint.slice(0,12))}</code>`+(r.complete===false?' <span class="note">partial scan</span>':''):'—'}</td></tr>`).join('')}</tbody></table></div>`:''}
+<h2>Read in this order</h2><ol>${readOrder.map(x=>`<li>${e(x)}</li>`).join('')}</ol>
+<h2>Not done yet</h2><ul>${notDone.map(x=>`<li>${e(x)}</li>`).join('')}</ul>`;
+}
+
+/* ---------- data model ---------- */
+function pipeline(a){
+ const NW=250,NH=30,GAP=10,CG=56,cols={raw:[],bronze:[],silver:[],gold:[]},raws=new Set(),rawE=[];
+ a.pipeline.forEach(i=>{const m=M[i];if(!cols[m.layer])return;cols[m.layer].push(i);m.src.forEach(s=>{raws.add(s);rawE.push([s,i])})});
+ cols.raw=[...raws].sort();['bronze','silver','gold'].forEach(k=>cols[k].sort());
+ const order=['raw','bronze','silver','gold'],X={},Q={};let rows=0;
+ order.forEach((k,ci)=>{X[k]=10+ci*(NW+CG);cols[k].forEach((id,ri)=>Q[k+':'+id]={x:X[k],y:28+ri*(NH+GAP)});rows=Math.max(rows,cols[k].length)});
+ const W=20+4*NW+3*CG,H=28+rows*(NH+GAP)+6;
+ const ed=(p,q)=>{const x1=p.x+NW,y1=p.y+NH/2,x2=q.x,y2=q.y+NH/2,mx=x1+CG/2;return `<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" class="edge"/>`};
+ let s=order.map(k=>`<text x="${X[k]}" y="16" class="lh">${{raw:'RAW SOURCES',bronze:'BRONZE',silver:'SILVER',gold:'GOLD'}[k]} — ${cols[k].length}</text>`).join('');
+ rawE.forEach(([r,i])=>s+=ed(Q['raw:'+r],Q[M[i].layer+':'+i]));
+ a.pipeline.forEach(i=>M[i].dep.forEach(d=>{if(M[d]&&Q[M[d].layer+':'+d]&&Q[M[i].layer+':'+i])s+=ed(Q[M[d].layer+':'+d],Q[M[i].layer+':'+i])}));
+ order.forEach(k=>cols[k].forEach(id=>{const p=Q[k+':'+id];
+  if(k==='raw')s+=`<g class="node raw"><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="5"/><text x="${p.x+8}" y="${p.y+19}">${e(tr(id,40))}</text><title>Source table ${e(id)}</title></g>`;
+  else{const m=M[id];s+=`<g class="node ${cls(m)}" onclick="insp('${id}')"><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="5"/><text x="${p.x+8}" y="${p.y+19}">${e(tr(id,40))}</text><title>${e(id)} · ${e(m.disp)}${shared(m)?' · shared from '+e(m.domain):''}</title></g>`}}));
+ return `<div class="wide"><svg viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W,1100)}px">${s}</svg></div>`;
+}
+function erd(a){
+ const g=new Set(a.gold),ids=a.erd.filter(i=>M[i]),isDim=i=>/_dim$/.test(i);
+ const rels=P.relationships.filter(r=>ids.includes(r.from)&&ids.includes(r.to)&&(g.has(r.from)||a.shared));
+ const cols=a.shared?[ids.filter(i=>!isDim(i)).sort(),ids.filter(isDim).sort(),[]]:[ids.filter(i=>g.has(i)&&!isDim(i)).sort(),ids.filter(i=>g.has(i)&&isDim(i)).sort(),ids.filter(i=>!g.has(i)).sort()];
+ const BW=300,CG=60,Q={};let H=0;
+ const keys=i=>M[i].cols.filter(c=>c[2]==='PK'||c[2]==='FK');
+ cols.forEach((col,ci)=>{let y=30;col.forEach(id=>{const k=keys(id).slice(0,7);const h=52+k.length*14;Q[id]={x:10+ci*(BW+CG),y,h,k,more:keys(id).length-k.length};y+=h+16});H=Math.max(H,y)});
+ const W=20+3*BW+2*CG;
+ let s=(a.shared?['FACTS & EXTENDED TABLES','DIMENSIONS','']:['THIS AREA — FACTS','THIS AREA — DIMENSIONS','RELATED TABLES']).map((t,i)=>t?`<text x="${10+i*(BW+CG)}" y="16" class="lh">${t}</text>`:'').join('');
+ rels.forEach(r=>{const p=Q[r.from],q=Q[r.to];if(!p||!q)return;let d;const y1=p.y+20,y2=q.y+20;
+  if(p.x<q.x){const x1=p.x+BW,x2=q.x,m=(x1+x2)/2;d=`M${x1} ${y1} C${m} ${y1} ${m} ${y2} ${x2} ${y2}`}
+  else if(p.x>q.x){const x1=p.x,x2=q.x+BW,m=(x1+x2)/2;d=`M${x1} ${y1} C${m} ${y1} ${m} ${y2} ${x2} ${y2}`}
+  else{const x=p.x+BW,bx=x+Math.min(CG-6,24+Math.abs(y2-y1)/12);d=`M${x} ${y1} C${bx} ${y1} ${bx} ${y2} ${x} ${y2}`}
+  const t=`${r.from} → ${r.to} (${(r.card||'relationship').replace(/_/g,' ')})${r.key?' on '+r.key:''}`;
+  s+=`<g><path d="${d}" class="relhit"><title>${e(t)}</title></path><path d="${d}" class="rel"/></g>`});
+ ids.forEach(id=>{const p=Q[id];if(!p)return;const m=M[id];
+  let t=`<text x="${p.x+10}" y="${p.y+20}" class="tn">${e(tr(short(id),40))}</text><text x="${p.x+10}" y="${p.y+38}" class="tg">${e(tr(m.grain||(shared(m)?'shared interface — '+String(m.domain).replace(/_/g,' '):m.entity_type||''),52))}</text>`;
+  p.k.forEach((k,i)=>t+=`<text x="${p.x+10}" y="${p.y+54+i*14}" class="tg"><tspan class="${k[2]==='PK'?'kp':'kf'}">${k[2]}</tspan> ${e(tr(k[0],44))}</text>`);
+  s+=`<g class="tbl ${cls(m)}" onclick="insp('${id}')"><rect x="${p.x}" y="${p.y}" width="${BW}" height="${p.h}" rx="6"/>${t}<title>${e(id)} · ${m.cols.length} columns${p.more>0?' · '+p.more+' more keys':''}</title></g>`});
+ return `<div class="wide"><svg viewBox="0 0 ${W} ${H}">${s}</svg></div>`;
+}
+function topicLineage(a){
+ const tps=P.topics.filter(t=>t.area===a.id).sort((x,y)=>x.label.localeCompare(y.label));if(!tps.length)return '';
+ const NW=230,NH=30,GAP=8,CG=46,maxDepth=Math.max(1,...tps.flatMap(t=>t.joins.map(j=>j.depth)));
+ const cols=2+maxDepth,W=20+cols*NW+(cols-1)*CG,X=i=>10+i*(NW+CG);
+ let s=['TOPIC','BASE VIEW',...Array.from({length:maxDepth},(_,i)=>'JOIN LEVEL '+(i+1))].map((h,i)=>`<text x="${X(i)}" y="16" class="lh">${h}</text>`).join('');
+ let y=28;
+ const ed=(p,q,tip)=>{const x1=p.x+NW,y1=p.y+NH/2,x2=q.x,y2=q.y+NH/2,m=x1+CG/2;const d=`M${x1} ${y1} C${m} ${y1} ${m} ${y2} ${x2} ${y2}`;return `<g><path d="${d}" class="relhit"><title>${e(tip)}</title></path><path d="${d}" class="rel"/></g>`};
+ tps.forEach(t=>{
+  const rows=[1,...Array(maxDepth).fill(0)],yAt=d=>{const v=y+rows[d]*(NH+GAP);rows[d]++;return v};
+  const nodes=[{id:t.base,x:X(1),y}],at={};at[t.base]={x:X(1),y};
+  t.joins.forEach(j=>{const q={x:X(1+j.depth),y:yAt(j.depth)};nodes.push({id:j.to,x:q.x,y:q.y});at[j.to]=q});
+  const h=Math.max(...rows)*(NH+GAP)-GAP,tp={x:X(0),y};
+  let edges=ed(tp,at[t.base],`${t.label} → ${t.base} (base view)`);
+  t.joins.forEach(j=>{const p=at[j.from],q=at[j.to];if(p&&q)edges+=ed(p,q,`${j.from} → ${j.to} (${(j.card||'relationship').replace(/_/g,' ')})${j.on?' on '+j.on.replace(/\$\{|\}/g,''):''}`)});
+  let nn=`<g class="node topic" onclick="inspTopic('${t.topic}')"><rect x="${tp.x}" y="${tp.y}" width="${NW}" height="${NH}" rx="15"/><text x="${tp.x+12}" y="${tp.y+19}">${e(tr(t.label,32))}</text><title>Topic ${e(t.label)} · ${t.views.length} views · ${t.fields.length} field entries</title></g>`;
+  nodes.forEach(nd=>{const m=M[nd.id];nn+=`<g class="node ${m?cls(m):'reuse'}" onclick="insp('${nd.id}')"><rect x="${nd.x}" y="${nd.y}" width="${NW}" height="${NH}" rx="5"/><text x="${nd.x+8}" y="${nd.y+19}">${e(tr(short(nd.id),36))}</text><title>${e(nd.id)}${m?' · '+e(m.disp):''}</title></g>`});
+  s+=`<rect x="4" y="${y-5}" width="${W-8}" height="${h+10}" rx="8" class="tband"/>`+edges+nn;y+=h+22;
+ });
+ return `<div class="wide"><svg viewBox="0 0 ${W} ${y}" style="min-width:${Math.min(W,1100)}px">${s}</svg></div>`;
+}
+const LEGEND='<div class="legend"><span class="k new"></span>create <span class="k ext"></span>extend (changes an existing model) <span class="k reuse"></span>reuse (unchanged) <span class="k shared"></span>dashed: shared interface (other domain) <span class="k raw"></span>raw source table <span class="k topic"></span>semantic topic</div>';
+function rModel(){
+ let h=`<p class="meta">One section per subject area: the pipeline from raw source tables through staging (bronze) and integration (silver) to the warehouse tables (gold), then the relationships between gold tables. Hover a line for its join; click any table for grain, keys, columns, lineage, security notes and code.</p>${LEGEND}`;
+ P.areas.forEach(a=>{const tps=P.topics.filter(t=>t.area===a.id);
+  h+=`<div class="area" id="area-${e(a.id)}"><h2>${e(a.name)} <span class="sub">${a.gold.length} gold${a.pipeline.length?' · '+a.pipeline.length+' models in the pipeline':''}</span></h2>
+  ${tps.length?`<p class="note">Omni topics: ${tps.map(t=>`<a href="#" onclick="inspTopic('${t.topic}');return false">${e(t.label)}</a>`).join(', ')}</p>`:''}${a.shared?'<p class="note">Warehouse tables owned by other domains that this domain\'s topics join to or are built on. Their pipelines belong to their own domains.</p>':''}
+  ${a.pipeline.length?`<h3>Pipeline — raw → staging (bronze) → integration (silver) → warehouse (gold)</h3>${pipeline(a)}`:''}
+  <h3>Gold relationships</h3>${erd(a)}</div>`});
+ byId('architecture').innerHTML=h;
+ let t=`<h2>Topic lineage <span class="sub">${P.topics.length} topics</span></h2><p class="meta">Each semantic topic, its base view and the views it joins, per subject area. Hover a line for the join; click a topic for its joins, fields, dashboards and file.</p>${P.topic_note?`<p class="note">${e(P.topic_note)}</p>`:''}`;
+ P.areas.forEach(a=>{const x=topicLineage(a);if(x)t+=`<div class="area"><h2>${e(a.name)}</h2>${x}</div>`});
+ byId('lineage').innerHTML=t;
+}
+
+/* ---------- inspectors ---------- */
+function insp(n){const m=M[n];if(!m)return;const p=byId('insp');
+ const keys=m.cols.filter(c=>c[2]),path=codeOf(m),code=path&&P.inline_files?content(path):null;
+ const relTo=c=>{const r=P.relationships.find(r=>r.from===n&&r.key.startsWith(c+' '));return r?' → '+link(r.to):''};
+ const ts=P.topics.filter(t=>t.views.includes(n));
+ const existing=m.existing_source||(m.reuse&&m.reuse.existing_id?'Existing model: '+m.reuse.existing_id:(m.disp==='create'?'New in this delivery':'Existing model, '+(m.disp==='extend'?'changed in this delivery':'unchanged')));
+ const sec=m.security_notes||(m.security?[m.security]:[]);
+ p.innerHTML=`<button class="x" onclick="this.parentNode.classList.remove('on')">Close</button><h2>${e(m.id)}</h2>
+ <p>${b(m.disp)} · ${e(m.layer)} · ${e(m.domain||'')}${m.area&&areaName[m.area]?' · '+e(areaName[m.area]):''}</p>
+ <p><b>Grain:</b> ${m.grain?e(m.grain):'<span class="note">not stated in the model documentation</span>'}</p>
+ <p><b>Existing source:</b> ${e(existing)}</p>
+ <p><b>Code file:</b> ${path?fileLink(path):'<span class="note">not in this package (unchanged)</span>'}${P.model_pages[n]?` · <a href="${e(P.model_pages[n])}">table page</a>`:''}</p>
+ <p>${e(m.description||'')}</p>
+ <h3>Keys</h3>${keys.length?keys.map(k=>`<div><code>${e(k[2])}</code> <code>${e(k[0])}</code>${relTo(k[0])}</div>`).join(''):'<p class="note">No keys declared.</p>'}
+ <p><b>Semantic topics using this table:</b> ${ts.length?ts.map(t=>`<a href="#" onclick="inspTopic('${t.topic}');return false">${e(t.label)}</a>${t.base===n?' (base view)':''}`).join(', '):'none'}</p>
+ <h3>Lineage</h3><p><b>Depends on:</b> ${m.dep.map(link).join(', ')||'source tables only'}${m.src.length?'<br><span class="note">Source tables: '+m.src.map(e).join(', ')+'</span>':''}</p><p><b>Used by:</b> ${m.used.map(link).join(', ')||'—'}</p>
+ <h3>Security notes</h3>${sec.length?`<ul>${sec.map(x=>`<li>${e(x)}</li>`).join('')}</ul>`:'<p class="note">None recorded.</p>'}
+ <h3>Columns (${m.cols.length})</h3><table><tr><th>Column</th><th>Type</th><th>Description</th></tr>${m.cols.map(c=>`<tr><td><code>${e(c[0])}</code>${c[2]?' '+e(c[2]):''}</td><td>${e(c[1])}</td><td>${e(c[3])}</td></tr>`).join('')}</table>
+ ${code!=null?`<h3>Code — ${e(path)}</h3><pre>${e(code)}</pre>`:''}`;
+ p.classList.add('on');p.scrollTop=0}
+function inspTopic(n){const t=T[n];if(!t)return;const p=byId('insp'),code=P.inline_files?content(t.path):null;
+ p.innerHTML=`<button class="x" onclick="this.parentNode.classList.remove('on')">Close</button><h2>${e(t.label)}</h2>
+ <p><span class="b info">semantic topic</span> · ${e(t.group)} · ${e(areaName[t.area]||t.area)} · <code>${e(t.topic)}</code></p><p>${e(t.desc)}</p>
+ <p><b>Base view:</b> ${link(t.base)}${M[t.base]&&M[t.base].grain?' <span class="note">— '+e(M[t.base].grain)+'</span>':''}</p>
+ <h3>Joins (${t.joins.length})</h3>${t.joins.length?`<table><tr><th>From</th><th>To</th><th>Cardinality</th><th>On</th></tr>${t.joins.map(j=>`<tr><td>${link(j.from)}</td><td>${link(j.to)}</td><td>${e((j.card||'').replace(/_/g,' '))}</td><td><code>${e(String(j.on).replace(/\$\{|\}/g,''))}</code></td></tr>`).join('')}</table>`:'<p class="note">No joins; the topic reads its base view only.</p>'}
+ <h3>Dashboards served (${t.dashboards.length})</h3>${t.dashboards.length?`<table><tr><th>ID</th><th>Dashboard</th><th>Status</th></tr>${t.dashboards.map(x=>`<tr><td>${e(x.id)}</td><td>${e(x.title)}</td><td>${b(String(x.status).replace('_',' '))}</td></tr>`).join('')}</table>`:'<p class="note">No in-scope dashboard maps to this topic.</p>'}
+ <h3>AI context</h3><p>${t.ai?e(t.ai):'<span class="note">none</span>'}</p>
+ <h3>Fields (${t.fields.length} entries)</h3><p>${t.fields.map(x=>`<code>${e(x)}</code>`).join(' ')}</p>
+ <h3>Files</h3><p>${[t.path,...Object.values(t.view_files)].map(v=>fileLink(v)).join('<br>')}</p>
+ ${code!=null?`<h3>Code — ${e(t.path)}</h3><pre>${e(code)}</pre>`:''}`;
+ p.classList.add('on');p.scrollTop=0}
+addEventListener('keydown',ev=>{if(ev.key==='Escape')byId('insp').classList.remove('on')});
+
+/* ---------- code & files ---------- */
+let cur=null;
+function rDelivery(){const ph=P.placeholders,dbt=P.files.some(f=>/\/models\//.test(f.path)),omni=P.files.some(f=>f.path.endsWith('.topic')||f.path.endsWith('.view'));
+ byId('implementation-code').innerHTML=`${dbt?'<p class="meta">dbt files drop in over the target project at the same paths under <code>models/</code>; files not listed are unchanged. Schema YAML files replace the file of the same name, so compare with the main branch first.</p>':''}
+ ${P.new_sources.length?`<h2>Source tables used by new staging models <span class="sub">${P.new_sources.length}</span></h2><p>${P.new_sources.map(s=>`<code>${e(s)}</code>`).join(' ')}</p><p class="note">Check that each is declared in the source YAML for your environment.</p>`:''}
+ ${omni?`<h2>Semantic-layer placeholders to replace</h2>${ph.length?`<ul>${ph.map(x=>`<li><b>${e(x.text)}</b> — ${x.files.length} files</li>`).join('')}</ul>`:'<p class="note">No TODO placeholders found in the semantic files.</p>'}`:''}
+ <h2>Files <span class="sub">${P.files.length}</span></h2>
+ <div class="files"><div><input class="q" placeholder="Filter files…" oninput="renderFiles()" id="fq"><ul id="flist"></ul></div><pre id="fview">${P.inline_files?'Select a file.':'Select a file to open its page.'}</pre></div>`;
+ renderFiles()}
+function renderFiles(){const q=(byId('fq').value||'').toLowerCase();
+ byId('flist').innerHTML=P.files.filter(f=>f.path.toLowerCase().includes(q)).map(f=>`<li data-p="${e(f.path)}"${f.path===cur?' class="on"':''}><span class="b">${e(f.category)}</span> ${e(f.path)}</li>`).join('');
+ byId('flist').onclick=ev=>{const li=ev.target.closest('li');if(li)openFile(li.dataset.p)}}
+function openFile(p){if(!built.delivery){R.delivery();built.delivery=1}cur=p;const f=P.files.find(x=>x.path===p);
+ if(!P.inline_files){if(f)location.href=f.page||f.path;return}
+ const t=content(p);byId('fview').textContent=t!=null?('// '+p+'\n\n'+t):'Binary or generated file: open it from the package folder.';
+ document.querySelectorAll('#flist li').forEach(li=>li.classList.toggle('on',li.dataset.p===p));byId('insp').classList.remove('on')}
+
+/* ---------- decisions ---------- */
+function rChanges(){const reg=P.decisions.filter(d=>'assumed_option' in d||'options' in d),areas=[...new Set(P.decisions.map(d=>d.area||d.title||''))].sort();
+ byId('changes').innerHTML=`<h1>Decisions</h1><p class="meta">${reg.length?'Answered: confirmed by a person. Assumed: chosen by the authors, still reviewable. Open: needs a person; the assumed option is what the code does meanwhile.':'Decisions recorded in the review.'}</p>
+ <input class="q" placeholder="Filter…" oninput="filt(this,'tdec')">
+ <div class="tw"><table id="tdec"><thead><tr><th>ID</th><th>Area</th><th>Question</th>${reg.length?'<th>Options</th><th>Assumed option</th>':''}<th>Status</th></tr></thead><tbody>${P.decisions.map(d=>`<tr><td style="white-space:nowrap">${e(d.id)}</td><td>${e(d.area||d.title||'')}</td><td>${e(d.question||d.title||d.summary||d.description||'')}${d.decision?`<div class="note">${e(d.decision)}</div>`:''}</td>${reg.length?`<td>${(d.options||[]).map(e).join('<br>')||'—'}</td><td>${e(d.assumed_option||'—')}</td>`:''}<td>${b(d.status||'unresolved')}</td></tr>`).join('')}</tbody></table></div>`}
+
+/* ---------- legacy coverage ---------- */
+function rLegacy(){const ST=['covered','partially covered','retire candidate','out of domain','unresolved'],leg=P.legacy;const tl={};P.topics.forEach(t=>tl[t.topic]=t.label);
+ let h='<h2>Legacy coverage</h2>';
+ if(leg){const rows=[...leg].sort((x,y)=>ST.indexOf(x.status)-ST.indexOf(y.status)||x.legacy.localeCompare(y.legacy));
+  h+=`<p class="meta">${ST.map(s=>s+' '+leg.filter(r=>r.status===s).length).join(' · ')}</p>
+  <p class="note"><b>covered</b>: already a warehouse table, reused or extended · <b>retire candidate</b>: fully replaced by a new table, retire after reconciliation · <b>partially covered</b>: replaced, some fields not carried or rules changed · <b>out of domain</b>: another domain's model; the cross-domain topic is named where one serves it · <b>unresolved</b>: no definition or no target yet.</p>
+  <input class="q" placeholder="Filter legacy models…" oninput="filt(this,'tleg')"><div class="tw"><table id="tleg"><thead><tr><th>Legacy model</th><th>Status</th><th>Target</th><th>Topic</th><th>Note</th></tr></thead><tbody>${rows.map(r=>{
+   let t=(r.topics||[]).length?r.topics.slice(0,3).map(x=>e(tl[x]||x)).join(', ')+(r.topics.length>3?` <span class="note">+${r.topics.length-3} more</span>`:''):'—';
+   if(r.status==='out of domain')t=(r.cross_topics||[]).length?'cross-domain topic: <b>'+r.cross_topics.map(x=>e(tl[x]||x)).join(', ')+'</b>':`<span class="note">no topic in this delivery${r.domain?' ('+e(r.domain.replace(/_/g,' '))+')':''}</span>`;
+   return `<tr><td><code>${e(r.legacy)}</code>${r.source?`<div class="note">${e(r.source)}</div>`:''}</td><td>${b(r.status)}</td><td>${(r.targets||[]).map(link).join('<br>')||'—'}</td><td>${t}</td><td>${e(r.note||'')}</td></tr>`}).join('')}</tbody></table></div>`}
+ else h+='<p class="note">No legacy coverage register was supplied in this review.</p>';
+ const assets=P.assets||[];
+ if(assets.length)h+=`<h2>Dashboards and requirements → topics</h2><div class="tw"><table><thead><tr><th>ID</th><th>Name</th><th>Status</th><th>Topics</th><th>Reason</th></tr></thead><tbody>${assets.map(a=>`<tr><td>${e(a.id)}</td><td>${e(a.name||'')}</td><td>${b(String(a.coverage_status||a.mapping_status||'').replace('_',' '))}</td><td>${(a.topics||[]).map(x=>e(tl[x]||x)).join(', ')||'—'}</td><td>${e(a.coverage_reason||'')}</td></tr>`).join('')}</tbody></table></div>`;
+ byId('replacement-map').innerHTML=h}
+
+/* ---------- dictionary ---------- */
+let DICT=null;
+function rDict(){DICT=[];P.models.forEach(m=>m.cols.forEach(c=>DICT.push([m.layer,m.id,m.disp,c[0],c[1],c[2],c[3],codeOf(m)])));
+ byId('table-dictionary').innerHTML=`<h2>Data dictionary</h2><p class="meta">${P.models.length} models · ${DICT.length.toLocaleString('en-GB')} columns. Blank types are not documented in the existing model and are confirmed only by a build.</p>
+ <input class="q" placeholder="Search models and columns…" id="xq" oninput="drawDict()"><select class="s" id="xl" onchange="drawDict()"><option value="">all layers</option><option>gold</option><option>silver</option><option>bronze</option></select> <span class="note" id="xn"></span>
+ <div class="tw"><table id="tdict"><thead><tr><th>Layer</th><th>Model</th><th>Status</th><th>Column</th><th>Type</th><th>Description</th><th>Code file</th></tr></thead><tbody></tbody></table></div>`;drawDict()}
+function drawDict(){const q=byId('xq').value.toLowerCase(),l=byId('xl').value;const rows=DICT.filter(r=>(!l||r[0]===l)&&(!q||(r[1]+' '+r[3]+' '+r[6]).toLowerCase().includes(q)));
+ $('#tdict tbody').innerHTML=rows.slice(0,400).map(r=>`<tr><td>${e(r[0])}</td><td>${link(r[1])}</td><td>${e(r[2])}</td><td><code>${e(r[3])}</code>${r[5]?' '+e(r[5]):''}</td><td>${e(r[4])}</td><td>${e(r[6])}</td><td>${r[7]?fileLink(r[7]):'<span class="note">unchanged</span>'}</td></tr>`).join('');
+ byId('xn').textContent=(rows.length>400?'showing 400 of ':'')+rows.length.toLocaleString('en-GB')+' columns'}
+
+/* ---------- validation ---------- */
+function rValidation(){const open=P.validation.filter(v=>v.status!=='pass'),passed=P.validation.filter(v=>v.status==='pass');
+ byId('validation').innerHTML=`<h1>Validation</h1><p class="meta">Static checks on the packaged files only. Nothing was compiled or executed: a zero means the check found nothing in the files, not that the model works.</p>
+ ${P.static.length?`<table><thead><tr><th>Check</th><th>Count</th><th>Status</th><th>Scope</th></tr></thead><tbody>${P.static.map(s=>`<tr><td>${e(s.label)}</td><td>${s.count}</td><td>${b(s.count?'fail':'pass')}</td><td>${e(s.scope||'')}${(s.items||[]).length?`<details><summary class="note">items</summary><pre>${e(JSON.stringify(s.items,null,1))}</pre></details>`:''}</td></tr>`).join('')}</tbody></table>`:'<p class="note">Static checks need PyYAML at packaging time.</p>'}
+ <h2>Remaining checks and unknowns</h2>${open.length?`<table><thead><tr><th>Check</th><th>Scope</th><th>Status</th><th>Detail</th></tr></thead><tbody>${open.map(v=>`<tr><td>${e(v.label||v.id)}</td><td>${e(v.scope||'')}</td><td>${b(v.status)}</td><td>${e(v.details||v.actual||'')}</td></tr>`).join('')}</tbody></table>`:'<p class="note">None recorded.</p>'}
+ ${passed.length?`<h2>Reported passes</h2><table><thead><tr><th>Check</th><th>Scope</th><th>Status</th><th>Detail</th></tr></thead><tbody>${passed.map(v=>`<tr><td>${e(v.label||v.id)}</td><td>${e(v.scope||'')}</td><td>${b('pass')}</td><td>${e(v.actual||v.details||'')}</td></tr>`).join('')}</tbody></table>`:''}`}
+
+/* ---------- open items ---------- */
+function rOpen(){const items=[...P.decisions.filter(d=>['open','pending','unresolved'].includes(d.status)||!d.status).map(d=>({id:d.id,kind:'Question',text:d.question||d.title||'',who:d.reviewer_role||d.area||'',meanwhile:d.assumed_option||''})),
+ ...P.validation.filter(v=>['pending','fail','skipped'].includes(v.status)).map(v=>({id:v.id,kind:'Check',text:v.label||'',who:'',meanwhile:v.details||''})),
+ ...(P.legacy||[]).filter(r=>r.status==='unresolved').map(r=>({id:r.legacy,kind:'Legacy model',text:r.note||'',who:'',meanwhile:'No target'})),
+ ...P.placeholders.map(x=>({id:x.text,kind:'Placeholder',text:x.files.length+' semantic files carry this placeholder',who:'',meanwhile:'Left as a comment'}))];
+ byId('open-items').innerHTML=`<h1>Open items</h1><p class="meta">Everything still needing a person (${items.length}). "Meanwhile" is what the candidate does until it is answered. This page approves nothing.</p>
+ <input class="q" placeholder="Filter…" oninput="filt(this,'ttodo')"><div class="tw"><table id="ttodo"><thead><tr><th>ID</th><th>Kind</th><th>What is unconfirmed</th><th>Who answers</th><th>Meanwhile</th></tr></thead><tbody>${items.map(o=>`<tr><td style="white-space:nowrap">${e(o.id)}</td><td>${e(o.kind)}</td><td>${e(o.text)}</td><td>${e(o.who)}</td><td>${e(o.meanwhile)}</td></tr>`).join('')}</tbody></table></div>`}
+
+/* ---------- feedback and continuation ---------- */
+function rFeedback(){byId('review-feedback').innerHTML=`<h1>Prepare review feedback</h1><p class="meta">Write the correction or question, then copy it to the agent working on this engagement. Nothing is submitted from this page, and feedback is not approval.</p>
+ <label for="fb-table">Table or topic</label><br><input class="q" id="fb-table" list="fb-models"><datalist id="fb-models">${P.models.map(m=>`<option value="${e(m.id)}">`).join('')}${P.topics.map(t=>`<option value="${e(t.topic)}">`).join('')}</datalist><br><textarea id="fb-text" placeholder="What should change, and why?"></textarea><br><button type="button" id="fb-copy">Copy feedback</button> <span class="note" id="fb-note"></span>`;
+ byId('fb-copy').onclick=async()=>{const text=JSON.stringify({engagement_id:P.engagement_id,item:byId('fb-table').value,feedback:byId('fb-text').value},null,1);try{await navigator.clipboard.writeText(text);byId('fb-note').textContent='Copied.'}catch(err){byId('fb-note').textContent='Select the text and copy it with your keyboard.'}}}
+function rFrontend(){const f=P.frontend;byId('dashboard-migration').innerHTML=`<h1>Dashboard migration</h1>${f&&f.items?`<p class="meta">${e(f.qualification||'')}</p><table><thead><tr><th>Scope</th><th>Status</th><th>Dashboards</th><th>Topics</th><th>Next action</th></tr></thead><tbody>${f.items.map(r=>`<tr><td>${e(r.domain_id||r.id)}</td><td>${e(r.status)}</td><td>${e((r.dashboard_ids||[]).join(', '))}</td><td>${e((r.topic_names||[]).join(', '))}</td><td>${e(r.next_action||'')}</td></tr>`).join('')}</tbody></table>`:'<p class="note">No dashboard migration continuation was requested for this delivery.</p>'}`}
+
+const R={overview:rOverview,model:rModel,delivery:rDelivery,changes:rChanges,'replacement-map':rLegacy,'table-dictionary':rDict,validation:rValidation,'open-items':rOpen,'review-feedback':rFeedback,'dashboard-migration':rFrontend};
+byId('brand').textContent=P.title;byId('footer-id').textContent=' · '+(P.engagement_id||'')+' · no external requests';
+route();

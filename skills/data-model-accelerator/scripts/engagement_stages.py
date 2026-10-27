@@ -34,7 +34,9 @@ COMPONENT_FILES = {
                   'scripts/delivery_preflight.py', 'references/delivery-experience.md', 'scripts/governance_delivery.py',
                   'scripts/delivery_transfer.py', 'references/delivery-transfer.md', 'references/review-surface.md',
                   'scripts/upstream_context.py', 'scripts/staging_ports.py', 'scripts/source_visuals.py',
-                  'scripts/topic_visuals.py', 'scripts/omni_topic_trees.py', 'assets/guided-delivery/topic-panel.js'),
+                  'scripts/topic_visuals.py', 'scripts/omni_topic_trees.py', 'assets/guided-delivery/topic-panel.js',
+                  'scripts/review_page.py', 'assets/review-page/review.html', 'assets/review-page/review.css',
+                  'assets/review-page/review.js', 'references/review-page.md'),
     'deployment': ('scripts/deployment_workflow.py', 'scripts/deployment_authority.py'),
     # Diagnostic changes refresh evidence; they do not rewrite unchanged SQL.
     'authoring_checks': ('scripts/authoring_evidence.py', 'scripts/authoring_provenance.py',
