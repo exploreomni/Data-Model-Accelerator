@@ -1,2 +1,2 @@
 # Optional offline dbt Information Schema reader; installs no dbt runtime.
-duckdb==1.5.5
+duckdb==2.0.0

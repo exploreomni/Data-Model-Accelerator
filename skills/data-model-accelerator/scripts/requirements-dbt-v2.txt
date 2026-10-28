@@ -5,5 +5,5 @@ mashumaro[msgpack]==3.23
 msgpack==1.2.3
 typing_extensions==4.16.0
 PyYAML==6.0.3
-duckdb==1.5.5
+duckdb==2.0.0
 zstandard==0.25.0
