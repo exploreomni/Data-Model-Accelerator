@@ -51,7 +51,10 @@ For every code batch follow [authoring evidence](references/authoring-quality.md
 bind assumptions, provenance and expected structure, retain failed/unsupported
 checks, and recheck changed scope before another authoring pass. These diagnostics
 must not block explicitly requested provisional files or impersonate production
-qualification.
+qualification. Include scoped [SQL contracts](references/sql-contracts.md) in the
+existing authoring observation when keys, populations or value-domain expectations
+are supplied. Reuse unchanged checked evidence; give the reviewer the checked scope,
+all remaining gaps and the source/design context needed for independent judgment.
 
 The coordinator also owns final delivery assembly. A completed specialist task,
 `handoff_prepared` state or cheaper run does not prove that a usable handoff exists.
@@ -59,6 +62,8 @@ Use the deterministic finalizer below; do not delegate another source review to
 recreate navigation, design files or packaging evidence.
 
 ## Start with the engagement
+
+Ask about optional [domain classifications and customer standards](references/customer-modeling-standards.md). Import them as evidence, preserve existing domain decisions and naming governance, and pass only relevant pinned rules to specialists. Missing exports do not block provisional work.
 
 For refactoring, follow [migration intent](references/migration-intent.md). Record
 the structural objective separately from preserved business behavior and identify
@@ -150,6 +155,7 @@ Read [discovery.md](references/discovery.md) before target deliverable generatio
 - For each selected domain, reuse or ask whether it is new, refactoring, or mixed. Offer [comparison with historical tables](references/legacy-alignment.md) when relevant: retain available historical schemas, SQL and rules before design, then explain splits, merges and moved logic before design review. Missing history does not prevent explicitly requested provisional code. Use existing extraction results and bounded comparison context; do not launch another broad discovery pass.
 - When migration planning is requested, follow [migration-planning.md](references/migration-planning.md). Reuse the selected domain and mappings; ask for Excel/Word versus Google Sheets/Docs and the ticket platform/template. The bounded PM role prepares editable inventory, plan and ticket templates from retained evidence. Missing planning context does not block provisional code. Live ticket writes remain a separate request.
 - Requested outputs and audience, plus mode: assessment; selected candidate artifacts; authorized development validation; or separately authorized deployment handoff. Use [delivery-experience.md](references/delivery-experience.md) to record selections and package the result. Selecting code or tests does not authorize their execution.
+- Record personal data once as the `personal_data` answer: every column the user lists (for example a personal-data inventory) plus columns the accelerator classifies as PII/PCI/PHI. Ask for destination-specific treatment separately from classification; retain unresolved choices and follow [personal-data exclusion](references/sensitive-data.md#personal-data-exclusion).
 - Optionally retain `delivery_destination` as the exact new version directory. Reuse it at finalization; it is delivery logistics, not an additional design gate. Follow [local assembly and verified transfer](references/delivery-transfer.md).
 
 Confirm missing meaningful decisions with the user before treating dependent deliverables as reviewed or executing them. An explicit request for provisional code permits supported draft files while those decisions remain unresolved; follow [provisional generation](references/provisional-generation.md). A proposed default is not an answer, and elapsed time is not confirmation. Do not ask again about choices or permissions already supplied. With unknown facts, continue independent work and identify what blocks verification or execution. Do not invent source tables, keys, CDC metadata, user permissions, metric authority, or customer acceptance. A synthetic demonstration is always labeled synthetic.
@@ -403,7 +409,11 @@ Before handing over a completed selected delivery, run `scripts/finalize_deliver
 using the saved state, review manifest and artifact root, as shown in
 [review-surface.md](references/review-surface.md#finalize-the-selected-handoff).
 It produces one verified ZIP and matching extracted folder with `START_HERE.html`
-at the root. Its default `--layout simple` organizes selected files into input sources,
+at the root. Keep the established guided or partitioned review renderer so recorded
+validation, decisions and deployment evidence remain accessible. The [review page](references/review-page.md)
+describes additive review fields and an alternative presentation; absent optional fields
+must remain unassessed rather than invented. Supply available reading order, repositories,
+subject areas and legacy coverage without requiring a new discovery pass. Its default `--layout simple` organizes selected files into input sources,
 input context, design documents, code generation and mappings; design files live
 in `03_Design_Documents/`. Original input repositories stay at their registered
 roots and are not cloned into the handoff. Use `--layout classic` only when the

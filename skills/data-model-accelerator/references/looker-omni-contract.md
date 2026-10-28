@@ -126,6 +126,18 @@ Candidate `customers.view` uses the same mapping pattern for `DIM_CUSTOMERS`, ex
 
 ## Relationships, topics, and user attributes
 
+Looker explores are requirements, not a topic inventory. Evaluate reuse under [topic population](omni-modeler-joins-topics.md#topic-population), preserving access and analytical intent.
+
+| Source behavior | Candidate treatment |
+| --- | --- |
+| `sql_always_where` | Fixed row population; preserve its predicate and record confirmation or an open question. |
+| `always_filter` | Required but editable filter. Consider Omni `default_filters` with `required: true` when behavior is equivalent; never silently freeze its value. |
+| `conditionally_filter` | Conditional requirement with alternative fields. Preserve the alternatives as a migration requirement; an optional default is not equivalent. Record a gap if the selected Omni route cannot reproduce it. |
+| Dashboard filter | Preserve default, editability, scope and interaction; assess independently of row security. |
+| Access filter / grant | Retain the security boundary and require persona-based native verification. |
+
+Behavior checked 2026-10-28 against [Looker required filters](https://docs.cloud.google.com/looker/docs/creating-required-filters-with-lookml) and [Omni default filters](https://docs.omni.co/modeling/topics/parameters/default-filters). This mapping is guidance; native parity remains separate.
+
 The special `relationships` file is a top-level YAML list:
 
 ```yaml

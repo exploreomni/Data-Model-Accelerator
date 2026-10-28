@@ -15,3 +15,52 @@ Policy and classification records have independent schema version 1. Construct u
 Keep projections, temporary files and private audit evidence in the approved storage boundary. Apply the engagement's retention and cleanup policy; no universal retention period is assumed. Never remove original evidence while cleaning a run. Scanner bounds intentionally fail closed on unsupported binary formats, oversized archives, malformed embedded data and incomplete coverage. It is a bounded local detector, not comprehensive DLP or a compliance certification.
 
 Deployment review exports add evidence after the original handoff. For scoped engagements, declare classifications under `review.disclosure.generated_evidence` for the selected `plan`, `receipt`, `lint-manifest`, `lint-target`, `lint-configuration`, `lint-findings`, `lint-guide` and `quality` outputs. Unclassified generated evidence blocks export. These declarations authorize a disclosure class only; final bytes are rescanned, and they do not constitute deployment approval.
+
+## Personal-data exclusion
+
+Record sensitive-field evidence once as the optional `personal_data` answer. Ask which
+fields must be excluded, retained under controls, masked, tokenized or aggregated in
+gold and in Omni. Classification is not a treatment decision. Preserve existing policy
+answers; missing information stays unresolved rather than assuming removal or permission.
+
+Use `personal_data.py import-csv` or `from-dictionary` for a version 2 register. Imports
+retain source table and column identity and begin with unresolved treatment. Scope the
+inventory to the chosen domain; an unqualified entry explicitly has broader matching scope.
+Legacy version 1 exclusion registers remain readable and retain their exclusion meaning.
+A new classification must not silently override an accepted retention requirement.
+
+Treatment records reference the exact source, destination, transformation and review
+reference. Retention declares the required controls; masking, tokenization and aggregation
+also bind the reviewed output expression. These records do not authenticate a reviewer,
+activate warehouse controls, manage encryption keys, or establish de-identification.
+Hashing alone does not remove PII/PCI/PHI classification.
+
+The assessment follows SQL output projections and qualified sources. Merely referencing a
+sensitive input is different from exposing it unchanged. Unknown aliases, dynamic templates,
+physical stars and missing lineage remain visible gaps. A scoped registration for
+`customers.title` must not classify `products.title` as the same field. Hidden Omni fields
+are still exposed fields; hiding is not an access control.
+
+Review the assessment and impact before accepting treatment: exclusions can break keys,
+joins, metrics and dashboard requirements. Keep source repositories read-only. False-positive
+entries explain an incorrect classification; they are not a way to waive genuine sensitivity.
+
+Candidate code and review planning remain available with unresolved version 2 treatment.
+The handoff shows unresolved findings and cannot claim privacy acceptance. Explicit treatment
+violations prevent packaging, and native deployment rechecks candidate bytes and requires
+resolved treatment. Existing disclosure, native access, and deployment authorization checks
+remain independent and cannot be waived by provisional-generation permission.
+
+A minimal v2 input (no invented treatment approval):
+
+```json
+{"schema_version":2,"entries":[{"table":"raw.customers","column":"email","origin":"prompt"}],"treatments":[]}
+```
+
+To prepare a decision, use `privacy_contract.new_treatment({"table":"raw.customers",
+"column":"email"}, "gold")`, then record the selected treatment, transformation,
+review reference and applicable controls. For transformed outputs, copy the expression
+fingerprint from the assessment only after reviewing that exact expression. Run
+`personal_data.py assess --register register.json --outputs outputs.json --output new-report.json`
+to obtain the value-free impact report. A `clear` report is limited to the supplied
+outputs and declared policies; it is not a warehouse-wide privacy certification.

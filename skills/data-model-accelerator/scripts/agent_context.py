@@ -25,7 +25,7 @@ BRIEF_FIELDS = {'objective', 'scope_ids', 'summary', 'decisions', 'unknowns',
                 'constraints', 'output_contract', 'stop_conditions'}
 REQUEST_FIELDS = {'schema_version', 'kind', 'task_id', 'role', 'bindings', 'brief',
                   'evidence', 'policy', 'classification', 'mode'}
-OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta', 'source_type', 'migration_intents', 'design_evidence', 'naming_contract', 'assignment'}
+OPTIONAL_FIELDS = {'max_packet_bytes', 'budget_reason', 'delta', 'source_type', 'migration_intents', 'design_evidence', 'naming_contract', 'assignment', 'modeling_standards', 'domain_classification'}
 
 
 def _text(value, label):
@@ -106,6 +106,9 @@ def _validate(request):
     packet_evidence(request)
     from naming_context import validate_packet
     validate_packet(request)
+    for module in ('modeling_standards', 'domain_classification'):
+        from importlib import import_module
+        import_module(module).validate_packet(request)
     if 'assignment' in request:
         from task_routing import bind_assignment
         bind_assignment(request['assignment'], task_id=request['task_id'], role=role,
@@ -160,6 +163,10 @@ def build_packet(root, request, output):
         naming = validate_packet(request)
         if naming is not None:
             data['naming_contract'] = naming
+        for module in ('modeling_standards', 'domain_classification'):
+            from importlib import import_module
+            context = import_module(module).validate_packet(request)
+            if context is not None: data[module] = context
         data['evidence'] = excerpts
         data['file_coverage'] = coverage
         if 'assignment' in request:

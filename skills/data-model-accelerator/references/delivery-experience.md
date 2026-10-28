@@ -44,7 +44,7 @@ Maintain one current human-readable design document, bound to the canonical desi
 
 ## Keep two packages distinct
 
-The **user handoff** uses the finalizer's default `--layout simple`: one root `START_HERE.html` and five sections for the selected files:
+The **user handoff** uses the finalizer's default `--layout simple`: one root `START_HERE.html` (the [review page](review-page.md)) and five sections for the selected files:
 
 ```text
 Handoff/

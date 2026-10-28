@@ -50,6 +50,87 @@ DICTIONARY_FIELDS = ('model_id', 'model_name', 'layer', 'domain', 'grain',
                      'column_name', 'data_type', 'key', 'description')
 
 
+LEGACY_COVERAGE_STATUSES = ('covered', 'partially covered', 'retire candidate', 'out of domain', 'unresolved')
+DECISION_REGISTER_STATUSES = ('answered', 'assumed', 'open')
+REVIEW_EXTENSION_KEYS = ('review_meta', 'subject_areas', 'legacy_coverage', 'static_checks')
+
+
+def _texts(value, limit=200):
+    return isinstance(value, list) and len(value) <= limit and all(isinstance(v, str) and v.strip() for v in value)
+
+
+def _validate_review_extensions(review, model_ids):
+    """Optional review-page fields (references/review-page.md). Authored evidence, never approval or execution."""
+    meta = review.get('review_meta')
+    if meta is not None:
+        require(isinstance(meta, dict) and set(meta) <= {'domain_position', 'repositories', 'read_order', 'not_done'},
+                'review_meta supports domain_position, repositories, read_order and not_done')
+        require('domain_position' not in meta or isinstance(meta['domain_position'], str) and meta['domain_position'].strip(),
+                'review_meta.domain_position must be text')
+        for key in ('read_order', 'not_done'):
+            require(key not in meta or _texts(meta[key], 50), 'review_meta.' + key + ' must be a list of text')
+        repos = meta.get('repositories', [])
+        require(isinstance(repos, list) and len(repos) <= 20 and all(
+            isinstance(r, dict) and set(r) <= {'role', 'name', 'commit', 'fingerprint', 'complete'}
+            and all(isinstance(r.get(k), str) and r[k].strip() for k in ('role', 'name'))
+            and all(r.get(k) is None or isinstance(r[k], str) and re.fullmatch(r'[0-9a-f]{7,64}', r[k]) for k in ('commit', 'fingerprint'))
+            and isinstance(r.get('complete', True), bool) for r in repos),
+            'review_meta.repositories need role and name; commit and fingerprint are hex or null')
+    areas = review.get('subject_areas')
+    area_ids = None
+    if areas is not None:
+        require(isinstance(areas, list) and len(areas) <= 100 and all(
+            isinstance(a, dict) and set(a) <= {'id', 'name', 'shared'} and isinstance(a.get('id'), str)
+            and re.fullmatch(r'[A-Za-z0-9_-]+', a['id']) and isinstance(a.get('name'), str) and a['name'].strip()
+            and isinstance(a.get('shared', False), bool) for a in areas), 'subject_areas need a simple id and a name')
+        area_ids = [a['id'] for a in areas]
+        require(len(set(area_ids)) == len(area_ids), 'subject_areas IDs must be unique')
+    for model in review.get('models', []):
+        if 'area' in model:
+            require(isinstance(model['area'], str) and model['area'].strip() and (area_ids is None or model['area'] in area_ids),
+                    'Model area must be one of the declared subject_areas')
+        for key in ('security_notes', 'sources'):
+            require(key not in model or _texts(model[key], 200), 'Model ' + key + ' must be a list of text')
+        require('existing_source' not in model or isinstance(model['existing_source'], str) and model['existing_source'].strip(),
+                'Model existing_source must be text')
+    for decision in review.get('decisions', []):
+        if 'assumed_option' in decision or 'options' in decision:
+            require(isinstance(decision.get('assumed_option', ''), str) and ('options' not in decision or _texts(decision['options'], 20))
+                    and decision.get('status') in DECISION_REGISTER_STATUSES,
+                    'Decision register rows need status answered, assumed or open; options are text')
+    legacy = review.get('legacy_coverage')
+    if legacy is not None:
+        require(isinstance(legacy, list) and len(legacy) <= MAX_REVIEW_ITEMS, 'legacy_coverage must be a bounded list')
+        seen = set()
+        for row in legacy:
+            require(isinstance(row, dict) and set(row) <= {'legacy', 'status', 'targets', 'topics', 'cross_topics', 'note', 'source', 'domain'},
+                    'Unsupported legacy_coverage fields')
+            require(isinstance(row.get('legacy'), str) and row['legacy'].strip() and row['legacy'] not in seen,
+                    'legacy_coverage rows need a unique legacy name')
+            seen.add(row['legacy'])
+            require(row.get('status') in LEGACY_COVERAGE_STATUSES, 'legacy_coverage status must be one of: ' + ', '.join(LEGACY_COVERAGE_STATUSES))
+            targets = row.get('targets', [])
+            require(isinstance(targets, list) and all(t in model_ids for t in targets), 'legacy_coverage targets must be included models')
+            require(row['status'] != 'unresolved' or not targets, 'An unresolved legacy model cannot name a target')
+            require(row['status'] not in ('covered', 'partially covered', 'retire candidate') or targets,
+                    'A covered, partially covered or retire-candidate legacy model needs a target')
+            for key in ('topics', 'cross_topics'):
+                require(key not in row or isinstance(row[key], list) and all(isinstance(v, str) for v in row[key]),
+                        'legacy_coverage ' + key + ' must be a list of text')
+            for key in ('note', 'source', 'domain'):
+                require(key not in row or isinstance(row[key], str), 'legacy_coverage ' + key + ' must be text')
+    checks = review.get('static_checks')
+    if checks is not None:
+        require(isinstance(checks, list) and len(checks) <= 100, 'static_checks must be a bounded list')
+        ids = [c.get('id') if isinstance(c, dict) else None for c in checks]
+        require(all(isinstance(i, str) and i for i in ids) and len(set(ids)) == len(ids), 'static_checks IDs must be unique')
+        for check in checks:
+            require(set(check) <= {'id', 'label', 'count', 'scope', 'items'} and isinstance(check.get('label'), str)
+                    and type(check.get('count')) is int and check['count'] >= 0
+                    and isinstance(check.get('scope', ''), str) and isinstance(check.get('items', []), list),
+                    'static_checks rows need id, label and a non-negative integer count')
+
+
 def _validate_handoff(review):
     """Choose one maintained narrative per role, without creating status claims."""
     handoff = review.get('handoff', {})
@@ -120,6 +201,71 @@ def _check_share_policy(state, review, selected, data, audience):
                                    scan_bytes(projected, 'review.json'))
     require(decision['allowed'], 'Review presentation disclosure policy is unresolved or denied')
     return 'allowed_by_declared_policy_not_authenticated_approval'
+
+
+def personal_data_outputs(review, selected=()):
+    """Actual gold/semantic projections, with explicit source identities where known."""
+    from personal_data import omni_outputs, sql_outputs
+    outputs, artifact_models = [], {}
+    for model in review.get('models', []):
+        if model.get('layer') != 'gold': continue
+        for column in model.get('columns', []):
+            if isinstance(column, dict) and isinstance(column.get('name'), str):
+                outputs.append({'scope': model.get('id', ''), 'identifier': column['name'], 'kind': 'gold_column',
+                                'destination': 'gold', 'source_columns': column.get('source_columns', []),
+                                'lineage_complete': column.get('lineage_complete') is True})
+        ids = ([model['artifact_id']] if isinstance(model.get('artifact_id'), str) else []) + model.get('artifact_ids', [])
+        for identifier in ids: artifact_models[identifier] = model['id']
+    dialect = (review.get('target') or {}).get('warehouse')
+    dialect = {'motherduck': 'duckdb', 'fabric': 'tsql', 'gcp': 'bigquery'}.get(dialect, dialect)
+    for artifact in selected:
+        path = PurePosixPath(artifact.get('path', ''))
+        try: text = artifact['content'].decode('utf-8')
+        except (KeyError, UnicodeError): continue
+        if _native_omni_artifact(path):
+            outputs.extend(omni_outputs(text, str(path)))
+        elif artifact.get('id') in artifact_models and artifact.get('category') == 'implementation':
+            scope = artifact_models[artifact['id']]
+            observed = sql_outputs(text, scope, kind='gold_code', dialect=dialect)
+            names = {r['identifier'] for r in observed}
+            outputs = [r for r in outputs if not (r['scope'] == scope and r['kind'] == 'gold_column' and r['identifier'] in names)]
+            outputs.extend(observed)
+    return outputs
+
+
+def _check_personal_data(state, review, selected=()):
+    """Return candidate treatment gaps; enforce explicit violations, not code-generation gates."""
+    register = state.get('answers', {}).get('personal_data')
+    if not register: return None
+    from personal_data import assess, message
+    report = assess(register, personal_data_outputs(review, selected))
+    require(report['status'] != 'violations', message(report['findings']))
+    return report
+
+
+def _privacy_panel(report):
+    if not report: return ''
+    return ('<details class="panel" id="privacy-treatment"><summary>Privacy treatment — '
+            + html.escape(report['status']) + '</summary><p>Candidate field treatment and downstream impact. '
+            'Unresolved items do not authorize native deployment; declared controls are not verified access controls.</p><pre>'
+            + html.escape(json.dumps(report, indent=2)) + '</pre></details>')
+
+
+def _standards_panel(data):
+    report = data.get('workflow', {}).get('modeling_standards')
+    body = ''
+    if report:
+        body += ('<details class="panel" id="modeling-standards"><summary>Customer standards — '
+                 + html.escape(report['status']) + '</summary><p>Review proposed labels, tags, descriptions and sample-query coverage. '
+                 'Physical names and source files are unchanged.</p><pre>'
+                 + html.escape(json.dumps(report, indent=2)) + '</pre></details>')
+    classifications = [{'domain': row['name'], **row['classification']} for row in
+                       data.get('domain_journey', {}).get('domains', []) if row.get('classification')]
+    if classifications:
+        body += ('<details class="panel" id="domain-classification"><summary>Imported domain evidence</summary>'
+                 '<p>Proposed classification evidence; existing domain choices are unchanged.</p><pre>'
+                 + html.escape(json.dumps(classifications, indent=2)) + '</pre></details>')
+    return body
 
 
 def _markdown_destination(value):
@@ -458,6 +604,10 @@ def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
         from omni_handoff import CONTEXT_PATH
         model_context=parse(read(summary['inputs']['model_context'],'technical_audit',['audit'],CONTEXT_PATH))
         verify_handoff(summary,state,model_files,model_context)
+    if 'topic_population' in summary:
+        # Population review is advisory; candidate packaging is not native acceptance.
+        require(type(summary['topic_population']) is dict and summary['topic_population'].get('status')
+                in ('complete', 'open_questions', 'review_required', 'blocked'), 'Invalid topic population evidence')
     if not included:data['review']['omni']=_omni_omitted(ref);return
     data['review']['omni']={'artifact_id':ref['artifact_id'],'sha256':ref['sha256'],'evidence_state':'selected',
         'status':'candidate','candidate_sha256':pins['model_candidate_sha256'],'static_status':summary['static_status'],
@@ -468,6 +618,8 @@ def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
         'next_actions':copy_quality(summary['next_actions']),
         'qualification':'Candidate review only. This page does not authenticate native execution, access, AI behavior, business sign-off or deployment.',
         'native_status':'pending','business_status':'pending','deployment_status':'not_authorized','acceptance_ready':False}
+    if 'topic_population' in summary:
+        data['review']['omni']['topic_population'] = copy_quality(summary['topic_population'])
     if 'topic_trees' in summary:
         data['review']['omni']['topic_trees'] = copy_quality(summary['topic_trees'])
         data['review']['omni']['topic_tree_pins'] = {key: pins[key] for key in ('model_candidate_sha256', 'model_context_sha256')}
@@ -689,6 +841,7 @@ def validate_review(state, review):
                 and all(isinstance(values, dict) and all(isinstance(k, str) and isinstance(v, str)
                     and k and v and len(k) <= 2000 and len(v) <= 200 for k, v in values.items())
                     for values in mapping.values()), 'Invalid Omni topic domain mapping')
+    _validate_review_extensions(review, set(ids))
     _validate_handoff(review)
     return review
 
@@ -1163,6 +1316,8 @@ def _presentation(state, review=None, audience='engineer'):
         if review.get('omni_warehouse_bindings'):data['review']['omni_warehouse_bindings']=copy_quality(review['omni_warehouse_bindings'])
         if review.get('omni_topic_domains'):data['review']['omni_topic_domains']=copy_quality(review['omni_topic_domains'])
         if 'handoff' in review:data['review']['handoff']=dict(review['handoff'])
+        for key in REVIEW_EXTENSION_KEYS:
+            if key in review:data['review'][key]=json.loads(json.dumps(review[key]))
         if audience == 'reviewer':
             data['review']['validation']=[{k:v.get(k) for k in ('id','label','scope','status','details','evidence_id')} for v in review.get('validation',[])]
         if audience == 'audit':
@@ -1183,6 +1338,9 @@ def _presentation(state, review=None, audience='engineer'):
                                     {a['id'] for a in (review or {}).get('artifacts', [])})
         if frontend is not None:
             workflow['frontend_continuation'] = frontend
+        from modeling_standards import summary as standards_summary
+        standards = standards_summary(state, allowed_models if review is not None else None)
+        if standards is not None: workflow['modeling_standards'] = standards
         from governance_delivery import project as governance_projection
         governance = governance_projection(state, allowed_models if review is not None else None)
         if governance is not None:
@@ -1306,7 +1464,7 @@ def _domain_presentation(raw):
               **fields(raw, ('active_domain_id', 'needs_selection', 'next_action', 'qualification', 'candidates_sha256'))}
     result['domains'] = [fields(row, ('id', 'name', 'description', 'status', 'model_ids', 'asset_count',
                                       'shared_dependency_ids', 'design_status', 'implementation_status',
-                                      'semantic_status', 'completion_kind', 'next_action'))
+                                      'semantic_status', 'completion_kind', 'next_action', 'classification'))
                          for row in raw.get('domains', [])]
     for projected, row in zip(result['domains'], raw.get('domains', [])):
         if row.get('scope_preview'):
@@ -1656,13 +1814,15 @@ def _trim_workflow_details(data):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
         data['workflow'].pop('frontend_continuation', None)
-        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness', 'migration_intent', 'governance'):
+        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness', 'migration_intent', 'governance', 'modeling_standards'):
             data['workflow'].pop(key, None)
 
 
 def _html(data):
+    # Keep the established renderer until the alternative meets the same workflow contract.
     from topic_visuals import panel
-    template=(ASSETS/'portal.html').read_text(encoding='utf-8').replace('<!--__TOPIC_PANEL__-->', panel())
+    template=(ASSETS/'portal.html').read_text(encoding='utf-8').replace('<!--__TOPIC_PANEL__-->', panel(data))
+    template = template.replace('<div id="dbt-runtime-validation"></div>', '<div id="dbt-runtime-validation"></div>' + _privacy_panel(data.get('review', {}).get('privacy_treatment')) + _standards_panel(data))
     if not data.get('topic_coverage'):
         template = template.replace('<script>/*__TOPIC_PANEL_JS__*/</script>', '')
     encoded=json.dumps(data,ensure_ascii=True,allow_nan=False,separators=(',', ':') if data.get('package_layout_version') == 2 else None).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
@@ -1789,7 +1949,9 @@ def render_engagement(state, output_path, review=None):
     if source:
         destination=_path(output_path); source_root=_path(source)
         require(destination != source_root and source_root not in destination.parents, 'Review output must stay outside the source repository')
+    privacy = _check_personal_data(state,review) if review is not None else None
     data=_presentation(state,review)
+    if privacy: data['review']['privacy_treatment'] = privacy
     _select_handoff(data, [])
     _select_quality_evidence(data, [])
     _select_metadata_evidence(data, [])
@@ -2082,7 +2244,9 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         destination=_path(output_path); source_root=_path(source)
         require(destination != source_root and source_root not in destination.parents, 'Package output must stay outside the source repository')
     selected=select_artifacts(review,artifact_root,audience,include)
+    privacy = _check_personal_data(state,review,selected)
     data=_presentation(state,review,audience)
+    if privacy and audience != 'audit': data['review']['privacy_treatment'] = privacy
     from package_layout import version
     data.update(page_mode='package', package_layout_version=version(review), selected_categories=sorted(set(include)), file_count=len(selected))
     data['projection']={'selected_artifact_count':len(selected),

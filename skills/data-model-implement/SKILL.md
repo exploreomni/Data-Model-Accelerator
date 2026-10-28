@@ -11,6 +11,12 @@ folders and selected key rules. Check actual outputs; request an explicit overri
 instead of inventing names. Public contract changes need separate review, while
 requested provisional generation remains available.
 
+Use the engagement's `personal_data` register to follow reviewed source-qualified treatment
+for each destination. Preserve unresolved treatment in provisional code evidence; do not
+invent exclusions, de-identification or active warehouse controls. Explicit exclusions must
+be honored, and deployment requires resolved treatment and native control verification.
+See [sensitive-field treatment](../data-model-accelerator/references/sensitive-data.md#personal-data-exclusion).
+
 If the user explicitly requests code with catalogue evidence or design review
 pending, use [provisional generation](../data-model-accelerator/references/provisional-generation.md).
 Record the actual request and author supported draft files now. Keep missing
@@ -52,3 +58,5 @@ requested provisional outputs. Preserve configured model/effort defaults.
 Code generation does not authorize project execution, semantic generation or deployment.
 
 Carry the scoped [migration intent](../data-model-accelerator/references/migration-intent.md) into engineering tasks. Generate from target grains, relationships and source bindings. Copied legacy marts or thin wrappers are retained implementation, not evidence of completed refactoring. Record transitions and reviewed exceptions; provisional files remain available while outcome assessment is pending.
+
+For reviewed SQL expectations, add optional [SQL rules](../data-model-accelerator/references/sql-contracts.md) to the same authoring contract. Keep upstream file scope explicit and treat unsupported parsing as a gap. Reuse current receipts; do not run a second full-project scan or reduce the reviewer to mechanical findings alone.

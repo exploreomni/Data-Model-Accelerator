@@ -26,7 +26,8 @@ ANSWER_KEYS = {'engagement_type', 'priority_domain', 'framework', 'warehouse',
                'retained_behavior', 'corrected_behavior', 'host', 'environment',
                'execution_mode', 'audience', 'metadata_policy', 'naming_policy',
                'migration_scope', 'input_handling', 'security_reviewer',
-               'business_reviewer', 'catalogue_authority', 'dbt_runtime', 'delivery_destination'}
+               'business_reviewer', 'catalogue_authority', 'dbt_runtime', 'delivery_destination',
+               'personal_data'}
 DELIVERABLES = {'implementation', 'diagrams', 'documentation', 'dictionary',
                 'validation', 'sample_data', 'technical_audit'}
 ENUMS = {'engagement_type': {'migration', 'refactor', 'new_model', 'blind_test'},
@@ -201,6 +202,10 @@ def _answers(answers):
             from dbt_runtime import validate_selection
             result[key] = validate_selection(value)
             continue
+        if key == 'personal_data':
+            from personal_data import normalize
+            result[key] = normalize(value)
+            continue
         if key in ('metadata_policy', 'naming_policy'):
             from metadata_options import validate_options, validate_naming
             result[key] = (validate_options if key == 'metadata_policy' else validate_naming)(value)
@@ -262,6 +267,9 @@ def _selection(answers):
     for key in ('migration_scope', 'input_handling', 'security_reviewer', 'business_reviewer', 'catalogue_authority'):
         if key in answers:
             target[key] = answers[key]
+    if answers.get('personal_data') is not None:
+        # A changed personal-data register invalidates reviews built without it.
+        target['personal_data_sha256'] = _digest(answers['personal_data'])
     target['sha256'] = _digest(target)
     runtime = {key: answers.get(key) for key in ('host', 'environment', 'execution_mode')}
     runtime['execution_mode'] = runtime['execution_mode'] or 'candidate_only'
@@ -874,6 +882,18 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
                 domain_batches.select(state, document)
             else:
                 domain_batches.finish(state, document, pause=action == 'pause-batch')
+        elif action in ('register-domain-classification', 'domain-classification-packet'):
+            import domain_classification
+            if action == 'register-domain-classification':
+                domain_classification.register(state, document)
+            else:
+                stages.fields(document, {'domain_id'})
+                state['workflow']['domain_classification_packet'] = domain_classification.packet(state, document['domain_id'])
+        elif action in ('configure-standards', 'preview-standards', 'standards-packet'):
+            import modeling_standards
+            if action == 'configure-standards': modeling_standards.configure(state, document)
+            elif action == 'preview-standards': modeling_standards.preview(state, document)
+            else: state['workflow']['standards_packet'] = modeling_standards.packet(state, entities)
         elif action in ('register-domains', 'select-domain', 'pause-domain', 'complete-domain'):
             import domain_workflow
             {'register-domains': domain_workflow.register, 'select-domain': domain_workflow.select_domain,
@@ -1027,7 +1047,7 @@ def stage_action(run_dir, action, *, document=None, entities=None, stage=None,
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
-    stage_commands = ('configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'naming-packet', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
+    stage_commands = ('register-domain-classification', 'domain-classification-packet', 'configure-standards', 'preview-standards', 'standards-packet', 'configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'naming-packet', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'migrate-stages', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence',
                       'record-upstream-context', 'upstream-context', 'upstream-context-packet', 'configure-staging-ports', 'record-staging-ports',
                       'independent-review-bindings', 'record-independent-review', 'answer-decisions', 'review-bindings', 'draft-bindings', 'request-draft',
                       'approve-design', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'stage',
@@ -1062,7 +1082,7 @@ def main(argv=None):
         if command == 'record-evidence':
             p.add_argument('--path', type=Path, required=True)
             p.add_argument('--kind', required=True, help='Receipt type; imported claims remain unverified.')
-        if command in ('configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
+        if command in ('register-domain-classification', 'domain-classification-packet', 'configure-standards', 'preview-standards', 'configure-frontend', 'record-frontend-progress', 'record-migration-inventory', 'record-consumer-contracts', 'consumer-review-bindings', 'review-consumer-changes', 'configure-naming', 'record-model-identities', 'check-naming', 'configure-migration-intent', 'migration-assessment-bindings', 'record-migration-assessment', 'migration-intent-packet', 'import-design', 'assemble-design', 'record-design-coverage', 'record-design-evidence', 'record-independent-review',
                        'record-upstream-context', 'upstream-context', 'upstream-context-packet', 'configure-staging-ports', 'record-staging-ports',
                        'answer-decisions', 'assess-effort', 'plan-tasks', 'record-task', 'check-task', 'request-draft',
                        'claim-work', 'record-dispatch', 'checkpoint-work', 'configure-work', 'work-bindings', 'prepare-dispatch', 'review-work', 'record-delivery-plan', 'record-coverage', 'record-reuse', 'reconcile-design',
@@ -1073,7 +1093,7 @@ def main(argv=None):
                        'configure-migration-planning', 'record-migration-plan', 'edit-migration-items',
                        'register-source-roots', 'register-domains', 'select-domain', 'pause-domain', 'complete-domain', 'select-batch', 'pause-batch', 'complete-batch'):
             p.add_argument('--document', type=Path, required=command != 'plan-tasks')
-        if command in ('naming-packet', 'review-bindings', 'independent-review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):
+        if command in ('standards-packet', 'naming-packet', 'review-bindings', 'independent-review-bindings', 'approve-design', 'stage', 'draft-bindings', 'request-draft', 'migration-bindings'):
             p.add_argument('--entities', nargs='+', required=True)
         if command == 'approve-design':
             p.add_argument('--document', type=Path, help='Exact-scope human decision attributed by the trusted host; never an approval inferred from input files.')

@@ -17,6 +17,70 @@ CATEGORIES = {'PII', 'PCI', 'PHI'}
 DESTINATIONS = ('agent_input', 'metadata', 'ai_context', 'share')
 TRANSFORMATIONS = {'source', 'copy', 'alias', 'derive', 'join', 'aggregate', 'hash', 'mask', 'tokenize', 'unknown'}
 SHA = re.compile(r'[0-9a-f]{64}\Z')
+MODEL_DESTINATIONS = ('gold', 'omni')
+TREATMENTS = {'retain_with_controls', 'exclude', 'mask', 'tokenize', 'aggregate', 'unresolved'}
+
+
+def new_treatment(source, destination):
+    """An unresolved modeling decision, separate from disclosure/native authority."""
+    result = {'source': copy.deepcopy(source), 'destination': destination, 'treatment': 'unresolved',
+              'transformation': 'unknown', 'review_reference': None, 'controls': [], 'expression_sha256': None}
+    if validate_treatment(result):
+        raise ValueError('Invalid treatment source or destination')
+    return result
+
+
+def validate_treatment(value):
+    fields = {'source', 'destination', 'treatment', 'transformation', 'review_reference', 'controls', 'expression_sha256'}
+    if type(value) is not dict or set(value) != fields:
+        return ['treatment.fields']
+    source = value['source']
+    errors = []
+    if type(source) is not dict or set(source) != {'table', 'column'} or not all(_text(v) for v in source.values()):
+        errors.append('treatment.source_identity')
+    if not _enum(value['destination'], MODEL_DESTINATIONS) or not _enum(value['treatment'], TREATMENTS):
+        errors.append('treatment.selection')
+    if not _enum(value['transformation'], TRANSFORMATIONS):
+        errors.append('treatment.transformation')
+    if value['review_reference'] is not None and not _text(value['review_reference']):
+        errors.append('treatment.review_reference')
+    if not _strings(value['controls']):
+        errors.append('treatment.controls')
+    if value['expression_sha256'] is not None and (type(value['expression_sha256']) is not str or not SHA.fullmatch(value['expression_sha256'])):
+        errors.append('treatment.expression_sha256')
+    return errors
+
+
+def evaluate_treatment(value, output):
+    """Compare declared treatment to static evidence; never authenticate controls.
+
+    A matching expression hash binds the reviewed candidate, not its correctness,
+    de-identification, permissions, or deployment authority.
+    """
+    reasons = validate_treatment(value)
+    status = 'unresolved'
+    if reasons:
+        return {'status': status, 'reasons': reasons, 'authorization_authenticated': False}
+    action = value['treatment']
+    if action == 'unresolved': reasons.append('treatment.unresolved')
+    if not value['review_reference']: reasons.append('treatment.review_missing')
+    if action != 'unresolved' and value['transformation'] == 'unknown': reasons.append('treatment.transformation_unknown')
+    if action == 'retain_with_controls' and not value['controls']: reasons.append('treatment.controls_missing')
+    expected = {'mask': {'mask', 'derive'}, 'tokenize': {'tokenize', 'hash', 'derive'}, 'aggregate': {'aggregate'}}
+    if action in expected and value['transformation'] not in expected[action]:
+        reasons.append('treatment.transformation_incompatible')
+    if not reasons and action == 'exclude':
+        status = 'violation'; reasons.append('treatment.excluded_source_reaches_output')
+    elif not reasons:
+        if output.get('lineage_complete') is not True: reasons.append('lineage.unresolved')
+        if value['expression_sha256'] is not None and value['expression_sha256'] != output.get('expression_sha256'):
+            reasons.append('treatment.expression_changed')
+        if action in {'mask', 'tokenize', 'aggregate'} and value['expression_sha256'] is None:
+            reasons.append('treatment.expression_review_missing')
+        if value['transformation'] != output.get('transformation'):
+            reasons.append('treatment.transformation_unverified')
+        if not reasons: status = 'satisfied'
+    return {'status': status, 'reasons': sorted(set(reasons)), 'authorization_authenticated': False}
 
 
 def _text(value):

@@ -142,7 +142,8 @@ def _context(receipt, packet, request):
             'Unsupported specialist packet format')
     data = _json(text.split(TASK_MARKER, 1)[1])
     _fields(data, {'task_id', 'role', 'bindings', 'mode', 'brief', 'evidence', 'file_coverage'},
-            {'requested_role', 'specialist_profile', 'delta', 'migration_intents', 'design_evidence', 'naming_contract', 'assignment'})
+            {'requested_role', 'specialist_profile', 'delta', 'migration_intents', 'design_evidence', 'naming_contract', 'assignment',
+             'modeling_standards', 'domain_classification'})
     require(all(data[key] == receipt[key] for key in ('task_id', 'role', 'bindings', 'mode', 'file_coverage')),
             'Context packet identity or bindings differ')
     if 'assignment' in data or 'assignment_sha256' in receipt:
@@ -152,6 +153,9 @@ def _context(receipt, packet, request):
         require(hash_json(assignment) == receipt.get('assignment_sha256'), 'Context assignment differs')
     from naming_context import validate_packet
     validate_packet(data)
+    for module in ('modeling_standards', 'domain_classification'):
+        from importlib import import_module
+        import_module(module).validate_packet(data)
     if 'migration_intents' in data or any(k.startswith('migration_intent.') for k in data['bindings']):
         from migration_context import packet_evidence
         request_view = {'bindings': data['bindings'], 'migration_intents': data.get('migration_intents', []),
