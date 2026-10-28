@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="620" viewBox="0 0 1080 620" role="img" aria-labelledby="title desc">
+  <title id="title">Practice model: three event tables, two shared descriptive tables</title>
+  <desc id="desc">The synthetic sales, returns and product-attributed payments facts each declare customer_id and product_id references to customer and product dimensions. All six joins are proposed, many to one, and unverified. The illustration groups those references for readability; it is not transformation lineage.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#835695"/></marker></defs>
+  <rect width="1080" height="620" rx="24" fill="#f5f6fa"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#19243c">
+    <text x="40" y="54" font-size="30" font-weight="700">Three events. Two shared descriptions.</text>
+    <text x="40" y="90" font-size="21" fill="#43516b">Synthetic teaching illustration · proposed relationships · no warehouse validation</text>
+    <g fill="#fff" stroke="#5a819a" stroke-width="2">
+      <rect x="40" y="130" width="312" height="142" rx="12"/>
+      <rect x="384" y="130" width="312" height="142" rx="12"/>
+      <rect x="728" y="130" width="312" height="142" rx="12"/>
+    </g>
+    <g fill="#2f5794" font-size="17" font-weight="700"><text x="60" y="159">CREATE</text><text x="404" y="159">CREATE</text><text x="748" y="159">CREATE</text></g>
+    <g font-size="24" font-weight="700"><text x="60" y="193">FACT_SALES</text><text x="404" y="193">FACT_RETURNS</text><text x="748" y="193">FACT_PAYMENTS</text></g>
+    <g font-size="21"><text x="60" y="227">One row per sale record</text><text x="404" y="227">One row per return record</text><text x="748" y="227">One row per product-</text><text x="748" y="253">attributed payment record</text></g>
+    <g stroke="#835695" stroke-width="2.5" fill="none" stroke-dasharray="7 5">
+      <path d="M 196 272 V 306 H 884 V 272"/><path d="M 540 272 V 326" marker-end="url(#arrow)"/>
+      <path d="M 540 382 V 414 H 300 V 445" marker-end="url(#arrow)"/>
+      <path d="M 540 414 H 780 V 445" marker-end="url(#arrow)"/>
+    </g>
+    <rect x="145" y="332" width="790" height="50" rx="25" fill="#eee8fc"/>
+    <text x="540" y="364" font-size="22" fill="#66417d" text-anchor="middle">Each event table refers to BOTH customer and product</text>
+    <g fill="#fff" stroke="#4d897f" stroke-width="2"><rect x="110" y="448" width="380" height="114" rx="12"/><rect x="590" y="448" width="380" height="114" rx="12"/></g>
+    <g fill="#146c61" font-size="17" font-weight="700"><text x="130" y="476">REUSE</text><text x="610" y="476">REUSE</text></g>
+    <g font-size="24" font-weight="700"><text x="130" y="508">DIM_CUSTOMER</text><text x="610" y="508">DIM_PRODUCT</text></g>
+    <g font-size="21"><text x="130" y="540">One row per customer</text><text x="610" y="540">One row per product</text></g>
+    <text x="40" y="599" font-size="19" fill="#43516b">Dashed arrows = declared references. They do not prove key uniqueness or prevent double-counting.</text>
+  </g>
+</svg>

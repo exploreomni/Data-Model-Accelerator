@@ -6,6 +6,8 @@ Turn tangled analytics code into documented, testable warehouse models and an Om
 
 ## Start here
 
+**New to the tool? [Take the self-guided introduction](docs/training/README.md)** — a plain-language walkthrough, copy-ready prompts and a no-customer-data practice lesson. Business reviewers can start without learning SQL or command-line tools.
+
 | Your goal | Guide |
 | --- | --- |
 | Run your first engagement | [End-to-end how-to](docs/HOW_TO.md) |
@@ -100,10 +102,16 @@ A model delivery maintains an ERD, complete dictionary and documentation for eve
 
 ```text
 START_HERE.html               One entrypoint: status, design and implementation
-01_Model/                    ERDs, dictionary, layer guides and AI context
-02_Implementation/           Selected code, semantic files and runbook
-03_Validation/               Selected test results and unresolved checks
+01_Input_Sources/            Input references and explicitly included source files
+02_Input_Context_Files/      Included business context and supporting guidance
+03_Design_Documents/         ERDs, dictionary, layer guides and AI context
+04_Code_Generation/          Selected code, semantic files, runbook and validation
+05_Mappings/                 Selected comparisons and migration planning files
 ```
+
+This is the finalizer's default simple layout. Classic packages, including the
+five-table practice demo below, retain `01_Model/`, `02_Implementation/` and
+`03_Validation/`. Follow the README inside the package you receive.
 
 Choose `model_only`, `model_semantic` or `full_dashboard` during discovery. Dashboard migration requires behavior and effective-access evidence in addition to topics. Existing projects receive a scoped patch and impact mapping; new models receive a coherent candidate. Source rows and credentials are not automatically exported.
 
