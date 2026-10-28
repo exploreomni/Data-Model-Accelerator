@@ -1,10 +1,15 @@
 # Review page
 
-Every exported package opens on one review page, `START_HERE.html`, rendered by
-`scripts/review_page.py` from `assets/review-page/`. Small packages embed their files, so code
-opens inline. Large packages (more than 100 tables, more than 200 files or more than 4 MB of
-embedded data) keep their per-table and per-file pages and the review page links to them.
-Engagement status pages keep the existing portal.
+Every exported package opens on `START_HERE.html`. The established guided portal and
+partitioned portal remain the default so runtime evidence, failed quality checks, domain
+progress, metadata and deployment controls remain available. Small packages embed files;
+large packages link to bounded per-table and per-file pages.
+
+`scripts/review_page.py` and `assets/review-page/` are an alternative review presentation,
+not the default package renderer. Do not switch an engagement to it until its actual
+workflow, navigation, feedback and evidence parity have been qualified. The optional
+fields below are additive: old engagement formats remain valid, absent fields mean
+unassessed, and none of them records approval. Canonical delivery data remains authoritative.
 
 The page is a projection of the checked review: the embedded `delivery-data` block is the same
 projection the package checks verify, and `review-page-data` is derived from it and from the
@@ -51,8 +56,8 @@ was checked.
 
 ## Checks
 
-Small packages pass `portal_checks.validate_page` unchanged: the page keeps the required routes
+The default small packages pass `portal_checks.validate_page`: the page keeps the required routes
 (`architecture`, `lineage`, `table-dictionary` inside `model`; `implementation-code` and
-`replacement-map` inside `delivery`; `review-feedback`). Large packages pass
-`portable_site.check_page`, which calls `review_page.check_structure` for the eight tabs in order
-and every route. Change the template, `review_page.TABS` and this page together.
+`replacement-map` inside `delivery`; `review-feedback`). Large packages retain `portable_site.check_page` and their established routes. The alternative
+renderer uses `review_page.check_structure` for its tabs; it must not replace the default
+contract checks. Validate feedback round trips and visible validation outcomes, not only tabs.

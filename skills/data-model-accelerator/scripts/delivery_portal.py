@@ -1789,14 +1789,7 @@ def _trim_workflow_details(data):
 
 
 def _html(data):
-    if data.get('page_mode') == 'package':
-        # Every exported package opens on the review page (references/review-page.md); the
-        # embedded delivery-data is the same checked projection, so all page checks still apply.
-        from review_page import render
-        rendered = render(data)
-        from portal_checks import validate_page
-        validate_page(rendered, expected_data=data)
-        return rendered
+    # Keep the established renderer until the alternative meets the same workflow contract.
     from topic_visuals import panel
     template=(ASSETS/'portal.html').read_text(encoding='utf-8').replace('<!--__TOPIC_PANEL__-->', panel(data))
     if not data.get('topic_coverage'):

@@ -406,10 +406,11 @@ Before handing over a completed selected delivery, run `scripts/finalize_deliver
 using the saved state, review manifest and artifact root, as shown in
 [review-surface.md](references/review-surface.md#finalize-the-selected-handoff).
 It produces one verified ZIP and matching extracted folder with `START_HERE.html`
-at the root. `START_HERE.html` is the [review page](references/review-page.md):
-eight tabs, per-area pipelines, relationships and topic lineage, and a table and topic inspector.
-Supply its optional review fields (reading order, repositories, subject areas, decision
-register, legacy coverage) so the page is complete rather than defaulted. Its default `--layout simple` organizes selected files into input sources,
+at the root. Keep the established guided or partitioned review renderer so recorded
+validation, decisions and deployment evidence remain accessible. The [review page](references/review-page.md)
+describes additive review fields and an alternative presentation; absent optional fields
+must remain unassessed rather than invented. Supply available reading order, repositories,
+subject areas and legacy coverage without requiring a new discovery pass. Its default `--layout simple` organizes selected files into input sources,
 input context, design documents, code generation and mappings; design files live
 in `03_Design_Documents/`. Original input repositories stay at their registered
 roots and are not cloned into the handoff. Use `--layout classic` only when the

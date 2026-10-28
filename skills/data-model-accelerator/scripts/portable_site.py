@@ -196,20 +196,7 @@ def build(data, original_files):
     if 'topic_coverage' in data:
         from topic_visuals import panel
         body += panel(data)
-    # The entry page is the shared review page; detail pages keep their bounded per-table layout.
-    import review_page
-    texts = {}
-    for record in data.get('files', []) + data.get('generated_deliverables', []):
-        raw = original_files.get(record['path'])
-        if raw is None or PurePosixPath(record['path']).suffix.lower() in {'.pdf', '.docx', '.xlsx', '.svg'}:
-            continue
-        try:
-            texts[record['path']] = raw.decode('utf-8')
-        except UnicodeDecodeError:
-            continue
-    page = review_page.page_model(data, texts, code_pages=code_pages, model_pages=model_pages)
-    extra_html, extra_js = review_page.topic_extras(data)
-    files['START_HERE.html'] = review_page.render(compact, page, extra_html=extra_html, extra_js=extra_js).encode('utf-8')
+    files['START_HERE.html'] = _page('Data model review', body, compact, index=True)
     page_roles['START_HERE.html'] = {'role': 'entrypoint'}
     return files, page_roles, compact
 
@@ -221,8 +208,11 @@ def check_page(page):
     require(kind in {'partitioned_review', 'pipeline_page', 'table_page', 'code_page', 'topic_page'}, 'Unknown partitioned page')
     sections = [node for node in parsed.nodes.values() if 'data-section' in node.get('attrs', {})]
     if kind == 'partitioned_review':
-        import review_page
-        review_page.check_structure(parsed, topic_trees=bool(data.get('topic_coverage')))
+        expected_sections = {'model', 'code', 'migration', 'validation'} | ({'omni-topic-trees'} if data.get('topic_coverage') else set())
+        require({node['attrs'].get('id') for node in sections} == expected_sections, 'Large review routes are incomplete')
+        require(all('review-section' in node['attrs'].get('class', '').split() for node in sections), 'Every review section needs the shared layout')
+        require({n['attrs'].get('data-nav') for n in parsed.navigation} == expected_sections
+                and all(n['attrs'].get('href') == '#' + n['attrs']['data-nav'] for n in parsed.navigation), 'Every review section needs its direct sidebar link')
         require(data['model_count'] == len(data['models']) and data['file_count'] == len(data['files']), 'Partitioned page counts differ')
     return {'status': 'page_contract_verified', 'presentation': 'partitioned_v1', 'kind': kind}
 
