@@ -25,13 +25,14 @@ packaged files only. It reads no source repository, runs nothing and records no 
 | Decisions | `#changes` | All decisions; with the optional register fields: ID, area, question, options, assumed option and answered/assumed/open status. |
 | Legacy coverage | `#replacement-map` | Every legacy model → target with covered, partially covered, retire candidate, out of domain or unresolved; then dashboards and requirements → topics. |
 | Data dictionary | `#table-dictionary` | Every column of every included table, searchable. |
-| Validation | `#validation` | Static check counts on the packaged files (YAML errors, models without YAML, unresolved refs and sources, broken semantic field references and relationships), then the remaining and reported checks. Nothing is executed. |
+| Validation | `#validation` | Supplemental file syntax counts plus canonical recorded checks and unresolved findings. Semantic validation uses the existing semantic report, not a second parser in the page. Nothing is executed by the page. |
 | Open items | `#open-items` | Open questions, pending or failed checks, unresolved legacy models and placeholders. |
 
 The table inspector shows grain, keys with their targets, the topics that use the table, lineage
 (depends on / used by and source tables), disposition, existing source, security notes, columns
-and code. The topic inspector shows the base view, joins with cardinality and predicate, the
-dashboards it serves, AI context, fields and its files.
+and code. The topic inspector shows the base view, canonical join structure and binding gaps,
+the dashboards it serves and its files. Predicates, fields and AI context that are not
+projected are explicitly marked for inspection in the original files.
 
 ## Optional review fields
 

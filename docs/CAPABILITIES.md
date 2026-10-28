@@ -14,6 +14,27 @@ reviews do not establish warehouse truth or authenticated reviewer identity.
 Older engagements remain compatible and report missing companions as unassessed.
 Explicitly requested provisional code remains available when evidence is missing.
 
+Optional [domain evidence and customer standards](../skills/data-model-accelerator/references/customer-modeling-standards.md)
+preserve exact source identities, version imported classifications, and preview scoped
+label, tag, description and sample-query requirements. They do not select domains,
+rename physical models or grant approval. Unrelated rule changes preserve scoped work;
+changed source evidence, naming policies or model identities expose stale context.
+
+[Sensitive-field treatment](../skills/data-model-accelerator/references/sensitive-data.md)
+separates source-qualified classification from destination-specific decisions. Masking,
+tokenization and aggregation require explicit evidence; they do not automatically make
+data non-sensitive. Unresolved treatment remains visible in provisional candidates;
+native promotion has separate checks. [Scoped SQL contracts](../skills/data-model-accelerator/references/sql-contracts.md)
+share the existing authoring receipt and exact-byte reuse checks. Unsupported SQL remains
+unassessed, and static passes do not establish numerical parity or native security.
+
+Topic consolidation recommendations compare effective filters and access boundaries.
+Different audiences, grants or view-scoped definitions retain separate topics unless a
+reviewed change explicitly resolves them. Changed definitions invalidate affected decisions.
+The established small and partitioned guided pages remain the default; the alternative
+[review presentation](../skills/data-model-accelerator/references/review-page.md) remains
+available for further qualification rather than replacing existing delivery workflows.
+
 [Migration intent](../skills/data-model-accelerator/references/migration-intent.md)
 separates preserved business semantics from requested structural change. Scoped
 repository roles, evidence-bearing specialist briefs and current objective

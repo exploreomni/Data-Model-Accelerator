@@ -25,6 +25,18 @@ accuracy. Source objects, actual model candidates and external interfaces are
 counted separately. Reply to outstanding questions in ordinary language; the
 agent records your answer against the relevant model without restarting intake.
 
+If you already have domain classifications or presentation rules, supply them during
+intake or add them to the saved engagement:
+
+> Use our classification export as proposed domain evidence. Keep our selected domains
+> and naming policy. Preview our labels, tags, descriptions and sample-query requirements
+> for this domain before changing anything. Reuse unchanged evidence and show stale items.
+
+The [optional standards guide](../skills/data-model-accelerator/references/customer-modeling-standards.md)
+describes the imports and preview commands. Missing metadata does not block requested
+provisional code. For sensitive fields, state both their classification and the intended
+treatment at each destination; a masked expression alone does not establish safe release.
+
 Engineers can inspect the selected installation with `check_installation.py
 --preflight --selected-skill PATH` and discover supported input shapes through
 `operator_contracts.py examples`. The [design reliability guide](../skills/data-model-accelerator/references/design-reliability.md)

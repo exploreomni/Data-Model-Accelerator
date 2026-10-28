@@ -1,4 +1,4 @@
-"""The review page every package opens on (references/review-page.md).
+"""Alternative review presentation (references/review-page.md).
 
 One template serves both packaging modes. Small packages embed every file in delivery-data, so
 code opens inline; large (partitioned) packages link to their per-file code pages. The page model
