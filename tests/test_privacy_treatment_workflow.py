@@ -1,10 +1,12 @@
 """Draft delivery stays available while native execution retains its privacy gate."""
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'skills/data-model-accelerator/scripts'))
 import delivery_portal as portal
 import deployment_workflow as deployment
@@ -30,8 +32,16 @@ class PrivacyTreatmentWorkflowTests(unittest.TestCase):
 
     def test_only_projected_outputs_are_checked_and_input_lineage_is_retained(self):
         rows = personal_data.sql_outputs('SELECT SHA2(email, 256) AS customer_key FROM customers', 'gold.customers')
-        self.assertEqual([r['identifier'] for r in rows], ['customer_key'])
-        self.assertTrue(any(c['column'] == 'email' for c in rows[0]['source_columns']))
+        if importlib.util.find_spec('sqlglot') is not None:
+            self.assertEqual([r['identifier'] for r in rows], ['customer_key'])
+            self.assertTrue(any(c['column'] == 'email' for c in rows[0]['source_columns']))
+        else:
+            self.assertFalse(rows[0]['lineage_complete'])
+            self.assertEqual(rows[0]['lineage_reasons'], ['sql.parser_unavailable'])
+        with patch.dict(sys.modules, {'sqlglot': None}):
+            unsupported = personal_data.sql_outputs('SELECT email FROM customers', 'gold.customers')
+        self.assertFalse(unsupported[0]['lineage_complete'])
+        self.assertEqual(unsupported[0]['lineage_reasons'], ['sql.parser_unavailable'])
 
     def test_native_preflight_rejects_unresolved_treatment_and_changed_bytes(self):
         state, review, selected = self.fixture()
