@@ -12,23 +12,14 @@ Grammar checked 2026-10-05: [topic views](https://docs.omni.co/modeling/topics/p
 
 Apply these rules to every Omni candidate, whatever the source platform.
 
-1. Design topics from business entities and use cases, not one per source explore, report, workbook or dashboard.
-2. **One topic per base view and population.** A population is the base view plus its always-where filters (`always_where_filters`, `always_where_sql`). Default filters, access grants and field lists are removable choices; they never make a second population. When several source assets share a base view, merge them into one topic and express their filter differences as removable `default_filters`.
-3. A second topic on the same base view is allowed only for a deliberately different population. Build it with `extends` from the main topic and state the difference in **both** topics' `ai_context`, each naming the other.
-4. Never copy a source population rule (always-where filter) without confirmation. Record each one as a confirmed decision or an open question. Never turn a main-topic default filter into a variant's always-where filter silently.
-5. Before finalising, report every topic sharing a base view with its justification.
+1. Design topics around business entities and analytical needs. Do not automatically create one per dashboard or force one per base table.
+2. Compare fixed population, access filters, grants, joins, field and measure scope, and audience before recommending consolidation. Access rules are security controls, not removable presentation defaults. Distinct topics may be justified even when they share a base view and fixed population.
+3. Use supported inheritance to reuse definitions where appropriate. Preserve topic-specific overrides and explain their purpose. Never automatically merge or widen permissions.
+4. Preserve source fixed filters provisionally, with confirmation or an open question. Distinguish required editable filters, conditional requirements and removable defaults using the [Looker behavior mapping](looker-omni-contract.md#relationships-topics-and-user-attributes).
+5. Report shared-base topics, compatibility differences, reuse suggestions and unresolved questions without blocking candidate code or review packaging.
 
-`scripts/omni_topic_population.py` enforces this. `build_handoff(..., population_decisions=[...])` stores the result as `topic_population` in `SEMANTIC_REVIEW.json`; the portal blocks packaging while any finding is unresolved and renders a **Topics sharing a base view** table with the population questions in START_HERE.
+`scripts/omni_topic_population.py` produces advisory evidence. `build_handoff(..., population_decisions=[...])` stores it in `SEMANTIC_REVIEW.json`; START_HERE renders **Topics sharing a base view**. This report cannot authorize deployment or replace native security/business acceptance.
 
-| Code | Meaning |
-| --- | --- |
-| `population.multiple_main_topics` | Topics share a base view without extending one main topic |
-| `population.variant_same_population` | A variant has the main topic's always-where population; merge it |
-| `population.default_promoted_to_always_where` | A main-topic default became a fixed variant filter |
-| `population.ai_context_missing_variant` / `_missing_main` | The two ai_contexts do not name each other |
-| `population.always_where_unconfirmed` | A declared always-where rule has no decision or question |
-| `population.extends_unresolved` | Missing, cyclic or multi-parent `extends` |
+Resolve a finding with `{finding_id, resolution: confirmed|open_question, reference, reason}`. IDs bind the relevant effective definitions and inheritance, including operators and values through fingerprints; values are not included in the report. A changed rule invalidates its old decision and keeps it visible for review. Unchanged independent decisions remain reusable. Missing/cyclic/unsupported inheritance stays unresolved. Local inheritance analysis is bounded and does not prove native semantics.
 
-Resolve each finding by ID with `{finding_id, resolution: confirmed|open_question, reference, reason}`. `reference` is the actual human decision or question ID; `open_question` keeps the item visible on the questions page. A decision for a finding that no longer exists is rejected as stale. Extends resolution is a shallow per-parameter override; native inheritance and row counts still need native validation.
-
-Sources: [topics](https://docs.omni.co/modeling/topics), [relationships](https://docs.omni.co/modeling/relationships), [role-playing joins](https://docs.omni.co/guides/modeling/join-to-same-table).
+Sources: [topics](https://docs.omni.co/modeling/topics), [access filters](https://docs.omni.co/modeling/topics/parameters/access-filters), [required access grants](https://docs.omni.co/modeling/topics/parameters/required-access-grants), [relationships](https://docs.omni.co/modeling/relationships), [role-playing joins](https://docs.omni.co/guides/modeling/join-to-same-table).

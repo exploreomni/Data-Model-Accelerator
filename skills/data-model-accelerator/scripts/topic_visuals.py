@@ -23,19 +23,24 @@ def population_panel(data):
     rows = ''.join('<tr><td><code>' + e(r['base_view']) + '</code></td><td>' + e(r['topic']) + '</td><td>' + e(r['role'])
                    + '</td><td>' + e(r.get('extends') or '—') + '</td><td>' + e(', '.join(f.split('.')[-1] for f in r['always_where_fields']) or 'none')
                    + '</td><td>' + e(', '.join(f.split('.')[-1] for f in r['default_filter_fields']) or 'none')
+                   + '</td><td>' + e(', '.join(r.get('compatibility_differences', [])) or 'No declared difference; review intent')
                    + '</td><td>' + e(r.get('justification') or 'No recorded justification') + '</td></tr>'
                    for r in population.get('shared_base_views', []))
     questions = ''.join('<tr><td><code>' + e(q['finding_id']) + '</code></td><td>' + e(', '.join(q['topics'])) + '</td><td>'
                         + e(q['question']) + '</td><td>' + e(q.get('reference') or 'unresolved') + '</td></tr>'
                         for q in population.get('open_questions', []))
     body = ('<details class="panel" id="topic-population" open><summary>Topics sharing a base view — population status: '
-            + e(population.get('status')) + '</summary><p>One topic per base view and population. A population is the base view plus its '
-            'always-where filters; default filters, access and field lists do not make a second population.</p>')
+            + e(population.get('status')) + '</summary><p>Review reuse opportunities alongside security, audience, joins and field compatibility. '
+            'Access filters and grants are security requirements. Separate topics may be intentional; this report does not merge them or grant acceptance.</p>')
     body += ('<div class="scroll"><table><thead><tr><th>Base view</th><th>Topic</th><th>Role</th><th>Extends</th><th>Always-where (population)</th>'
-             '<th>Default filters</th><th>Justification</th></tr></thead><tbody>' + rows + '</tbody></table></div>') if rows else '<p>No topics share a base view.</p>'
+             '<th>Default filters</th><th>Compatibility differences</th><th>Justification</th></tr></thead><tbody>' + rows + '</tbody></table></div>') if rows else '<p>No topics share a base view.</p>'
     if questions:
         body += ('<h3>Population questions</h3><div class="scroll"><table><thead><tr><th>Finding</th><th>Topics</th><th>Question</th>'
                  '<th>Decision / question reference</th></tr></thead><tbody>' + questions + '</tbody></table></div>')
+    if population.get('stale_decisions'):
+        body += '<h3>Decisions needing renewed review</h3><ul>' + ''.join(
+            '<li>' + e(d['finding_id']) + ' — ' + e(d.get('reference')) + ': candidate evidence changed.</li>'
+            for d in population['stale_decisions']) + '</ul>'
     return body + '</details>'
 
 

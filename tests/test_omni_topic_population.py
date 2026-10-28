@@ -1,4 +1,4 @@
-"""One topic per base view and population; presentation-model PII controls."""
+"""Advisory consolidation, exact decisions and preserved security differences."""
 from pathlib import Path
 import sys
 import unittest
@@ -25,12 +25,14 @@ class TopicPopulationTests(unittest.TestCase):
         self.assertEqual(result['status'], 'complete')
         self.assertEqual(result['shared_base_views'], [])
 
-    def test_two_topics_without_extends_fail(self):
+    def test_two_topics_without_extends_need_advisory_review(self):
         result = population.assess({'a.topic': 'base_view: orders\n', 'b.topic': 'base_view: orders\n'})
-        self.assertEqual(result['status'], 'blocked')
+        self.assertEqual(result['status'], 'review_required')
         self.assertIn('population.multiple_main_topics', codes(result))
+        self.assertTrue(all(f['severity'] == 'advisory' for f in result['findings']))
+        self.assertFalse(result['merge_authorized'])
 
-    def test_variant_differing_only_by_defaults_fails(self):
+    def test_variant_differing_only_by_defaults_is_optional_consolidation(self):
         result = population.assess({
             'support.topic': MAIN.replace('kyc_tickets', 'uk_tickets'),
             'uk_tickets.topic': ('extends: [support]\ndefault_filters:\n  tickets.country:\n    is: gb\n'
@@ -58,7 +60,7 @@ class TopicPopulationTests(unittest.TestCase):
         self.assertEqual(len(decided['open_questions']), 1)
         self.assertEqual(decided['open_questions'][0]['reference'], 'Q-1')
 
-    def test_promoted_default_and_missing_ai_context_fail(self):
+    def test_promoted_default_and_missing_ai_context_need_review(self):
         result = population.assess({
             'support.topic': MAIN.replace('kyc_tickets', 'other'),
             'cs_only.topic': ('extends: [support]\nalways_where_filters:\n  tickets.is_deleted:\n    is: false\n'
@@ -76,12 +78,18 @@ class TopicPopulationTests(unittest.TestCase):
         self.assertEqual({tuple(f['fields']) for f in unconfirmed},
                          {('tickets.is_deleted',), ('tickets.is_team_kyc',)})
 
-    def test_stale_decision_and_bad_extends_are_rejected(self):
-        with self.assertRaises(ValueError):
-            population.assess({'a.topic': 'base_view: orders\n'},
-                              [{'finding_id': 'TP-missing', 'resolution': 'confirmed', 'reference': 'D-1', 'reason': 'x'}])
-        result = population.assess({'a.topic': 'extends: [missing]\n'})
-        self.assertEqual(codes(result), ['population.extends_unresolved'])
+    def test_stale_decision_and_bad_extends_remain_visible(self):
+        stale = population.assess({'a.topic': 'base_view: orders\n'},
+                                  [{'finding_id': 'TP-missing', 'resolution': 'confirmed', 'reference': 'D-1', 'reason': 'x'}])
+        self.assertEqual(stale['status'], 'review_required')
+        self.assertEqual(stale['stale_decisions'][0]['reference'], 'D-1')
+        for value in ('[missing]', '123', '[orders, 42]', 'null', 'orders', '[]'):
+            with self.subTest(value=value):
+                files = {'a.topic': 'base_view: orders\nextends: ' + value + '\n'}
+                result = population.assess(files)
+                self.assertEqual(codes(result), ['population.extends_unresolved'])
+                decided = population.assess(files, self.decisions(result))
+                self.assertEqual(decided['status'], 'review_required')
 
     def test_contract_carries_no_filter_values(self):
         result = population.assess({'support.topic': MAIN.replace('is: true', 'is: secret_value')})
@@ -94,13 +102,69 @@ class TopicPopulationTests(unittest.TestCase):
         self.assertIn('Topics sharing a base view', page)
         self.assertIn('kyc_tickets', page)
         self.assertNotIn('<b>', page)
-        self.assertIn('same always-where population as the main topic', page)
+        self.assertIn('same declared fixed population', page)
         self.assertEqual(topic_visuals.population_panel({}), '')
+
+    @staticmethod
+    def decisions(result):
+        return [{'finding_id': f['id'], 'resolution': 'confirmed', 'reference': 'D-1',
+                 'reason': 'Retain the reviewed topic purpose.'} for f in result['findings']]
+
+    def test_security_and_modeling_differences_never_suggest_merging(self):
+        files = {'main.topic': 'base_view: orders\nai_context: Compare specialized.\n',
+                 'specialized.topic': ('extends: [main]\nai_context: Specialized main audience.\n'
+                    'access_filters:\n  - field: orders.tenant_id\n    user_attribute: secret_tenant\n'
+                    'required_access_grants: [secret_grant]\njoins: {customers: {}}\n'
+                    'fields: [orders.id]\nlabel: Finance\n'
+                    'views:\n  orders:\n    measures:\n      total:\n        sql: ${amount}\n        aggregate_type: sum\n')}
+        result = population.assess(files)
+        self.assertNotIn('population.variant_same_population', codes(result))
+        incompatible = next(f for f in result['findings'] if f['code'] == 'population.consolidation_incompatible')
+        self.assertTrue({'security', 'joins', 'fields', 'measures', 'audience', 'scoped_views'} <= set(incompatible['differences']))
+        row = next(r for r in result['shared_base_views'] if r['topic'] == 'specialized')
+        self.assertEqual(row['consolidation'], 'keep_separate_pending_review')
+        self.assertFalse(row['merge_authorized'])
+        for secret in ('secret_tenant', 'secret_grant', '${amount}'):
+            self.assertNotIn(secret, repr(result))
+
+    def test_changed_filter_operator_or_access_invalidates_only_affected_decisions(self):
+        files = {'support.topic': MAIN, 'orders.topic': 'base_view: orders\nalways_where_filters:\n  orders.live:\n    is: true\n'}
+        initial = population.assess(files); decisions = self.decisions(initial)
+        baseline = {tuple(f['topics']): f['id'] for f in initial['findings']}
+        self.assertEqual(population.assess(files, decisions)['status'], 'complete')
+        for replacement in (MAIN.replace('is: false', 'is: secret_value'),
+                            MAIN.replace('is: false', 'not: false'),
+                            MAIN + 'required_access_grants: [private_group]\n'):
+            with self.subTest(replacement=replacement):
+                changed = population.assess(dict(files, **{'support.topic': replacement}), decisions)
+                self.assertEqual(changed['status'], 'review_required')
+                self.assertEqual([d['finding_id'] for d in changed['stale_decisions']], [baseline[('support',)]])
+                order = next(f for f in changed['findings'] if f['topics'] == ['orders'])
+                self.assertEqual(order['id'], baseline[('orders',)])
+                self.assertEqual(order['resolution'], 'confirmed')
+                self.assertNotIn('secret_value', repr(changed))
+                self.assertNotIn('private_group', repr(changed))
+
+    def test_partial_inheritance_preserves_parent_filters_and_scoped_measures(self):
+        files = {'support.topic': MAIN + ('views:\n  tickets:\n    required_access_grants: [private_group]\n'
+                 '    measures:\n      total:\n        sql: ${amount}\n        aggregate_type: sum\n'),
+                 'kyc_tickets.topic': ('extends: [support]\nai_context: KYC population of support.\n'
+                    'always_where_filters:\n  tickets.is_team_kyc:\n    is: true\n'
+                    'default_filters:\n  tickets.country:\n    is: gb\n')}
+        result = population.assess(files)
+        variant = next(r for r in result['shared_base_views'] if r['topic'] == 'kyc_tickets')
+        self.assertEqual(variant['always_where_fields'], ['tickets.is_deleted', 'tickets.is_team_kyc'])
+        self.assertEqual(variant['default_filter_fields'], ['tickets.country', 'tickets.is_cs_ticket'])
+        self.assertEqual(variant['compatibility_differences'], [])
+        self.assertNotIn('private_group', repr(result))
+        # An inherited access-rule change also changes the variant fingerprint.
+        updated = population.assess(dict(files, **{'support.topic': files['support.topic'].replace('private_group', 'new_group')}), self.decisions(result))
+        self.assertEqual(len(updated['stale_decisions']), len(result['findings']))
 
 
 @unittest.skipUnless(omni.yaml is not None and omni.sqlglot is not None, 'Pinned YAML/SQL runtime required')
 class PopulationDeliveryTests(unittest.TestCase):
-    """Handoff pins the contract; packaging blocks until findings are resolved."""
+    """Handoff pins the advisory contract while preserving candidate review."""
     def setUp(self):
         import tempfile
         import delivery_portal as portal
@@ -122,9 +186,9 @@ class PopulationDeliveryTests(unittest.TestCase):
         self.portal.package_delivery(self.state, review, self.root / name, self.root / (name + '.zip'), audience='engineer')
         return result
 
-    def test_unresolved_population_blocks_and_decision_unblocks(self):
-        with self.assertRaisesRegex(ValueError, 'population'):
-            self.package()
+    def test_unresolved_population_packages_with_review_required(self):
+        candidate = self.package()
+        self.assertEqual(candidate['summary']['topic_population']['status'], 'review_required')
         findings = self.handoff.build_handoff(self.state, self.files, self.context)['summary']['topic_population']['findings']
         decisions = [{'finding_id': f['id'], 'resolution': 'open_question', 'reference': 'Q-TEST-1', 'reason': 'Pending owner.'} for f in findings]
         result = self.package(decisions, 'resolved')

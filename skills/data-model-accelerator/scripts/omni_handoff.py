@@ -66,7 +66,7 @@ def build_handoff(state,model_files,model_context,decisions=None,population_deci
     reviewer JSON includes hashes and curated metadata, never source SQL bodies.
     All claims are local observations; imported metadata grants no authority.
     population_decisions resolve topic-population findings by finding ID
-    (see omni_topic_population.assess); unresolved findings block delivery.
+    (see omni_topic_population.assess); unresolved findings stay visible in candidate delivery.
     """
     from delivery_portal import source_fingerprint,context_fingerprint
     _bounded(state);_bounded(model_files);_bounded(model_context)

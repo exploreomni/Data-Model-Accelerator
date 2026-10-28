@@ -588,11 +588,9 @@ def _select_omni_evidence(data,selected,*,state=None,review=None,root=None):
         model_context=parse(read(summary['inputs']['model_context'],'technical_audit',['audit'],CONTEXT_PATH))
         verify_handoff(summary,state,model_files,model_context)
     if 'topic_population' in summary:
-        # One topic per base view and population: unresolved findings block
-        # packaging until a human decision or open question is recorded.
-        from omni_topic_population import summary_line
-        require(type(summary['topic_population']) is dict and summary['topic_population'].get('status') in ('complete','open_questions'),
-                summary_line(summary['topic_population']) if type(summary['topic_population']) is dict else 'Invalid topic population evidence')
+        # Population review is advisory; candidate packaging is not native acceptance.
+        require(type(summary['topic_population']) is dict and summary['topic_population'].get('status')
+                in ('complete', 'open_questions', 'review_required', 'blocked'), 'Invalid topic population evidence')
     if not included:data['review']['omni']=_omni_omitted(ref);return
     data['review']['omni']={'artifact_id':ref['artifact_id'],'sha256':ref['sha256'],'evidence_state':'selected',
         'status':'candidate','candidate_sha256':pins['model_candidate_sha256'],'static_status':summary['static_status'],
