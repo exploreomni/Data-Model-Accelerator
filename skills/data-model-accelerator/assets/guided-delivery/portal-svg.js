@@ -228,7 +228,7 @@
         if (key === 'id') value = ctx.ids.get(raw) || null;
         else if (key === 'class' && raw.length <= 1000 && raw.trim().split(/\s+/).every(part=>IDENT.test(part))) value = raw.trim().replace(/\s+/g, ' ');
         else if (key === 'style') value = declarationText(declarations(raw, ctx)) || null;
-        else if (key === 'data-model-id' || key === 'data-model-name' || key === 'aria-label') value = raw.length <= 4096 ? raw : null;
+        else if (key === 'data-model-id' || key === 'data-model-name' || key === 'data-occurrence-id' || key === 'aria-label') value = raw.length <= 4096 ? raw : null;
         else if (key === 'role' && ['img','presentation'].includes(raw)) value = raw;
         else if (key === 'aria-hidden' && ['true','false'].includes(raw)) value = raw;
         else if (GEOMETRY.has(key) && LENGTH.test(raw)) value = raw;

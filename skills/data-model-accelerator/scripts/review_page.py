@@ -24,8 +24,8 @@ TABS = (('overview', 'Overview'), ('model', 'Data model'), ('delivery', 'Code & 
 TOP_SECTIONS = ('overview', 'model', 'delivery', 'changes', 'validation', 'open-items', 'review-feedback', 'dashboard-migration')
 NESTED = {'architecture': 'model', 'lineage': 'model', 'table-dictionary': 'model',
           'implementation-code': 'delivery', 'replacement-map': 'delivery'}
-QUALIFICATION = ('Candidate review: not compiled, not run on the warehouse, not imported into the semantic layer, '
-                 'not validated with data, and not approved.')
+QUALIFICATION = ('Candidate review. Recorded validation evidence is shown below; '
+                 'this page does not establish native execution, business approval or deployment authority.')
 REF = re.compile(r"ref\(\s*['\"]([^'\"]+)['\"]\s*\)")
 SOURCE = re.compile(r"source\(\s*['\"]([^'\"]+)['\"]\s*,\s*['\"]([^'\"]+)['\"]\s*\)")
 FIELD = re.compile(r"\$\{([A-Za-z0-9_]+)\.([A-Za-z0-9_]+)\}")
@@ -44,79 +44,69 @@ def _yaml(text):
         return None
 
 
-def _upstream(ids, models):
-    seen, stack = set(), list(ids)
-    while stack:
-        item = stack.pop()
-        if item in seen or item not in models:
-            continue
-        seen.add(item)
-        stack.extend(models[item].get('depends_on', []))
-    return seen
-
-
-def _areas(review, models, relationships):
-    gold = [m for m in models.values() if m.get('layer') == 'gold']
-    declared = review.get('subject_areas')
-    if declared:
-        areas = [dict(a, gold=sorted(m['id'] for m in gold if m.get('area') == a['id'])) for a in declared]
-        unassigned = sorted(m['id'] for m in gold if not m.get('area'))
-        if unassigned:
-            areas.append({'id': 'unassigned', 'name': 'Other gold tables', 'shared': False, 'gold': unassigned})
-    else:
-        by_domain = collections.defaultdict(list)
-        for m in gold:
-            by_domain[m.get('domain') or 'unassigned'].append(m['id'])
-        areas = [{'id': re.sub(r'[^A-Za-z0-9_-]+', '-', d), 'name': d.replace('_', ' ').capitalize(), 'shared': False, 'gold': sorted(ids)}
-                 for d, ids in sorted(by_domain.items())]
-    for area in areas:
+def _areas(review, models, relationships, pipelines):
+    """Group canonical views without losing disconnected or upstream-only inventory."""
+    declared = review.get('subject_areas') or []
+    areas = {a['id']: dict(a, gold=[], erd=[], pipeline=[], diagram_ids=[]) for a in declared}
+    for m in models.values():
+        key = m.get('area') or m.get('domain') or 'Unassigned'
+        area = areas.setdefault(key, {'id': key, 'name': key, 'shared': False,
+                                     'gold': [], 'erd': [], 'pipeline': [], 'diagram_ids': []})
+        if m.get('layer') == 'gold': area['gold'].append(m['id'])
+    for view in pipelines:
+        owner = models.get(view.get('target_model_id')) or next((models[x] for x in view['model_ids'] if x in models), {})
+        key = owner.get('area') or owner.get('domain') or 'Unassigned'
+        area = areas.setdefault(key, {'id': key, 'name': key, 'shared': False,
+                                     'gold': [], 'erd': [], 'pipeline': [], 'diagram_ids': []})
+        area['diagram_ids'].append(view['id'])
+        area['pipeline'] = sorted(set(area['pipeline']) | set(view['model_ids']))
+    for area in areas.values():
         own = set(area['gold'])
-        erd = set(own) | {r['to'] for r in relationships if r['from'] in own and r['to'] in models}
-        if area.get('shared'):
-            erd |= {x for r in relationships if r['from'] in own and r['to'] in own for x in (r['from'], r['to'])}
-        area['erd'] = sorted(erd)
-        area['pipeline'] = [] if area.get('shared') else sorted(_upstream(own, models))
-    return areas
+        area['erd'] = sorted(own | {x for r in relationships if r['from'] in own or r['to'] in own
+                                   for x in (r['from'], r['to']) if x in models})
+    return list(areas.values())
 
 
-def _topics(texts, models, assets, home):
-    if yaml is None:
-        return [], 'PyYAML is not installed, so Omni topic lineage was not drawn.'
-    topic_files = {p: t for p, t in texts.items() if p.endswith('.topic')}
-    relationship_file = next((t for p, t in texts.items() if PurePosixPath(p).name == 'relationships'), None)
-    views = {PurePosixPath(p).stem: p for p in texts if p.endswith('.view')}
-    joins = {}
-    for row in (_yaml(relationship_file) if relationship_file else None) or []:
-        if isinstance(row, dict):
-            joins[(row.get('join_from_view'), row.get('join_to_view'))] = {'card': row.get('relationship_type', ''), 'on': row.get('on_sql', '')}
-    dashboards = collections.defaultdict(list)
-    for asset in assets:
-        for topic in asset.get('topics', []) or []:
-            dashboards[topic].append({'id': asset.get('id'), 'title': asset.get('name') or asset.get('id'),
-                                      'status': asset.get('coverage_status') or asset.get('mapping_status') or ''})
+def _topics(review, texts, assets, models, home):
+    """Project the canonical producer only. Never infer physical bindings from names."""
+    from topic_visuals import svg
+    topology = review.get('topic_join_trees') or {}
+    rows = list(topology.get('topics', []))
+    # A missing producer is a visible gap, including inherited topics with no local base_view.
+    from omni_query_views import _identity
+    known = {r['id'] for r in rows}
+    for path in sorted(texts):
+        kind, name = _identity(path)
+        if kind == 'topic' and name not in known:
+            rows.append({'id': name, 'source_path': path, 'nodes': [], 'edges': [],
+                         'diagnostics': [{'code': 'topic.canonical_tree_missing'}]})
+            known.add(name)
     out = []
-    for path, text in sorted(topic_files.items()):
-        doc = _yaml(text)
-        if not isinstance(doc, dict) or not doc.get('base_view'):
-            continue
-        name = PurePosixPath(path).stem
-        edges = []
-
-        def walk(parent, children, depth):
-            for child, nested in (children or {}).items():
-                rel = joins.get((parent, child)) or joins.get((child, parent)) or {}
-                edges.append({'from': parent, 'to': child, 'depth': depth, 'card': rel.get('card', ''), 'on': rel.get('on', '')})
-                walk(child, nested if isinstance(nested, dict) else {}, depth + 1)
-        walk(doc['base_view'], doc.get('joins') if isinstance(doc.get('joins'), dict) else {}, 1)
-        base = doc['base_view']
-        in_view = [base] + [e['to'] for e in edges]
-        out.append({'topic': name, 'label': str(doc.get('label') or name), 'group': str(doc.get('group_label') or ''),
-                    'desc': str(doc.get('description') or ''), 'ai': str(doc.get('ai_context') or ''), 'base': base,
-                    'area': home.get(base) or 'shared', 'joins': edges, 'views': in_view,
-                    'fields': [str(f) for f in doc.get('fields') or []], 'path': path,
-                    'view_files': {v: views[v] for v in in_view if v in views},
-                    'dashboards': dashboards.get(name, [])})
-    return out, ''
+    for topic in rows:
+        nodes = topic.get('nodes', []); by_id = {n['id']: n for n in nodes}
+        root = next((n for n in nodes if n.get('parent_id') is None), {})
+        bound = root.get('model_ids', [])
+        base = bound[0] if len(bound) == 1 else topic.get('base_view') or 'Unresolved base view'
+        name = topic['id']; domain = topic.get('domain') or 'Unassigned'
+        area = home.get(base) or domain
+        edges = [{'from': (by_id.get(r['from']) or {}).get('view_id', r['from']),
+                  'to': (by_id.get(r['to']) or {}).get('view_id', r['to']),
+                  'depth': max(1, len(r.get('path', [])) - 1), 'card': r.get('relationship_type') or '',
+                  'on': 'Predicate not projected; inspect the relationship file', 'direction': r.get('relationship_direction'), 'id': r['id']}
+                 for r in topic.get('edges', [])]
+        diagnostics = topic.get('diagnostics', []) + topic.get('binding_diagnostics', [])
+        out.append({'topic': name, 'label': topic.get('name') or name, 'base': base, 'area': area,
+                    'domain': domain, 'joins': edges, 'views': sorted({m for n in nodes for m in n.get('model_ids', [])}),
+                    'view_ids': [n.get('view_id') for n in nodes],
+                    'bindings': [{'id': n['id'], 'view_id': n.get('view_id'), 'model_ids': n.get('model_ids', [])} for n in nodes], 'fields': [], 'group': '', 'desc': '', 'ai': '',
+                    'path': topic.get('source_path', ''), 'view_files': {}, 'diagnostics': diagnostics,
+                    'binding_status': topic.get('binding_status', 'gap'),
+                    'base64': base64.b64encode(svg(topic)).decode(),
+                    'dashboards': [{'id': a.get('id'), 'title': a.get('name') or a.get('id'),
+                                    'status': a.get('coverage_status') or a.get('mapping_status') or 'unassessed'}
+                                   for a in assets if name in (a.get('topics') or [])]})
+    return out, ('Unresolved topic structure or bindings remain visible; run the canonical semantic producer.'
+                 if any(t['diagnostics'] or t['binding_status'] != 'complete' for t in out) else '')
 
 
 def static_checks(texts, model_ids):
@@ -212,19 +202,29 @@ def page_model(data, texts, code_pages=None, model_pages=None):
     """texts maps packaged paths to decoded text; code_pages/model_pages map ids to detail pages (large packages)."""
     review = data.get('review', {})
     keep = ('id', 'name', 'layer', 'domain', 'disposition', 'grain', 'description', 'columns', 'depends_on', 'area',
-            'security_notes', 'security', 'existing_source', 'sources', 'artifact_id', 'artifact_ids', 'entity_type', 'reuse')
+            'security_notes', 'security', 'existing_source', 'sources', 'artifact_id', 'artifact_ids', 'entity_type', 'reuse', 'object_kind', 'keys')
     models = {m['id']: {k: m[k] for k in keep if k in m} for m in review.get('models', [])}
     relationships = [{'from': r['from'], 'to': r['to'], 'card': r.get('cardinality') or '', 'role': r.get('role') or '',
                       'key': ', '.join(r.get('from_columns', [])) + (' = ' + ', '.join(r.get('to_columns', [])) if r.get('to_columns') else '')}
                      for r in review.get('relationships', []) if r.get('kind') == 'relationship' and r['from'] in models and r['to'] in models]
-    areas = _areas(review, models, relationships)
+    from pipeline_diagrams import pipeline_views, pipeline_layout
+    graph = pipeline_layout(list(models.values()), review.get('relationships', []))
+    for model in models.values():
+        model['depends_on'] = sorted({e['from'] for e in graph['edges'] if e['to'] == model['id'] and e['kind'] == 'lineage'})
+    pipelines = pipeline_views(review.get('models', []), review.get('relationships', []))
+    areas = _areas(review, models, relationships, pipelines)
     home = {g: a['id'] for a in areas for g in a['gold']}
     for identifier, model in models.items():
         model.setdefault('area', home.get(identifier))
     inventory = data.get('files', []) + data.get('generated_deliverables', [])
     files = [{'id': f['id'], 'path': f['path'], 'category': f.get('category', ''), 'size': f.get('size', 0),
               'page': (code_pages or {}).get(f['id'])} for f in inventory]
-    topics, topic_note = _topics(texts, models, review.get('assets', []), home)
+    topics, topic_note = _topics(review, texts, review.get('assets', []), models, home)
+    area_ids = {a['id'] for a in areas}
+    for topic in topics:
+        if topic['area'] not in area_ids:
+            areas.append({'id': topic['area'], 'name': topic['area'], 'gold': [], 'erd': [], 'pipeline': [], 'diagram_ids': []})
+            area_ids.add(topic['area'])
     placeholders = collections.defaultdict(list)
     for path, text in texts.items():
         if path.endswith('.topic') or path.endswith('.view'):
@@ -233,7 +233,12 @@ def page_model(data, texts, code_pages=None, model_pages=None):
                     placeholders[line.strip().lstrip('# ').split(':')[0][:80]].append(path)
     return {'schema_version': 1, 'qualification': QUALIFICATION, 'title': review.get('title') or 'Data model review',
             'meta': review.get('review_meta', {}), 'models': list(models.values()), 'relationships': relationships,
-            'decisions': review.get('decisions', []), 'validation': review.get('validation', []), 'assets': review.get('assets', []),
+            'decisions': review.get('decisions', []),
+            'validation': review.get('validation', []) + review.get('quality_checks', []),
+            'evidence': {**{key: data[key] for key in ('domain_journey', 'deployment', 'delivery_assurance') if key in data},
+                         **{key: review[key] for key in ('metadata', 'quality_checks') if key in review},
+                         **({'dbt_runtime': data['engagement']['dbt_runtime']} if data.get('engagement', {}).get('dbt_runtime') else {})},
+            'assets': review.get('assets', []), 'pipeline_diagrams': pipelines,
             'legacy': review.get('legacy_coverage'), 'areas': areas, 'topics': topics, 'topic_note': topic_note,
             'static': review['static_checks'] if 'static_checks' in review else static_checks(texts, models),
             'placeholders': [{'text': k, 'files': sorted(set(v))} for k, v in sorted(placeholders.items())],
@@ -267,7 +272,7 @@ def render(delivery_data, page=None, *, extra_html='', extra_js=''):
             .replace('<!--__EXTRA_HTML__-->', extra_html)
             .replace('/*__DELIVERY_DATA__*/', _encode(delivery_data))
             .replace('/*__PAGE_DATA__*/', _encode(page))
-            .replace('/*__REVIEW_JS__*/', (ASSETS / 'review.js').read_text(encoding='utf-8'))
+            .replace('/*__REVIEW_JS__*/', (ASSETS.parent / 'guided-delivery/portal-svg.js').read_text(encoding='utf-8') + '\n' + (ASSETS / 'review.js').read_text(encoding='utf-8'))
             .replace('/*__EXTRA_JS__*/', extra_js))
 
 

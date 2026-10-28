@@ -48,9 +48,11 @@ when they are absent. They are authored evidence, never approval or execution.
 | `static_checks` | `[{id, label, count, scope?, items?}]`; overrides the counts computed from the packaged files, for example when a base project was used to resolve refs |
 | asset fields | `topics`, `coverage_status` (`served`, `partly_served`, `not_served`), `coverage_reason` |
 
-Computed automatically: topic lineage from the packaged `.topic`, `.view` and `relationships`
-files (needs PyYAML), static check counts, placeholders (`TODO` lines in semantic files) and the
-cards. Static counts resolve refs against the packaged files and the review inventory only; refs
+Topic lineage comes from `topic_join_trees`, produced by the semantic stage/finalizer using
+explicit warehouse bindings. The page never matches a view to a table by name. Missing canonical
+trees, unresolved bindings, inherited topics and disconnected warehouse models remain visible.
+Pipeline geometry and ancestry come from `pipeline_diagrams`; inline diagrams use the shared
+SVG sanitizer. Static file counts and TODO placeholders are supplemental evidence only. Static counts resolve refs against the packaged files and the review inventory only; refs
 to tables outside the review appear as unresolved, so supply `static_checks` when a base project
 was checked.
 

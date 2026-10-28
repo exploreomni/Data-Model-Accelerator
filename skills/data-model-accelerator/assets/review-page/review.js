@@ -8,7 +8,7 @@ function e(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<
 const tr=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
 const BADGE={served:'ok','partly served':'warn','not served':'bad',answered:'ok',covered:'ok','retire candidate':'info',pass:'ok',create:'ok',assumed:'warn','partially covered':'warn',extend:'warn',open:'bad',unresolved:'bad',fail:'bad',pending:'warn',reuse:''};
 const b=s=>`<span class="b ${BADGE[s]||''}">${e(s)}</span>`;
-const M=Object.create(null);P.models.forEach(m=>{m.disp=m.disposition||'reuse';m.cols=(m.columns||[]).map(c=>[c.name,c.type||c.data_type||'',c.key||'',c.description||'']);m.dep=m.depends_on||[];m.used=[];m.src=m.sources||[];M[m.id]=m});
+const M=Object.create(null);P.models.forEach(m=>{m.disp=m.disposition||'unassessed';m.cols=(m.columns||[]).map(c=>[c.name,c.type||c.data_type||'',c.key||'',c.description||'']);m.dep=m.depends_on||[];m.used=[];m.src=m.sources||[];M[m.id]=m});
 P.models.forEach(m=>m.dep.forEach(d=>{if(M[d])M[d].used.push(m.id)}));
 const FILE=Object.create(null);P.files.forEach(f=>FILE[f.id]=f);
 const EMB=Object.create(null);[...(D.files||[]),...(D.generated_deliverables||[])].forEach(f=>{if(f.base64)EMB[f.path]=f.base64});
@@ -59,7 +59,7 @@ function rOverview(){
  const repos=meta.repositories||[];
  const accel=repos.find(r=>r.commit);
  const pending=P.validation.filter(v=>['pending','fail','skipped'].includes(v.status));
- const readOrder=meta.read_order||['Data model: pipelines, relationships and topic lineage per subject area; click any table or topic.','Decisions, starting with the open ones.','Legacy coverage: what each legacy model becomes.','Code & files: how the dbt and Omni files are applied.','Validation and Open items.'];
+ const readOrder=meta.read_order||['Data model: pipelines, relationships and topic lineage per subject area; click any table or topic.','Decisions, starting with the open ones.','Legacy coverage: what each legacy model becomes.','Code & files: review the selected implementation and semantic files.','Validation and Open items.'];
  const notDone=meta.not_done||(pending.length?pending.map(v=>v.label||v.id):['Native build, reconciliation and semantic-layer validation are not established by this page.']);
  byId('overview').innerHTML=`
 <h1>${e(P.title)} <span class="sub">domain review${P.checkpoint?' · checkpoint':''}</span></h1>
@@ -81,24 +81,11 @@ ${repos.length?`<h2>Repositories</h2><div class="tw"><table><thead><tr><th>Role<
 /* ---------- data model ---------- */
 function diagram(width,height,body){return `<div class="diagram"><div class="diagram-controls" aria-label="Diagram zoom"><button type="button" data-action="diagram-zoom" data-value="-0.25" aria-label="Zoom out">−</button><button type="button" data-action="diagram-reset">100%</button><button type="button" data-action="diagram-zoom" data-value="0.25" aria-label="Zoom in">+</button><output aria-live="polite">100%</output></div><div class="wide" tabindex="0" aria-label="Scrollable diagram"><svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" data-natural-width="${width}" data-zoom="1">${body}</svg></div></div>`}
 function zoomDiagram(control,reset){const box=control.closest('.diagram'),svg=box?.querySelector('svg');if(!svg)return;const zoom=reset?1:Math.min(3,Math.max(1,Number(svg.dataset.zoom)+Number(control.dataset.value)));svg.dataset.zoom=String(zoom);svg.style.width=(Number(svg.dataset.naturalWidth)*zoom)+'px';box.querySelector('output').textContent=Math.round(zoom*100)+'%'}
-function pipeline(a){
- const NW=440,NH=40,GAP=16,CG=76,cols={raw:[],bronze:[],silver:[],gold:[]},raws=new Set(),rawE=[];
- a.pipeline.forEach(i=>{const m=M[i];if(!cols[m.layer])return;cols[m.layer].push(i);m.src.forEach(s=>{raws.add(s);rawE.push([s,i])})});
- cols.raw=[...raws].sort();['bronze','silver','gold'].forEach(k=>cols[k].sort());
- const order=['raw','bronze','silver','gold'],X=Object.create(null),Q=Object.create(null);let rows=0;
- order.forEach((k,ci)=>{X[k]=10+ci*(NW+CG);cols[k].forEach((id,ri)=>Q[k+':'+id]={x:X[k],y:36+ri*(NH+GAP)});rows=Math.max(rows,cols[k].length)});
- const W=20+4*NW+3*CG,H=36+rows*(NH+GAP)+6;
- const ed=(p,q)=>{const x1=p.x+NW,y1=p.y+NH/2,x2=q.x,y2=q.y+NH/2,mx=x1+CG/2;return `<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" class="edge"/>`};
- let s=order.map(k=>`<text x="${X[k]}" y="16" class="lh">${{raw:'RAW SOURCES',bronze:'BRONZE',silver:'SILVER',gold:'GOLD'}[k]} — ${cols[k].length}</text>`).join('');
- rawE.forEach(([r,i])=>s+=ed(Q['raw:'+r],Q[M[i].layer+':'+i]));
- a.pipeline.forEach(i=>M[i].dep.forEach(d=>{if(M[d]&&Q[M[d].layer+':'+d]&&Q[M[i].layer+':'+i])s+=ed(Q[M[d].layer+':'+d],Q[M[i].layer+':'+i])}));
- order.forEach(k=>cols[k].forEach(id=>{const p=Q[k+':'+id];
-  if(k==='raw')s+=`<g class="node raw"><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="5"/><text x="${p.x+8}" y="${p.y+26}">${e(tr(id,40))}</text><title>Source table ${e(id)}</title></g>`;
-  else{const m=M[id];s+=`<g class="node ${cls(m)}" ${action('inspect-model',id)} tabindex="0" role="button"><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="5"/><text x="${p.x+8}" y="${p.y+26}">${e(tr(id,40))}</text><title>${e(id)} · ${e(m.disp)}${shared(m)?' · shared from '+e(m.domain):''}</title></g>`}}));
- return diagram(W,H,s);
-}
+function canonicalDiagram(value,index){return `<div class="diagram"><div class="diagram-controls"><button data-action="diagram-zoom" data-value="-0.25">Zoom out</button><button data-action="diagram-reset">Actual size</button><button data-action="diagram-zoom" data-value="0.25">Zoom in</button><output>100%</output></div><div class="wide" tabindex="0" data-canonical-diagram="${index}"></div></div>`}
+function mountDiagrams(){document.querySelectorAll('[data-canonical-diagram]').forEach(box=>{const [kind,index]=box.dataset.canonicalDiagram.split(':');const row=kind==='pipeline'?(P.pipeline_diagrams||[])[Number(index)]:P.topics[Number(index)];if(!row?.base64)return;try{const svg=PortalSvg.sanitize(decoder.decode(Uint8Array.from(atob(row.base64),c=>c.charCodeAt(0))),'review-'+kind+'-'+index);svg.dataset.naturalWidth=svg.getAttribute('width');svg.dataset.zoom='1';box.append(svg);svg.querySelectorAll('[data-model-id]').forEach(n=>{n.dataset.action='inspect-model';n.dataset.value=n.getAttribute('data-model-id');n.setAttribute('role','button');n.setAttribute('tabindex','0')});if(kind==='topic')svg.querySelectorAll('[data-occurrence-id]').forEach(n=>{const id=n.getAttribute('data-occurrence-id');if(!(row.bindings||[]).some(b=>b.id===id))return;n.dataset.action='inspect-binding';n.dataset.value=JSON.stringify([row.topic,id]);n.setAttribute('role','button');n.setAttribute('tabindex','0')})}catch(error){box.textContent='Diagram unavailable. Review the table inventory and exported diagram.'}})}
+function pipeline(a){return (P.pipeline_diagrams||[]).map((v,i)=>(a.diagram_ids||[]).includes(v.id)?`<h4>${e(v.label)}</h4>${canonicalDiagram(v,'pipeline:'+i)}`:'').join('')}
 function erd(a){
- const g=new Set(a.gold),ids=a.erd.filter(i=>M[i]),isDim=i=>/_dim$/.test(i);
+ const g=new Set(a.gold),ids=a.erd.filter(i=>M[i]),isDim=i=>M[i].entity_type==='dimension'||/(?:^|\.)dim_|_dim$/.test(i);
  const rels=P.relationships.filter(r=>ids.includes(r.from)&&ids.includes(r.to)&&(g.has(r.from)||a.shared));
  const cols=a.shared?[ids.filter(i=>!isDim(i)).sort(),ids.filter(isDim).sort(),[]]:[ids.filter(i=>g.has(i)&&!isDim(i)).sort(),ids.filter(i=>g.has(i)&&isDim(i)).sort(),ids.filter(i=>!g.has(i)).sort()];
  const BW=500,CG=76,Q=Object.create(null);let H=0;
@@ -118,26 +105,7 @@ function erd(a){
   s+=`<g class="tbl ${cls(m)}" ${action('inspect-model',id)} tabindex="0" role="button"><rect x="${p.x}" y="${p.y}" width="${BW}" height="${p.h}" rx="6"/>${t}<title>${e(id)} · ${m.cols.length} columns${p.more>0?' · '+p.more+' more keys':''}</title></g>`});
  return diagram(W,H,s);
 }
-function topicLineage(a){
- const tps=P.topics.filter(t=>t.area===a.id).sort((x,y)=>x.label.localeCompare(y.label));if(!tps.length)return '';
- const NW=440,NH=40,GAP=16,CG=76,maxDepth=Math.max(1,...tps.flatMap(t=>t.joins.map(j=>j.depth)));
- const cols=2+maxDepth,W=20+cols*NW+(cols-1)*CG,X=i=>10+i*(NW+CG);
- let s=['TOPIC','BASE VIEW',...Array.from({length:maxDepth},(_,i)=>'JOIN LEVEL '+(i+1))].map((h,i)=>`<text x="${X(i)}" y="16" class="lh">${h}</text>`).join('');
- let y=36;
- const ed=(p,q,tip)=>{const x1=p.x+NW,y1=p.y+NH/2,x2=q.x,y2=q.y+NH/2,m=x1+CG/2;const d=`M${x1} ${y1} C${m} ${y1} ${m} ${y2} ${x2} ${y2}`;return `<g><path d="${d}" class="relhit"><title>${e(tip)}</title></path><path d="${d}" class="rel"/></g>`};
- tps.forEach(t=>{
-  const rows=[1,...Array(maxDepth).fill(0)],yAt=d=>{const v=y+rows[d]*(NH+GAP);rows[d]++;return v};
-  const nodes=[{id:t.base,x:X(1),y}],at=Object.create(null);at[t.base]={x:X(1),y};
-  t.joins.forEach(j=>{const q={x:X(1+j.depth),y:yAt(j.depth)};nodes.push({id:j.to,x:q.x,y:q.y});at[j.to]=q});
-  const h=Math.max(...rows)*(NH+GAP)-GAP,tp={x:X(0),y};
-  let edges=ed(tp,at[t.base],`${t.label} → ${t.base} (base view)`);
-  t.joins.forEach(j=>{const p=at[j.from],q=at[j.to];if(p&&q)edges+=ed(p,q,`${j.from} → ${j.to} (${(j.card||'relationship').replace(/_/g,' ')})${j.on?' on '+j.on.replace(/\$\{|\}/g,''):''}`)});
-  let nn=`<g class="node topic" ${action('inspect-topic',t.topic)} tabindex="0" role="button"><rect x="${tp.x}" y="${tp.y}" width="${NW}" height="${NH}" rx="15"/><text x="${tp.x+12}" y="${tp.y+26}">${e(tr(t.label,32))}</text><title>Topic ${e(t.label)} · ${t.views.length} views · ${t.fields.length} field entries</title></g>`;
-  nodes.forEach(nd=>{const m=M[nd.id];nn+=`<g class="node ${m?cls(m):'reuse'}" ${action('inspect-model',nd.id)} tabindex="0" role="button"><rect x="${nd.x}" y="${nd.y}" width="${NW}" height="${NH}" rx="5"/><text x="${nd.x+8}" y="${nd.y+26}">${e(tr(short(nd.id),36))}</text><title>${e(nd.id)}${m?' · '+e(m.disp):''}</title></g>`});
-  s+=`<rect x="4" y="${y-5}" width="${W-8}" height="${h+10}" rx="8" class="tband"/>`+edges+nn;y+=h+22;
- });
- return diagram(W,y,s);
-}
+function topicLineage(a){return P.topics.map((t,i)=>t.area===a.id?`<h3>${topicLink(t)}</h3><p>Bindings: ${e(t.binding_status||'unassessed')}</p>${(t.diagnostics||[]).map(d=>`<p class="note">${e(d.code)}</p>`).join('')}${canonicalDiagram(t,'topic:'+i)}`:'').join('')}
 const LEGEND='<div class="legend"><span class="k new"></span>create <span class="k ext"></span>extend (changes an existing model) <span class="k reuse"></span>reuse (unchanged) <span class="k shared"></span>dashed: shared interface (other domain) <span class="k raw"></span>raw source table <span class="k topic"></span>semantic topic</div>';
 function rModel(){
  let h=`<p class="meta">One section per subject area: the pipeline from raw source tables through staging (bronze) and integration (silver) to the warehouse tables (gold), then the relationships between gold tables. Hover a line for its join; click any table for grain, keys, columns, lineage, security notes and code.</p>${LEGEND}`;
@@ -149,7 +117,7 @@ function rModel(){
  byId('architecture').innerHTML=h;
  let t=`<h2>Topic lineage <span class="sub">${P.topics.length} topics</span></h2><p class="meta">Each semantic topic, its base view and the views it joins, per subject area. Hover a line for the join; click a topic for its joins, fields, dashboards and file.</p>${P.topic_note?`<p class="note">${e(P.topic_note)}</p>`:''}`;
  P.areas.forEach(a=>{const x=topicLineage(a);if(x)t+=`<div class="area"><h2>${e(a.name)}</h2>${x}</div>`});
- byId('lineage').innerHTML=t;
+ byId('lineage').innerHTML=t;mountDiagrams();
 }
 
 /* ---------- inspectors ---------- */
@@ -157,7 +125,7 @@ function insp(n){const m=M[n];if(!m)return;const p=byId('insp');
  const keys=m.cols.filter(c=>c[2]),path=codeOf(m),code=path&&P.inline_files?content(path):null;
  const relTo=c=>{const r=P.relationships.find(r=>r.from===n&&r.key.startsWith(c+' '));return r?' → '+link(r.to):''};
  const ts=P.topics.filter(t=>t.views.includes(n));
- const existing=m.existing_source||(m.reuse&&m.reuse.existing_id?'Existing model: '+m.reuse.existing_id:(m.disp==='create'?'New in this delivery':'Existing model, '+(m.disp==='extend'?'changed in this delivery':'unchanged')));
+ const existing=m.existing_source||(m.reuse&&m.reuse.existing_id?'Existing model: '+m.reuse.existing_id:(m.disp==='create'?'New in this delivery':m.disp==='unassessed'?'Disposition not supplied':'Existing model, '+(m.disp==='extend'?'changed in this delivery':'unchanged')));
  const sec=m.security_notes||(m.security?[m.security]:[]);
  p.innerHTML=`<button class="x" type="button" data-action="close-inspector">Close</button><h2>${e(m.id)}</h2>
  <p>${b(m.disp)} · ${e(m.layer)} · ${e(m.domain||'')}${m.area&&areaName[m.area]?' · '+e(areaName[m.area]):''}</p>
@@ -172,14 +140,14 @@ function insp(n){const m=M[n];if(!m)return;const p=byId('insp');
  <h3>Columns (${m.cols.length})</h3><table><tr><th>Column</th><th>Type</th><th>Description</th></tr>${m.cols.map(c=>`<tr><td><code>${e(c[0])}</code>${c[2]?' '+e(c[2]):''}</td><td>${e(c[1])}</td><td>${e(c[3])}</td></tr>`).join('')}</table>
  ${code!=null?`<h3>Code — ${e(path)}</h3><pre>${e(code)}</pre>`:''}`;
  p.classList.add('on');p.scrollTop=0}
+function inspBinding(value){let selected;try{selected=JSON.parse(value)}catch(error){return}if(!Array.isArray(selected)||selected.length!==2)return;const t=T[selected[0]],binding=t?.bindings?.find(b=>b.id===selected[1]);if(!binding)return;const ids=binding.model_ids.filter(id=>M[id]);if(ids.length===1)return insp(ids[0]);const p=byId('insp');p.innerHTML=`<button type="button" data-action="close-inspector">Close</button><h2>${e(binding.view_id)}</h2>${ids.length?'<p>Choose a bound warehouse table:</p>'+ids.map(link).join('<br>'):'<p>Unresolved warehouse binding. No table has been inferred from this view name.</p>'}`;p.classList.add('on')}
 function inspTopic(n){const t=T[n];if(!t)return;const p=byId('insp'),code=P.inline_files?content(t.path):null;
  p.innerHTML=`<button class="x" type="button" data-action="close-inspector">Close</button><h2>${e(t.label)}</h2>
  <p><span class="b info">semantic topic</span> · ${e(t.group)} · ${e(areaName[t.area]||t.area)} · <code>${e(t.topic)}</code></p><p>${e(t.desc)}</p>
  <p><b>Base view:</b> ${link(t.base)}${M[t.base]&&M[t.base].grain?' <span class="note">— '+e(M[t.base].grain)+'</span>':''}</p>
  <h3>Joins (${t.joins.length})</h3>${t.joins.length?`<table><tr><th>From</th><th>To</th><th>Cardinality</th><th>On</th></tr>${t.joins.map(j=>`<tr><td>${link(j.from)}</td><td>${link(j.to)}</td><td>${e((j.card||'').replace(/_/g,' '))}</td><td><code>${e(String(j.on).replace(/\$\{|\}/g,''))}</code></td></tr>`).join('')}</table>`:'<p class="note">No joins; the topic reads its base view only.</p>'}
  <h3>Dashboards served (${t.dashboards.length})</h3>${t.dashboards.length?`<table><tr><th>ID</th><th>Dashboard</th><th>Status</th></tr>${t.dashboards.map(x=>`<tr><td>${e(x.id)}</td><td>${e(x.title)}</td><td>${b(String(x.status).replace('_',' '))}</td></tr>`).join('')}</table>`:'<p class="note">No in-scope dashboard maps to this topic.</p>'}
- <h3>AI context</h3><p>${t.ai?e(t.ai):'<span class="note">none</span>'}</p>
- <h3>Fields (${t.fields.length} entries)</h3><p>${t.fields.map(x=>`<code>${e(x)}</code>`).join(' ')}</p>
+ <h3>Fields and AI context</h3><p>Inspect the supplied topic file below. The canonical diagram records joins and bindings; it does not assert field or AI context coverage.</p>
  <h3>Files</h3><p>${[t.path,...Object.values(t.view_files)].map(v=>fileLink(v)).join('<br>')}</p>
  ${code!=null?`<h3>Code — ${e(t.path)}</h3><pre>${e(code)}</pre>`:''}`;
  p.classList.add('on');p.scrollTop=0}
@@ -234,10 +202,10 @@ function drawDict(){const q=byId('xq').value.toLowerCase(),l=byId('xl').value;co
  byId('xn').textContent=(rows.length>400?'showing 400 of ':'')+rows.length.toLocaleString('en-GB')+' columns'}
 
 /* ---------- validation ---------- */
-function rValidation(){const open=P.validation.filter(v=>v.status!=='pass'),passed=P.validation.filter(v=>v.status==='pass');
- byId('validation').innerHTML=`<h1>Validation</h1><p class="meta">Static checks on the packaged files only. Nothing was compiled or executed: a zero means the check found nothing in the files, not that the model works.</p>
+function rValidation(){const open=P.validation.filter(v=>!['pass','passed'].includes(v.status)),passed=P.validation.filter(v=>['pass','passed'].includes(v.status));
+ byId('validation').innerHTML=`<h1>Validation</h1><p class="meta">Recorded checks and bounded file diagnostics. Missing, unsupported and pending evidence remain unverified; a zero finding count is not proof that the model works.</p>
  ${P.static.length?`<table><thead><tr><th>Check</th><th>Count</th><th>Status</th><th>Scope</th></tr></thead><tbody>${P.static.map(s=>`<tr><td>${e(s.label)}</td><td>${s.count}</td><td>${b(s.count?'fail':'pass')}</td><td>${e(s.scope||'')}${(s.items||[]).length?`<details><summary class="note">items</summary><pre>${e(JSON.stringify(s.items,null,1))}</pre></details>`:''}</td></tr>`).join('')}</tbody></table>`:'<p class="note">Static checks need PyYAML at packaging time.</p>'}
- <h2>Remaining checks and unknowns</h2>${open.length?`<table><thead><tr><th>Check</th><th>Scope</th><th>Status</th><th>Detail</th></tr></thead><tbody>${open.map(v=>`<tr><td>${e(v.label||v.id)}</td><td>${e(v.scope||'')}</td><td>${b(v.status)}</td><td>${e(v.details||v.actual||'')}</td></tr>`).join('')}</tbody></table>`:'<p class="note">None recorded.</p>'}
+ ${Object.keys(P.evidence||{}).length?`<details><summary>Recorded workflow evidence</summary><pre>${e(JSON.stringify(P.evidence,null,2))}</pre></details>`:''}<h2>Remaining checks and unknowns</h2>${open.length?`<table><thead><tr><th>Check</th><th>Scope</th><th>Status</th><th>Detail</th></tr></thead><tbody>${open.map(v=>`<tr><td>${e(v.label||v.id)}</td><td>${e(v.scope||'')}</td><td>${b(v.status)}</td><td>${e(v.details||v.actual||'')}</td></tr>`).join('')}</tbody></table>`:'<p class="note">None recorded.</p>'}
  ${passed.length?`<h2>Reported passes</h2><table><thead><tr><th>Check</th><th>Scope</th><th>Status</th><th>Detail</th></tr></thead><tbody>${passed.map(v=>`<tr><td>${e(v.label||v.id)}</td><td>${e(v.scope||'')}</td><td>${b('pass')}</td><td>${e(v.actual||v.details||'')}</td></tr>`).join('')}</tbody></table>`:''}`}
 
 /* ---------- open items ---------- */
@@ -285,6 +253,7 @@ function rFrontend(){const f=P.frontend;byId('dashboard-migration').innerHTML=`<
 function dispatchAction(control){switch(control.dataset.action){
  case 'inspect-model':insp(control.dataset.value);break;
  case 'inspect-topic':inspTopic(control.dataset.value);break;
+ case 'inspect-binding':inspBinding(control.dataset.value);break;
  case 'open-file':openFile(control.dataset.value);if(P.inline_files)location.hash='implementation-code';break;
  case 'close-inspector':byId('insp').classList.remove('on');break;
  case 'feedback-copy':return exportFeedback('copy');
@@ -292,7 +261,7 @@ function dispatchAction(control){switch(control.dataset.action){
  case 'diagram-zoom':zoomDiagram(control,false);break;
  case 'diagram-reset':zoomDiagram(control,true);break;
 }}
-const clickActions=new Set(['inspect-model','inspect-topic','open-file','close-inspector','feedback-copy','feedback-download','diagram-zoom','diagram-reset']);
+const clickActions=new Set(['inspect-model','inspect-topic','inspect-binding','open-file','close-inspector','feedback-copy','feedback-download','diagram-zoom','diagram-reset']);
 document.addEventListener('click',event=>{const control=event.target.closest?.('[data-action]');if(!control||control.disabled||!clickActions.has(control.dataset.action))return;event.preventDefault();dispatchAction(control)});
 document.addEventListener('keydown',event=>{const control=event.target.closest?.('[data-action][role="button"]');if(control&&(event.key==='Enter'||event.key===' ')){event.preventDefault();dispatchAction(control)}});
 function filterEvent(event){const control=event.target;if(control.dataset.action==='filter-table')filt(control,control.dataset.table);else if(control.dataset.action==='filter-files')renderFiles();else if(control.dataset.action==='filter-dictionary')drawDict()}
