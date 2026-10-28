@@ -63,6 +63,8 @@ recreate navigation, design files or packaging evidence.
 
 ## Start with the engagement
 
+Ask about optional [domain classifications and customer standards](references/customer-modeling-standards.md). Import them as evidence, preserve existing domain decisions and naming governance, and pass only relevant pinned rules to specialists. Missing exports do not block provisional work.
+
 For refactoring, follow [migration intent](references/migration-intent.md). Record
 the structural objective separately from preserved business behavior and identify
 legacy, target, raw/staging and consumer-requirement roles before design. Carry

@@ -362,6 +362,9 @@ def public_summary(state, allowed_models=None):
             'model_ids': sorted(primary), 'asset_count': len(domain['asset_ids']), 'status': status, **statuses,
             'scope_preview': domain_batches.scope_preview(state, domain),
             'completion_kind': receipt['completion_kind'] if completed else None, 'next_action': action})
+        if state['workflow'].get('domain_classification'):
+            from domain_classification import summary as classification_summary
+            rows[-1]['classification'] = classification_summary(state, domain['id'])
         if state['workflow'].get('upstream_context'):
             from upstream_context import summarize
             rows[-1]['upstream_context'] = summarize(state, sorted(primary), domain['id'])

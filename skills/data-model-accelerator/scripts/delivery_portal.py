@@ -251,6 +251,23 @@ def _privacy_panel(report):
             + html.escape(json.dumps(report, indent=2)) + '</pre></details>')
 
 
+def _standards_panel(data):
+    report = data.get('workflow', {}).get('modeling_standards')
+    body = ''
+    if report:
+        body += ('<details class="panel" id="modeling-standards"><summary>Customer standards — '
+                 + html.escape(report['status']) + '</summary><p>Review proposed labels, tags, descriptions and sample-query coverage. '
+                 'Physical names and source files are unchanged.</p><pre>'
+                 + html.escape(json.dumps(report, indent=2)) + '</pre></details>')
+    classifications = [{'domain': row['name'], **row['classification']} for row in
+                       data.get('domain_journey', {}).get('domains', []) if row.get('classification')]
+    if classifications:
+        body += ('<details class="panel" id="domain-classification"><summary>Imported domain evidence</summary>'
+                 '<p>Proposed classification evidence; existing domain choices are unchanged.</p><pre>'
+                 + html.escape(json.dumps(classifications, indent=2)) + '</pre></details>')
+    return body
+
+
 def _markdown_destination(value):
     """Read an angle-wrapped or balanced Markdown destination, excluding a title."""
     value = value.lstrip()
@@ -1321,6 +1338,9 @@ def _presentation(state, review=None, audience='engineer'):
                                     {a['id'] for a in (review or {}).get('artifacts', [])})
         if frontend is not None:
             workflow['frontend_continuation'] = frontend
+        from modeling_standards import summary as standards_summary
+        standards = standards_summary(state, allowed_models if review is not None else None)
+        if standards is not None: workflow['modeling_standards'] = standards
         from governance_delivery import project as governance_projection
         governance = governance_projection(state, allowed_models if review is not None else None)
         if governance is not None:
@@ -1444,7 +1464,7 @@ def _domain_presentation(raw):
               **fields(raw, ('active_domain_id', 'needs_selection', 'next_action', 'qualification', 'candidates_sha256'))}
     result['domains'] = [fields(row, ('id', 'name', 'description', 'status', 'model_ids', 'asset_count',
                                       'shared_dependency_ids', 'design_status', 'implementation_status',
-                                      'semantic_status', 'completion_kind', 'next_action'))
+                                      'semantic_status', 'completion_kind', 'next_action', 'classification'))
                          for row in raw.get('domains', [])]
     for projected, row in zip(result['domains'], raw.get('domains', [])):
         if row.get('scope_preview'):
@@ -1794,7 +1814,7 @@ def _trim_workflow_details(data):
         data.get('review', {}).pop(key, None)
     if data.get('workflow'):
         data['workflow'].pop('frontend_continuation', None)
-        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness', 'migration_intent', 'governance'):
+        for key in ('decisions', 'effort', 'models', 'relationships', 'assets', 'task_plan', 'authoring_checks', 'design_checks', 'artifact_checks', 'review_assurance', 'design_readiness', 'migration_intent', 'governance', 'modeling_standards'):
             data['workflow'].pop(key, None)
 
 
@@ -1802,7 +1822,7 @@ def _html(data):
     # Keep the established renderer until the alternative meets the same workflow contract.
     from topic_visuals import panel
     template=(ASSETS/'portal.html').read_text(encoding='utf-8').replace('<!--__TOPIC_PANEL__-->', panel(data))
-    template = template.replace('<div id="dbt-runtime-validation"></div>', '<div id="dbt-runtime-validation"></div>' + _privacy_panel(data.get('review', {}).get('privacy_treatment')))
+    template = template.replace('<div id="dbt-runtime-validation"></div>', '<div id="dbt-runtime-validation"></div>' + _privacy_panel(data.get('review', {}).get('privacy_treatment')) + _standards_panel(data))
     if not data.get('topic_coverage'):
         template = template.replace('<script>/*__TOPIC_PANEL_JS__*/</script>', '')
     encoded=json.dumps(data,ensure_ascii=True,allow_nan=False,separators=(',', ':') if data.get('package_layout_version') == 2 else None).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')

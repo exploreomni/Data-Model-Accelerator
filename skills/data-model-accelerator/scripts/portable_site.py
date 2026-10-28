@@ -191,8 +191,8 @@ def build(data, original_files):
         if data.get(key):
             compact[key] = data[key]
             body += '<details class="panel"><summary>' + title + '</summary><pre>' + html.escape(json.dumps(data[key], indent=2)) + '</pre></details>'
-    from delivery_portal import _privacy_panel
-    body += _privacy_panel(data.get('review', {}).get('privacy_treatment'))
+    from delivery_portal import _privacy_panel, _standards_panel
+    body += _privacy_panel(data.get('review', {}).get('privacy_treatment')) + _standards_panel(data)
     decisions = data.get('review', {}).get('decisions', [])
     body += _table(['Decision', 'Status', 'Detail'], [[html.escape(str(r.get('id', ''))), html.escape(str(r.get('status', 'unresolved'))), html.escape(str(r.get('question') or r.get('rationale') or r.get('description') or 'Review the maintained design document.'))] for r in decisions]) + '</section><dialog id="inspector"><button id="close-inspector">Close table</button><iframe id="table-frame" title="Selected table"></iframe></dialog>'
     if 'topic_coverage' in data:

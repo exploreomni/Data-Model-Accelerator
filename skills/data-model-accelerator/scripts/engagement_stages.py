@@ -337,7 +337,7 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
         from migration_intent import scope_bindings
         cache['migration_intent_scope'] = scope_bindings(state)
     for name, module in (('inventory_scope', 'migration_inventory'), ('consumer_scope', 'consumer_contracts'),
-                         ('upstream_context_scope', 'upstream_context'), ('staging_ports_scope', 'staging_ports')):
+                         ('upstream_context_scope', 'upstream_context'), ('staging_ports_scope', 'staging_ports'), ('standards_scope', 'modeling_standards')):
         if name not in cache:
             from importlib import import_module
             cache[name] = import_module(module).scope_bindings(state)
@@ -380,7 +380,7 @@ def entity_bindings(state, selected, *, presentation=False, stage=None, _cache=N
         reconciliation = {'reconciliation': cache['reconciliation_scope'][key]} if key in cache['reconciliation_scope'] else {}
         business = {'business_rules': cache['business_rules_scope'][key]} if key in cache['business_rules_scope'] else {}
         alignment = {'legacy_alignment': cache['legacy_alignment_scope'][key]} if key in cache['legacy_alignment_scope'] else {}
-        reliability = {name: cache[name][key] for name in ('design_coverage_scope', 'design_evidence_scope', 'migration_intent_scope', 'naming_scope', 'inventory_scope', 'consumer_scope', 'upstream_context_scope', 'staging_ports_scope') if key in cache[name]}
+        reliability = {name: cache[name][key] for name in ('design_coverage_scope', 'design_evidence_scope', 'migration_intent_scope', 'naming_scope', 'inventory_scope', 'consumer_scope', 'upstream_context_scope', 'staging_ports_scope', 'standards_scope') if key in cache[name]}
         result[key] = hash_json({'entity': entity, 'inputs': inputs, 'relationships': edges,
                                 'decisions': decisions, 'responses': responses, 'existing': existing,
                                 **coverage, **reuse_evidence, **reconciliation, **business, **alignment, **reliability})
@@ -729,6 +729,11 @@ def plan_tasks(state, artifact_root):
     require(tasks, 'Register stage tasks first')
     versions = component_versions()
     cache = {}
+    classification_context = None
+    if workflow(state).get('domain_classification'):
+        from domain_classification import packet as classification_packet
+        active = (workflow(state).get('domain_journey') or {}).get('active_domain_id')
+        if active: classification_context = classification_packet(state, active)
     approved = {stage: approved_entities(state, stage=stage, _cache=cache) for stage in {t['stage'] for t in tasks}}
     by_id = {t['id']: t for t in tasks}
     results = {}
@@ -798,6 +803,11 @@ def plan_tasks(state, artifact_root):
         intent_context = task_contracts(state, task['entity_ids'])
         if intent_context:
             results[key]['migration_intents'] = intent_context
+        from modeling_standards import packet as standards_packet
+        standards = standards_packet(state, task['entity_ids'])
+        if standards is not None: results[key]['modeling_standards'] = standards
+        if classification_context and set(task['entity_ids']) <= set(classification_context['scope_ids']):
+            results[key]['domain_classification'] = classification_context
         # Attach only rules for this task's dependency slice, not the whole
         # interview. The same scoped hashes already participate in reuse.
         from business_rules import context_packet
@@ -845,6 +855,11 @@ def record_task(state, artifact_root, request, *, refresh_plan=True):
         if naming is not None:
             require(execution['context_bindings'].get('naming_contract') == naming['sha256'],
                     'Execution packet omitted or changed the scoped naming contract')
+        from modeling_standards import packet as standards_packet
+        standard = standards_packet(state, specification['entity_ids'])
+        if standard is not None:
+            require(execution['context_bindings'].get('modeling_standards') == standard['sha256'],
+                    'Execution packet omitted or changed the scoped modeling standards')
     import guided_workflow as guided
     if specification['stage'] in {'implementation', 'semantic'}:
         from authoring_quality import observe_task
