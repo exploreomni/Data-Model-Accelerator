@@ -2,22 +2,42 @@ name: Security checks
 on:
   push:
   pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 9 * * 1'
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   dependencies:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          python-version: '3.12'
-      - run: python -m pip install pip-audit==2.10.1
-      - run: python -m pip_audit -r requirements-dev.txt --progress-spinner off
+          persist-credentials: false
+      - name: Prepare verified CI runtime
+        uses: ./.github/actions/setup-ci
+        with:
+          requirements: .github/requirements/security.txt
+      - name: Verify advisory coverage cannot silently skip dependencies
+        run: python -m unittest discover -s .github/scripts -p 'test_security_helpers.py' -v
+      - name: Audit bootstrap, tools and the complete development lock
+        run: |
+          python .github/scripts/audit_locks.py bootstrap security development hex deployment source-adapters lint tableau powerbi
   secrets:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Patch and verify the runner baseline
+        run: bash .github/scripts/prepare_runner.sh
       - name: Install verified Gitleaks release
         run: |
           curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
@@ -30,15 +50,22 @@ jobs:
           "$RUNNER_TEMP/gitleaks" dir . --config .gitleaks.toml
           --redact --ignore-gitleaks-allow --max-archive-depth 5 --no-banner
   dbt-runtime-dependencies:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        requirements: [requirements-dbt-v2.txt, requirements-dbt-oss.txt, requirements-dbt-metadata.txt]
+        requirements: [dbt-v2, dbt-oss, dbt-metadata]
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          python-version: '3.12'
-      - run: python -m pip install pip-audit==2.10.1
-      - run: python -m pip_audit -r "skills/data-model-accelerator/scripts/${{ matrix.requirements }}" --progress-spinner off
+          persist-credentials: false
+      - name: Prepare verified CI runtime
+        uses: ./.github/actions/setup-ci
+        with:
+          requirements: .github/requirements/security.txt
+      - name: Audit the complete isolated runtime lock
+        env:
+          REQUIREMENTS: ${{ matrix.requirements }}
+        run: python .github/scripts/audit_locks.py "$REQUIREMENTS"

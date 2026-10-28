@@ -28,5 +28,30 @@ recorded in the [CI run for that commit](https://github.com/exploreomni/Data-Mod
   business approval. Use the signed, provisioned authority flow where required.
 
 Public CI uses synthetic inputs, read-only repository permissions and no warehouse
-credentials. Dependency advisories and secrets are checked on pushes and pull
-requests. Dependency update proposals do not auto-merge.
+credentials. Dependency advisories and secrets are checked on pushes, pull
+requests and a weekly schedule, with manual reruns available. Dependency update
+proposals do not auto-merge.
+
+## CI runtime controls
+
+- Jobs use an explicit Ubuntu 24.04 baseline, supported Python 3.12, a reviewed
+  hash-pinned pip and complete, hash-locked wheel-only dependency environments.
+  Direct native dbt wheels retain publisher provenance and are included in the
+  advisory audit rather than silently skipped as URL requirements.
+- Checkout credentials are not persisted. Jobs use read-only repository tokens,
+  bounded timeouts and cancellation of superseded runs. Third-party Actions must
+  be reviewed and commit-pinned; the repository allowlist currently permits only
+  checkout and Python setup.
+- Disposable hosted workers refresh installed distro curl/PHP packages before
+  use and reject the known affected PHP baseline. The job summary records the
+  actual image and post-update versions. This helper refuses to run outside a
+  GitHub-hosted worker; it is not a customer-machine update script.
+- The selected OS label continues receiving GitHub image updates; it does not
+  freeze an old image build. GitHub owns the base image, kernel and hypervisor.
+  Passing package checks does not certify every preinstalled component or prove
+  vulnerability reachability. New relevant image advisories require review of
+  their affected paths, vendor fixes and the next observed runner version.
+- Source requirement and lockfile drift fails CI. Changes to the updater,
+  provenance or lock hashes must receive the same review as executable code.
+
+See [the reproducible Linux setup](CONTRIBUTING.md#reproduce-the-hardened-linux-ci-environment).

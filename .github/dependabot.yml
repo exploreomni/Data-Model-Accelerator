@@ -1,0 +1,24 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ['*']
+  - package-ecosystem: pip
+    directories:
+      - /
+      - /skills/data-model-accelerator/scripts
+      - /.github/requirements
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+    # Dependency and lock changes require review and full CI; never auto-merge.
+    insecure-external-code-execution: deny

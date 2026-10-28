@@ -31,7 +31,7 @@ Copy this prompt and replace the paths:
 
 > Use the Data Model Accelerator skill in this checkout. Assess `/absolute/source-repo` read-only and save the engagement in `/absolute/modeling-run`. Our target is dbt on Snowflake with Omni. Reuse known answers and interview us about missing definitions. Inventory the scoped warehouse catalogue and existing warehouse models. Start with the entity/table design, connected ERD, dictionary, layer responsibilities and asset mappings for one domain. Show outstanding decisions and how to answer them. Iterate on this design before generating code. After the selected design is reviewed, assess development effort, then run implementation and Omni generation as separate stages. Retain our progress and give us one guided review page.
 
-Discovery does not execute the source project. Core helpers require Python 3.9+ and a POSIX filesystem; optional validation engines use an isolated Python 3.12 environment.
+Discovery does not execute the source project. Core helpers are standard-library-only and use a POSIX filesystem. Use supported Python 3.12 for maintained execution and isolated optional validation engines; older Python versions are no longer CI-qualified.
 
 ## Workflow and deliverables
 
