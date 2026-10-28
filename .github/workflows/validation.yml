@@ -4,15 +4,20 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   core:
-    # Python 3.9 compatibility needs an image with an available CPython build.
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          python-version: '3.9'
+          persist-credentials: false
+      - name: Prepare verified CI runtime
+        uses: ./.github/actions/setup-ci
       - run: python -m unittest discover -s tests -v
       - run: python skills/data-model-accelerator/scripts/run_guided_delivery_demo.py --output "$RUNNER_TEMP/guided-delivery"
       - run: python skills/data-model-accelerator/scripts/delivery_portal.py verify "$RUNNER_TEMP/guided-delivery/engineer-example.zip"
@@ -22,13 +27,17 @@ jobs:
       - name: Check every offline portal script
         run: python skills/data-model-accelerator/scripts/delivery_portal.py check-page "$RUNNER_TEMP/guided-delivery/engineer-example.zip" --javascript
   synthetic:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r skills/data-model-accelerator/scripts/requirements-hex-e2e.txt
+          persist-credentials: false
+      - name: Prepare verified CI runtime
+        uses: ./.github/actions/setup-ci
+        with:
+          requirements: .github/requirements/hex.txt
       - run: python skills/data-model-accelerator/scripts/bootstrap_hex_schema.py
       - run: python -m unittest discover -s tests -v
       - run: python skills/data-model-accelerator/scripts/run_looker_omni_e2e.py --output "$RUNNER_TEMP/looker-e2e"
@@ -36,13 +45,17 @@ jobs:
       - name: Reproduce the synthetic Omni operator workflows
         run: python tests/run_omni_operator.py --repo . --output "$RUNNER_TEMP/omni-modeler-pilots"
   deployment-contracts:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r skills/data-model-accelerator/scripts/requirements-deployment.txt
+          persist-credentials: false
+      - name: Prepare verified CI runtime
+        uses: ./.github/actions/setup-ci
+        with:
+          requirements: .github/requirements/deployment.txt
       - run: python skills/data-model-accelerator/scripts/bootstrap_hex_schema.py
       - run: python -m unittest discover -s tests -p 'test_deployment*.py' -v
       - name: Signed delivery and exact-byte release gates
@@ -50,13 +63,17 @@ jobs:
       - name: Access policy and persona contracts
         run: python -m unittest discover -s tests -p 'test_security_contract*.py' -v
   source-adapters:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r skills/data-model-accelerator/scripts/requirements-source-adapters.txt
+          persist-credentials: false
+      - name: Prepare verified CI runtime
+        uses: ./.github/actions/setup-ci
+        with:
+          requirements: .github/requirements/source-adapters.txt
       - run: python skills/data-model-accelerator/scripts/bootstrap_hex_schema.py
       - name: Exercise every source adapter and coordinator handoff
         run: python -m unittest discover -s tests -p 'test_source_*.py' -v
@@ -65,13 +82,17 @@ jobs:
       - name: Verify bounded specialist context and disclosure
         run: python -m unittest discover -s tests -p 'test_agent_context.py' -v
   lint-contracts:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r skills/data-model-accelerator/scripts/requirements-lint.txt -r skills/data-model-accelerator/scripts/requirements-deployment.txt
+          persist-credentials: false
+      - name: Prepare verified CI runtime
+        uses: ./.github/actions/setup-ci
+        with:
+          requirements: .github/requirements/lint.txt
       - run: python skills/data-model-accelerator/scripts/bootstrap_hex_schema.py
       - run: python -m unittest discover -s tests -p 'test_lint*.py' -v
       - run: python -m unittest discover -s tests -p 'test_release_quality.py' -v
@@ -81,13 +102,17 @@ jobs:
       - name: Context observations and controlled comparison
         run: python -m unittest discover -s tests -p 'test_agent*.py' -v
   metadata-contracts:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r requirements-dev.txt
+          persist-credentials: false
+      - name: Prepare verified CI runtime
+        uses: ./.github/actions/setup-ci
+        with:
+          requirements: .github/requirements/development.txt
       - run: python skills/data-model-accelerator/scripts/bootstrap_hex_schema.py
       - run: python -m unittest discover -s tests -p 'test_data_dictionary_v2.py' -v
       - run: python -m unittest discover -s tests -p 'test_generate_dbt_docs_yml.py' -v

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "platform": "manylinux_2_28_x86_64",
+  "packages": [
+    {
+      "name": "dbt",
+      "version": "2.0.8",
+      "metadata_url": "https://pypi.org/pypi/dbt/2.0.8/json",
+      "source_url": "https://files.pythonhosted.org/packages/3e/e6/da179c17bd42ead7d70215f83ad2efafd8d525fc4e0e502c824e25ae52bb/dbt-2.0.8.tar.gz",
+      "source_sha256": "b6c002bc792df98c0408785e3b4b25f51ffce9849651c54505cc95bc511b1bb9",
+      "source_manifest": "dbt-2.0.8/_dbt_sa_build/assets.json",
+      "wheel_url": "https://public.cdn.getdbt.com/fs/wheels/dbt-2.0.8-cp310-abi3-manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "dadb96c8d245b0167940f0e0ce0d25034b9c0e81383cae6e09c8d6db399e9657"
+    },
+    {
+      "name": "dbt-oss",
+      "version": "2.0.8",
+      "metadata_url": "https://pypi.org/pypi/dbt-oss/2.0.8/json",
+      "source_url": "https://files.pythonhosted.org/packages/27/0f/fe494ebb01368bd1a5daeb497818abfaae78525d4ef784777cd7573d4c3d/dbt_oss-2.0.8.tar.gz",
+      "source_sha256": "9fb1a216fdd21dd4e69fd973e2a7d6e0d4c9af2d32c82b9d2f4d20b3107b37eb",
+      "source_manifest": "dbt_oss-2.0.8/_dbt_sa_build/assets.json",
+      "wheel_url": "https://github.com/dbt-labs/dbt/releases/download/v2.0.8/dbt_oss-2.0.8-cp310-abi3-manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "6a9df409a6953b33af6f9827d8663e5b55a84b5ae84b2a453154a9c58097f9e6"
+    },
+    {
+      "name": "dbt-core-experimental-parser",
+      "version": "2.0.8",
+      "metadata_url": "https://pypi.org/pypi/dbt-core-experimental-parser/2.0.8/json",
+      "source_url": "https://files.pythonhosted.org/packages/cc/5d/7b4abb8623fae9159c5791959c9f9c0b5ead9e5590111bdaa451edbd2835/dbt_core_experimental_parser-2.0.8.tar.gz",
+      "source_sha256": "35b7760967f9542fd0b1a3cd742ffd24e8e08a18473a84a891a3bc8a9d6b2910",
+      "source_manifest": "dbt_core_experimental_parser-2.0.8/_dbt_sa_build/assets.json",
+      "wheel_url": "https://github.com/dbt-labs/dbt/releases/download/v2.0.8/dbt_core_experimental_parser-2.0.8-py3-none-manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "2186d331522b2a8a0f09d2f5c81ff5f1a433160ad7cd212906dccc0d4951d2a1"
+    }
+  ]
+}
