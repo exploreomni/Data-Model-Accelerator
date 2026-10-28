@@ -1,59 +1,52 @@
-# Deterministic SQL contracts before review
+# Scoped SQL contracts before review
 
-Run `scripts/sql_contracts.py` on every authored dbt batch **before** dispatching an independent
-reviewer. It catches mechanical defects in seconds, so the reviewer can spend its budget on logic,
-assumptions and business meaning. It never compiles, executes or reads data, and a clean report is
-not a review, compilation or parity result.
-
-```sh
-python scripts/sql_contracts.py --models /candidate/models \
-  --upstream /read-only/target-project/models \
-  --contract /engagement/sql-contract.json --output /engagement/new-sql-contract-report.json
-```
-
-The console prints one summary line; the full report goes to `--output`, which must be a new file.
-Exit code 1 means an error-level finding. Candidate models shadow upstream models with the same name.
-
-## Checks
-
-| Code | Severity | Meaning |
-|---|---|---|
-| `column.missing` | error | A qualified reference `alias.column` does not exist in the CTE or `ref()`'d model the alias points to. Macro arguments (for example surrogate-key column lists) are read as SQL. |
-| `key.missing` | error | A declared shared key is not an output of a model listed for it. |
-| `key.construction_mismatch` | error | A declared key's defining expression does not match its `pattern`. |
-| `key.divergent_definition` | warning | The same `*_natural_key`, `*_key` or `*_fk` column is built with a differently shaped expression in different models (input column names may differ; normalisation, casing or composition differ). |
-| `fk.model_missing` / `fk.column_missing` | error | A declared foreign key or its target column does not exist. |
-| `fk.population_unconfirmed` | warning | The target model (or its refs, three levels deep) filters rows (`WHERE`, `QUALIFY`). Rows those filters exclude can leave dangling keys. Confirm and record `population_resolution`, or resolve the key through the target itself. |
-| `literal.unknown_value` | error | A string compared to a column (`=`, `!=`, `IN`, `NOT IN`) is not in that column's supplied `known_values`. |
-| `literal.unverified` | info | A compared string has no supplied value domain. Profile the column or supply catalogue values. |
-
-## Contract
+Use the existing authoring observation for a changed dbt batch. Add optional `sql_rules`
+to its `authoring_contract` when reviewed shared keys, foreign keys or value domains are
+available. The same observation carries these findings, exact candidate/source hashes,
+dialect, unresolved assumptions and checker version. Do not dispatch a second reviewer
+or rescan every source just to run the same checks.
 
 ```json
 {
-  "schema_version": 1,
-  "keys": [
-    {"id": "agent", "column": "customer_support_agent_hashed_natural_key",
-     "models": ["int_customer_support__agent", "wh_customer_support__agent_dim"],
-     "pattern": "lower\\(trim\\("}
-  ],
-  "foreign_keys": [
-    {"model": "wh_voice_of_customer__csat_fct", "column": "customer_support_contact_fk",
-     "target_model": "wh_customer_support__contact_fct", "target_column": "customer_support_contact_pk",
-     "population_resolution": null}
-  ],
-  "known_values": {"freshdesk_ticket_team_assigned": ["support [ticket]", "support [chat]"]}
+  "sql_rules": {
+    "contract": {
+      "schema_version": 1,
+      "keys": [{"id":"customer","column":"customer_key","models":["dim_customers"]}],
+      "foreign_keys": [{"model":"fct_orders","column":"customer_key",
+                        "target_model":"dim_customers","target_column":"customer_key"}],
+      "known_values": {"fct_orders.status":["posted","cancelled"]}
+    },
+    "upstream_paths": ["models/staging/stg_orders.sql"]
+  }
 }
 ```
 
-Declare a key once when more than one model builds it, and every foreign key whose target filters
-rows. `known_values` must come from a catalogue, profile or reviewed source, never from the candidate
-being checked. A `population_resolution` records a reviewed reason; it is not approval.
+The snippet is an optional extension to the existing contract, not a standalone authoring
+contract. SQL rule model names identify registered SQL file stems; ambiguous names remain
+gaps. Scope upstream paths explicitly. Value domains must come from an independent catalogue,
+profile or reviewed source. Qualify them by model/column; an unqualified column name is not
+permission to apply one business domain to unrelated sources. Population acknowledgements
+record rationale; they are not data tests or approval.
 
-## Limits
+For an isolated diagnostic, the compatibility CLI remains available:
 
-The reader is bounded and dialect-light. Unqualified references, nested subqueries, dynamic Jinja
-(loops, `set`, macros without literal arguments) and `SELECT *` over unresolvable relations are
-reported as coverage (`unresolved_relations`, `models_with_unresolved_outputs`), never as passes.
-Keep `authoring_provenance` literal classification, dbt compilation, data tests and the independent
-review as separate evidence.
+```sh
+python scripts/sql_contracts.py --models /candidate/models \
+  --upstream /read-only/models --dialect snowflake \
+  --contract /engagement/sql-contract.json --output /engagement/new-report.json
+```
+
+The checker uses the shared static dbt reference reader and SQLGlot. It never executes
+macros or flattens dynamic control flow into pretend SQL. It checks resolvable projections,
+qualified references, declared keys, foreign-key target populations and supplied value
+domains. Key expression comparisons preserve inputs and literals. Missing parsers, unknown
+dialects, dynamic templates, unresolved stars/relations and unsupported expressions remain
+coverage gaps. A partial or unsupported result is not a pass; an unknown output is not a
+proven missing key. Reports omit literal values and SQL snippets.
+
+Authoring checks reuse only process-local passing observations whose candidate bytes,
+source bytes, contract, dialect and checker/dependency versions still match. Changed tasks
+or dependencies are checked again. No saved report or cache grants approval. The reviewer
+receives the checked scope **and all unresolved findings**, with source/design evidence for
+semantic review. Provisional code remains available. Native compilation, runtime tests,
+fanout checks, numerical parity and business acceptance remain separate evidence.

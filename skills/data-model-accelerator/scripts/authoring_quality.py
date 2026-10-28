@@ -3,6 +3,7 @@
 No warehouse calls, macros, agents, approval writes or candidate mutations.
 """
 import argparse
+from collections import OrderedDict
 import copy
 from pathlib import Path
 import json
@@ -14,7 +15,11 @@ from authoring_evidence import capture, finding, make_receipt, validate_contract
 
 CHECKER_FILES = ('authoring_evidence.py', 'authoring_provenance.py', 'dbt_references.py',
                  'authoring_conformance.py', 'authoring_quality.py', 'artifact_syntax.py', 'source_adapters/base.py',
-                 'naming_governance.py', 'naming_artifacts.py')
+                 'naming_governance.py', 'naming_artifacts.py', 'sql_contracts.py')
+
+# Process-local optimization only; exact candidate/source bytes are rechecked.
+_OBSERVATION_CACHE = OrderedDict()
+MAX_CACHED_OBSERVATIONS = 16
 
 
 def checker_version():
@@ -40,6 +45,17 @@ def evaluate(root, source_root, contract, paths, dialect):
             'Authoring source and candidate roots must be separate')
     contract = validate_contract(contract)
     before = capture(root, paths)
+    version = checker_version()
+    cache_key = hash_json([str(root), str(source_root), contract, before, dialect, version])
+    cached = _OBSERVATION_CACHE.get(cache_key)
+    if cached is not None:
+        try:
+            if capture(source_root, list(cached['source_evidence'])) == cached['source_evidence']:
+                _OBSERVATION_CACHE.move_to_end(cache_key)
+                return copy.deepcopy(cached)
+        except (OSError, ValueError):
+            pass
+        _OBSERVATION_CACHE.pop(cache_key, None)
     if len(paths) > MAX_FILES:
         findings, evidence = [finding('authoring_batch_bound_exceeded', 'unsupported')], {}
     else:
@@ -47,13 +63,40 @@ def evaluate(root, source_root, contract, paths, dialect):
         findings += check_conformance(root, contract, paths, dialect)
         from artifact_syntax import check_structured_artifacts
         findings += check_structured_artifacts(root, paths)
+        if contract.get('sql_rules'):
+            from sql_contracts import run as check_sql_rules
+            rules = contract['sql_rules']
+            sql_paths = [p for p in paths if Path(p).suffix.lower() == '.sql']
+            report = check_sql_rules([root, source_root], rules['contract'],
+                scope=[Path(p).stem for p in sql_paths], dialect=dialect,
+                candidate_paths=sql_paths, upstream_paths=rules['upstream_paths'])
+            require(all(before.get(p) == digest for p, digest in report['candidate_evidence'].items()),
+                    'SQL contract candidate bytes changed')
+            for path, digest in report['source_evidence'].items():
+                require(path not in evidence or evidence[path] == digest, 'SQL source evidence changed')
+                evidence[path] = digest
+            models = {Path(m['path']).stem: m for m in contract['models'] if m.get('path')}
+            for row in report['findings']:
+                model = models.get(row.get('model'), {})
+                status = 'failed' if row['severity'] == 'error' else 'unsupported' if row.get('status') == 'unsupported' else 'not_run'
+                findings.append(finding('sql_contract:' + row['code'], status,
+                    model_id=model.get('id'), path=model.get('path'), field=row.get('column')))
+            findings.append(finding('sql_contract_scope', 'passed' if report['status'] == 'passed'
+                            else 'failed' if report['status'] == 'failed'
+                            else 'unsupported' if report['status'] == 'unsupported' else 'not_run'))
     mapped = {row['path'] for row in contract['models']}
     for path in paths:
         if Path(path).suffix.lower() == '.sql' and path not in mapped:
             findings.append(finding('unmapped_sql_output', 'not_run', path=path))
     require(capture(root, paths) == before, 'Candidate changed during authoring checks')
-    result = make_receipt(contract, before, findings, checker_sha256=checker_version(), source_evidence=evidence)
+    result = make_receipt(contract, before, findings, checker_sha256=version, source_evidence=evidence)
     result['dialect'] = dialect
+    # Do not reuse missing-input observations: a previously absent source may arrive.
+    if all(f['status'] == 'passed' for f in result['findings']):
+        _OBSERVATION_CACHE[cache_key] = copy.deepcopy(result)
+        _OBSERVATION_CACHE.move_to_end(cache_key)
+        while len(_OBSERVATION_CACHE) > MAX_CACHED_OBSERVATIONS:
+            _OBSERVATION_CACHE.popitem(last=False)
     return result
 
 

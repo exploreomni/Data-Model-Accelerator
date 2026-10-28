@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 SCRIPTS = Path(__file__).resolve().parents[1] / 'skills/data-model-accelerator/scripts'
 sys.path.insert(0, str(SCRIPTS))
@@ -39,7 +40,7 @@ s_customer AS (SELECT * FROM {{ ref('int_shop__customer') }}),
 final AS (
     SELECT
         s_order.order_natural_key,
-        {{ dbt_utils.generate_surrogate_key(['s_customer.customer_email']) }} AS customer_hashed_natural_key,
+        MD5(s_customer.customer_email) AS customer_hashed_natural_key,
         s_order.order_statuss AS order_status,
         IF(s_order.order_status = 'shipped', TRUE, FALSE) AS order_is_shipped,
         s_order.order_status IN ('cancelled', 'refunded') AS order_is_reversed
@@ -52,8 +53,8 @@ SELECT * FROM final
 WH_ORDER = """WITH s_order AS (SELECT * FROM {{ ref('int_shop__order') }}),
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['order_natural_key']) }} AS order_pk,
-        {{ dbt_utils.generate_surrogate_key(['customer_hashed_natural_key']) }} AS customer_fk,
+        MD5(order_natural_key) AS order_pk,
+        MD5(customer_hashed_natural_key) AS customer_fk,
         order_natural_key,
         MD5(customer_hashed_natural_key) AS customer_hashed_natural_key
     FROM s_order
@@ -63,7 +64,7 @@ SELECT * FROM final
 WH_CUSTOMER = """WITH s_customer AS (SELECT * FROM {{ ref('int_shop__customer') }}),
 final AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['customer_natural_key']) }} AS customer_pk,
+        MD5(customer_natural_key) AS customer_pk,
         customer_natural_key
     FROM s_customer
 )
@@ -76,6 +77,7 @@ SELECT * FROM final
 """
 
 
+@unittest.skipUnless(sc.sqlglot is not None, 'SQLGlot required for parsed SQL checks')
 class SqlContractTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
@@ -92,7 +94,7 @@ class SqlContractTests(unittest.TestCase):
         (self.upstream / 'staging/stg_shop__orders.sql').write_text('SELECT 1 AS unrelated')
 
     def report(self, contract=None):
-        return sc.run([self.candidate, self.upstream], contract)
+        return sc.run([self.candidate, self.upstream], contract, dialect='bigquery')
 
     def codes(self, report, code):
         return [f for f in report['findings'] if f['code'] == code]
@@ -102,14 +104,14 @@ class SqlContractTests(unittest.TestCase):
         missing = {(f['model'], f['reference']) for f in self.codes(r, 'column.missing')}
         self.assertIn(('int_shop__order', 's_order.order_statuss'), missing)
         self.assertIn(('wh_shop__region_dim', 's_region.region_code'), missing)
-        self.assertNotIn(('int_shop__order', 's_customer.customer_email'), missing)  # read from a macro argument
+        self.assertNotIn(('int_shop__order', 's_customer.customer_email'), missing)
         self.assertFalse(any('fake_column' in ref for _, ref in missing))  # comments are ignored
         self.assertEqual('failed', r['status'])
         self.assertGreater(r['coverage']['verified'], 0)
 
     def test_star_over_unresolvable_relation_is_a_gap_not_an_empty_model(self):
         p = self.candidate / 'staging/stg_shop__dedup.sql'
-        p.write_text("WITH d AS (SELECT * FROM ({{ pleo_dbt_common.dedup('x', 'y DESC', 'z') }}))\nSELECT * FROM d\n")
+        p.write_text("WITH d AS (SELECT * FROM ({{ example_utils.dedup('x', 'y DESC', 'z') }}))\nSELECT * FROM d\n")
         (self.candidate / 'integration/int_shop__dedup.sql').write_text(
             "WITH s AS (SELECT * FROM {{ ref('stg_shop__dedup') }})\nSELECT s.anything FROM s\n")
         r = self.report()
@@ -119,7 +121,7 @@ class SqlContractTests(unittest.TestCase):
     def test_key_contracts_and_divergent_definitions(self):
         contract = {'schema_version': 1, 'keys': [
             {'id': 'customer', 'column': 'customer_hashed_natural_key', 'models': ['int_shop__order', 'wh_shop__customer_dim'],
-             'pattern': r'generate_surrogate_key|customer_email'},
+             'pattern': r'md5|customer_email'},
             {'id': 'order', 'column': 'order_natural_key', 'models': ['wh_shop__order_fct'], 'pattern': r'^md5\('}]}
         r = self.report(contract)
         self.assertEqual([('wh_shop__customer_dim', 'customer_hashed_natural_key')],
@@ -135,7 +137,8 @@ class SqlContractTests(unittest.TestCase):
         r = self.report({'schema_version': 1, 'foreign_keys': [fk]})
         finding = self.codes(r, 'fk.population_unconfirmed')
         self.assertEqual(1, len(finding))
-        self.assertTrue(any('is_test = FALSE' in f for f in finding[0]['target_filters']))
+        import hashlib
+        self.assertTrue(any(f['expression_sha256'] == hashlib.sha256(b'WHERE is_test = FALSE').hexdigest() for f in finding[0]['target_filters']))
         r = self.report({'schema_version': 1, 'foreign_keys': [dict(fk, population_resolution='Test customers place no orders.')]})
         self.assertFalse(self.codes(r, 'fk.population_unconfirmed'))
         r = self.report({'schema_version': 1, 'foreign_keys': [dict(fk, target_column='customer_id')]})
@@ -144,7 +147,9 @@ class SqlContractTests(unittest.TestCase):
     def test_literals_are_checked_against_known_values(self):
         r = self.report({'schema_version': 1, 'known_values': {'order_status': ['shipped', 'cancelled', 'refunded [ticket]']}})
         unknown = self.codes(r, 'literal.unknown_value')
-        self.assertEqual(['refunded'], [f['value_preview'] for f in unknown])
+        import hashlib
+        self.assertEqual([hashlib.sha256(b'refunded').hexdigest()], [f['value_sha256'] for f in unknown])
+        self.assertNotIn('refunded', repr(unknown))
         r = self.report()
         self.assertTrue(self.codes(r, 'literal.unverified'))
         self.assertFalse(self.codes(r, 'literal.unknown_value'))
@@ -166,6 +171,99 @@ class SqlContractTests(unittest.TestCase):
             self.report({'schema_version': 2})
         with self.assertRaises(ValueError):
             self.report({'schema_version': 1, 'keys': [{'column': 'x'}]})
+
+
+@unittest.skipUnless(sc.sqlglot is not None, 'SQLGlot required for parsed SQL checks')
+class ScopedSqlContractTests(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)
+        self.root = Path(temp.name); self.candidate = self.root / 'candidate'; self.candidate.mkdir()
+
+    def write(self, name, text):
+        (self.candidate / (name + '.sql')).write_text(text)
+
+    def run_check(self, contract=None, **kwargs):
+        return sc.run([self.candidate], contract, dialect='snowflake', **kwargs)
+
+    def test_quoted_alias_is_proven_but_source_star_and_dynamic_are_gaps(self):
+        contract = {'keys': [{'column': '"OrderKey"', 'models': ['orders']}]}
+        self.write('orders', 'WITH a AS (SELECT 1 AS "OrderKey") SELECT a."OrderKey" FROM a')
+        self.assertEqual(self.run_check(contract)['status'], 'passed')
+        for text in ("SELECT * FROM {{ source('shop', 'orders') }}",
+                     "{% if var('branch') %}SELECT 1 AS wrong{% else %}SELECT 1 AS good{% endif %}",
+                     "SELECT {{ example_utils.key('email') }} AS key"):
+            self.write('orders', text)
+            result = self.run_check(contract)
+            self.assertEqual(result['status'], 'partial')
+            self.assertFalse(any(f['code'] == 'key.missing' for f in result['findings']))
+            self.assertIn('orders', result['models_with_unresolved_outputs'])
+
+    def test_key_fingerprints_preserve_inputs_and_literals_without_emitting_values(self):
+        self.write('a', "SELECT MD5('secret_a') AS shared_key")
+        self.write('b', "SELECT MD5('secret_b') AS shared_key")
+        result = self.run_check()
+        divergent = next(f for f in result['findings'] if f['code'] == 'key.divergent_definition')
+        self.assertEqual(len({d['expression_sha256'] for d in divergent['definitions']}), 2)
+        self.assertNotIn('secret_a', repr(result)); self.assertNotIn('secret_b', repr(result))
+        self.write('a', 'SELECT MD5(email) AS shared_key FROM customers')
+        self.write('b', 'SELECT MD5(customer_id) AS shared_key FROM customers')
+        result = self.run_check()
+        self.assertTrue(any(f['code'] == 'key.divergent_definition' for f in result['findings']))
+
+    def test_qualified_domains_are_not_shared_across_unrelated_sources(self):
+        self.write('orders', "SELECT status FROM {{ source('shop', 'orders') }} WHERE status = 'invalid'")
+        self.write('tickets', "SELECT status FROM {{ source('support', 'tickets') }} WHERE status = 'closed'")
+        legacy = self.run_check({'known_values': {'status': ['open']}})
+        self.assertFalse(any(f['code'] == 'literal.unknown_value' for f in legacy['findings']))
+        self.assertTrue(any(f['code'] == 'literal.domain_ambiguous' for f in legacy['findings']))
+        for key in ('orders.status', 'source:shop.orders.status', 'shop.orders.status'):
+            result = self.run_check({'known_values': {key: ['open']}})
+            unknown = [f for f in result['findings'] if f['code'] == 'literal.unknown_value']
+            self.assertEqual([f['model'] for f in unknown], ['orders'])
+        self.write('orders', 'SELECT "status" FROM raw.orders WHERE "status" = \'invalid\'')
+        quoted = self.run_check({'known_values': {'orders.status': ['open']}})
+        self.assertFalse(any(f['code'] == 'literal.unknown_value' for f in quoted['findings']))
+
+    def test_registered_reads_and_empty_scope_are_exact(self):
+        import hashlib
+        upstream = self.root / 'upstream'; upstream.mkdir()
+        self.write('orders', "SELECT x.id FROM {{ ref('source_model') }} x")
+        self.write('unregistered', 'SELECT * FROM {{ forbidden_macro() }}')
+        (upstream / 'source_model.sql').write_text('SELECT 1 AS id')
+        (upstream / 'unregistered.sql').write_text('SELECT * FROM {{ forbidden_macro() }}')
+        kwargs = {'candidate_paths': ['orders.sql'], 'upstream_paths': ['source_model.sql'], 'dialect': 'snowflake'}
+        result = sc.run([self.candidate, upstream], **kwargs)
+        self.assertEqual(result['status'], 'passed')
+        self.assertEqual(set(result['candidate_evidence']), {'orders.sql'})
+        self.assertEqual(result['source_evidence'], {'source_model.sql': hashlib.sha256(b'SELECT 1 AS id').hexdigest()})
+        empty = sc.run([self.candidate, upstream], scope=[], **kwargs)
+        self.assertEqual(empty['status'], 'not_run')
+        self.assertEqual(empty['candidate_evidence'], {}); self.assertEqual(empty['source_evidence'], {})
+        with self.assertRaises(ValueError):
+            self.run_check(candidate_paths=['../outside.sql'])
+
+    def test_unknown_dialect_and_unsafe_pattern_are_visible_gaps(self):
+        self.write('orders', 'SELECT 1 AS id')
+        unknown = sc.run([self.candidate], dialect='unsupported_engine')
+        self.assertEqual(unknown['status'], 'unsupported')
+        self.assertEqual(sc.run([self.candidate])['status'], 'partial')
+        rules = {'keys': [{'column': 'id', 'models': ['orders'], 'pattern': '(a+)+$'}],
+                 'foreign_keys': [{'model': 'orders', 'column': 'id', 'target_model': 'orders', 'target_column': 'id', 'population_resolution': None}]}
+        result = self.run_check(rules)
+        self.assertEqual(result['status'], 'partial')
+        self.assertTrue(any(f['code'] == 'key.pattern_unsupported' for f in result['findings']))
+        self.assertTrue(sc._safe_pattern(r'lower\(trim\(|md5\('))
+
+
+class RuntimeGapTests(unittest.TestCase):
+    def test_no_parser_never_falls_back_to_regex_or_passes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); (root / 'orders.sql').write_text('SELECT 1 AS id')
+            with patch.object(sc, 'sqlglot', None):
+                result = sc.run([root], {'keys': [{'column': 'id', 'models': ['orders']}]}, dialect='snowflake')
+            self.assertEqual(result['status'], 'unsupported')
+            self.assertFalse(any(f['code'] == 'key.missing' for f in result['findings']))
+            self.assertTrue(any(f['code'] == 'sql.parser_unavailable' for f in result['findings']))
 
 
 if __name__ == '__main__':

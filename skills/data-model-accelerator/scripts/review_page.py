@@ -110,92 +110,19 @@ def _topics(review, texts, assets, models, home):
 
 
 def static_checks(texts, model_ids):
-    """File-only counts: YAML errors, models without YAML, unresolved refs/sources, broken Omni references."""
+    """Presentation-only syntax coverage; semantic evidence uses the canonical checker."""
     if yaml is None:
-        return []
-    yml = {p: t for p, t in texts.items() if p.endswith(('.yml', '.yaml')) and '/models/' in p}
-    omni = {p: t for p, t in texts.items() if p.endswith(('.view', '.topic')) or PurePosixPath(p).name in ('model', 'relationships')}
-    errors, docs = [], []
-    for path, text in sorted({**yml, **omni}.items()):
-        try:
-            doc = yaml.safe_load(text)
-        except Exception as error:  # noqa: BLE001
-            errors.append({'file': path, 'error': str(error).splitlines()[0][:200]})
-            continue
-        if path in yml and isinstance(doc, dict):
-            docs.append(doc)
-    sql = {PurePosixPath(p).stem: t for p, t in texts.items() if p.endswith('.sql') and '/models/' in p}
-    documented = {m.get('name') for d in docs for m in (d.get('models') or []) if isinstance(m, dict)}
-    sources = {(s.get('name'), t.get('name')) for d in docs for s in (d.get('sources') or []) if isinstance(s, dict)
-               for t in (s.get('tables') or []) if isinstance(t, dict)}
-    known = set(model_ids) | set(sql)
-    unresolved = []
-    for name, text in sorted(sql.items()):
-        unresolved += [{'model': name, 'ref': r} for r in REF.findall(text) if r not in known]
-        unresolved += [{'model': name, 'ref': 'source ' + a + '.' + b} for a, b in SOURCE.findall(text) if sources and (a, b) not in sources]
-    views = {}
-    for path, text in omni.items():
-        if path.endswith('.view'):
-            doc = _yaml(text) or {}
-            views[PurePosixPath(path).stem] = set(doc.get('dimensions') or {}) | set(doc.get('measures') or {}) if isinstance(doc, dict) else set()
-    field_issues, relation_issues, pairs = [], [], set()
-
-    def refs(expression, where, bucket):
-        for view, field in FIELD.findall(expression):
-            if view not in views:
-                bucket.append({'where': where, 'ref': view + '.' + field, 'issue': 'view not in model'})
-            elif field not in views[view]:
-                bucket.append({'where': where, 'ref': view + '.' + field, 'issue': 'field not defined'})
-    for path, text in omni.items():
-        if path.endswith('.view'):
-            doc = _yaml(text) or {}
-            for section in ('dimensions', 'measures'):
-                for field, spec in ((doc.get(section) or {}) if isinstance(doc, dict) else {}).items():
-                    refs(json.dumps(spec), PurePosixPath(path).stem + '.' + field, field_issues)
-    rows = next((_yaml(t) for p, t in omni.items() if PurePosixPath(p).name == 'relationships'), None) or []
-    for row in rows if isinstance(rows, list) else []:
-        if not isinstance(row, dict):
-            continue
-        where = str(row.get('join_from_view')) + ' → ' + str(row.get('join_to_view'))
-        for side in ('join_from_view', 'join_to_view'):
-            if row.get(side) not in views:
-                relation_issues.append({'where': where, 'ref': str(row.get(side)), 'issue': 'view not in model'})
-        refs(str(row.get('on_sql', '')), where, relation_issues)
-        pairs.add((row.get('join_from_view'), row.get('join_to_view')))
-    topics = 0
-    for path, text in omni.items():
-        if not path.endswith('.topic'):
-            continue
-        topics += 1
-        doc = _yaml(text) or {}
-        where = 'topic ' + PurePosixPath(path).stem
-        if doc.get('base_view') not in views:
-            field_issues.append({'where': where, 'ref': str(doc.get('base_view')), 'issue': 'base view not in model'})
-        for item in doc.get('fields') or []:
-            view, _, field = str(item).lstrip('-').partition('.')
-            if view not in views:
-                field_issues.append({'where': where, 'ref': str(item), 'issue': 'view not in model'})
-            elif field != '*' and field not in views[view]:
-                field_issues.append({'where': where, 'ref': str(item), 'issue': 'field not defined'})
-
-        def walk(parent, children):
-            for child, nested in (children or {}).items():
-                if (parent, child) not in pairs and (child, parent) not in pairs:
-                    relation_issues.append({'where': where, 'ref': str(parent) + ' → ' + child, 'issue': 'join has no relationship'})
-                walk(child, nested if isinstance(nested, dict) else {})
-        walk(doc.get('base_view'), doc.get('joins') if isinstance(doc.get('joins'), dict) else {})
-    checks = [{'id': 'yaml-errors', 'label': 'YAML errors', 'count': len(errors), 'scope': f'{len(yml) + len(omni)} YAML and Omni files parsed', 'items': errors}]
-    if sql:
-        checks += [{'id': 'models-without-yaml', 'label': 'Models without YAML', 'count': len([m for m in sql if m not in documented]),
-                    'scope': f'{len(sql)} packaged SQL models', 'items': sorted(m for m in sql if m not in documented)},
-                   {'id': 'unresolved-refs', 'label': 'Unresolved refs and sources', 'count': len(unresolved),
-                    'scope': f'{len(sql)} packaged SQL models, against the packaged files and the review inventory', 'items': unresolved}]
-    if omni:
-        checks += [{'id': 'omni-field-refs', 'label': 'Broken Omni field references', 'count': len(field_issues),
-                    'scope': f'{len(views)} views and {topics} topics', 'items': field_issues},
-                   {'id': 'omni-relationships', 'label': 'Broken Omni relationships', 'count': len(relation_issues),
-                    'scope': f'{len(rows) if isinstance(rows, list) else 0} relationships, plus every topic join', 'items': relation_issues}]
-    return checks
+        return [{'id': 'yaml-unavailable', 'label': 'YAML syntax not checked', 'count': 1,
+                 'scope': 'Optional YAML parser unavailable; native and semantic validation remain separate', 'items': []}]
+    files = {p: t for p, t in texts.items() if p.endswith(('.yml', '.yaml', '.view', '.topic'))
+             or PurePosixPath(p).name in ('model', 'relationships')}
+    errors = []
+    for path, text in sorted(files.items()):
+        try: yaml.safe_load(text)
+        except Exception:
+            errors.append({'file': path, 'error': 'YAML syntax could not be parsed; inspect the supplied file'})
+    return [{'id': 'yaml-errors', 'label': 'YAML syntax diagnostics', 'count': len(errors),
+             'scope': str(len(files)) + ' packaged files; syntax only, not semantic or native validation', 'items': errors}]
 
 
 def page_model(data, texts, code_pages=None, model_pages=None):

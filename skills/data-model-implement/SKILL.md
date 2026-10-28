@@ -58,3 +58,5 @@ requested provisional outputs. Preserve configured model/effort defaults.
 Code generation does not authorize project execution, semantic generation or deployment.
 
 Carry the scoped [migration intent](../data-model-accelerator/references/migration-intent.md) into engineering tasks. Generate from target grains, relationships and source bindings. Copied legacy marts or thin wrappers are retained implementation, not evidence of completed refactoring. Record transitions and reviewed exceptions; provisional files remain available while outcome assessment is pending.
+
+For reviewed SQL expectations, add optional [SQL rules](../data-model-accelerator/references/sql-contracts.md) to the same authoring contract. Keep upstream file scope explicit and treat unsupported parsing as a gap. Reuse current receipts; do not run a second full-project scan or reduce the reviewer to mechanical findings alone.

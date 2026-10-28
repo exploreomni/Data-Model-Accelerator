@@ -35,6 +35,12 @@ class ReviewGraphProjectionTests(unittest.TestCase):
             self.assertTrue(all(t['base'] == ('gold.events' if bindings else 'events') for t in p['topics']))
             self.assertEqual(bool(p['topic_note']), not bool(bindings))
 
+    def test_presentation_does_not_reinterpret_inherited_native_semantics(self):
+        checks = review_page.static_checks({'base.view': 'dimensions:\n  id: {}\n',
+            'child.view': 'extends: [base]\n', 'child.topic': 'extends: [base_topic]\n'}, [])
+        self.assertTrue(all(c['id'] in {'yaml-errors', 'yaml-unavailable'} for c in checks))
+        self.assertFalse(any('Broken' in c['label'] for c in checks))
+
     def test_silver_only_package_and_missing_producer_keep_visible_inventory(self):
         p = review_page.page_model({'review': {'models': [{'id': 'int.orders', 'layer': 'silver'}]}},
                                    {'new.topic': 'extends: [missing]\n'})

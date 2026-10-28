@@ -30,7 +30,7 @@ def strings(value):
 
 
 def validate_contract(value):
-    fields(value, ('schema_version', 'kind', 'mode', 'bindings', 'models', 'assumptions', 'provenance'))
+    fields(value, ('schema_version', 'kind', 'mode', 'bindings', 'models', 'assumptions', 'provenance'), ('sql_rules',))
     require(type(value['schema_version']) is int and value['schema_version'] == 1
             and value['kind'] == 'authoring_contract', 'Unsupported authoring contract version')
     require(value['mode'] in {'provisional', 'reviewed_candidate'}, 'Invalid authoring mode')
@@ -71,6 +71,15 @@ def validate_contract(value):
     # Provenance entries are checked by the contextual checker, never accepted
     # as verified merely because an author supplied them.
     require(all(type(row) is dict for row in value['provenance']), 'Invalid provenance entries')
+    if 'sql_rules' in value:
+        rules = value['sql_rules']; fields(rules, ('contract', 'upstream_paths'))
+        from sql_contracts import validate_contract as validate_sql_rules
+        validate_sql_rules(rules['contract'])
+        strings(rules['upstream_paths'])
+        require(len(rules['upstream_paths']) <= 1000, 'SQL upstream file scope is too broad')
+        for path in rules['upstream_paths']:
+            safe_relative(path)
+            require(Path(path).suffix.lower() == '.sql', 'SQL upstream evidence requires SQL files')
     return copy.deepcopy(value)
 
 

@@ -40,7 +40,7 @@ COMPONENT_FILES = {
     'deployment': ('scripts/deployment_workflow.py', 'scripts/deployment_authority.py'),
     # Diagnostic changes refresh evidence; they do not rewrite unchanged SQL.
     'authoring_checks': ('scripts/authoring_evidence.py', 'scripts/authoring_provenance.py',
-                         'scripts/authoring_conformance.py', 'scripts/authoring_quality.py',
+                         'scripts/authoring_conformance.py', 'scripts/authoring_quality.py', 'scripts/sql_contracts.py',
                          'scripts/authoring_release.py', 'references/authoring-quality.md',
                          'scripts/artifact_syntax.py', 'scripts/design_consistency.py', 'scripts/dbt_references.py',
                          'scripts/naming_artifacts.py', 'scripts/naming_governance.py', 'scripts/naming_context.py'),
