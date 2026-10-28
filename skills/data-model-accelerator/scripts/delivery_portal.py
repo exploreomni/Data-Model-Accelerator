@@ -204,39 +204,51 @@ def _check_share_policy(state, review, selected, data, audience):
 
 
 def personal_data_outputs(review, selected=()):
-    """Gold columns, gold implementation identifiers and Omni fields to check."""
-    from personal_data import omni_identifiers, sql_identifiers
-    outputs, gold_artifacts = [], set()
+    """Actual gold/semantic projections, with explicit source identities where known."""
+    from personal_data import omni_outputs, sql_outputs
+    outputs, artifact_models = [], {}
     for model in review.get('models', []):
         if model.get('layer') != 'gold': continue
         for column in model.get('columns', []):
             if isinstance(column, dict) and isinstance(column.get('name'), str):
-                outputs.append({'scope': model.get('id', ''), 'identifier': column['name'], 'kind': 'gold_column'})
-        gold_artifacts.update([model['artifact_id']] if isinstance(model.get('artifact_id'), str) else [])
-        gold_artifacts.update(i for i in model.get('artifact_ids', []) if isinstance(i, str))
+                outputs.append({'scope': model.get('id', ''), 'identifier': column['name'], 'kind': 'gold_column',
+                                'destination': 'gold', 'source_columns': column.get('source_columns', []),
+                                'lineage_complete': column.get('lineage_complete') is True})
+        ids = ([model['artifact_id']] if isinstance(model.get('artifact_id'), str) else []) + model.get('artifact_ids', [])
+        for identifier in ids: artifact_models[identifier] = model['id']
+    dialect = (review.get('target') or {}).get('warehouse')
+    dialect = {'motherduck': 'duckdb', 'fabric': 'tsql', 'gcp': 'bigquery'}.get(dialect, dialect)
     for artifact in selected:
         path = PurePosixPath(artifact.get('path', ''))
-        try:
-            text = artifact['content'].decode('utf-8')
-        except (KeyError, UnicodeError):
-            continue
+        try: text = artifact['content'].decode('utf-8')
+        except (KeyError, UnicodeError): continue
         if _native_omni_artifact(path):
-            names, kind = omni_identifiers(text), 'omni_field'
-        elif artifact.get('id') in gold_artifacts and artifact.get('category') == 'implementation':
-            names, kind = sql_identifiers(text), 'gold_code'
-        else:
-            continue
-        outputs.extend({'scope': str(path), 'identifier': name, 'kind': kind} for name in sorted(names))
+            outputs.extend(omni_outputs(text, str(path)))
+        elif artifact.get('id') in artifact_models and artifact.get('category') == 'implementation':
+            scope = artifact_models[artifact['id']]
+            observed = sql_outputs(text, scope, kind='gold_code', dialect=dialect)
+            names = {r['identifier'] for r in observed}
+            outputs = [r for r in outputs if not (r['scope'] == scope and r['kind'] == 'gold_column' and r['identifier'] in names)]
+            outputs.extend(observed)
     return outputs
 
 
 def _check_personal_data(state, review, selected=()):
-    """Registered personal data never reaches gold models or Omni."""
+    """Return candidate treatment gaps; enforce explicit violations, not code-generation gates."""
     register = state.get('answers', {}).get('personal_data')
-    if not register: return
-    from personal_data import check, message
-    findings = check(register, personal_data_outputs(review, selected))
-    require(not findings, message(findings))
+    if not register: return None
+    from personal_data import assess, message
+    report = assess(register, personal_data_outputs(review, selected))
+    require(report['status'] != 'violations', message(report['findings']))
+    return report
+
+
+def _privacy_panel(report):
+    if not report: return ''
+    return ('<details class="panel" id="privacy-treatment"><summary>Privacy treatment — '
+            + html.escape(report['status']) + '</summary><p>Candidate field treatment and downstream impact. '
+            'Unresolved items do not authorize native deployment; declared controls are not verified access controls.</p><pre>'
+            + html.escape(json.dumps(report, indent=2)) + '</pre></details>')
 
 
 def _markdown_destination(value):
@@ -1792,6 +1804,7 @@ def _html(data):
     # Keep the established renderer until the alternative meets the same workflow contract.
     from topic_visuals import panel
     template=(ASSETS/'portal.html').read_text(encoding='utf-8').replace('<!--__TOPIC_PANEL__-->', panel(data))
+    template = template.replace('<div id="dbt-runtime-validation"></div>', '<div id="dbt-runtime-validation"></div>' + _privacy_panel(data.get('review', {}).get('privacy_treatment')))
     if not data.get('topic_coverage'):
         template = template.replace('<script>/*__TOPIC_PANEL_JS__*/</script>', '')
     encoded=json.dumps(data,ensure_ascii=True,allow_nan=False,separators=(',', ':') if data.get('package_layout_version') == 2 else None).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
@@ -1918,9 +1931,9 @@ def render_engagement(state, output_path, review=None):
     if source:
         destination=_path(output_path); source_root=_path(source)
         require(destination != source_root and source_root not in destination.parents, 'Review output must stay outside the source repository')
-    if review is not None:
-        _check_personal_data(state,review)
+    privacy = _check_personal_data(state,review) if review is not None else None
     data=_presentation(state,review)
+    if privacy: data['review']['privacy_treatment'] = privacy
     _select_handoff(data, [])
     _select_quality_evidence(data, [])
     _select_metadata_evidence(data, [])
@@ -2213,8 +2226,9 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
         destination=_path(output_path); source_root=_path(source)
         require(destination != source_root and source_root not in destination.parents, 'Package output must stay outside the source repository')
     selected=select_artifacts(review,artifact_root,audience,include)
-    _check_personal_data(state,review,selected)
+    privacy = _check_personal_data(state,review,selected)
     data=_presentation(state,review,audience)
+    if privacy and audience != 'audit': data['review']['privacy_treatment'] = privacy
     from package_layout import version
     data.update(page_mode='package', package_layout_version=version(review), selected_categories=sorted(set(include)), file_count=len(selected))
     data['projection']={'selected_artifact_count':len(selected),

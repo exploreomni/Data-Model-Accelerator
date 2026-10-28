@@ -1,5 +1,9 @@
-"""Registered personal data never reaches gold models or Omni."""
+"""Explicit legacy exclusions and source-qualified candidate privacy treatments."""
+import copy
 import csv
+import contextlib
+import io
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -10,6 +14,7 @@ import personal_data as pd
 import delivery_portal as portal
 import guided_workflow
 import omni_contract as omni
+import privacy_contract as privacy
 
 REGISTER = {'schema_version': 1, 'entries': [
     {'column': 'agent_email', 'table': 'customer_support_agent_teams', 'attribute': 'CONTACT_EMAIL', 'origin': 'prompt'},
@@ -55,6 +60,9 @@ class RegisterTests(unittest.TestCase):
         self.assertEqual(len(everything['entries']), 2)
         self.assertEqual([e['column'] for e in narrowed['entries']], ['agent_email'])
         self.assertEqual(narrowed['source_reference'], 'inventory.csv')
+        self.assertEqual(narrowed['schema_version'], 2)
+        self.assertEqual(narrowed['treatments'], [])
+        self.assertTrue(all(e['classification']['review_status'] == 'unresolved' for e in narrowed['entries']))
 
     def test_dictionary_classifications_are_added(self):
         dictionary = {'models': [{'name': 'people', 'columns': [
@@ -92,6 +100,7 @@ class MatchingTests(unittest.TestCase):
         self.assertEqual(names, {'x', 'ticket_id', 'y'})
 
     def test_omni_fields_count_but_prose_does_not(self):
+        if omni.yaml is None: self.skipTest('Optional YAML parser required for field extraction')
         names = pd.omni_identifiers(VIEW)
         self.assertIn('customer_support_ticket_latest_agent_email', names)
         self.assertIn('ticket_title', names)
@@ -118,6 +127,7 @@ class DeliveryTests(unittest.TestCase):
         portal._check_personal_data(state, self.review(), self.selected('SELECT ticket_pk, latest_agent_fk FROM i'))
 
     def test_gold_code_or_column_or_omni_field_blocks(self):
+        if omni.yaml is None or omni.sqlglot is None: self.skipTest('Optional SQL/YAML parser required for artifact projections')
         state = {'answers': {'personal_data': pd.normalize(REGISTER)}}
         with self.assertRaisesRegex(ValueError, 'personal data'):
             portal._check_personal_data(state, self.review(), self.selected('SELECT latest_agent_email AS agent_email FROM i'))
@@ -151,10 +161,102 @@ class HandoffTests(unittest.TestCase):
             state, _ = fixture(Path(folder).resolve())
             ctx = context(); state['inputs']['catalogue']['sha256'] = ctx['catalogue_sha256']
             model = files()
-            field = next(n for n in sorted(pd.omni_identifiers(model['events.view'])) if not n.endswith('_pk'))
+            field = 'id'
             state['answers']['personal_data'] = pd.normalize({'schema_version': 1, 'entries': [{'column': field, 'origin': 'prompt'}]})
             with self.assertRaisesRegex(ValueError, 'handoff.personal_data'):
                 handoff.build_handoff(state, model, ctx)
+
+
+class TreatmentTests(unittest.TestCase):
+    def register(self):
+        value = privacy.new_classification('CONFIDENTIAL')
+        value.update(categories=['PII'], categories_known=True)
+        value['lineage'] = {'status': 'complete', 'upstream_ids': [], 'transformation': 'source'}
+        return {'schema_version': 2, 'entries': [{'table': 'raw.customers', 'column': 'email',
+                'origin': 'classification', 'classification': value}], 'treatments': []}
+
+    def output(self, table='raw.customers'):
+        return {'scope': 'gold.customers', 'identifier': 'contact_key', 'kind': 'gold_code', 'destination': 'gold',
+                'source_columns': [{'table': table, 'column': 'email'}], 'lineage_complete': True,
+                'transformation': 'copy', 'expression_sha256': 'a' * 64}
+
+    def decide(self, register, action='retain_with_controls', transformation='copy', expression=None):
+        decision = privacy.new_treatment({'table': 'raw.customers', 'column': 'email'}, 'gold')
+        decision.update(treatment=action, transformation=transformation, review_reference='DEC-privacy-7',
+                        controls=['Reviewed warehouse access policy'], expression_sha256=expression)
+        register['treatments'].append(decision)
+
+    def test_source_qualification_and_explicit_destination_treatment(self):
+        register = self.register()
+        self.assertEqual(pd.normalize(register)['entries'][0]['table'], 'raw.customers')
+        self.assertEqual(pd.assess(register, [self.output('raw_customers')])['status'], 'clear')
+        self.assertEqual(pd.assess(register, [self.output()])['status'], 'unresolved')
+        self.decide(register)
+        result = pd.assess(register, [self.output()])
+        self.assertEqual(result['status'], 'clear')
+        self.assertFalse(result['authorization_authenticated'])
+        self.assertFalse(result['native_controls_verified'])
+        self.assertEqual(pd.assess(register, [dict(self.output(), destination='omni')])['status'], 'unresolved')
+        register['treatments'][0]['treatment'] = 'exclude'
+        self.assertEqual(pd.assess(register, [self.output()])['status'], 'violations')
+        self.assertEqual(pd.assess(register, [self.output('other.customers')])['status'], 'clear')
+
+    def test_transformation_review_preserves_sensitivity_and_detects_change(self):
+        register = self.register(); output = dict(self.output(), transformation='hash')
+        self.decide(register, 'tokenize', 'hash', output['expression_sha256'])
+        report = pd.assess(register, [output])
+        self.assertEqual(report['status'], 'clear')
+        self.assertEqual(report['impact'][0]['categories'], ['PII'])
+        self.assertEqual(report['impact'][0]['sensitivity'], 'CONFIDENTIAL')
+        self.assertFalse(report['impact'][0]['declassified'])
+        self.assertEqual(report['impact'][0]['classification_review_status'], 'proposed')
+        for changed in (dict(output, expression_sha256='b' * 64), dict(output, lineage_complete=False),
+                        dict(output, transformation='copy')):
+            self.assertEqual(pd.assess(register, [changed])['status'], 'unresolved')
+        register['treatments'][0]['review_reference'] = None
+        self.assertEqual(pd.assess(register, [output])['status'], 'unresolved')
+
+    @unittest.skipUnless(omni.sqlglot is not None, 'Optional SQL parser required')
+    def test_actual_projections_trace_aliases_ctes_hashes_and_quoted_names(self):
+        sql = 'WITH src AS (SELECT SHA2("email", 256) AS masked FROM {{ source("raw", "customers") }}) SELECT masked AS contact_key FROM src'
+        rows = pd.sql_outputs(sql, 'gold.sql', dialect='snowflake')
+        self.assertEqual([r['identifier'] for r in rows], ['contact_key'])
+        self.assertEqual(rows[0]['source_columns'], [{'table': 'raw.customers', 'column': 'email'}])
+        self.assertTrue(rows[0]['lineage_complete'])
+        self.assertEqual(rows[0]['transformation'], 'hash')
+        self.assertEqual(pd.assess(self.register(), rows)['status'], 'unresolved')
+        for query in ('SELECT * FROM raw.customers', 'SELECT {{ secret_macro() }} AS x',
+                      'SELECT email FROM raw.customers c JOIN raw.agents a ON c.id=a.id'):
+            self.assertTrue(any(not r['lineage_complete'] for r in pd.sql_outputs(query, 'gold.sql')))
+        legacy = {'schema_version': 1, 'entries': [{'table': 'raw.customers', 'column': 'email', 'origin': 'prompt'}]}
+        self.assertEqual(pd.assess(legacy, pd.sql_outputs('SELECT email FROM raw.agents', 'other.sql'))['status'], 'clear')
+        self.assertEqual(pd.assess(legacy, rows)['status'], 'violations')
+
+    def test_unavailable_parsers_and_omni_unknowns_are_visible(self):
+        from unittest.mock import patch
+        with patch.dict(sys.modules, {'sqlglot': None}):
+            self.assertEqual(pd.sql_outputs('SELECT email FROM raw.customers', 'gold.sql')[0]['lineage_reasons'], ['sql.parser_unavailable'])
+        with patch('omni_contract._load', side_effect=ValueError('Unavailable')):
+            rows = pd.omni_outputs('dimensions: {}', 'events.view')
+            self.assertFalse(rows[0]['lineage_complete'])
+        if omni.yaml is not None:
+            rows = pd.omni_outputs('schema: raw\ntable_name: customers\ndimensions:\n  email: {}\n  alias: {sql: "${other.email}"}\n', 'events.view')
+            self.assertEqual(rows[0]['source_columns'], [{'table': 'raw.customers', 'column': 'email'}])
+            self.assertFalse(rows[1]['lineage_complete'])
+            self.assertEqual(pd.assess(self.register(), rows)['status'], 'unresolved')
+
+    def test_cli_reports_impact_without_input_values(self):
+        output = self.output(); output['raw_value'] = 'VALUE_MUST_NOT_LEAVE'
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'register.json').write_text(json.dumps(self.register()))
+            (root / 'outputs.json').write_text(json.dumps([output]))
+            stream = io.StringIO()
+            with contextlib.redirect_stdout(stream):
+                code = pd.main(['assess', '--register', str(root / 'register.json'), '--outputs', str(root / 'outputs.json')])
+        self.assertEqual(code, 0)
+        self.assertNotIn('VALUE_MUST_NOT_LEAVE', stream.getvalue())
+        self.assertEqual(json.loads(stream.getvalue())['status'], 'unresolved')
 
 
 if __name__ == '__main__':

@@ -18,18 +18,49 @@ Deployment review exports add evidence after the original handoff. For scoped en
 
 ## Personal-data exclusion
 
-Personal data the user lists or the accelerator identifies must not appear in any gold model, gold implementation file or Omni view/topic. This applies to columns that already exist in the target, and it overrides any instruction to keep existing columns. Keep such columns in staging or integration only where a transformation needs them. Expose a hashed key to a dimension instead. Hiding a field in Omni does not count as removing it.
+Record sensitive-field evidence once as the optional `personal_data` answer. Ask which
+fields must be excluded, retained under controls, masked, tokenized or aggregated in
+gold and in Omni. Classification is not a treatment decision. Preserve existing policy
+answers; missing information stays unresolved rather than assuming removal or permission.
 
-1. At intake, build the register and record it as the `personal_data` answer:
-   ```sh
-   python scripts/personal_data.py import-csv --csv inventory.csv --output register.json \
-     --attribute CONTACT_EMAIL --attribute NAME_FIRST --attribute NAME_LAST
-   python scripts/personal_data.py from-dictionary --dictionary dictionary.json --merge register.json --output register-all.json
-   ```
-   Use `--attribute` when an inventory lists broader attributes (such as country) than the engagement must exclude; the user decides which attributes count. `from-dictionary` adds columns whose privacy classification includes PII, PCI or PHI.
-2. Build gold and Omni without registered columns. A changed register invalidates earlier reviews.
-3. `omni_handoff.build_handoff` and `delivery_portal` (status page and package) refuse output when a gold column, an identifier in a gold model's linked implementation file or an Omni field matches the register. Matching is by name: an exact match, or a name ending in `_<entry>` for multi-word entries and unambiguous identifier words (email, phone, iban and similar).
-4. A match that is not personal data (for example `n_msgs_from_email`) is recorded in `not_personal_data` as `{identifier, scope, reason, reference}`, with the model ID or file path (or `*`) as scope. This records a false positive. It never keeps real personal data in the output.
+Use `personal_data.py import-csv` or `from-dictionary` for a version 2 register. Imports
+retain source table and column identity and begin with unresolved treatment. Scope the
+inventory to the chosen domain; an unqualified entry explicitly has broader matching scope.
+Legacy version 1 exclusion registers remain readable and retain their exclusion meaning.
+A new classification must not silently override an accepted retention requirement.
 
-Name matching cannot follow a rename the register never sees, and it does not replace warehouse access controls or a privacy review.
+Treatment records reference the exact source, destination, transformation and review
+reference. Retention declares the required controls; masking, tokenization and aggregation
+also bind the reviewed output expression. These records do not authenticate a reviewer,
+activate warehouse controls, manage encryption keys, or establish de-identification.
+Hashing alone does not remove PII/PCI/PHI classification.
 
+The assessment follows SQL output projections and qualified sources. Merely referencing a
+sensitive input is different from exposing it unchanged. Unknown aliases, dynamic templates,
+physical stars and missing lineage remain visible gaps. A scoped registration for
+`customers.title` must not classify `products.title` as the same field. Hidden Omni fields
+are still exposed fields; hiding is not an access control.
+
+Review the assessment and impact before accepting treatment: exclusions can break keys,
+joins, metrics and dashboard requirements. Keep source repositories read-only. False-positive
+entries explain an incorrect classification; they are not a way to waive genuine sensitivity.
+
+Candidate code and review planning remain available with unresolved version 2 treatment.
+The handoff shows unresolved findings and cannot claim privacy acceptance. Explicit treatment
+violations prevent packaging, and native deployment rechecks candidate bytes and requires
+resolved treatment. Existing disclosure, native access, and deployment authorization checks
+remain independent and cannot be waived by provisional-generation permission.
+
+A minimal v2 input (no invented treatment approval):
+
+```json
+{"schema_version":2,"entries":[{"table":"raw.customers","column":"email","origin":"prompt"}],"treatments":[]}
+```
+
+To prepare a decision, use `privacy_contract.new_treatment({"table":"raw.customers",
+"column":"email"}, "gold")`, then record the selected treatment, transformation,
+review reference and applicable controls. For transformed outputs, copy the expression
+fingerprint from the assessment only after reviewing that exact expression. Run
+`personal_data.py assess --register register.json --outputs outputs.json --output new-report.json`
+to obtain the value-free impact report. A `clear` report is limited to the supplied
+outputs and declared policies; it is not a warehouse-wide privacy certification.

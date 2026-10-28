@@ -378,9 +378,29 @@ def _record_plan(record, plan, policy):
     _plan_policy(plan, policy)
 
 
+def _privacy_preflight(state, handoff):
+    """Native execution rechecks exact candidate outputs; draft code and PRs stay available."""
+    register = state.get('answers', {}).get('personal_data')
+    if not register: return
+    from delivery_portal import personal_data_outputs
+    from personal_data import assess
+    review, review_hash = workflow._nonsecret_json(handoff['review_path'])
+    require(review_hash == handoff['review_sha256'], 'Prepared privacy review changed')
+    selected = []
+    registered = {r['path']: r for r in review.get('artifacts', [])}
+    for item in handoff['artifacts']:
+        raw = _stable_bytes(Path(handoff['artifact_root']) / item['path'])
+        require(hashlib.sha256(raw).hexdigest() == item['sha256'], 'Privacy candidate bytes changed')
+        record = registered.get(item['path'])
+        if record: selected.append(dict(record, content=raw))
+    report = assess(register, personal_data_outputs(review, selected))
+    require(report['status'] == 'clear', 'Privacy treatment or output lineage remains unresolved; native execution requires review. Provisional code and review planning remain available.')
+
+
 def _current(plan, policy_path):
     state, handoff, bindings = _handoff(plan['engagement_run'], refresh=True)
     require(bindings == plan['bindings'] and handoff['artifacts'] == plan['artifact_manifest'], 'Release context or artifact drift')
+    if plan['action'] != 'publish_pr': _privacy_preflight(state, handoff)
     policy, _ = load_policy(policy_path, excluded_roots=(plan['artifact_root'], state['inputs']['source']['path']))
     if plan['action'] != 'publish_pr' and (state['answers'].get('metadata_policy') or {}).get('mode') in ('comments', 'comments_and_tags'):
         require(plan.get('metadata_required') is True or plan.get('metadata_phase') is not None,
