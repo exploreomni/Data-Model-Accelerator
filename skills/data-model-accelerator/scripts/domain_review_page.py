@@ -11,7 +11,9 @@ validation and open items. This module owns one explicit page-data contract
   semantic views bind to models only through their declared ``table_name``.
 * ``render`` validates page data and writes the self-contained ``START_HERE.html``.
 * ``write_package`` writes the review folder (01_review, 02_dbt, 03_omni, 04_docs, START_HERE.html,
-  MANIFEST.csv) into a new version folder.
+  MANIFEST.csv). Write it as a draft in the working area first.
+* ``promote`` copies a verified draft to the next ``<Domain>/v<N>`` folder, but only with an independent
+  review recorded against that exact draft, so a version folder is written once per review cycle.
 
 Nothing here executes code, approves a design or grants a share; counts are computed from the
 data so headline figures cannot drift from the tables they summarise.
@@ -548,6 +550,94 @@ def verify_package(folder):
     return {'status': 'pass', 'files': len(rows)}
 
 
+REVIEW_KIND = 'domain_review_independent_review'
+FINDING_SEVERITIES = ('blocker', 'wrong_numbers', 'minor')
+FINDING_DISPOSITIONS = ('fixed', 'accepted', 'deferred', 'open')
+VERSION_NAME = re.compile(r'v([1-9][0-9]{0,5})')
+
+
+def manifest_sha256(folder):
+    """Identity of a packaged review: the SHA-256 of its MANIFEST.csv bytes."""
+    return hashlib.sha256((Path(folder) / 'MANIFEST.csv').read_bytes()).hexdigest()
+
+
+def check_review_record(record, draft_sha256):
+    """An independent review recorded against one exact draft, with every finding dispositioned.
+
+    The record says what was found and what was done; it does not authenticate the reviewer or prove the
+    review was thorough. A finding marked fixed must be fixed in the reviewed draft: re-review after fixing.
+    """
+    require(isinstance(record, dict) and record.get('schema_version') == 1 and record.get('kind') == REVIEW_KIND,
+            'Review record must declare kind ' + REVIEW_KIND + ' and schema_version 1')
+    require(record.get('draft_manifest_sha256') == draft_sha256,
+            'Review record was made for a different draft; review the draft being promoted')
+    _text(record.get('reviewer'), 'Review record reviewer', empty=False)
+    _text(record.get('scope'), 'Review record scope', empty=False)
+    findings = _list(record.get('findings'), 'Review record findings')
+    _unique([dict(f, id=f.get('id')) if isinstance(f, dict) else {'id': None} for f in findings], 'id', 'Finding')
+    for row in findings:
+        require(isinstance(row, dict), 'Findings must be objects')
+        _text(row.get('id'), 'Finding id', empty=False); _text(row.get('summary'), 'Finding summary', empty=False)
+        require(row.get('severity') in FINDING_SEVERITIES, 'Finding severity must be one of: ' + ', '.join(FINDING_SEVERITIES))
+        require(row.get('disposition') in FINDING_DISPOSITIONS, 'Finding disposition must be one of: ' + ', '.join(FINDING_DISPOSITIONS))
+        require(row['disposition'] != 'open', 'Finding is still open: ' + row['id'])
+        require(row['severity'] != 'blocker' or row['disposition'] == 'fixed', 'Blocker must be fixed before promotion: ' + row['id'])
+        require(row['disposition'] == 'fixed' or (isinstance(row.get('note'), str) and row['note'].strip()),
+                'Accepted or deferred findings need a note: ' + row['id'])
+    counts = collections.Counter(f['disposition'] for f in findings)
+    return {'findings': len(findings), 'fixed': counts['fixed'], 'accepted': counts['accepted'], 'deferred': counts['deferred']}
+
+
+def next_version(domain_folder):
+    """The next free version folder name under a domain folder (v1 when there is none)."""
+    domain_folder = Path(domain_folder)
+    numbers = [int(m.group(1)) for p in domain_folder.iterdir() if p.is_dir() and (m := VERSION_NAME.fullmatch(p.name))] \
+        if domain_folder.is_dir() else []
+    return 'v' + str(max(numbers, default=0) + 1)
+
+
+def promote(draft, review, output):
+    """Copy a verified, independently reviewed draft to the next version folder, with the review record included.
+
+    Refuses when the draft fails verification, the review does not match the draft bytes, a finding is open, a
+    blocker is not fixed, or the output is not the next free ``v<N>`` folder. Never overwrites.
+    """
+    draft, output = Path(draft), Path(output)
+    verify_package(draft)
+    summary = check_review_record(review, manifest_sha256(draft))
+    require(output.parent.is_dir(), 'Domain folder must exist')
+    require(VERSION_NAME.fullmatch(output.name) is not None, 'Output must be a version folder named v<N>')
+    require(not output.exists(), 'Output exists; a version folder is never overwritten')
+    require(output.name == next_version(output.parent), 'Output must be the next version: ' + next_version(output.parent))
+    require(not output.resolve().is_relative_to(draft.resolve()), 'Output must not be inside the draft')
+    rows = list(csv.DictReader((draft / 'MANIFEST.csv').read_text(encoding='utf-8').splitlines()))
+    record_path = LAYOUT['docs'] + '/INDEPENDENT_REVIEW.json'
+    require(record_path not in {r['path'] for r in rows}, 'Draft already contains ' + record_path)
+    record = (json.dumps(review, indent=1, ensure_ascii=False, sort_keys=True) + '\n').encode('utf-8')
+    temp = Path(tempfile.mkdtemp(prefix='.' + output.name + '.', dir=output.parent))
+    try:
+        for row in rows:
+            target = temp / row['path']
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((draft / row['path']).read_bytes())
+        (temp / record_path).parent.mkdir(parents=True, exist_ok=True)
+        (temp / record_path).write_bytes(record)
+        listed = sorted([(r['path'], int(r['bytes']), r['sha256']) for r in rows]
+                        + [(record_path, len(record), hashlib.sha256(record).hexdigest())])
+        buffer = io.StringIO()
+        writer = csv.writer(buffer, lineterminator='\n')
+        writer.writerow(['path', 'bytes', 'sha256'])
+        writer.writerows(listed)
+        (temp / 'MANIFEST.csv').write_bytes(buffer.getvalue().encode('utf-8'))
+        verify_package(temp)
+        os.rename(temp, output)
+    except BaseException:
+        shutil.rmtree(temp, ignore_errors=True)
+        raise
+    return {'output': str(output), 'entrypoint': str(output / 'START_HERE.html'), 'files': len(rows) + 1,
+            'draft_manifest_sha256': review['draft_manifest_sha256'], 'review': summary}
+
+
 # ---------------------------------------------------------------- projection from a checked review
 
 def _yaml(text):
@@ -940,9 +1030,14 @@ def main(argv=None):
     p.add_argument('--domain'); p.add_argument('--output', required=True)
     p = sub.add_parser('render', help='Write START_HERE.html from page data')
     p.add_argument('--data', required=True); p.add_argument('--output', required=True)
-    p = sub.add_parser('package', help='Write a new review version folder')
+    p = sub.add_parser('package', help='Write a review folder; package a draft first, then promote it')
     p.add_argument('--data', required=True); p.add_argument('--output', required=True)
     p.add_argument('--docs', help='Folder copied into 04_docs/')
+    p = sub.add_parser('next-version', help='Print the next free v<N> folder name under a domain folder')
+    p.add_argument('domain_folder')
+    p = sub.add_parser('promote', help='Copy a verified, independently reviewed draft to the next version folder')
+    p.add_argument('--draft', required=True); p.add_argument('--review', required=True, help='Independent review record (JSON)')
+    p.add_argument('--output', required=True, help='The next <Domain>/v<N> folder')
     p = sub.add_parser('verify', help='Check a review folder against its manifest and the page contract')
     p.add_argument('folder')
     p = sub.add_parser('check-page'); p.add_argument('page')
@@ -965,6 +1060,10 @@ def main(argv=None):
     elif args.command == 'package':
         result = write_package(load_json(args.data, max_bytes=MAX_PAGE_BYTES), args.output,
                                docs=_docs_from_directory(args.docs) if args.docs else None)
+    elif args.command == 'next-version':
+        result = {'next': next_version(args.domain_folder)}
+    elif args.command == 'promote':
+        result = promote(args.draft, load_json(args.review), args.output)
     elif args.command == 'verify':
         result = verify_package(args.folder)
     else:

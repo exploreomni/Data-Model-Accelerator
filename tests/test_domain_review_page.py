@@ -256,6 +256,86 @@ class DomainReviewPageTests(unittest.TestCase):
             self.assertEqual(page_module.main(['package', '--data', str(data), '--output', str(folder)]), 0)
             self.assertEqual(page_module.main(['verify', str(folder)]), 0)
 
+@unittest.skipUnless(HAS_YAML, 'Optional YAML parser unavailable')
+class DomainReviewPromoteTests(unittest.TestCase):
+    """A version folder is written once, from a draft that an independent review covered byte for byte."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.domain = self.root / 'Orders'
+        self.domain.mkdir()
+        self.page = page_module.project(review(), files())
+        self.draft = self.root / 'work' / 'draft-1'
+        self.draft.parent.mkdir()
+        page_module.write_package(self.page, self.draft, docs={'DESIGN.md': b'# Design\n'})
+
+    def record(self, draft=None, findings=None):
+        return {'schema_version': 1, 'kind': page_module.REVIEW_KIND, 'reviewer': 'independent agent, fresh context',
+                'scope': 'packaged SQL and schema YAML', 'draft_manifest_sha256': page_module.manifest_sha256(draft or self.draft),
+                'findings': findings if findings is not None else [
+                    {'id': 'R-1', 'severity': 'wrong_numbers', 'summary': 'Duplicate join rows', 'disposition': 'fixed'},
+                    {'id': 'R-2', 'severity': 'minor', 'summary': 'Naming', 'disposition': 'accepted', 'note': 'Matches the existing column.'}]}
+
+    def test_promote_writes_the_next_version_with_the_review_and_verifies(self):
+        self.assertEqual(page_module.next_version(self.domain), 'v1')
+        result = page_module.promote(self.draft, self.record(), self.domain / 'v1')
+        out = self.domain / 'v1'
+        self.assertEqual(result['review'], {'findings': 2, 'fixed': 1, 'accepted': 1, 'deferred': 0})
+        self.assertEqual(page_module.verify_package(out)['status'], 'pass')
+        stored = json.loads((out / '04_docs/INDEPENDENT_REVIEW.json').read_text())
+        self.assertEqual(stored['draft_manifest_sha256'], page_module.manifest_sha256(self.draft))
+        draft_files = {p.relative_to(self.draft).as_posix(): p.read_bytes() for p in self.draft.rglob('*') if p.is_file() and p.name != 'MANIFEST.csv'}
+        for name, content in draft_files.items():
+            self.assertEqual((out / name).read_bytes(), content)
+        self.assertEqual(page_module.next_version(self.domain), 'v2')
+        self.assertFalse([p for p in self.domain.iterdir() if p.name.startswith('.v1.')])
+
+    def test_promote_refuses_a_review_of_other_bytes(self):
+        other = self.root / 'work' / 'draft-0'
+        page_module.write_package(self.page, other, docs={'DESIGN.md': b'# Earlier design\n'})
+        with self.assertRaisesRegex(ValueError, 'different draft'):
+            page_module.promote(self.draft, self.record(draft=other), self.domain / 'v1')
+        self.assertFalse((self.domain / 'v1').exists())
+
+    def test_promote_refuses_open_findings_unfixed_blockers_and_bare_acceptances(self):
+        cases = [([{'id': 'R-1', 'severity': 'minor', 'summary': 's', 'disposition': 'open'}], 'still open'),
+                 ([{'id': 'R-1', 'severity': 'blocker', 'summary': 's', 'disposition': 'accepted', 'note': 'n'}], 'Blocker must be fixed'),
+                 ([{'id': 'R-1', 'severity': 'minor', 'summary': 's', 'disposition': 'deferred'}], 'need a note'),
+                 ([{'id': 'R-1', 'severity': 'severe', 'summary': 's', 'disposition': 'fixed'}], 'severity must be')]
+        for findings, message in cases:
+            with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                page_module.promote(self.draft, self.record(findings=findings), self.domain / 'v1')
+        self.assertEqual(page_module.next_version(self.domain), 'v1')
+
+    def test_promote_only_writes_the_next_free_version_and_never_overwrites(self):
+        with self.assertRaisesRegex(ValueError, 'next version: v1'):
+            page_module.promote(self.draft, self.record(), self.domain / 'v2')
+        with self.assertRaisesRegex(ValueError, 'named v<N>'):
+            page_module.promote(self.draft, self.record(), self.domain / 'final')
+        page_module.promote(self.draft, self.record(), self.domain / 'v1')
+        with self.assertRaisesRegex(ValueError, 'never overwritten'):
+            page_module.promote(self.draft, self.record(), self.domain / 'v1')
+
+    def test_promote_refuses_a_draft_that_changed_after_packaging(self):
+        record = self.record()
+        (self.draft / '04_docs/DESIGN.md').write_text('# Edited after review\n')
+        with self.assertRaisesRegex(ValueError, 'File changed after packaging'):
+            page_module.promote(self.draft, record, self.domain / 'v1')
+        self.assertFalse((self.domain / 'v1').exists())
+
+    def test_command_line_draft_review_promote(self):
+        review_path = self.root / 'review.json'
+        review_path.write_text(json.dumps(self.record(findings=[])))
+        with redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(page_module.main(['next-version', str(self.domain)]), 0)
+        self.assertEqual(json.loads(out.getvalue())['next'], 'v1')
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(page_module.main(['promote', '--draft', str(self.draft), '--review', str(review_path),
+                                               '--output', str(self.domain / 'v1')]), 0)
+            self.assertEqual(page_module.main(['verify', str(self.domain / 'v1')]), 0)
+
+
 @unittest.skipUnless(HAS_YAML and importlib.util.find_spec('playwright'), 'Optional browser check unavailable')
 class DomainReviewPageBrowserTests(unittest.TestCase):
     def test_every_view_and_inspector_renders_without_script_errors(self):

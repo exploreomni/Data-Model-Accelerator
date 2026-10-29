@@ -35,7 +35,8 @@ The established small and partitioned guided pages remain the default; the alter
 [review presentation](../skills/data-model-accelerator/references/review-page.md) remains
 available for further qualification rather than replacing existing delivery workflows. Single-domain
 reviews use the [domain review page](../skills/data-model-accelerator/references/domain-review-page.md):
-one data-driven Start Here page and a fixed `01_review`/`02_dbt`/`03_omni`/`04_docs` layout.
+one data-driven Start Here page and a fixed `01_review`/`02_dbt`/`03_omni`/`04_docs` layout. Reviews are packaged as drafts, independently reviewed, and promoted once to the next
+version folder; promotion refuses a review recorded for other bytes or with open findings.
 
 [Migration intent](../skills/data-model-accelerator/references/migration-intent.md)
 separates preserved business semantics from requested structural change. Scoped

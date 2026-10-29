@@ -11,7 +11,9 @@ reading-order step and note comes from the embedded page data.
 
 ## Folder layout
 
-Write each review into a new version folder; an existing folder is never overwritten.
+Each review is packaged as a draft in the working area, independently reviewed, and only then promoted
+into the next version folder. An existing version folder is never overwritten, so a problem found after
+promotion costs a whole new version; reviewing the draft first keeps it to one version per review cycle.
 
 ```text
 <Domain>/v<N>/
@@ -80,16 +82,44 @@ tables. Main fields:
    registered SHA-256. The overlay carries authored fields the review does not hold, such as `meta`,
    `areas`, per-dashboard tile counts and reasons, `remaining` and extra `open` items. Never invent
    owners or other values in it: an absent owner is shown as "Not assigned".
-2. Package it into a new version folder, with the design documents copied into `04_docs/`:
+2. Package it as a **draft** in the working area (not in the domain folder), with the design documents
+   copied into `04_docs/`, and verify it:
 
    ```sh
-   python scripts/domain_review_page.py package --data page.json --docs <docs folder> --output <Domain>/v<N>
-   python scripts/domain_review_page.py verify <Domain>/v<N>
+   python scripts/domain_review_page.py package --data page.json --docs <docs folder> --output <work>/draft-<timestamp>
+   python scripts/domain_review_page.py verify <work>/draft-<timestamp>
    ```
 
    Packaging scans every file with the disclosure scanner (text formats it has no parser for are
    scanned as plain text) and stops on a finding. `verify` checks every file against
-   `MANIFEST.csv` and re-validates the page.
+   `MANIFEST.csv` and re-validates the page. Use a new timestamped draft folder for each attempt, so
+   nothing ever has to be deleted or overwritten.
+3. Have an **independent reviewer** check the draft: a separate agent or person who has not seen the
+   design notes reads the packaged code against the original evidence. Record the result as JSON:
+
+   ```json
+   {"schema_version": 1, "kind": "domain_review_independent_review",
+    "draft_manifest_sha256": "<sha256 of the draft MANIFEST.csv>",
+    "reviewer": "independent agent, fresh context", "scope": "packaged SQL and schema YAML",
+    "findings": [{"id": "R-1", "severity": "wrong_numbers", "summary": "...", "disposition": "fixed"},
+                 {"id": "R-2", "severity": "minor", "summary": "...", "disposition": "accepted", "note": "why"}]}
+   ```
+
+   Severity is `blocker`, `wrong_numbers` or `minor`; disposition is `fixed`, `accepted`, `deferred` or
+   `open`. When a finding needs a fix, change the sources, package a new draft and review that draft:
+   the record must name the exact draft being promoted, so `fixed` means fixed in those bytes.
+4. **Promote** the reviewed draft to the next version folder:
+
+   ```sh
+   python scripts/domain_review_page.py next-version <Domain>
+   python scripts/domain_review_page.py promote --draft <work>/draft-<timestamp> --review review.json --output <Domain>/v<N>
+   ```
+
+   `promote` re-verifies the draft and refuses when the record was made for other bytes, a finding is
+   `open`, a `blocker` is not `fixed`, an accepted or deferred finding has no note, or the output is not
+   the next free `v<N>`. It copies the draft unchanged, adds the record as `04_docs/INDEPENDENT_REVIEW.json`
+   and writes a new manifest. The record states what was found and decided; it does not authenticate the
+   reviewer or prove the review was thorough, and it is not design approval.
 
 ## Checks
 

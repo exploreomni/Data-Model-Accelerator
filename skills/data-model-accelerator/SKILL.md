@@ -415,9 +415,12 @@ describes additive review fields and an alternative presentation; absent optiona
 must remain unassessed rather than invented. Supply available reading order, repositories,
 subject areas and legacy coverage without requiring a new discovery pass. A domain review
 (one domain's model, semantic layer, legacy coverage and dashboards) always uses the
-[domain review page](references/domain-review-page.md): build it with
-`scripts/domain_review_page.py` into a new `<Domain>/v<N>/` folder with `01_review/`,
-`02_dbt/`, `03_omni/` and `04_docs/`, then run its `verify` command. Its default `--layout simple` organizes selected files into input sources,
+[domain review page](references/domain-review-page.md): package it with
+`scripts/domain_review_page.py` as a draft in the working area (`01_review/`, `02_dbt/`,
+`03_omni/`, `04_docs/`), `verify` it, have an independent reviewer check that exact draft and
+record the findings, fix and re-package until no finding is open, then `promote` the draft to the
+next `<Domain>/v<N>/` folder. Never package straight into a version folder: a version is written
+once per review cycle. Its default `--layout simple` organizes selected files into input sources,
 input context, design documents, code generation and mappings; design files live
 in `03_Design_Documents/`. Original input repositories stay at their registered
 roots and are not cloned into the handoff. Use `--layout classic` only when the
