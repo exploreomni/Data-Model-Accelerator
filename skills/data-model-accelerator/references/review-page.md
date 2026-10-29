@@ -6,8 +6,12 @@ progress, metadata and deployment controls remain available. Small packages embe
 large packages link to bounded per-table and per-file pages.
 
 `scripts/review_page.py` and `assets/review-page/` are an alternative review presentation,
-not the default package renderer. Do not switch an engagement to it until its actual
-workflow, navigation, feedback and evidence parity have been qualified. The optional
+not the default package renderer. The separate [domain review page](domain-review-page.md)
+is an opt-in companion: `review.domain_review={"domain":"orders"}` asks the existing finalizer
+to add `03_Design_Documents/Domain_Review.html` (classic: `01_Model/Domain_Review.html`)
+when documentation is selected and the review contains models. It does not replace the root entrypoint, audience
+and selection rules, evidence routes, feedback or deployment controls. Its standalone review
+versioning tools are not a completed-delivery workflow. The optional
 fields below are additive: old engagement formats remain valid, absent fields mean
 unassessed, and none of them records approval. Canonical delivery data remains authoritative.
 
@@ -42,6 +46,7 @@ when they are absent. They are authored evidence, never approval or execution.
 | Field | Shape |
 |---|---|
 | `review_meta` | `domain_position`, `repositories` (`role`, `name`, hex `commit` or null, hex `fingerprint` or null, `complete`), `read_order`, `not_done` |
+| `domain_review` | `{domain: "orders"}`; optional companion using the existing finalizer and selected package, not a domain-scope filter or approval |
 | `subject_areas` | `[{id, name, shared?}]`; each model may carry `area`. Without it, gold tables are grouped by domain. |
 | model fields | `security_notes` (list), `existing_source` (text), `sources` (raw source tables, list) |
 | decision fields | `options`, `assumed_option`, `status` (`answered`, `assumed`, `open`), `area`, `question` |

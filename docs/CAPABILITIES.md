@@ -33,7 +33,15 @@ Different audiences, grants or view-scoped definitions retain separate topics un
 reviewed change explicitly resolves them. Changed definitions invalidate affected decisions.
 The established small and partitioned guided pages remain the default; the alternative
 [review presentation](../skills/data-model-accelerator/references/review-page.md) remains
-available for further qualification rather than replacing existing delivery workflows.
+available for further qualification rather than replacing existing delivery workflows. An optional
+[domain review companion](../skills/data-model-accelerator/references/domain-review-page.md)
+can be selected with `review.domain_review={"domain":"orders"}`. The existing finalizer adds
+`03_Design_Documents/Domain_Review.html` (classic: `01_Model/Domain_Review.html`) when
+documentation is selected and the review contains models. The standard `START_HERE.html`, audience, selected
+files, disclosure checks and provisional status remain authoritative. The companion preserves
+selected dbt, native SQL or Coalesce paths and uses explicit warehouse bindings for Omni;
+missing evidence stays unassessed. Its standalone draft/promotion tools support internal
+review versioning, not completed delivery, native validation or authorization.
 
 [Migration intent](../skills/data-model-accelerator/references/migration-intent.md)
 separates preserved business semantics from requested structural change. Scoped

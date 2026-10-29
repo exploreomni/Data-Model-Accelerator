@@ -45,6 +45,8 @@ LANES = {
     'dbt-oss': [SCRIPTS + 'requirements-dbt-oss.txt'],
     'dbt-metadata': [SCRIPTS + 'requirements-dbt-metadata.txt'],
     'security': ['.github/requirements/security.in'],
+    'browser': ['.github/requirements/browser.in'],
+    'training': ['docs/training/requirements-build.txt'],
 }
 
 
@@ -52,7 +54,7 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def input_hashes():
+def input_hashes(lanes=None):
     paths = {Path(__file__).resolve(), LOCKS / 'native-wheels.json'}
 
     def visit(path):
@@ -65,7 +67,7 @@ def input_hashes():
             if line.strip().startswith('-r '):
                 visit(path.parent / line.strip()[3:].strip())
 
-    for sources in LANES.values():
+    for sources in (LANES if lanes is None else lanes).values():
         for source in sources:
             visit(ROOT / source)
     return {str(path.relative_to(ROOT)): digest(path) for path in sorted(paths)}
@@ -149,7 +151,7 @@ def verify_native_wheels(directory):
         print('Verified publisher archive, wheel SHA-256 and metadata: ' + package['name'])
 
 
-def generate(uv, cache_dir):
+def generate(uv, cache_dir, lanes=None):
     if sys.version_info[:2] != (3, 12):
         raise ValueError('Generate locks with Python 3.12')
     executable = shutil.which(uv)
@@ -158,6 +160,24 @@ def generate(uv, cache_dir):
     version = subprocess.check_output([executable, '--version'], text=True).split()[1]
     if version != UV_VERSION:
         raise ValueError('Expected uv ' + UV_VERSION + ', found ' + version)
+    selected = {name: LANES[name] for name in lanes} if lanes else LANES
+    retained = {}
+    if lanes:
+        previous = json.loads((LOCKS / 'lock-metadata.json').read_text())
+        unselected = {name: sources for name, sources in LANES.items() if name not in selected}
+        # Reusing a lane is safe only when its requirement inputs and bytes have
+        # not changed. The generator itself is reviewed code and may gain lanes.
+        for path, checksum in input_hashes(unselected).items():
+            if path != '.github/scripts/update_locks.py' and previous['inputs'].get(path) != checksum:
+                raise ValueError('Unselected CI dependency input changed: ' + path)
+        expected = {name + '.txt' for name in unselected}
+        if set(previous['locks']) - {name + '.txt' for name in selected} != expected:
+            raise ValueError('Unselected CI lock inventory changed; regenerate all lanes')
+        for name in expected:
+            checksum = digest(LOCKS / name)
+            if previous['locks'][name] != checksum:
+                raise ValueError('Unselected CI lock changed: ' + name)
+            retained[name] = checksum
     environment = {key: value for key, value in os.environ.items()
                    if not key.startswith(('UV_', 'PIP_'))}
     with tempfile.TemporaryDirectory(prefix='dma-ci-locks-') as directory:
@@ -190,10 +210,11 @@ def generate(uv, cache_dir):
             return name, output
 
         with ThreadPoolExecutor(max_workers=4) as executor:
-            outputs = dict(executor.map(compile_lane, LANES.items()))
+            outputs = dict(executor.map(compile_lane, selected.items()))
         metadata = {'schema_version': 1, 'python': PYTHON_VERSION, 'platform': PLATFORM,
                     'uv': UV_VERSION, 'inputs': input_hashes(),
-                    'locks': {name + '.txt': digest(outputs[name]) for name in sorted(outputs)}}
+                    'locks': dict(sorted({**retained, **{name + '.txt': digest(outputs[name])
+                                                       for name in outputs}}.items()))}
         for name, path in outputs.items():
             (LOCKS / (name + '.txt')).write_bytes(path.read_bytes())
         (LOCKS / 'lock-metadata.json').write_text(json.dumps(metadata, indent=2) + '\n')
@@ -205,9 +226,11 @@ def main():
     parser.add_argument('--check', action='store_true', help='Check input/output digests offline')
     parser.add_argument('--uv', default='uv', help='Path to uv ' + UV_VERSION)
     parser.add_argument('--cache-dir', type=Path)
+    parser.add_argument('--lane', action='append', choices=sorted(LANES),
+                        help='Regenerate only this lane; unchanged lanes must pass input/hash checks')
     args = parser.parse_args()
     try:
-        check() if args.check else generate(args.uv, args.cache_dir)
+        check() if args.check else generate(args.uv, args.cache_dir, args.lane)
     except (ValueError, OSError, KeyError, subprocess.SubprocessError) as error:
         parser.exit(1, str(error) + '\n')
 

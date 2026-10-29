@@ -52,7 +52,7 @@ DICTIONARY_FIELDS = ('model_id', 'model_name', 'layer', 'domain', 'grain',
 
 LEGACY_COVERAGE_STATUSES = ('covered', 'partially covered', 'retire candidate', 'out of domain', 'unresolved')
 DECISION_REGISTER_STATUSES = ('answered', 'assumed', 'open')
-REVIEW_EXTENSION_KEYS = ('review_meta', 'subject_areas', 'legacy_coverage', 'static_checks')
+REVIEW_EXTENSION_KEYS = ('review_meta', 'subject_areas', 'legacy_coverage', 'static_checks', 'domain_review')
 
 
 def _texts(value, limit=200):
@@ -61,6 +61,11 @@ def _texts(value, limit=200):
 
 def _validate_review_extensions(review, model_ids):
     """Optional review-page fields (references/review-page.md). Authored evidence, never approval or execution."""
+    if 'domain_review' in review:
+        option = review['domain_review']
+        require(isinstance(option, dict) and set(option) == {'domain'}
+                and isinstance(option['domain'], str) and 0 < len(option['domain'].strip()) <= 200,
+                'domain_review requires one nonempty domain label')
     meta = review.get('review_meta')
     if meta is not None:
         require(isinstance(meta, dict) and set(meta) <= {'domain_position', 'repositories', 'read_order', 'not_done'},
@@ -2027,6 +2032,11 @@ def generated_deliverables(data):
         if model_ids is not None:
             record['diagram_model_ids'] = list(model_ids)
         records.append(record)
+    if 'documentation' in selected and models and review.get('domain_review'):
+        from domain_review_page import render_from_delivery
+        add('generated:domain-review', '01_Model/Domain_Review.html', 'documentation',
+            'Optional domain companion using the same selected files and audience as Start Here; candidate review only.',
+            render_from_delivery(data).encode('utf-8'))
     if 'dictionary' in selected and data.get('staging_ports'):
         path = ('05_Mappings/' if data.get('package_layout_version') == 2 else '01_Model/') + 'STAGING_PORT_REGISTER.csv'
         add('generated:staging-ports', path, 'dictionary',
@@ -2292,6 +2302,8 @@ def package_delivery(state, review, artifact_root, output_path, audience='review
                               'description':artifact.get('description',''),'requires':artifact.get('requires',[]),
                               'sha256':artifact['sha256'],'size':len(artifact['content']),
                               'base64':base64.b64encode(artifact['content']).decode()})
+        if 'change_status' in artifact:
+            data['files'][-1]['change_status'] = artifact['change_status']
         if 'diagram_model_ids' in artifact:
             data['files'][-1]['diagram_model_ids'] = sorted(artifact['diagram_model_ids'])
     _set_diagram_coverage(data)
