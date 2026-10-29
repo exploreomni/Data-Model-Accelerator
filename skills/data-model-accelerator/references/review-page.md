@@ -6,7 +6,8 @@ progress, metadata and deployment controls remain available. Small packages embe
 large packages link to bounded per-table and per-file pages.
 
 `scripts/review_page.py` and `assets/review-page/` are an alternative review presentation,
-not the default package renderer. Do not switch an engagement to it until its actual
+not the default package renderer. Domain reviews use the separate
+[domain review page](domain-review-page.md) and its folder layout. Do not switch an engagement to it until its actual
 workflow, navigation, feedback and evidence parity have been qualified. The optional
 fields below are additive: old engagement formats remain valid, absent fields mean
 unassessed, and none of them records approval. Canonical delivery data remains authoritative.

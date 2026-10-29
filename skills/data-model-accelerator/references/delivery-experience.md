@@ -57,7 +57,7 @@ Handoff/
 Technical_Audit/          separate optional export
 ```
 
-Original repositories remain at their registered roots; packaging does not clone them. Only explicitly registered, selected and audience-permitted files enter the handoff. When documentation is selected, section guides explain missing or unselected content; an empty section does not establish stage completion. `--layout classic` retains the older `01_Model/`, `02_Implementation/`, `03_Validation/` and optional sample-data paths.
+Original repositories remain at their registered roots; packaging does not clone them. Only explicitly registered, selected and audience-permitted files enter the handoff. When documentation is selected, section guides explain missing or unselected content; an empty section does not establish stage completion. `--layout classic` retains the older `01_Model/`, `02_Implementation/`, `03_Validation/` and optional sample-data paths. A domain review uses its own layout (`01_review/`, `02_dbt/`, `03_omni/`, `04_docs/`); see the [domain review page](domain-review-page.md).
 
 Use plain labels, portable relative links and a dependency/run order. The entrypoint states what was generated, the target, actual checks, prerequisites, unresolved decisions and the next concrete action. Link directly to the selected design and code.
 
