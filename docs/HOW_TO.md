@@ -4,6 +4,9 @@ Use the accelerator with your coding agent to turn source data and reporting log
 
 See the [project overview](../README.md) and [capabilities and limits](CAPABILITIES.md) for the current release scope.
 
+For a prompt-led introduction without command-line instructions, start with the
+[self-guided learning path](training/README.md) and its synthetic practice lesson.
+
 You can drive the work through prompts. The agent maintains the technical records and runs the selected helpers; SMEs do not need to edit JSON or learn dbt. The command examples below expose the same local workflow for engineers who want to operate it directly.
 
 ## Start reliably and review what is known
@@ -131,7 +134,7 @@ available when context is missing, alongside requested provisional code.
 Open **Migration plan** in `START_HERE.html`. Download the inventory for old/new
 tables and dashboard destinations, then the narrative plan and selected ticket
 pack. Select both documentation and dictionary to include the full planning
-inventory; reduced exports explicitly omit it. Files are together in `05_Migration/`. Shared models and split/merge mappings
+inventory; reduced exports explicitly omit it. In the default simple layout, planning files are under `05_Mappings/`. Shared models and split/merge mappings
 remain explicit. Unknown lineage is not filled by matching names. Proposed routes
 do not establish native topic existence or dashboard parity.
 
@@ -176,7 +179,7 @@ without making SMEs learn the schema.
 
 ## 1. Make the skill available locally
 
-Use an approved checkout or downloaded copy of this repository. The core discovery, review and packaging helpers need **Python 3.9+ on a POSIX host** and use the standard library. Native dbt adapters, vendor tools and optional validation exercises have separate pinned requirements; install only what the selected path needs, in an isolated environment. Do not upgrade an existing project's runtime just to match an example.
+Use an approved checkout or downloaded copy of this repository. Use **Python 3.12 on a POSIX host** for maintained execution; older Python versions are no longer CI-qualified. The core discovery, review and packaging helpers use the standard library. Native dbt adapters, vendor tools and optional validation exercises have separate pinned requirements; install only what the selected path needs, in an isolated environment. Do not upgrade an existing project's dbt runtime just to match an example.
 
 From the accelerator repository root:
 
