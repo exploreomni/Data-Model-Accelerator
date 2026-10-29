@@ -27,7 +27,7 @@ jobs:
         run: python -m unittest discover -s .github/scripts -p 'test_security_helpers.py' -v
       - name: Audit bootstrap, tools and the complete development lock
         run: |
-          python .github/scripts/audit_locks.py bootstrap security development hex deployment source-adapters lint tableau powerbi browser
+          python .github/scripts/audit_locks.py bootstrap security development hex deployment source-adapters lint tableau powerbi browser training
   secrets:
     runs-on: ubuntu-24.04
     timeout-minutes: 30

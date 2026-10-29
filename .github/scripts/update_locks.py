@@ -46,6 +46,7 @@ LANES = {
     'dbt-metadata': [SCRIPTS + 'requirements-dbt-metadata.txt'],
     'security': ['.github/requirements/security.in'],
     'browser': ['.github/requirements/browser.in'],
+    'training': ['docs/training/requirements-build.txt'],
 }
 
 

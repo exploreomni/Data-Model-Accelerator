@@ -145,6 +145,10 @@ class DomainReviewPageTests(unittest.TestCase):
         own = page['areas'][0]
         self.assertIn('wh_orders__orders_daily_xa', own['erd'])
         self.assertEqual(page['cards']['semantic']['relationships'], 1)
+        warehouse_review = copy.deepcopy(value)
+        warehouse_review['assets'] = []
+        no_semantic = page_module.project(warehouse_review, [f for f in packaged if f['path'].startswith('02_dbt/')])
+        self.assertEqual(no_semantic['cards']['semantic']['relationships'], 0)
         without = page_module.project(value, packaged, infer_keys=False)
         self.assertNotIn('key name match', {r['basis'] for r in without['rels']})
         bad = copy.deepcopy(page)

@@ -40,7 +40,7 @@ function rOverview(){
  const cards=[
   [tot,'models in scope',['gold','silver','bronze'].map(l=>`${l}: reuse ${L[l].reuse} · extend ${L[l].extend} · create ${L[l].create} · ${L[l].unassessed} unassessed`).join('<br>')],
   [c.code.new+c.code.changed+c.code.unassessed,'selected warehouse code files',`${c.code.new} new (${c.code.new_sql} models) · ${c.code.changed} change existing files (${c.code.changed_sql} models) · ${c.code.unassessed} change status unassessed`],
-  [c.semantic.topics,'semantic topics',`${c.semantic.views} views · ${c.semantic.relationships} relationships<br>${c.semantic.cross_domain_topics} cross-domain topics`]];
+  [c.semantic.topics,'semantic topics',`${c.semantic.views} view files included · ${c.semantic.relationships} resolved join definitions<br>${c.semantic.cross_domain_topics} cross-domain topics`]];
  if(c.legacy_total)cards.push([c.legacy_total,'legacy models accounted for',`covered ${Lg.covered} · partially ${Lg['partially covered']} · retire candidate ${Lg['retire candidate']}<br>out of domain ${Lg['out of domain']} · unresolved ${Lg.unresolved}`]);
  cards.push([Dc.answered+Dc.assumed+Dc.open+Dc.unassessed,'decisions',`answered ${Dc.answered} · assumed ${Dc.assumed} · open ${Dc.open} · ${Dc.unassessed} unassessed`]);
  if(D.dashboards.length)cards.push([D.dashboards.length,'dashboards in scope',`served ${Ds.served} · partly served ${Ds.partly_served} · not served ${Ds.not_served} · ${Ds.unassessed} unassessed`]);

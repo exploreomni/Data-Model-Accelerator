@@ -380,7 +380,7 @@ def normalise(data):
     page = {'schema_version': SCHEMA_VERSION, 'kind': KIND, 'meta': meta, 'models': models, 'rels': rels,
             'areas': areas, 'topics': topics, 'files': files, 'decisions': decisions, 'legacy': legacy,
             'dashboards': dashboards, 'static': static, 'checks': checks, 'remaining': remaining, 'open': opened,
-            'apply': apply, 'semantic_relationships': relationships if relationships is not None else len(rels),
+            'apply': apply, 'semantic_relationships': relationships if relationships is not None else 0,
             'notes': {'decisions': (data.get('notes') or {}).get('decisions') or DECISION_NOTE,
                       'validation': (data.get('notes') or {}).get('validation') or VALIDATION_NOTE}}
     page['reading_order'] = _list(data.get('reading_order') or _reading_order(page), 'reading_order')
@@ -716,7 +716,8 @@ def semantic_from_files(files, models, *, warehouse_bindings=(), model_context=N
             views.setdefault(node['view_id'], None)
         joins = [{'from': e['from'], 'to': e['to'], 'depth': len(e['path']) - 1,
                   'card': e.get('relationship_type') or '', 'on': '',
-                  'status': e['relationship_status'], 'direction': e['relationship_direction']}
+                  'status': e['relationship_status'], 'direction': e['relationship_direction'],
+                  'relationship_id': e['relationship_id']}
                  for e in tree['edges']]
         path = tree['source_path']
         if path not in semantic and len(topic_paths[tree['id']]) == 1:
@@ -1027,7 +1028,8 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
             'static': review.get('static_checks') or static_checks(files, models, known_models, views, sem_rels),
             'checks': checks, 'remaining': (overlay.get('remaining') or review_meta.get('remaining') or []) + general_changes,
             'open': opened, 'apply': {'new_sources': new_sources, 'placeholders': placeholders},
-            'semantic_relationships': len(sem_rels) if sem_rels else len(reviewed)}
+            'semantic_relationships': len({j['relationship_id'] for t in topics for j in t['joins']
+                                           if j.get('relationship_id') and j['status'] == 'resolved'})}
     for key in ('reading_order', 'not_done', 'notes'):
         value = overlay.get(key) or (review_meta.get({'reading_order': 'read_order'}.get(key, key)))
         if value:

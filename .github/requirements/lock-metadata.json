@@ -8,7 +8,8 @@
     ".github/requirements/browser.in": "a59ca745cb91e50ae38613877101f788c0c981de4ffdf820d2f28e2d9bda3f77",
     ".github/requirements/native-wheels.json": "473a81ff4c0fde01916f267eb7d4d9cbb17def8439a1f24c5816a2cdc5829ee9",
     ".github/requirements/security.in": "7b4acc391ab477d5fedd5d34f8d7c4da0afdae1a6c0643aa0f877220386c75ba",
-    ".github/scripts/update_locks.py": "0a48f51a323f3f3ee2de75a920a9801f460009fec779aec3bd94dca97db96ea9",
+    ".github/scripts/update_locks.py": "d381bce561068c9deaf285bd064d355f9c808a8d9da2508c2c482e39c8a0039a",
+    "docs/training/requirements-build.txt": "c39d336a64523434243f925a0bc916f56d74121547e6608d9c79b8432c9e8205",
     "requirements-dev.txt": "4234245c6b6930cdef03c2d06792ab94e65f7ba36bc8fe4887a0e2f9a7ad6fee",
     "skills/data-model-accelerator/scripts/requirements-dbt-metadata.txt": "d573a3bdb7ea009ab44a1139afe93a7fd4b3698ba1a6c6529ca9e991c1af7d10",
     "skills/data-model-accelerator/scripts/requirements-dbt-oss.txt": "61bc6584baaa4a2f416492e2362f8150a75ef382f7c4c1dfcafee855bda11df0",
@@ -37,6 +38,7 @@
     "powerbi.txt": "4b6f23b71537eeb937a47800ff409a85248927bd9871beefc5600127e46756f6",
     "security.txt": "355f0f89c798b341027fbf8536fc24a3b9fec712c7ac2754d46fd8dc9f205efa",
     "source-adapters.txt": "2358bceabf13c8315e703e72fd185ebf893e1938f5e245437fd50370e73d4116",
-    "tableau.txt": "4b6f23b71537eeb937a47800ff409a85248927bd9871beefc5600127e46756f6"
+    "tableau.txt": "4b6f23b71537eeb937a47800ff409a85248927bd9871beefc5600127e46756f6",
+    "training.txt": "b33f5fccbf51245fdc4221999a181f7d35de8251bb0ab2ac4479320a75103c33"
   }
 }
