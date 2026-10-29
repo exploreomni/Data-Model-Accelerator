@@ -6,7 +6,7 @@ Turn tangled analytics code into documented, testable warehouse models and an Om
 
 ## Start here
 
-**New to the tool? [Take the self-guided introduction](docs/training/README.md)** — a plain-language walkthrough, copy-ready prompts and a no-customer-data practice lesson. Business reviewers can start without learning SQL or command-line tools.
+**New to the tool? [Take the self-guided introduction](docs/training/README.md)** — six plain-language lessons, an illustrated PDF, installation steps and a complete-domain migration example. Business reviewers can start without learning SQL or command-line tools.
 
 | Your goal | Guide |
 | --- | --- |

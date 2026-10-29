@@ -18,9 +18,7 @@ These are the five tables and their declared purposes in the demo:
 | `GOLD.FACT_RETURNS` | One return record | Create |
 | `GOLD.FACT_PAYMENTS` | One product-attributed payment record | Create |
 
-![Learning illustration: sales, returns and product-attributed payments each refer to customer and product. These declared joins remain unverified.](assets/commerce-review.svg)
-
-*Simplified teaching illustration derived from the demo's declared joins. Arrows mean “refers to,” not transformation flow. [Open the actual exported ERD](assets/commerce-export.svg) for the generated table and connection detail.*
+[Open the actual exported ERD](assets/commerce-export.svg) to inspect all five tables and their declared joins. This is a synthetic product export, not a screenshot or a brand-redrawn diagram.
 
 In `GOLD.FACT_SALES`, the demo declares `sales_id` as the primary key, `customer_id` and `product_id` as foreign keys, and `amount` as a recorded amount in the source currency. Currency alignment and netting remain unresolved. Those labels describe the candidate; they do not prove the actual data obeys them.
 
@@ -117,10 +115,10 @@ The [demo source](../../skills/data-model-accelerator/scripts/run_model_review_d
 <details>
 <summary>About the visuals in this lesson</summary>
 
-`workflow.svg` and `commerce-review.svg` are teaching illustrations. `commerce-export.svg` is the unmodified ERD produced by the maintained demo at revision `fcec34f`. The lesson was checked against the generated package and source definitions. Local-file browser access was blocked during authoring, so these are not UI screenshots and interactive browser behavior was not visually verified. Repeat the five page actions above when qualifying your team's environment.
+`commerce-export.svg` is the unmodified ERD produced by the maintained demo at revision `fcec34f`. The lesson was checked against the generated package and source definitions. Local-file browser access was blocked during authoring, so these are not UI screenshots and interactive browser behavior was not visually verified. Repeat the five page actions above when qualifying your team's environment.
 
 </details>
 
 ## Take it into your own work
 
-Return to [Start your first project](README.md#start-your-first-project) with one domain, your approved input locations and one result the business can check. Keep the same review habits: **find the evidence, ask about ambiguity, and distinguish a candidate from a verified outcome**.
+Return to [Launch your migration](06-launch.md) with the full migration scope, approved inputs and review responsibilities. Select a complete domain for the first implementation wave. Keep the same review habits: **find the evidence, ask about ambiguity, and distinguish a candidate from a verified outcome**.
