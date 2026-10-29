@@ -111,6 +111,32 @@ class DomainReviewPageTests(unittest.TestCase):
         rel = next(r for r in page['rels'] if r['to'] == 'wh_customers__customers_dim')
         self.assertEqual((rel['key'], rel['card']), ('customer_fk = customer_pk', 'many_to_one'))
 
+    def test_gold_relationships_include_declared_tests_and_key_names(self):
+        value, packaged = review(), files()
+        value['models'].append({'id': 'wh_orders__orders_daily_xa', 'layer': 'gold', 'domain': 'orders', 'status': 'new',
+                                'columns': [{'name': 'orders_daily_pk', 'key': 'primary'},
+                                            {'name': 'customer_fk', 'key': 'foreign'}, {'name': 'channel_fk', 'key': 'foreign'},
+                                            {'name': 'region_fk', 'key': 'foreign'}]})
+        packaged.append({'path': '02_dbt/project/models/warehouse/_orders_daily_schema.yml', 'status': 'new', 'content': (
+            'version: 2\nmodels:\n  - name: wh_orders__orders_daily_xa\n    columns:\n      - name: customer_fk\n'
+            '        data_tests:\n          - common.relationships_in_past_time_window:\n              arguments:\n'
+            "                to: ref('wh_customers__customers_dim')\n                field: customer_pk\n")})
+        page = page_module.project(value, packaged)
+        daily = {(r['to'], r['basis']) for r in page['rels'] if r['from'] == 'wh_orders__orders_daily_xa'}
+        # The declared test wins over the matching key name; region_fk has no gold owner and stays unjoined.
+        self.assertEqual(daily, {('wh_customers__customers_dim', 'declared test'), ('wh_orders__channel_dim', 'key name match')})
+        fact = {(r['to'], r['basis']) for r in page['rels'] if r['from'] == 'wh_orders__orders_fct'}
+        self.assertEqual(fact, {('wh_customers__customers_dim', 'review'), ('wh_orders__channel_dim', 'review')})
+        own = page['areas'][0]
+        self.assertIn('wh_orders__orders_daily_xa', own['erd'])
+        self.assertEqual(page['cards']['semantic']['relationships'], 1)
+        without = page_module.project(value, packaged, infer_keys=False)
+        self.assertNotIn('key name match', {r['basis'] for r in without['rels']})
+        bad = copy.deepcopy(page)
+        bad['rels'][0]['basis'] = 'guess'
+        with self.assertRaisesRegex(ValueError, 'Relationship basis'):
+            page_module.normalise(bad)
+
     def test_dashboards_legacy_decisions_and_open_items(self):
         page = self.page
         self.assertEqual([(d['asset_type'], d['asset_id'], d['title'], d['status']) for d in page['dashboards']],

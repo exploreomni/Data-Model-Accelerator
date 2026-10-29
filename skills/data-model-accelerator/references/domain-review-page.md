@@ -48,7 +48,7 @@ tables. Main fields:
 |---|---|
 | `meta` | `title`, `domain` (key used to mark other domains' tables as shared interfaces), optional `domain_label`, `subtitle`, `scope_label`, `facts`, `banner`, `brand`, `repositories` (`role`, `name`, hex `commit` or null, hex `fingerprint` or null), `code_target` (`package_path`, `project_path`), `semantic_target` (`connection`, `note`), `access_note` |
 | `models` | `id`, `layer`, `domain`, `disp` (`create`, `extend`, `reuse`), `cols` (`[name, type, PK/FK/"", description]`), `dep`, optional `grain`, `desc`, `src`, `sec`, `code`, `source_path`, `area`, `existing` |
-| `rels` | Gold joins: `from`, `to`, `card`, `key` |
+| `rels` | Gold joins: `from`, `to`, `card`, `key`, `basis` (`review`, `declared test`, `key name match`) |
 | `areas` | `id`, `name`, `gold`, optional `shared`; `pipeline` defaults to the gold tables plus their non-gold ancestors and must contain every gold table; `erd` defaults to the gold tables plus their join partners |
 | `topics` | `topic`, `label`, `base`, `area`, `joins` (`from`, `to`, `depth`, `card`, `on`), `views`, `fields`, `path`, `view_files` |
 | `files` | `path` (under `02_dbt/` or `03_omni/`), `status` (`new`, `changed`), `content` |
@@ -71,7 +71,11 @@ tables. Main fields:
    `project` reads the review contract (`models`, `relationships`, `changes` or `legacy_coverage`,
    `decisions`, `validation`, `assets`, `review_meta`, `subject_areas`) and the packaged files. A
    semantic view binds to a model only through its declared `table_name`; an unbound view keeps its
-   own name and stays visible. Every dashboard needs a coverage status (`served`, `partly_served`,
+   own name and stays visible. Gold relationships combine, in this order, the joins recorded in the
+   review, dbt relationship tests declared in the packaged schema files, and foreign keys whose
+   `<entity>_fk` name matches exactly one other gold table's `<entity>_pk`; the first source wins
+   for each foreign key and the page shows each join's basis on hover. Pass `--no-key-inference`
+   when the warehouse does not follow the `_fk`/`_pk` naming convention. Every dashboard needs a coverage status (`served`, `partly_served`,
    `not_served` or `out_of_scope`), so none can drop out silently. Artifacts must still match their
    registered SHA-256. The overlay carries authored fields the review does not hold, such as `meta`,
    `areas`, per-dashboard tile counts and reasons, `remaining` and extra `open` items. Never invent

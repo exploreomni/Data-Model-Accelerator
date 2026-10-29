@@ -94,7 +94,7 @@ function erd(a){
  cols.forEach((col,ci)=>{let y=34;col.forEach(id=>{const k=keys(id).slice(0,8);const h=46+k.length*15;P[id]={x:16+ci*(BW+CG),y,h,k,more:keys(id).length-k.length};y+=h+16});H=Math.max(H,y)});
  const W=32+3*BW+2*CG;
  let s=(a.shared?['FACTS & EXTENDED TABLES','DIMENSIONS','']:['THIS AREA — FACTS & EXTENDED TABLES','THIS AREA — DIMENSIONS','RELATED TABLES']).map((t,i)=>t?`<text x="${16+i*(BW+CG)}" y="18" class="lh">${t}</text>`:'').join('');
- rels.forEach(r=>{const p=P[r.from],q=P[r.to];if(!p||!q)return;const y1=p.y+18,y2=q.y+18,t=`${r.from} → ${r.to}${r.card?` (${human(r.card)})`:''}${r.key?' on '+r.key:''}`;
+ rels.forEach(r=>{const p=P[r.from],q=P[r.to];if(!p||!q)return;const y1=p.y+18,y2=q.y+18,t=`${r.from} → ${r.to}${r.card?` (${human(r.card)})`:''}${r.key?' on '+r.key:''}${r.basis?' · from '+r.basis:''}`;
   if(p.x<q.x)s+=curve(p.x+BW,y1,q.x,y2,'rel',t);else if(p.x>q.x)s+=curve(p.x,y1,q.x+BW,y2,'rel',t);
   else{const x=p.x+BW,bx=x+Math.min(CG-8,26+Math.abs(y2-y1)/12),d=`M${x} ${y1} C${bx} ${y1} ${bx} ${y2} ${x} ${y2}`;s+=`<g><path d="${d}" class="relhit"><title>${e(t)}</title></path><path d="${d}" class="rel"/></g>`}});
  ids.forEach(id=>{const p=P[id];if(!p)return;const m=M[id],c=COL[kind(m)]||COL.reuse;

@@ -46,6 +46,7 @@ DASHBOARD_STATUSES = ('served', 'partly_served', 'not_served')
 LEGACY_STATUSES = ('covered', 'partially covered', 'retire candidate', 'out of domain', 'unresolved')
 DECISION_STATUSES = ('answered', 'assumed', 'open')
 FILE_STATUSES = ('new', 'changed')
+RELATIONSHIP_BASES = ('', 'review', 'declared test', 'key name match')
 CHECK_STATUSES = ('pass', 'fail', 'pending', 'skipped', 'not_applicable')
 VIEWS = ('overview', 'model', 'code', 'decisions', 'legacy', 'dict', 'valid', 'todos')
 LAYOUT = {'review': '01_review', 'code': '02_dbt', 'semantic': '03_omni', 'docs': '04_docs'}
@@ -241,7 +242,8 @@ def normalise(data):
     for rel in rels:
         require(isinstance(rel, dict) and rel.get('from') in by_id and rel.get('to') in by_id,
                 'Relationship endpoints must be models in this review')
-        rel.setdefault('card', ''); rel.setdefault('key', '')
+        rel.setdefault('card', ''); rel.setdefault('key', ''); rel.setdefault('basis', '')
+        require(rel['basis'] in RELATIONSHIP_BASES, 'Relationship basis must be one of: ' + ', '.join(RELATIONSHIP_BASES))
 
     areas = _list(data.get('areas') or [], 'areas')
     _unique([dict(a, id=a.get('id')) for a in areas], 'id', 'Area')
@@ -646,6 +648,62 @@ def static_checks(files, model_ids, known_models=(), views=None, relationships=(
             {'label': 'Broken semantic relationships', 'count': len(broken_rels), 'of': f'{len(relationships)} relationships', 'items': broken_rels}]
 
 
+def declared_relationships(files, models):
+    """Gold joins declared as dbt relationship tests (``relationships`` or any namespaced variant)."""
+    out = []
+    for row in files:
+        if not row['path'].endswith(('.yml', '.yaml')) or file_kind(row['path']) != 'dbt':
+            continue
+        doc = _yaml(row['content'])
+        for model in (doc.get('models') or []) if isinstance(doc, dict) else []:
+            name = model.get('name') if isinstance(model, dict) else None
+            if name not in models or models[name]['layer'] != 'gold':
+                continue
+            for column in model.get('columns') or []:
+                for test in (column.get('data_tests') or column.get('tests') or []) if isinstance(column, dict) else []:
+                    for key, value in (test.items() if isinstance(test, dict) else []):
+                        if key.split('.')[-1].startswith('relationships') and isinstance(value, dict):
+                            args = value.get('arguments', value)
+                            target = re.search(r"ref\(\s*['\"]([^'\"]+)['\"]", str(args.get('to', '')))
+                            if target and target.group(1) in models and target.group(1) != name:
+                                out.append({'from': name, 'to': target.group(1), 'card': 'many_to_one',
+                                            'key': f"{column.get('name')} = {args.get('field', '')}", 'basis': 'declared test'})
+    return out
+
+
+def key_name_relationships(models):
+    """Gold joins where a ``<entity>_fk`` column matches exactly one other gold table's ``<entity>_pk``."""
+    owners = collections.defaultdict(list)
+    for model in models.values():
+        if model['layer'] == 'gold':
+            for name, _, key, _ in model['cols']:
+                if key == 'PK':
+                    owners[name].append(model['id'])
+    out = []
+    for model in models.values():
+        if model['layer'] != 'gold':
+            continue
+        for name, _, key, _ in model['cols']:
+            if key == 'FK' and name.endswith('_fk'):
+                target = [o for o in owners.get(name[:-3] + '_pk', []) if o != model['id']]
+                if len(target) == 1:
+                    out.append({'from': model['id'], 'to': target[0], 'card': 'many_to_one',
+                                'key': f'{name} = {name[:-3]}_pk', 'basis': 'key name match'})
+    return out
+
+
+def merge_relationships(*groups):
+    """First source wins per (from, to, foreign key column)."""
+    seen, out = set(), []
+    for group in groups:
+        for rel in group:
+            ident = (rel['from'], rel['to'], rel['key'].split('=')[0].strip())
+            if ident not in seen:
+                seen.add(ident)
+                out.append(rel)
+    return out
+
+
 def _disposition(model):
     for key in ('disposition', 'status'):
         value = DISPOSITION_ALIASES.get(str(model.get(key) or '').lower())
@@ -668,7 +726,7 @@ def _relationship(edge):
         match = re.fullmatch(r'\s*(.+?=.+?)\s*(?:\((\w+)\))?\s*', str(edge.get('label') or ''))
         if match:
             key, card = match.group(1).strip(), card or (match.group(2) or '')
-    return {'from': edge['from'], 'to': edge['to'], 'card': card, 'key': key}
+    return {'from': edge['from'], 'to': edge['to'], 'card': card, 'key': key, 'basis': 'review'}
 
 
 def _owning_domain(review, domain):
@@ -736,7 +794,7 @@ def _legacy(review, models):
     return out
 
 
-def project(review, files, *, domain=None, overlay=None, known_models=()):
+def project(review, files, *, domain=None, overlay=None, known_models=(), infer_keys=True):
     """Page data from a checked review and its packaged code files.
 
     ``files`` is a list of ``{path, status, content}`` with paths already in the review layout
@@ -769,8 +827,12 @@ def project(review, files, *, domain=None, overlay=None, known_models=()):
             'code': code, 'source_path': row.get('source_path') or '', 'area': row.get('area')}
         if row.get('existing_source'):
             models[model_id]['existing'] = row['existing_source']
-    rels = [_relationship(e) for e in review.get('relationships', []) if e.get('kind') == 'relationship'
-            and e.get('from') in models and e.get('to') in models]
+    reviewed = [_relationship(e) for e in review.get('relationships', []) if e.get('kind') == 'relationship'
+                and e.get('from') in models and e.get('to') in models]
+    # Recorded joins alone cover only what the semantic layer uses; declared tests and key names
+    # complete the gold relationship view. Each join keeps its basis so the page can show it.
+    rels = merge_relationships(reviewed, declared_relationships(files, models),
+                               key_name_relationships(models) if infer_keys else [])
     areas = _areas(review, models, domain, overlay)
     topics, views, sem_rels = semantic_from_files(files, models)
     home = {}
@@ -828,7 +890,7 @@ def project(review, files, *, domain=None, overlay=None, known_models=()):
             'static': review.get('static_checks') or static_checks(files, models, known_models, views, sem_rels),
             'checks': checks, 'remaining': overlay.get('remaining') or review_meta.get('remaining') or [],
             'open': opened, 'apply': {'new_sources': new_sources, 'placeholders': placeholders},
-            'semantic_relationships': len(sem_rels) if sem_rels else len(rels)}
+            'semantic_relationships': len(sem_rels) if sem_rels else len(reviewed)}
     for key in ('reading_order', 'not_done', 'notes'):
         value = overlay.get(key) or (review_meta.get({'reading_order': 'read_order'}.get(key, key)))
         if value:
@@ -874,6 +936,7 @@ def main(argv=None):
     p.add_argument('--changed', help='Text file listing artifact paths that replace existing files')
     p.add_argument('--overlay', help='JSON with authored presentation fields (meta, areas, dashboards, ...)')
     p.add_argument('--known-models', help='Text file of model names that exist in the base project')
+    p.add_argument('--no-key-inference', action='store_true', help='Do not add joins from matching _fk/_pk column names')
     p.add_argument('--domain'); p.add_argument('--output', required=True)
     p = sub.add_parser('render', help='Write START_HERE.html from page data')
     p.add_argument('--data', required=True); p.add_argument('--output', required=True)
@@ -889,7 +952,7 @@ def main(argv=None):
         review = load_json(args.review)
         files = files_from_artifacts(review, args.artifacts, json.loads(args.path_map), changed=lines(args.changed))
         page = project(review, files, domain=args.domain, overlay=load_json(args.overlay) if args.overlay else None,
-                       known_models=lines(args.known_models))
+                       known_models=lines(args.known_models), infer_keys=not args.no_key_inference)
         out = Path(args.output)
         require(not out.exists(), 'Output exists; choose a new file')
         out.write_text(json.dumps(page, indent=1, ensure_ascii=False) + '\n', encoding='utf-8')
