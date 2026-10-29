@@ -25,7 +25,7 @@ The deliberately small Markdown renderer supports headings, paragraphs, lists, i
 4. Ask a new reader to find a first-domain choice, a warehouse file, an Omni file, an unresolved definition, installation guidance and the kickoff prompt. Correct ambiguous instructions rather than adding another guide.
 5. Keep the SE/AE draft-review label until explicit approval for customer use. Passing documentation checks is not that approval.
 
-PDF references to maintained examples use workflow revision `fcec34fb8e83bf7b663ab5ed0e1e945224dd03fd`. Update `REVISION` in the builder when requalifying against a newer baseline. Companion training links use the review branch while this work is a draft; change that branch reference to `main` when publishing the approved guide. Do not claim live or native-host testing from source inspection.
+PDF references to maintained examples use workflow revision `fcec34fb8e83bf7b663ab5ed0e1e945224dd03fd`. Update `REVISION` in the builder when requalifying against a newer baseline. Companion training links use `main` so the published PDF remains usable after its review branch is removed. Do not claim live or native-host testing from source inspection.
 
 ## Assets and provenance
 

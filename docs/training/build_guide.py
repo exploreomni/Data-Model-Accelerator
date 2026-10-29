@@ -134,7 +134,7 @@ def destination(target):
         return "#" + resolved.stem
     if resolved == ROOT / "README.md" and not fragment:
         return "#contents"
-    revision = "atx/self-guided-training" if resolved.is_relative_to(ROOT) else REVISION
+    revision = "main" if resolved.is_relative_to(ROOT) else REVISION
     return GITHUB + revision + "/" + quote(resolved.relative_to(REPO).as_posix()) + ("#" + fragment if fragment else "")
 
 
