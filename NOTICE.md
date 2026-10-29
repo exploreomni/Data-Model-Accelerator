@@ -15,3 +15,7 @@ Runtime packages are installed from the pinned requirements and retain their own
 The billing, rental, retail and Omni fixtures are synthetic. Tenant identifiers, monetary values, authority labels, access personas and connection examples are fabricated; they are not customer records or live provider acceptance. JSON schemas, provenance records and checksum pins are retained because the parsers and tests use them.
 
 Historical release packages, external dataset provenance and their accompanying notices remain in Git history. See [qualification and reproduction](docs/qualification.md) for the historical snapshot and current testing boundaries. This repository does not relicense external datasets or grant rights to redistribute separately acquired inputs.
+
+## Training artwork and typography
+
+The training guide includes Cal Sans and IBM Plex fonts under the SIL Open Font License 1.1. Retain the [font licenses and provenance](docs/training/assets/fonts/PROVENANCE.md). The supplied Omni wordmark remains subject to its owner's trademark and artwork rights; the project MIT license does not relicense that mark or imply endorsement. Original teaching illustrations and the unchanged synthetic ERD have [documented provenance](docs/training/MAINTAINING.md#assets-and-provenance).

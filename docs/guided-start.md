@@ -2,7 +2,7 @@
 
 For the complete engineer/SME journey, begin with [HOW_TO.md](HOW_TO.md). This page is the concise guided CLI reference. See [capabilities](CAPABILITIES.md) before choosing a target.
 
-Use the accelerator through your existing coding agent. You do not need to learn its evidence JSON contracts. The agent collects the facts, prepares the records and explains decisions. The local helpers use Python 3.9+ and a POSIX filesystem; native vendor tools are separate prerequisites only for their qualified execution paths.
+Use the accelerator through your existing coding agent. You do not need to learn its evidence JSON contracts. The agent collects the facts, prepares the records and explains decisions. Use Python 3.12 and a POSIX filesystem for maintained local execution; older Python versions are no longer CI-qualified. Native vendor tools are separate prerequisites only for their qualified execution paths. For a nontechnical introduction, use the [self-guided learning path](training/README.md).
 
 ## Ask the agent
 

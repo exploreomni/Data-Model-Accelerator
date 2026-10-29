@@ -22,10 +22,13 @@ Copy the entire `data-model-accelerator` skill folder so relative references, sc
 | Codex | Project `.agents/skills/data-model-accelerator/` | Discovery, relative reference loading, local Python, target tool restrictions |
 | Claude Code | Project `.claude/skills/data-model-accelerator/` | Same workflow plus local trust/permission settings |
 | Gemini CLI | Project `.gemini/skills/data-model-accelerator/`; also documents `.agents/skills/` alias | Skill activation, dependencies and approved tool access |
-| Snowflake Cortex Code / CoCo Desktop | Project `.snowflake/cortex/skills/data-model-accelerator/` or registered local parent folder | Workspace access, script execution and connection scope |
+| Snowflake CoCo Desktop | Project `.snowflake/cortex/skills/data-model-accelerator/` or registered local parent folder | Workspace access, script execution and connection scope |
+| Snowflake CoCo CLI | Project `.cortex/skills/data-model-accelerator/` or registered local parent folder | Selected installation, workspace access and execution scope |
 | Databricks Genie Code | User `/Users/{username}/.assistant/skills/data-model-accelerator/` or workspace skills folder | Workspace provisioning, runtime/file paths, execution identity |
 
-Sources: [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills), [Gemini CLI](https://geminicli.com/docs/cli/skills/), [Cortex Code](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-desktop/skills), [Genie Code](https://docs.databricks.com/aws/en/genie-code/skills).
+Sources: [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills), [Gemini CLI](https://geminicli.com/docs/cli/skills/), [CoCo Desktop](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-desktop/skills), [CoCo CLI](https://docs.snowflake.com/en/user-guide/cortex-code/extensibility), [Genie Code](https://docs.databricks.com/aws/en/genie-code/skills).
+
+The Snowflake CLI/Desktop path distinction was refreshed October 28, 2026. For step-by-step installation and current official references for each host, see the [learning guide](../../../docs/training/05-install.md).
 
 Cortex Agents are a distinct deployment surface. Snowflake documents skill references from a stage or Git repository, enabled code execution for executable skills, and a same-folder requirement for scripts in that path. This package's nested `scripts/` and `examples/` layout has not been qualified for that mechanism. Produce a separate versioned layout and resolve resource paths only after the selected Cortex Agents toolset is confirmed. Do not claim that dropping this package into a stage makes it compatible. [Cortex Agents skills](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-skills)
 
