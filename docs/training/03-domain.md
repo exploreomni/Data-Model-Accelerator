@@ -6,13 +6,13 @@
 
 The maintained Billing example contains four raw contracts, four preparation models and three gold models: **11 scoped warehouse objects**. It includes three Omni views, two topics and source-to-semantic mappings. These are synthetic candidates, not live deployment evidence.
 
-## Trace one output through the layers
+## Follow warehouse models into an Omni topic
 
-![Four raw sources feed preparation models. Customer history becomes a dimension. Invoices, payments and adjustments combine with it in the invoice fact, which binds to an Omni invoices view.](assets/billing-pipeline.png)
+![Raw inputs feed preparation models, then an invoice fact and customer dimension. Each gold table binds to its own Omni view; billing.topic joins the invoices and customers views many-to-one.](assets/billing-pipeline.png)
 
-*Teaching view of one gold output's upstream lineage, based on the example files. The full domain also contains a customer-month fact and additional topic joins. Arrows show preparation and binding, not proof of safe joins.*
+*Simplified teaching illustration based on the example files. The full Billing topic also joins `customer_month`; that branch is omitted here for clarity. Declared relationships still require data validation.*
 
-Raw data describes what arrived. Preparation resolves source versions and types and applies shared rules. Gold tables organize reusable business entities and events. Omni supplies selected reporting definitions and exploration paths.
+Raw inputs become prepared data, then reusable gold tables. The fact uses customer history to resolve the invoice-date customer key. Each gold table binds to its own Omni view. **The topic brings the views together through a defined relationship**: invoice measures can be explored alongside customer attributes. It defines how to query the models; it does not create another warehouse table.
 
 ## Understand what one row means
 

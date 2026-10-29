@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build static learning artwork and PDF from the six canonical Markdown lessons.
+"""Build learning artwork and PDF, retaining the reviewed Billing illustration.
 
 Maintainer-only tool. No accelerator runtime imports, network requests or execution.
 The deliberate Markdown subset fails on unsupported block markup.
@@ -103,26 +103,9 @@ def make_artwork():
     d.text((80,911), "A domain supports many reports, metrics and business questions.", font=font(32), fill=INK)
     store_image("workflow.png", im)
 
-    im, d = drawing(1340, "Trace an invoice back to its sources", "Billing example  /  selected gold output  /  synthetic teaching illustration")
-    xs = [48, 440, 832, 1224]
-    raw = [["RAW.", "INVOICE_CDC"], ["RAW.", "PAYMENT_CDC"], ["RAW.", "ADJUSTMENTS"], ["RAW.", "CUSTOMER_HISTORY"]]
-    prepared = [["BILLING_", "INVOICES"], ["BILLING_", "PAYMENTS"], ["BILLING_", "ADJUSTMENTS"], ["BILLING_", "CUSTOMER_HISTORY"]]
-    for i, x in enumerate(xs):
-        card(d, (x,230,x+328,415), "RAW INPUT", raw[i], mono=True)
-        arrow(d, [(x+164,415),(x+164,471)])
-        card(d, (x,475,x+328,660), "PREP / SILVER", prepared[i], mono=True)
-    arrow(d, [(1388,660),(1388,716)])
-    card(d, (1224,720,1552,865), "GOLD / DIMENSION", ["DIM_CUSTOMERS"], pink=True, mono=True)
-    # Three preparation outputs and the dimension feed the invoice fact.
-    for x in xs[:3]:
-        d.line([(x+164,660),(x+164,918)], fill=DEEP, width=5)
-    d.line([(1388,865),(1388,918)], fill=DEEP, width=5)
-    d.line([(212,918),(1388,918)], fill=DEEP, width=5)
-    arrow(d, [(800,918),(800,966)])
-    card(d, (420,970,1180,1106), "GOLD / ONE CURRENT INVOICE", ["FCT_INVOICES"], dark=True, mono=True)
-    arrow(d, [(800,1106),(800,1156)])
-    card(d, (420,1160,1180,1296), "OMNI / PHYSICAL BINDING", ["invoices.view"], pink=True, mono=True)
-    store_image("billing-pipeline.png", im)
+    # Reviewed source illustration: preserve the topic composition rather than
+    # regenerating the previous single-view pipeline during a PDF rebuild.
+    ARTWORK["assets/billing-pipeline.png"] = (ASSETS / "billing-pipeline.png").read_bytes()
 
     im, d = drawing(870, "Know where to look", "An illustrated reading map for your delivery's START_HERE.html")
     cards = [("01 / DATA MODEL", ["Meaning and grain", "Columns, keys, joins", "New or reused work"]),
@@ -324,7 +307,7 @@ def main():
                 raise SystemExit(f"Outdated training artifact: {name}; rebuild and visually review.")
         else:
             path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)
-    print(("Verified" if args.check else "Built")+" three illustrations and the six-lesson PDF.")
+    print(("Verified" if args.check else "Built")+" two drawn illustrations and the PDF with the checked-in Billing illustration.")
 
 
 if __name__=="__main__":
