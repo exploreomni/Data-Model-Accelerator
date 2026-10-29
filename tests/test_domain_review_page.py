@@ -16,6 +16,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'skills/data-model-accelerator/scripts'))
 import domain_review_page as page_module
 
+HAS_SQLGLOT = importlib.util.find_spec('sqlglot') is not None
 HAS_YAML = importlib.util.find_spec('yaml') is not None
 NODE = shutil.which('node')
 
@@ -26,6 +27,7 @@ def review(domain='orders', other='customers'):
     return {
         'schema_version': 1, 'title': f'{domain.capitalize()} data model review',
         'target': {'framework': 'dbt', 'warehouse': 'duckdb'},
+        'omni_warehouse_bindings': [{'view_id': n, 'model_ids': [n]} for n in (gold_fct, shared)],
         'review_meta': {'domain_position': f'{domain.capitalize()} domain',
                         'repositories': [{'role': 'Tooling', 'name': 'accelerator', 'commit': 'abcdef1234567', 'fingerprint': None}]},
         'models': [
@@ -75,11 +77,21 @@ def files(domain='orders', other='customers'):
         {'path': f'03_omni/model/views/{shared}.view', 'status': 'new', 'content': f'table_name: {shared}\n'},
         {'path': '03_omni/model/views/unbound_lookup.view', 'status': 'new', 'content': 'table_name: not_in_review\n'},
         {'path': '03_omni/model/relationships/relationships.yaml', 'status': 'new',
-         'content': f'- join_from_view: {gold_fct}\n  join_to_view: {shared}\n  relationship_type: many_to_one\n'
+         'content': f'- join_from_view: {gold_fct}\n  join_to_view: {shared}\n  relationship_type: many_to_one\n  join_type: left\n'
                     f'  on_sql: ${{{gold_fct}.customer_fk}} = ${{{shared}.customer_pk}}\n'},
         {'path': f'03_omni/model/topics/{domain}.topic', 'status': 'new',
          'content': f'base_view: {gold_fct}\nlabel: {domain.capitalize()}\ndescription: One row per order.\n'
                     f'joins:\n  {shared}: {{}}\n  unbound_lookup: {{}}\n# TODO owners: not supplied\n'}]
+
+
+def semantic_context(domain='orders', other='customers'):
+    from test_omni_contract import context
+    value = context(); value['bindings'] = {}
+    for name in (f'wh_{domain}__{domain}_fct', f'wh_{other}__{other}_dim'):
+        value['bindings'][name] = {'namespace': {'database': 'ANALYTICS', 'schema': 'GOLD', 'table': name},
+                                   'columns': {domain + '_pk': 'number', 'customer_fk': 'number', 'customer_pk': 'number'},
+                                   'evidence_sha256': 'b' * 64}
+    return value
 
 
 @unittest.skipUnless(HAS_YAML, 'Optional YAML parser unavailable')
@@ -87,13 +99,14 @@ class DomainReviewPageTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.page = page_module.project(review(), files())
+        self.page = page_module.project(review(), files(), model_context=semantic_context())
 
+    @unittest.skipUnless(HAS_SQLGLOT, 'Pinned SQL runtime required for resolved semantic bindings')
     def test_projection_derives_counts_areas_and_bindings_from_the_review(self):
         page = self.page
         self.assertEqual(page['meta']['domain'], 'orders')
-        self.assertEqual(page['cards']['layers']['gold'], {'create': 0, 'extend': 1, 'reuse': 2})
-        self.assertEqual(page['cards']['code'], {'new': 3, 'changed': 1, 'new_sql': 2, 'changed_sql': 1})
+        self.assertEqual(page['cards']['layers']['gold'], {'create': 0, 'extend': 1, 'reuse': 2, 'unassessed': 0})
+        self.assertEqual(page['cards']['code'], {'new': 3, 'changed': 1, 'new_sql': 2, 'changed_sql': 1, 'unassessed': 0})
         own, shared = page['areas']
         self.assertEqual(own['gold'], ['wh_orders__channel_dim', 'wh_orders__orders_fct'])
         self.assertTrue(set(own['gold']) <= set(own['pipeline']))
@@ -101,11 +114,13 @@ class DomainReviewPageTests(unittest.TestCase):
         self.assertTrue(shared['shared'])
         self.assertEqual(shared['pipeline'], [])
         topic = page['topics'][0]
-        self.assertEqual(topic['base'], 'wh_orders__orders_fct')
+        self.assertEqual(topic['base_model_ids'], ['wh_orders__orders_fct'])
         self.assertEqual(topic['area'], own['id'])
-        # A view binds to a model only through table_name; the unbound view stays visible as itself.
-        self.assertEqual({j['to'] for j in topic['joins']}, {'wh_customers__customers_dim', 'unbound_lookup'})
-        self.assertEqual(next(j for j in topic['joins'] if j['to'] == 'wh_customers__customers_dim')['card'], 'many_to_one')
+        self.assertEqual({n['view_id'] for n in topic['nodes']},
+                         {'wh_orders__orders_fct', 'wh_customers__customers_dim', 'unbound_lookup'})
+        self.assertEqual(next(j for j in topic['joins'] if j['to'] == next(n['id'] for n in topic['nodes']
+                         if n['view_id'] == 'wh_customers__customers_dim'))['card'], 'many_to_one')
+        self.assertEqual(next(n for n in topic['nodes'] if n['view_id'] == 'unbound_lookup')['binding_status'], 'gap')
         self.assertEqual(page['apply']['new_sources'], ['shop.orders'])
         self.assertEqual([p['label'] for p in page['apply']['placeholders']], ['TODO owners'])
         rel = next(r for r in page['rels'] if r['to'] == 'wh_customers__customers_dim')
@@ -145,15 +160,79 @@ class DomainReviewPageTests(unittest.TestCase):
         self.assertEqual({r['legacy']: r['status'] for r in page['legacy']}, {'mart__orders': 'covered', 'mart__orders_daily': 'unresolved'})
         self.assertEqual({d['id']: d['status'] for d in page['decisions']}, {'D-01': 'assumed', 'OQ-01': 'open'})
         kinds = sorted((o['kind'], o['id']) for o in page['open'])
-        self.assertEqual(kinds, [('Question', 'OQ-01'), ('Unresolved legacy model', 'mart__orders_daily'), ('Unverified', 'V-02')])
+        self.assertEqual(kinds, [('Question', 'OQ-01'), ('Semantic gap', 'orders'), ('Unresolved legacy model', 'mart__orders_daily'), ('Unverified', 'V-02')])
         self.assertTrue(all(o['owner'] == 'Not assigned' for o in page['open']))
         self.assertEqual([s['count'] for s in page['static']], [0, 0, 0, 0, 0])
 
-    def test_every_dashboard_needs_a_coverage_status(self):
+    def test_semantics_never_bind_by_matching_view_or_table_name(self):
+        value = review(); value.pop('omni_warehouse_bindings')
+        page = page_module.project(value, files(), model_context=semantic_context())
+        topic = page['topics'][0]
+        self.assertEqual(topic['base_model_ids'], [])
+        self.assertTrue(all(n['binding_status'] == 'gap' for n in topic['nodes']))
+        self.assertIn('Semantic gap', [o['kind'] for o in page['open']])
+        # Missing catalogue/context leaves a usable provisional package, never an implicit binding.
+        provisional = page_module.project(review(), files())
+        self.assertEqual(provisional['topics'][0]['base_model_ids'], [])
+        page_module.write_package(provisional, self.root / 'provisional')
+
+    @unittest.skipUnless(HAS_SQLGLOT, 'Pinned SQL runtime required for resolved semantic bindings')
+    def test_semantic_projection_matches_canonical_aliases_and_reverse_rules(self):
+        from test_omni_contract import context, files as omni_files
+        from omni_topic_trees import build_topic_trees
+        import yaml
+        candidate = omni_files()
+        candidate['events.view.yaml'] = candidate.pop('events.view')
+        candidate['activity.topic'] = yaml.safe_dump({'base_view': 'buyer', 'joins': {'events': {}},
+            'views': {'buyer': {'extends': ['events']}}, 'relationships': [
+                {'join_from_view': 'events', 'join_to_view': 'buyer', 'relationship_type': 'many_to_one',
+                 'join_type': 'left', 'reversible': True, 'on_sql': '${events.id} = ${buyer.id}'}]})
+        models = {'gold.events': {'id': 'gold.events', 'layer': 'gold', 'domain': 'activity'}}
+        bindings = [{'view_id': 'events', 'model_ids': ['gold.events']}]
+        def projected():
+            return page_module.semantic_from_files([{'path': k, 'content': v} for k, v in candidate.items()],
+                models, warehouse_bindings=bindings, model_context=context())[0][0]
+        topic = projected()
+        canonical = build_topic_trees(candidate, context(), bindings, list(models.values()))['topics'][0]
+        self.assertEqual([n['id'] for n in topic['nodes']], [n['id'] for n in canonical['nodes']])
+        self.assertEqual(topic['base_model_ids'], ['gold.events'])
+        self.assertEqual(topic['joins'][0]['card'], 'one_to_many')
+        self.assertEqual(topic['joins'][0]['direction'], 'reverse')
+        candidate['activity.topic'] = candidate['activity.topic'].replace('reversible: true', 'reversible: false')
+        topic = projected()
+        self.assertEqual(topic['joins'][0]['status'], 'unresolved')
+        self.assertEqual(topic['joins'][0]['card'], '')
+
+    def test_missing_coverage_stays_visible_and_unassessed(self):
         value = review()
         del value['assets'][0]['mapping_status']
-        with self.assertRaisesRegex(ValueError, 'coverage status'):
-            page_module.project(value, files())
+        page = page_module.project(value, files())
+        self.assertEqual(page['dashboards'][0]['status'], 'unassessed')
+        self.assertEqual(page['cards']['dashboards']['unassessed'], 1)
+
+    def test_dashboard_counts_reject_markup_and_invalid_numbers(self):
+        for field in ('n_query_tiles', 'n_served', 'n_partly_served', 'n_not_served'):
+            for value in ('<svg onload="globalThis.reviewPoC=1"></svg>', '1', True, -1, 1.5, 2 ** 53):
+                data = copy.deepcopy(self.page)
+                data['dashboards'][0][field] = value
+                with self.subTest(field=field, value=value), self.assertRaisesRegex(ValueError, 'safe integer or null'):
+                    page_module.render(data)
+                with self.assertRaises(ValueError):
+                    page_module.write_package(data, self.root / 'invalid')
+                self.assertFalse((self.root / 'invalid').exists())
+        for value in (None, 0, 12):
+            data = copy.deepcopy(self.page)
+            data['dashboards'][0]['n_served'] = value
+            page_module.check_page(page_module.render(data))
+
+    def test_script_policy_is_bound_to_script_bytes_and_blocks_inline_handlers(self):
+        rendered = page_module.render(self.page)
+        self.assertIn("script-src-attr 'none'", rendered)
+        self.assertNotIn("script-src 'unsafe-inline'", rendered)
+        for changed in (rendered.replace('<script>', '<script>globalThis.reviewPoC=1;'),
+                        rendered.replace("script-src-attr 'none'", "script-src-attr 'unsafe-inline'")):
+            with self.assertRaisesRegex(ValueError, 'hashed script'):
+                page_module.check_page(changed)
 
     def test_contract_rejects_inconsistent_page_data(self):
         cases = [
@@ -190,7 +269,7 @@ class DomainReviewPageTests(unittest.TestCase):
             html = re.sub(r'(id="domain-review-data">).*?(</script>)', r'\1\2', html, flags=re.S)
             return re.sub(r'<title>.*?</title>|<b id="brand">.*?</b>', '', html)
         first = page_module.render(self.page)
-        second = page_module.render(page_module.project(review('returns', 'stores'), files('returns', 'stores')))
+        second = page_module.render(page_module.project(review('returns', 'stores'), files('returns', 'stores'), model_context=semantic_context('returns', 'stores')))
         self.assertEqual(shell(first), shell(second))
         for word in ('orders', 'customers', 'returns', 'stores'):
             self.assertNotIn(word, shell(first))
@@ -265,7 +344,7 @@ class DomainReviewPromoteTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.domain = self.root / 'Orders'
         self.domain.mkdir()
-        self.page = page_module.project(review(), files())
+        self.page = page_module.project(review(), files(), model_context=semantic_context())
         self.draft = self.root / 'work' / 'draft-1'
         self.draft.parent.mkdir()
         page_module.write_package(self.page, self.draft, docs={'DESIGN.md': b'# Design\n'})
@@ -334,29 +413,6 @@ class DomainReviewPromoteTests(unittest.TestCase):
             self.assertEqual(page_module.main(['promote', '--draft', str(self.draft), '--review', str(review_path),
                                                '--output', str(self.domain / 'v1')]), 0)
             self.assertEqual(page_module.main(['verify', str(self.domain / 'v1')]), 0)
-
-
-@unittest.skipUnless(HAS_YAML and importlib.util.find_spec('playwright'), 'Optional browser check unavailable')
-class DomainReviewPageBrowserTests(unittest.TestCase):
-    def test_every_view_and_inspector_renders_without_script_errors(self):
-        from playwright.sync_api import sync_playwright
-        with tempfile.TemporaryDirectory() as folder:
-            path = Path(folder) / 'START_HERE.html'
-            path.write_text(page_module.render(page_module.project(review(), files())), encoding='utf-8')
-            with sync_playwright() as playwright:
-                browser = playwright.chromium.launch()
-                tab = browser.new_page()
-                errors = []
-                tab.on('pageerror', lambda error: errors.append(str(error)))
-                tab.goto(path.as_uri())
-                for view in page_module.VIEWS:
-                    tab.click(f'#nav button[data-v="{view}"]')
-                    self.assertTrue(tab.is_visible(f'#v-{view}'))
-                tab.click('#nav button[data-v="model"]')
-                tab.click('#abody .nd')
-                self.assertTrue(tab.is_visible('#insp'))
-                browser.close()
-            self.assertEqual(errors, [])
 
 
 if __name__ == '__main__':

@@ -5,9 +5,10 @@
   "uv": "0.12.5",
   "inputs": {
     ".github/requirements/bootstrap.in": "0b897bd2e718a14e8883d8c162f3f2d97b62dba92d5dbd99d6f71abaa6c7901a",
+    ".github/requirements/browser.in": "a59ca745cb91e50ae38613877101f788c0c981de4ffdf820d2f28e2d9bda3f77",
     ".github/requirements/native-wheels.json": "473a81ff4c0fde01916f267eb7d4d9cbb17def8439a1f24c5816a2cdc5829ee9",
     ".github/requirements/security.in": "7b4acc391ab477d5fedd5d34f8d7c4da0afdae1a6c0643aa0f877220386c75ba",
-    ".github/scripts/update_locks.py": "687bd5cc2cc527b12e6241a904fc14c15925de44cf72f921b862465417ef89c1",
+    ".github/scripts/update_locks.py": "0a48f51a323f3f3ee2de75a920a9801f460009fec779aec3bd94dca97db96ea9",
     "requirements-dev.txt": "4234245c6b6930cdef03c2d06792ab94e65f7ba36bc8fe4887a0e2f9a7ad6fee",
     "skills/data-model-accelerator/scripts/requirements-dbt-metadata.txt": "d573a3bdb7ea009ab44a1139afe93a7fd4b3698ba1a6c6529ca9e991c1af7d10",
     "skills/data-model-accelerator/scripts/requirements-dbt-oss.txt": "61bc6584baaa4a2f416492e2362f8150a75ef382f7c4c1dfcafee855bda11df0",
@@ -25,6 +26,7 @@
   },
   "locks": {
     "bootstrap.txt": "b646f930767d4d55559dbee0715dca16631bd36e0730137093f5c19b2339a7c5",
+    "browser.txt": "04a322f92308cc0a9063fc0498e2e161484010f20172c864284b49c1ae659968",
     "dbt-metadata.txt": "457c72d0c9a878c7c06b6887ff86f0b3e8e22b986be5c025009ac478a43db700",
     "dbt-oss.txt": "08a466fdfb4568d4aca1f674cb0da5f8caadaff29b540c5059e4e6918cf4e030",
     "dbt-v2.txt": "a4a3ea209ecbf1c964a0583fd66722cd5ee20905c6d7147b30b197b06f426295",

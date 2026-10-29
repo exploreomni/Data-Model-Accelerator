@@ -57,7 +57,17 @@ Handoff/
 Technical_Audit/          separate optional export
 ```
 
-Original repositories remain at their registered roots; packaging does not clone them. Only explicitly registered, selected and audience-permitted files enter the handoff. When documentation is selected, section guides explain missing or unselected content; an empty section does not establish stage completion. `--layout classic` retains the older `01_Model/`, `02_Implementation/`, `03_Validation/` and optional sample-data paths. A domain review uses its own layout (`01_review/`, `02_dbt/`, `03_omni/`, `04_docs/`); see the [domain review page](domain-review-page.md).
+Original repositories remain at their registered roots; packaging does not clone them. Only explicitly registered, selected and audience-permitted files enter the handoff. When documentation is selected, section guides explain missing or unselected content; an empty section does not establish stage completion. `--layout classic` retains the older `01_Model/`, `02_Implementation/`, `03_Validation/` and optional sample-data paths.
+
+For an optional [domain review companion](domain-review-page.md), set the review manifest's
+`domain_review` to `{"domain":"orders"}` using the actual domain identifier. With documentation
+selected and models in the review, the existing finalizer adds `03_Design_Documents/Domain_Review.html`
+(classic: `01_Model/Domain_Review.html`). Keep the root `START_HERE.html` as the entrypoint.
+The companion inherits the selected audience, files, format, disclosure checks and candidate
+status; it does not replace runtime evidence, feedback or deployment controls. Missing optional
+metadata stays unassessed and does not require new discovery or full implementation.
+Standalone domain-page draft/promotion folders are internal review versions, not a second
+completed-handoff path.
 
 Use plain labels, portable relative links and a dependency/run order. The entrypoint states what was generated, the target, actual checks, prerequisites, unresolved decisions and the next concrete action. Link directly to the selected design and code.
 

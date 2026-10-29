@@ -36,14 +36,14 @@ const closeInsp=()=>byId('insp').classList.remove('on');
 /* ---------- overview ---------- */
 function rOverview(){
  const c=D.cards,mt=D.meta,L=c.layers,Lg=c.legacy,Dc=c.decisions,Ds=c.dashboards;
- const tot=['bronze','silver','gold'].reduce((s,l)=>s+L[l].reuse+L[l].extend+L[l].create,0);
+ const tot=['bronze','silver','gold'].reduce((s,l)=>s+L[l].reuse+L[l].extend+L[l].create+L[l].unassessed,0);
  const cards=[
-  [tot,'models in scope',['gold','silver','bronze'].map(l=>`${l}: reuse ${L[l].reuse} · extend ${L[l].extend} · create ${L[l].create}`).join('<br>')],
-  [c.code.new+c.code.changed,'code files to apply',`${c.code.new} new (${c.code.new_sql} models) · ${c.code.changed} change existing files (${c.code.changed_sql} models)`],
+  [tot,'models in scope',['gold','silver','bronze'].map(l=>`${l}: reuse ${L[l].reuse} · extend ${L[l].extend} · create ${L[l].create} · ${L[l].unassessed} unassessed`).join('<br>')],
+  [c.code.new+c.code.changed+c.code.unassessed,'selected warehouse code files',`${c.code.new} new (${c.code.new_sql} models) · ${c.code.changed} change existing files (${c.code.changed_sql} models) · ${c.code.unassessed} change status unassessed`],
   [c.semantic.topics,'semantic topics',`${c.semantic.views} views · ${c.semantic.relationships} relationships<br>${c.semantic.cross_domain_topics} cross-domain topics`]];
  if(c.legacy_total)cards.push([c.legacy_total,'legacy models accounted for',`covered ${Lg.covered} · partially ${Lg['partially covered']} · retire candidate ${Lg['retire candidate']}<br>out of domain ${Lg['out of domain']} · unresolved ${Lg.unresolved}`]);
- cards.push([Dc.answered+Dc.assumed+Dc.open,'decisions',`answered ${Dc.answered} · assumed ${Dc.assumed} · open ${Dc.open}`]);
- if(D.dashboards.length)cards.push([D.dashboards.length,'dashboards mapped',`served ${Ds.served} · partly served ${Ds.partly_served} · not served ${Ds.not_served}`]);
+ cards.push([Dc.answered+Dc.assumed+Dc.open+Dc.unassessed,'decisions',`answered ${Dc.answered} · assumed ${Dc.assumed} · open ${Dc.open} · ${Dc.unassessed} unassessed`]);
+ if(D.dashboards.length)cards.push([D.dashboards.length,'dashboards in scope',`served ${Ds.served} · partly served ${Ds.partly_served} · not served ${Ds.not_served} · ${Ds.unassessed} unassessed`]);
  const tool=mt.repositories.find(r=>r.role==='Tooling'&&r.commit);
  const facts=[mt.scope_label,D.dashboards.length?`${D.dashboards.length} dashboards in scope`:null,...mt.facts].filter(Boolean).map(e);
  if(tool)facts.push(`${e(tool.name)} rev <code>${e(tool.commit.slice(0,7))}</code>`);
@@ -56,7 +56,7 @@ ${mt.repositories.length?`<h2>Repositories</h2><div class="tw"><table><thead><tr
 <h2>Read in this order</h2>
 <ol>${D.reading_order.map(r=>`<li>${r.view?go(r.view,r.label):e(r.label)}${r.text?': '+e(r.text):''}</li>`).join('')}</ol>
 ${D.dashboards.length?`<h2>Dashboards</h2>
-<div class="tw"><table><thead><tr><th>ID</th><th>Dashboard</th><th>Status</th><th>Query tiles</th><th>Topics</th><th>Reason</th></tr></thead><tbody>${D.dashboards.map(x=>`<tr><td style="white-space:nowrap">${e(x.asset_type==='look'?'Look '+x.asset_id:x.asset_id)}</td><td>${e(x.title)}</td><td>${b(human(x.status))}</td><td style="white-space:nowrap">${x.n_query_tiles==null?'<span class="note">not counted</span>':`${x.n_served} served<br>${x.n_partly_served} partly<br>${x.n_not_served} not`}</td><td>${x.topics.map(t=>topicLink(t,t)).join(', ')||'—'}</td><td class="note">${e(x.reason)}${x.scope_reason?`<br>${e(x.scope_reason)}`:''}</td></tr>`).join('')}</tbody></table></div>`:''}
+<div class="tw"><table><thead><tr><th>ID</th><th>Dashboard</th><th>Status</th><th>Query tiles</th><th>Topics</th><th>Reason</th></tr></thead><tbody>${D.dashboards.map(x=>`<tr><td style="white-space:nowrap">${e(x.asset_type==='look'?'Look '+x.asset_id:x.asset_id)}</td><td>${e(x.title)}</td><td>${b(human(x.status))}</td><td style="white-space:nowrap">${x.n_query_tiles==null?'<span class="note">not counted</span>':`${e(x.n_served==null?'unknown':x.n_served)} served<br>${e(x.n_partly_served==null?'unknown':x.n_partly_served)} partly<br>${e(x.n_not_served==null?'unknown':x.n_not_served)} not`}</td><td>${x.topics.map(t=>topicLink(t,t)).join(', ')||'—'}</td><td class="note">${e(x.reason)}${x.scope_reason?`<br>${e(x.scope_reason)}`:''}</td></tr>`).join('')}</tbody></table></div>`:''}
 <h2>Not done yet</h2>
 <ul>${D.not_done.map(x=>`<li>${e(x)}</li>`).join('')}</ul>`;
 }
@@ -104,6 +104,10 @@ function erd(a){
   s+=`<g class="nd k-${kind(m)}" ${act('model',id)} role="button" tabindex="0">${t}<title>${e(id)} · ${subl(m)} · ${m.cols.length} columns</title></g>`});
  return ids.length?canvas(W,H,s):'<p class="note">No gold tables in this area.</p>';
 }
+function occurrence(t,id){return (t.nodes||[]).find(n=>n.id===id)}
+function occurrenceLabel(t,id){return occurrence(t,id)?.view_id||t.base_view||'Unresolved view'}
+function bindingLabel(n){return n?.binding_status==='complete'?n.model_ids.join(', '):'Unverified warehouse binding'}
+function occurrenceLinks(n){return n?.binding_status==='complete'?n.model_ids.map(link).join(', '):'<span class="b warn">Unverified warehouse binding</span>'}
 function topicLineage(a){
  const tps=D.topics.filter(t=>t.area===a.id).sort((x,y)=>x.label.localeCompare(y.label));
  const NW=300,NH=36,GAP=10,CG=80,maxDepth=Math.max(1,...tps.flatMap(t=>t.joins.map(j=>j.depth)));
@@ -114,10 +118,10 @@ function topicLineage(a){
   t.joins.forEach(j=>{pos[j.to]={x:X(1+j.depth),y:y+rows[j.depth]*(NH+GAP)};rows[j.depth]++});
   const h=Math.max(1,...rows)*(NH+GAP)-GAP;
   s+=`<rect x="6" y="${y-6}" width="${W-12}" height="${h+12}" rx="8" class="tband"/>`;
-  s+=curve(X(0)+NW,y+NH/2,X(1),y+NH/2,'rel',`${t.label} → ${t.base} (base view)`);
-  t.joins.forEach(j=>{const p=pos[j.from],q=pos[j.to];if(p&&q)s+=curve(p.x+NW,p.y+NH/2,q.x,q.y+NH/2,'rel',`${j.from} → ${j.to}${j.card?` (${human(j.card)})`:''}${j.on?' on '+j.on:''}`)});
+  s+=curve(X(0)+NW,y+NH/2,X(1),y+NH/2,'rel',`${t.label} → ${t.base_view} (base view)`);
+  t.joins.forEach(j=>{const p=pos[j.from],q=pos[j.to];if(p&&q)s+=curve(p.x+NW,p.y+NH/2,q.x,q.y+NH/2,'rel',`${occurrenceLabel(t,j.from)} → ${occurrenceLabel(t,j.to)} (${j.status === 'resolved'?human(j.card):'unresolved relationship'})`)});
   s+=box(X(0),y,NW,NH,t.topic,t.label,`${t.views.length} views · ${t.dashboards.length} dashboard${t.dashboards.length===1?'':'s'}`,'topic','topic','Topic '+t.label);
-  Object.entries(pos).forEach(([id,p])=>{const m=M[id];s+=box(p.x,p.y,NW,NH,id,tr(id,42),m?subl(m):'not a model in this review',m?kind(m):'reuse','model',id)});
+  Object.entries(pos).forEach(([id,p])=>{const n=occurrence(t,id),label=occurrenceLabel(t,id);s+=box(p.x,p.y,NW,NH,t.topic,tr(label,42),tr(bindingLabel(n),48),'topic','topic',label+' · '+bindingLabel(n))});
   y+=h+24});
  return canvas(W,y,s);
 }
@@ -145,18 +149,20 @@ function inspTopic(n){const t=T[n];if(!t)return;const p=byId('insp'),f=FILES[t.p
  p.innerHTML=`<button type="button" class="x" ${act('close','')}>Close</button><h2>${e(t.label)}</h2>
  <p><span class="b info">semantic topic</span>${t.group?' · '+e(t.group):''} · ${e(areaName[t.area]||t.area)} · <code>${e(t.topic)}</code></p>
  <p>${e(t.desc)}</p>
- <p><b>Base view:</b> ${link(t.base)}${M[t.base]&&M[t.base].grain?' <span class="note">— '+e(M[t.base].grain)+'</span>':''}</p>
- <h3>Joins (${t.joins.length})</h3>${t.joins.length?`<table><tr><th>From</th><th>To</th><th>Cardinality</th><th>On</th></tr>${t.joins.map(j=>`<tr><td>${link(j.from)}</td><td>${link(j.to)}</td><td>${e(human(j.card))}</td><td><code>${e(j.on)}</code></td></tr>`).join('')}</table>`:'<p class="note">No joins; the topic reads its base view only.</p>'}
+ <p><b>Base view:</b> ${e(t.base_view)} — ${occurrenceLinks(occurrence(t,t.base))}</p>
+ <h3>Joins (${t.joins.length})</h3>${t.joins.length?`<table><tr><th>From</th><th>To</th><th>Cardinality</th><th>Status / direction</th></tr>${t.joins.map(j=>`<tr><td>${e(occurrenceLabel(t,j.from))}</td><td>${e(occurrenceLabel(t,j.to))}</td><td>${e(j.card?human(j.card):'Unresolved')}</td><td>${e(j.status)} / ${e(j.direction)}</td></tr>`).join('')}</table>`:'<p class="note">No joins; the topic reads its base view only.</p>'}
+ <h3>Explicit warehouse bindings</h3><table><tr><th>View occurrence</th><th>Gold model</th></tr>${(t.nodes||[]).map(n=>`<tr><td>${e(n.path.join(' → '))}</td><td>${occurrenceLinks(n)}</td></tr>`).join('')}</table>
+ ${t.gaps?.length?`<h3>Unresolved semantic evidence</h3><p class="note">Candidate code remains available. Resolve these gaps before deployment.</p><ul>${t.gaps.map(g=>`<li>${e(g)}</li>`).join('')}</ul>`:''}
  <h3>Dashboards served (${t.dashboards.length})</h3>${t.dashboards.length?`<table><tr><th>ID</th><th>Dashboard</th><th>Status</th></tr>${t.dashboards.map(x=>`<tr><td>${e(x.id)}</td><td>${e(x.title)}</td><td>${b(human(x.status))}</td></tr>`).join('')}</table>`:'<p class="note">No in-scope dashboard maps to this topic.</p>'}
  <h3>AI context</h3><p>${t.ai?e(t.ai):'<span class="note">none</span>'}</p>
- <h3>Fields (${t.fields.length} entries)</h3><p>${t.fields.map(x=>`<code>${e(x)}</code>`).join(' ')||'<span class="note">all fields of the joined views</span>'}</p>
+ <h3>Fields (${t.fields.length} entries)</h3><p>${t.fields.map(x=>`<code>${e(x)}</code>`).join(' ')||'<span class="note">Field selection is not projected here; inspect the effective topic, including inherited definitions.</span>'}</p>
  <h3>Files</h3><p>${openFileLinks([t.path,...Object.values(t.view_files)].filter(Boolean))}</p>
  ${f?`<h3>Code — ${e(t.path)}</h3><pre>${e(f.content)}</pre>`:''}`;
  p.classList.add('on');p.scrollTop=0}
 function insp(n){const m=M[n];if(!m)return;const p=byId('insp');
  const keys=m.cols.filter(c=>c[2]),f=m.code&&FILES[m.code];
  const relTo=c=>{const r=D.rels.find(r=>r.from===n&&(r.key||'').startsWith(c+' '));return r?' → '+link(r.to):''};
- const ts=D.topics.filter(t=>t.views.includes(n));
+ const ts=D.topics.filter(t=>(t.nodes||[]).some(o=>o.binding_status==='complete'&&o.model_ids.includes(n)));
  p.innerHTML=`<button type="button" class="x" ${act('close','')}>Close</button><h2>${e(m.id)}</h2>
  <p>${b(m.disp)} · ${e(m.layer)} · ${e(m.domain)}${m.area&&areaName[m.area]?' · '+e(areaName[m.area]):''}</p>
  <p><b>Grain:</b> ${m.grain?e(m.grain):'<span class="note">not stated in the model documentation</span>'}</p>
@@ -164,7 +170,7 @@ function insp(n){const m=M[n];if(!m)return;const p=byId('insp');
  <p><b>Code file:</b> ${m.code?fileLink(m.code):`<code>${e(m.source_path||'—')}</code> <span class="note">unchanged, not in this package</span>`}</p>
  <p>${e(m.desc)}</p>
  <h3>Keys</h3>${keys.length?keys.map(k=>`<div><code>${e(k[2])}</code> <code>${e(k[0])}</code>${relTo(k[0])}</div>`).join(''):'<p class="note">No keys declared.</p>'}
- <p><b>Semantic topics using this table:</b> ${ts.length?ts.map(t=>topicLink(t.topic)+(t.base===n?' (base view)':'')).join(', '):'none'}</p>
+ <p><b>Semantic topics using this table:</b> ${ts.length?ts.map(t=>topicLink(t.topic)+((t.base_model_ids||[]).includes(n)?' (base view)':'')).join(', '):'none'}</p>
  <h3>Lineage</h3><p><b>Depends on:</b> ${m.dep.map(link).join(', ')||'source tables only'}${m.src.length?'<br><span class="note">Source tables: '+m.src.map(e).join(', ')+'</span>':''}</p><p><b>Used by:</b> ${m.used.map(link).join(', ')||'—'}</p>
  <h3>Security notes</h3>${m.sec.length?`<ul>${m.sec.map(x=>`<li>${e(x)}</li>`).join('')}</ul>`:'<p class="note">None recorded.</p>'}
  <h3>Columns (${m.cols.length})</h3><table><tr><th>Column</th><th>Type</th><th>Description</th></tr>${m.cols.map(c=>`<tr><td><code>${e(c[0])}</code>${c[2]?' '+e(c[2]):''}</td><td>${e(c[1])}</td><td>${e(c[3])}</td></tr>`).join('')}</table>
@@ -184,7 +190,7 @@ function rCode(){const ap=D.apply,mt=D.meta,ph=Object.create(null);
  <h2>Source tables to add <span class="sub">${ap.new_sources.length}</span></h2>${ap.new_sources.length?`<p>${ap.new_sources.map(s=>`<code>${e(s)}</code>`).join(' ')}</p><p class="note">Declared in the new source files; check dataset names for your environment.</p>`:'<p class="note">None: every source is already declared.</p>'}
  <h2>Placeholders to replace</h2>${groups.length?`<ul>${groups.join('')}</ul>`:'<p class="note">None found in the semantic files.</p>'}
  <h2>Files <span class="sub">${D.files.length}</span></h2>
- <div class="files"><div><input class="q" placeholder="Filter files…" id="fq"><select class="s" id="fk"><option value="">all</option><option value="new">new</option><option value="changed">changed</option></select><ul id="flist"></ul></div><pre id="fview">Select a file.</pre></div>`;
+ <div class="files"><div><input class="q" placeholder="Filter files…" id="fq"><select class="s" id="fk"><option value="">all</option><option value="new">new</option><option value="changed">changed</option><option value="unassessed">unassessed</option></select><ul id="flist"></ul></div><pre id="fview">Select a file.</pre></div>`;
  byId('fq').oninput=renderFiles;byId('fk').onchange=renderFiles;renderFiles()}
 let cur=null;
 function renderFiles(){const q=(byId('fq').value||'').toLowerCase(),k=byId('fk').value;
@@ -195,7 +201,7 @@ function openFile(p){if(!built.code){rCode();built.code=1}cur=p;const f=FILES[p]
 /* ---------- decisions ---------- */
 function rDecisions(){const areas=[...new Set(D.decisions.map(d=>d.area))].sort();
  byId('v-decisions').innerHTML=`<h1>Decisions</h1><p class="meta">${e(D.notes.decisions)}</p>
- <input class="q" placeholder="Filter…" id="dq"><select class="s" id="ds"><option value="">all statuses</option><option>answered</option><option>assumed</option><option>open</option></select><select class="s" id="da"><option value="">all areas</option>${areas.map(a=>`<option>${e(a)}</option>`).join('')}</select> <span class="note" id="dn"></span>
+ <input class="q" placeholder="Filter…" id="dq"><select class="s" id="ds"><option value="">all statuses</option><option>answered</option><option>assumed</option><option>open</option><option>unassessed</option></select><select class="s" id="da"><option value="">all areas</option>${areas.map(a=>`<option>${e(a)}</option>`).join('')}</select> <span class="note" id="dn"></span>
  <div class="tw"><table id="tdec"><thead><tr><th>ID</th><th>Area</th><th>Question</th><th>Options</th><th>Assumed option</th><th>Status</th></tr></thead><tbody></tbody></table></div>`;
  ['dq','ds','da'].forEach(i=>byId(i)[i==='dq'?'oninput':'onchange']=drawDec);drawDec()}
 function drawDec(){const q=byId('dq').value.toLowerCase(),s=byId('ds').value,a=byId('da').value;

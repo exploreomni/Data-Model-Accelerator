@@ -33,6 +33,19 @@ jobs:
               print('Full dependency lane must not skip tests:', result.skipped)
           sys.exit(0 if result.wasSuccessful() and not result.skipped else 1)
           PY
+      - name: Install the isolated browser test runtime
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/dma-chromium
+        run: |
+          python -m venv "$RUNNER_TEMP/browser-runtime"
+          "$RUNNER_TEMP/browser-runtime/bin/python" -m pip install --require-hashes --only-binary=:all: -r .github/requirements/bootstrap.txt
+          "$RUNNER_TEMP/browser-runtime/bin/python" -m pip install --require-hashes --only-binary=:all: -r .github/requirements/browser.txt
+          "$RUNNER_TEMP/browser-runtime/bin/python" -m pip check
+          "$RUNNER_TEMP/browser-runtime/bin/python" -m playwright install --with-deps --no-shell chromium
+      - name: Require offline Chromium review and security checks
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/dma-chromium
+        run: '"$RUNNER_TEMP/browser-runtime/bin/python" browser_tests/test_domain_review_browser.py -v'
       - run: python -m unittest discover -s skills/data-model-accelerator/examples/dbt-retail-holdout/candidate -p test_evaluator.py -v
       - run: python skills/data-model-accelerator/scripts/run_dbt_local_qualification.py --cases hex tableau powerbi --output "$RUNNER_TEMP/native-dbt"
       - run: python skills/data-model-accelerator/scripts/run_dbt_holdout.py --output "$RUNNER_TEMP/retail-dbt"

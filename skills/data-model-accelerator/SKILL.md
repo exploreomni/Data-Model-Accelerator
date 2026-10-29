@@ -413,14 +413,18 @@ at the root. Keep the established guided or partitioned review renderer so recor
 validation, decisions and deployment evidence remain accessible. The [review page](references/review-page.md)
 describes additive review fields and an alternative presentation; absent optional fields
 must remain unassessed rather than invented. Supply available reading order, repositories,
-subject areas and legacy coverage without requiring a new discovery pass. A domain review
-(one domain's model, semantic layer, legacy coverage and dashboards) always uses the
-[domain review page](references/domain-review-page.md): package it with
-`scripts/domain_review_page.py` as a draft in the working area (`01_review/`, `02_dbt/`,
-`03_omni/`, `04_docs/`), `verify` it, have an independent reviewer check that exact draft and
-record the findings, fix and re-package until no finding is open, then `promote` the draft to the
-next `<Domain>/v<N>/` folder. Never package straight into a version folder: a version is written
-once per review cycle. Its default `--layout simple` organizes selected files into input sources,
+subject areas and legacy coverage without requiring a new discovery pass. To add the optional
+[domain review companion](references/domain-review-page.md), set
+`review.domain_review` to `{"domain":"orders"}` using the actual domain identifier.
+When documentation is selected and the review contains models, the same finalizer adds
+`03_Design_Documents/Domain_Review.html` (`01_Model/Domain_Review.html` with the classic
+layout). The root `START_HERE.html`, selected layout, audience, disclosure checks and recorded
+provisional/validation status remain authoritative. The companion uses the same selected
+bytes and explicit `omni_warehouse_bindings`; missing metadata and unresolved semantic
+bindings remain visible, without requiring new discovery or full implementation.
+Standalone `domain_review_page.py` draft, verification and promotion commands support
+internal review versioning only; they do not replace finalization or grant delivery,
+design or deployment approval. The finalizer's default `--layout simple` organizes selected files into input sources,
 input context, design documents, code generation and mappings; design files live
 in `03_Design_Documents/`. Original input repositories stay at their registered
 roots and are not cloned into the handoff. Use `--layout classic` only when the

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Domain review page: the standard Start Here page and folder layout for one domain.
+"""Optional domain companion and local review drafts; finalization remains authoritative.
 
 A domain review is a single-domain design handoff: the medallion model (bronze, silver, gold),
 the semantic layer built on it, the legacy models and dashboards it replaces, decisions,
@@ -8,17 +8,19 @@ validation and open items. This module owns one explicit page-data contract
 
 * ``project`` derives page data from a checked review (delivery_portal review contract) and the
   packaged code files. It never reads a source repository and never infers a table from a name:
-  semantic views bind to models only through their declared ``table_name``.
+  semantic occurrences use the canonical resolver and explicit ``omni_warehouse_bindings``.
 * ``render`` validates page data and writes the self-contained ``START_HERE.html``.
 * ``write_package`` writes the review folder (01_review, 02_dbt, 03_omni, 04_docs, START_HERE.html,
   MANIFEST.csv). Write it as a draft in the working area first.
 * ``promote`` copies a verified draft to the next ``<Domain>/v<N>`` folder, but only with an independent
   review recorded against that exact draft, so a version folder is written once per review cycle.
 
-Nothing here executes code, approves a design or grants a share; counts are computed from the
+Local draft/version operations are not completed delivery. Use finalize_delivery.py for selected
+formats, audience controls, disclosure policy and manifests. Nothing here executes code, approves a design or grants a share; counts are computed from the
 data so headline figures cannot drift from the tables they summarise.
 """
 import argparse
+import base64
 import collections
 import csv
 import hashlib
@@ -43,11 +45,11 @@ ASSETS = Path(__file__).resolve().parent.parent / 'assets/domain-review'
 SCHEMA_VERSION = 1
 KIND = 'domain_review_page'
 LAYERS = ('bronze', 'silver', 'gold')
-DISPOSITIONS = ('create', 'extend', 'reuse')
-DASHBOARD_STATUSES = ('served', 'partly_served', 'not_served')
+DISPOSITIONS = ('create', 'extend', 'reuse', 'unassessed')
+DASHBOARD_STATUSES = ('served', 'partly_served', 'not_served', 'unassessed')
 LEGACY_STATUSES = ('covered', 'partially covered', 'retire candidate', 'out of domain', 'unresolved')
-DECISION_STATUSES = ('answered', 'assumed', 'open')
-FILE_STATUSES = ('new', 'changed')
+DECISION_STATUSES = ('answered', 'assumed', 'open', 'unassessed')
+FILE_STATUSES = ('new', 'changed', 'unassessed')
 RELATIONSHIP_BASES = ('', 'review', 'declared test', 'key name match')
 CHECK_STATUSES = ('pass', 'fail', 'pending', 'skipped', 'not_applicable')
 VIEWS = ('overview', 'model', 'code', 'decisions', 'legacy', 'dict', 'valid', 'todos')
@@ -55,13 +57,12 @@ LAYOUT = {'review': '01_review', 'code': '02_dbt', 'semantic': '03_omni', 'docs'
 MAX_ITEMS = 20000
 MAX_PAGE_BYTES = 20 * 1024 * 1024
 TEMPLATE_TOKENS = ('__TITLE__', '__BRAND__', '/*__DOMAIN_REVIEW_CSS__*/', '/*__DOMAIN_REVIEW_DATA__*/',
-                   '/*__DOMAIN_REVIEW_JS__*/')
+                   '/*__DOMAIN_REVIEW_JS__*/', '__SCRIPT_POLICY__')
 
 DEFAULT_BANNER = ('Candidate delivery for design review. Not compiled, not run in the warehouse, not imported '
                   'into the semantic layer, not validated with data, and not approved.')
 DECISION_NOTE = ('Answered = set by the people who requested the work; assumed = chosen by the authors and still '
-                 'reviewable; open = needs a person, and nothing that depends on it is modelled until it is '
-                 'answered. For open decisions the assumed option is what the code does until someone answers.')
+                 'reviewable; open = needs a person. Provisional code may retain an explicit assumption.  For open decisions the assumed option is what the code does until someone answers.')
 VALIDATION_NOTE = ('Static checks only. Nothing was compiled or executed: no build, no warehouse query, no '
                    'semantic-layer import. A zero means the check found nothing in the files, not that the model works.')
 DISPOSITION_ALIASES = {'create': 'create', 'new': 'create', 'created': 'create',
@@ -110,16 +111,13 @@ def model_type(model_id, layer):
 
 
 def file_kind(path):
-    name = PurePosixPath(path).name
-    if name.endswith('.topic'):
-        return 'topic'
-    if name.endswith('.view'):
-        return 'view'
-    if name.split('.')[0] == 'relationships':
-        return 'relationships'
-    if name in ('model', 'model.yaml'):
-        return 'model'
-    return 'dbt' if path.startswith(LAYOUT['code'] + '/') else 'other'
+    from omni_query_views import _identity
+    kind, _ = _identity(path)
+    if kind in ('topic', 'view', 'relationships', 'model'):
+        return kind
+    if path.startswith(LAYOUT['code'] + '/'):
+        return 'dbt'
+    return 'warehouse' if path.startswith(('02_warehouse/', '04_Code_Generation/', '02_Implementation/')) else 'other'
 
 
 def placeholder_label(text):
@@ -150,7 +148,7 @@ def _model(row):
         out[key] = _text(out.get(key) or '', 'Model ' + key)
     out['existing'] = out.get('existing') or {
         'create': 'New in this delivery', 'extend': 'Existing model, changed in this delivery',
-        'reuse': 'Existing model, reused unchanged'}[row['disp']]
+        'reuse': 'Existing model, reused unchanged', 'unassessed': 'Disposition not assessed'}[row['disp']]
     for key in ('dep', 'src', 'sec'):
         out[key] = [_text(x, 'Model ' + key) for x in _list(out.get(key) or [], 'Model ' + key)]
     cols = []
@@ -170,17 +168,17 @@ def _cards(data):
         layers[model['layer']][model['disp']] += 1
     files = data['files']
     sql = lambda status: sum(f['status'] == status and f['path'].endswith('.sql') for f in files)
-    code = [f for f in files if file_kind(f['path']) == 'dbt']
+    code = [f for f in files if file_kind(f['path']) in ('dbt', 'warehouse')]
     shared = {m['id'] for m in data['models'] if m['layer'] != 'bronze' and m['domain'] != data['meta']['domain']}
     legacy = collections.Counter(row['status'] for row in data['legacy'])
     decisions = collections.Counter(row['status'] for row in data['decisions'])
     dashboards = collections.Counter(row['status'] for row in data['dashboards'])
     return {'layers': layers,
             'code': {'new': sum(f['status'] == 'new' for f in code), 'changed': sum(f['status'] == 'changed' for f in code),
-                     'new_sql': sql('new'), 'changed_sql': sql('changed')},
+                     'new_sql': sql('new'), 'changed_sql': sql('changed'), 'unassessed': sum(f['status'] == 'unassessed' for f in code)},
             'semantic': {'topics': len(data['topics']), 'views': sum(file_kind(f['path']) == 'view' for f in files),
                          'relationships': data['semantic_relationships'],
-                         'cross_domain_topics': sum(t['base'] in shared for t in data['topics'])},
+                         'cross_domain_topics': sum(bool(set(t.get('base_model_ids', [])) & shared) for t in data['topics'])},
             'legacy': {s: legacy[s] for s in LEGACY_STATUSES}, 'legacy_total': len(data['legacy']),
             'decisions': {s: decisions[s] for s in DECISION_STATUSES},
             'dashboards': {s: dashboards[s] for s in DASHBOARD_STATUSES}}
@@ -274,7 +272,7 @@ def normalise(data):
     files = _list(data.get('files') or [], 'files')
     for row in files:
         safe_relative(row.get('path'))
-        require(row.get('status') in FILE_STATUSES and isinstance(row.get('content'), str), 'Files need new|changed status and text content')
+        require(row.get('status') in FILE_STATUSES and isinstance(row.get('content'), str), 'Files need new|changed|unassessed status and text content')
         row['kind'] = file_kind(row['path'])
     paths = _unique(files, 'path', 'File')
     for model in models:
@@ -291,15 +289,37 @@ def normalise(data):
         require(set(row['topics']) <= topic_ids, 'Dashboard maps to an unknown topic: ' + row['asset_id'])
         for key in ('n_query_tiles', 'n_served', 'n_partly_served', 'n_not_served'):
             row.setdefault(key, None)
+            require(row[key] is None or (type(row[key]) is int and 0 <= row[key] <= 9007199254740991),
+                    'Dashboard ' + key + ' must be a non-negative safe integer or null')
     for topic in topics:
-        _text(topic.get('label'), 'Topic label', empty=False); _text(topic.get('base'), 'Topic base view', empty=False)
+        _text(topic.get('label'), 'Topic label', empty=False); _text(topic.get('base'), 'Topic base occurrence')
         require(topic.get('area') in area_ids, 'Topic area is not declared: ' + topic['topic'])
         for key in ('path', 'group', 'desc', 'ai'):
             topic[key] = topic.get(key) or ''
+        nodes = _list(topic.get('nodes') or [], 'Topic occurrences')
+        node_ids = _unique(nodes, 'id', 'Topic occurrence')
+        require(not nodes or topic['base'] in node_ids, 'Topic base occurrence is missing')
+        for node in nodes:
+            _text(node.get('view_id'), 'Occurrence view', empty=False)
+            require(node.get('binding_status') in ('complete', 'gap'), 'Occurrence binding status is missing')
+            require(set(node.get('model_ids') or []) <= set(by_id), 'Occurrence binding is outside this review')
+            if node['binding_status'] == 'complete':
+                require(node.get('model_ids') and all(by_id[m]['layer'] == 'gold' for m in node['model_ids']),
+                        'Complete occurrence binding must reference gold models')
+        topic['nodes'] = nodes
+        root = next((n for n in nodes if n['id'] == topic['base']), {})
+        topic['base_model_ids'] = root.get('model_ids', []) if root.get('binding_status') == 'complete' else []
+        topic.setdefault('base_view', root.get('view_id', topic['base']))
+        topic.setdefault('gaps', [])
         topic['joins'] = _list(topic.get('joins') or [], 'Topic joins')
         for join in topic['joins']:
             require(isinstance(join.get('depth'), int) and join['depth'] >= 1, 'Topic join depth must be a positive integer')
+            if nodes:
+                require(join.get('from') in node_ids and join.get('to') in node_ids, 'Topic join occurrence endpoints are missing')
             join.setdefault('card', ''); join.setdefault('on', '')
+            join.setdefault('status', 'unresolved'); join.setdefault('direction', 'unresolved')
+            if join['status'] != 'resolved':
+                join['card'] = ''
         topic['views'] = _list(topic.get('views') or [], 'Topic views')
         topic['fields'] = _list(topic.get('fields') or [], 'Topic fields')
         topic['view_files'] = dict(topic.get('view_files') or {})
@@ -385,11 +405,14 @@ def render(data):
     template = (ASSETS / 'domain-review.html').read_text(encoding='utf-8')
     for token in TEMPLATE_TOKENS:
         require(template.count(token) == 1, 'Domain review template is missing ' + token)
+    script = (ASSETS / 'domain-review.js').read_text(encoding='utf-8')
+    script_policy = "'sha256-" + base64.b64encode(hashlib.sha256(script.encode('utf-8')).digest()).decode('ascii') + "'"
     rendered = (template.replace('__TITLE__', html.escape(page['meta']['title']))
                 .replace('__BRAND__', html.escape(page['meta']['brand']))
                 .replace('/*__DOMAIN_REVIEW_CSS__*/', (ASSETS / 'domain-review.css').read_text(encoding='utf-8'))
                 .replace('/*__DOMAIN_REVIEW_DATA__*/', _encode(page))
-                .replace('/*__DOMAIN_REVIEW_JS__*/', (ASSETS / 'domain-review.js').read_text(encoding='utf-8')))
+                .replace('/*__DOMAIN_REVIEW_JS__*/', script)
+                .replace('__SCRIPT_POLICY__', script_policy))
     check_page(rendered)
     return rendered
 
@@ -408,6 +431,14 @@ def check_page(html_text):
     require(not any(token in html_text for token in TEMPLATE_TOKENS), 'Page has unreplaced template tokens')
     require(html_text.count('id="domain-review-data"') == 1, 'Page must embed exactly one data block')
     require(not re.search(r'<script[^>]+src=|<link[^>]+href=', html_text, re.I), 'Page must not load external resources')
+    scripts = re.findall(r'<script>(.*?)</script>', html_text, re.S)
+    require(len(scripts) == 1, 'Page must have exactly one executable script')
+    policy = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', html_text)
+    script_hash = "'sha256-" + base64.b64encode(hashlib.sha256(scripts[0].encode('utf-8')).digest()).decode('ascii') + "'"
+    require(policy is not None and ('script-src ' + script_hash + ';') in policy.group(1)
+            and "script-src-attr 'none'" in policy.group(1)
+            and not re.search(r'script-src[^;]*unsafe-', policy.group(1)),
+            'Page must authorize only its hashed script and forbid inline handlers')
     page = normalise(page_data(html_text))
     require(page['cards'] == page_data(html_text)['cards'], 'Embedded counts differ from the data they summarise')
     return {'status': 'pass', 'models': len(page['models']), 'topics': len(page['topics']),
@@ -488,8 +519,8 @@ def write_package(data, output, *, docs=None, scan=True):
     require(not output.exists(), 'Output exists; choose a new version folder')
     contents = {}
     for row in page['files']:
-        require(row['path'].startswith((LAYOUT['code'] + '/', LAYOUT['semantic'] + '/')),
-                f"Packaged code must live under {LAYOUT['code']}/ or {LAYOUT['semantic']}/: " + row['path'])
+        require(row['path'].startswith((LAYOUT['code'] + '/', '02_warehouse/', LAYOUT['semantic'] + '/')),
+                f"Packaged code must live under {LAYOUT['code']}/ 02_warehouse/ or {LAYOUT['semantic']}/: " + row['path'])
         contents[row['path']] = row['content'].encode('utf-8')
     for relative, value in sorted((docs or {}).items()):
         safe_relative(relative)
@@ -649,58 +680,60 @@ def _yaml(text):
         return None
 
 
-def _flatten_joins(joins, parent, depth=1):
-    out = []
-    if isinstance(joins, dict):
-        for name, children in joins.items():
-            out.append((parent, str(name), depth))
-            out.extend(_flatten_joins(children, str(name), depth + 1))
-    elif isinstance(joins, list):
-        for item in joins:
-            out.extend(_flatten_joins(item if isinstance(item, dict) else {item: None}, parent, depth))
-    return out
+def semantic_from_files(files, models, *, warehouse_bindings=(), model_context=None, topology=None, domain_map=None):
+    """Project canonical occurrences; names and table_name never establish bindings.
 
-
-def semantic_from_files(files, models):
-    """Topics, view bindings and relationships from packaged semantic files.
-
-    A view binds to a model only when its declared ``table_name`` equals the model id; an unbound
-    view keeps its view name, so missing bindings stay visible instead of being guessed.
+    A finalizer may pass its already-qualified, SQL-free topology. Standalone
+    drafts derive topology from candidate bytes and the supplied model context;
+    absent context and bindings remain visible gaps, not a generation blocker.
     """
+    from omni_topic_trees import build_topic_trees, bind_topic_trees, topic_tree_coverage
+    from omni_query_views import _identity
+    semantic = {f['path']: f['content'] for f in files
+                if file_kind(f['path']) in ('view', 'topic', 'relationships', 'model')}
+    if topology is None:
+        topology = build_topic_trees(semantic, model_context or {}, list(warehouse_bindings), list(models.values()), domain_map=domain_map)
+    else:
+        topology = bind_topic_trees(topology, list(warehouse_bindings), list(models.values()), domain_map=domain_map)
+    require(topic_tree_coverage(topology)['status'] == 'complete', 'Topic occurrence coverage is inconsistent')
     views, view_files, relationships, topics = {}, {}, [], []
-    for row in files:
-        kind, name = file_kind(row['path']), PurePosixPath(row['path']).name.split('.')[0]
-        doc = _yaml(row['content']) if kind in ('view', 'topic', 'relationships') else None
+    topic_paths = collections.defaultdict(list)
+    for path, content in semantic.items():
+        kind, name = _identity(path)
+        doc = _yaml(content)
+        if kind == 'topic':
+            topic_paths[name].append(path)
         if kind == 'view':
-            view_files[name] = row['path']
-            table = doc.get('table_name') if isinstance(doc, dict) else None
-            views[name] = table if table in models else name
+            views[name] = None
+            view_files[name] = path
         elif kind == 'relationships' and isinstance(doc, list):
             relationships.extend(r for r in doc if isinstance(r, dict))
-    rel_index = {}
-    for rel in relationships:
-        pair = (rel.get('join_from_view'), rel.get('join_to_view'))
-        rel_index[pair] = rel
-        rel_index.setdefault(pair[::-1], dict(rel, reversed=True))
-    for row in files:
-        if file_kind(row['path']) != 'topic':
-            continue
-        name = PurePosixPath(row['path']).name.split('.')[0]
-        doc = _yaml(row['content'])
+    for tree in topology['topics']:
+        nodes = [{k: n.get(k) for k in ('id', 'view_id', 'model_ids', 'binding_status', 'parent_id', 'path')}
+                 for n in tree['nodes']]
+        root = next((n for n in nodes if n['parent_id'] is None), None)
+        for node in nodes:
+            views.setdefault(node['view_id'], None)
+        joins = [{'from': e['from'], 'to': e['to'], 'depth': len(e['path']) - 1,
+                  'card': e.get('relationship_type') or '', 'on': '',
+                  'status': e['relationship_status'], 'direction': e['relationship_direction']}
+                 for e in tree['edges']]
+        path = tree['source_path']
+        if path not in semantic and len(topic_paths[tree['id']]) == 1:
+            path = topic_paths[tree['id']][0]
+        doc = _yaml(semantic.get(path, '')) or {}
         doc = doc if isinstance(doc, dict) else {}
-        base_view = doc.get('base_view') or name
-        joins = []
-        for parent, child, depth in _flatten_joins(doc.get('joins') or {}, base_view):
-            rel = rel_index.get((parent, child), {})
-            joins.append({'from': views.get(parent, parent), 'to': views.get(child, child), 'depth': depth,
-                          'card': str(rel.get('relationship_type') or ''),
-                          'on': re.sub(r'\$\{|\}', '', str(rel.get('on_sql') or ''))})
-        bound = [views.get(base_view, base_view)] + [j['to'] for j in joins]
-        topics.append({'topic': name, 'label': str(doc.get('label') or human(name).title()), 'base': views.get(base_view, base_view),
-                       'path': row['path'], 'group': str(doc.get('group_label') or ''), 'desc': str(doc.get('description') or ''),
-                       'ai': str(doc.get('ai_context') or ''), 'joins': joins,
-                       'views': sorted(set(bound)), 'fields': [str(f) for f in doc.get('fields') or []],
-                       'view_files': {v: view_files[v] for v in [base_view] + [c for _, c, _ in _flatten_joins(doc.get('joins') or {}, base_view)] if v in view_files}})
+        gaps = sorted({d['code'] for key in ('diagnostics', 'binding_diagnostics', 'analysis_diagnostics')
+                       for d in tree.get(key, [])})
+        topics.append({'topic': tree['id'], 'label': tree['name'], 'domain': tree['domain'],
+                       'base': root['id'] if root else '', 'base_view': tree.get('base_view') or 'Unresolved base view',
+                       'base_model_ids': root['model_ids'] if root and root['binding_status'] == 'complete' else [],
+                       'path': path if path in semantic else '', 'group': str(doc.get('group_label') or ''),
+                       'desc': str(doc.get('description') or ''), 'ai': str(doc.get('ai_context') or ''),
+                       'joins': joins, 'nodes': nodes, 'gaps': gaps,
+                       'views': sorted({n['view_id'] for n in nodes}),
+                       'fields': [str(f) for f in doc.get('fields') or []],
+                       'view_files': {v: view_files[v] for v in {n['view_id'] for n in nodes} if v in view_files}})
     return topics, views, relationships
 
 
@@ -799,6 +832,8 @@ def _disposition(model):
         value = DISPOSITION_ALIASES.get(str(model.get(key) or '').lower())
         if value:
             return value
+    if not model.get('disposition') and not model.get('status'):
+        return 'unassessed'
     raise ValueError('Model needs a disposition (create, extend or reuse): ' + str(model.get('id')))
 
 
@@ -850,7 +885,10 @@ def _areas(review, models, domain, overlay):
 def _dashboards(review, overlay):
     out, details = [], overlay.get('dashboards') or {}
     for asset in review.get('assets', []):
-        status = asset.get('coverage_status') or asset.get('mapping_status')
+        kind = str(asset.get('kind') or '')
+        if not re.search(r'(^|[_-])(dashboard|look|report)($|[_-])', kind):
+            continue
+        status = asset.get('coverage_status') or asset.get('mapping_status') or 'unassessed'
         if status == 'out_of_scope':
             continue
         require(status in DASHBOARD_STATUSES, 'Dashboard has no coverage status (served, partly_served, not_served or out_of_scope): ' + asset['id'])
@@ -873,8 +911,9 @@ def _legacy(review, models):
         return [dict(row) for row in rows]
     out = []
     for change in review.get('changes', []):
-        status = LEGACY_FROM_DISPOSITION.get(change.get('disposition'))
-        require(status is not None, 'Change has no legacy coverage mapping: ' + str(change.get('id')))
+        if not change.get('source'):
+            continue  # A generic design change is not a legacy-table mapping.
+        status = LEGACY_FROM_DISPOSITION.get(change.get('disposition'), 'unresolved')
         targets = change.get('model_ids') or [t.strip() for t in str(change.get('target') or '').split(',') if t.strip() in models]
         targets = [t for t in targets if t in models]
         if status in ('covered', 'retire candidate', 'partially covered') and not targets:
@@ -884,7 +923,7 @@ def _legacy(review, models):
     return out
 
 
-def project(review, files, *, domain=None, overlay=None, known_models=(), infer_keys=True):
+def project(review, files, *, domain=None, overlay=None, known_models=(), infer_keys=True, model_context=None, topology=None):
     """Page data from a checked review and its packaged code files.
 
     ``files`` is a list of ``{path, status, content}`` with paths already in the review layout
@@ -924,7 +963,9 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
     rels = merge_relationships(reviewed, declared_relationships(files, models),
                                key_name_relationships(models) if infer_keys else [])
     areas = _areas(review, models, domain, overlay)
-    topics, views, sem_rels = semantic_from_files(files, models)
+    topics, views, sem_rels = semantic_from_files(
+        files, models, warehouse_bindings=review.get('omni_warehouse_bindings') or [],
+        model_context=model_context, topology=topology, domain_map=review.get('omni_topic_domains'))
     home = {}
     for area in areas:
         for gold in area['gold']:
@@ -933,7 +974,7 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
         model['area'] = model['area'] if model['area'] in {a['id'] for a in areas} else None
     topic_areas = overlay.get('topic_areas') or {}
     for topic in topics:
-        topic['area'] = topic_areas.get(topic['topic']) or home.get(topic['base'])
+        topic['area'] = topic_areas.get(topic['topic']) or next((home[m] for m in topic['base_model_ids'] if m in home), None)
         if topic['area'] is None:
             if not any(a['id'] == 'unassigned' for a in areas):
                 areas.append({'id': 'unassigned', 'name': 'Not assigned to a subject area', 'gold': []})
@@ -941,18 +982,18 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
     dashboards = _dashboards(review, overlay)
     decisions, opened = [], []
     for row in review.get('decisions', []):
-        status = DECISION_ALIASES.get(str(row.get('status') or '').lower())
+        status = DECISION_ALIASES.get(str(row.get('status') or '').lower(), 'unassessed')
         require(status is not None, 'Unknown decision status: ' + str(row.get('id')))
         decision = {'id': row['id'], 'area': row.get('area') or ('Open question' if status == 'open' else 'General'),
                     'q': row.get('question') or '', 'opts': row.get('options') or [],
                     'assumed': row.get('assumed_option') or row.get('answer') or '', 'status': status,
                     'detail': row.get('detail') or '', 'models': [m for m in row.get('model_ids') or [] if m in models]}
         decisions.append(decision)
-        if status == 'open':
+        if status in ('open', 'unassessed'):
             opened.append({'kind': 'Question', 'id': row['id'], 'owner': row.get('owner') or 'Not assigned',
                            'text': decision['q'] or decision['area'],
                            'meanwhile': row.get('meanwhile') or ('Assumed: ' + decision['assumed'] if decision['assumed']
-                                                                 else 'Nothing that depends on this is modelled until it is answered.')})
+                                                                 else 'Unresolved decision; any dependent candidate code remains provisional.')})
     checks = [{k: row.get(k, '') for k in ('id', 'label', 'scope', 'status', 'expected', 'actual', 'details')}
               for row in review.get('validation', [])]
     for row in checks:
@@ -962,11 +1003,17 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
     legacy = _legacy(review, models)
     opened += [{'kind': 'Unresolved legacy model', 'id': r['legacy'], 'owner': 'Not assigned', 'text': r['note'] or 'No target yet.',
                 'meanwhile': 'Not replaced in this delivery.'} for r in legacy if r['status'] == 'unresolved']
+    opened += [{'kind': 'Semantic gap', 'id': t['topic'], 'owner': 'Not assigned',
+                'text': ', '.join(t['gaps']),
+                'meanwhile': 'Candidate code remains available. Resolve bindings and joins before deployment.'}
+               for t in topics if t['gaps']]
     opened += overlay.get('open') or []
     placeholders = [{'file': f['path'], 'line': i, 'text': line.strip()[:200]}
                     for f in files if file_kind(f['path']) in ('view', 'topic', 'relationships', 'model')
                     for i, line in enumerate(f['content'].splitlines(), 1) if 'TODO' in line]
     new_sources = sorted({s for m in models.values() if m['layer'] == 'bronze' and m['disp'] == 'create' for s in m['src']})
+    general_changes = ['Change ' + str(c['id']) + ': ' + str(c.get('description') or c.get('rationale') or 'See the canonical review.')
+                       for c in review.get('changes', []) if not c.get('source')]
     target = review.get('target') or {}
     meta = {'title': review.get('title') or human(domain).capitalize() + ' data model review', 'domain': domain,
             'scope_label': review_meta.get('domain_position') or None, 'repositories': review_meta.get('repositories') or [],
@@ -978,7 +1025,7 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
             'areas': areas, 'topics': topics, 'files': [{k: f[k] for k in ('path', 'status', 'content')} for f in files],
             'decisions': decisions, 'legacy': legacy, 'dashboards': dashboards,
             'static': review.get('static_checks') or static_checks(files, models, known_models, views, sem_rels),
-            'checks': checks, 'remaining': overlay.get('remaining') or review_meta.get('remaining') or [],
+            'checks': checks, 'remaining': (overlay.get('remaining') or review_meta.get('remaining') or []) + general_changes,
             'open': opened, 'apply': {'new_sources': new_sources, 'placeholders': placeholders},
             'semantic_relationships': len(sem_rels) if sem_rels else len(reviewed)}
     for key in ('reading_order', 'not_done', 'notes'):
@@ -986,6 +1033,44 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
         if value:
             data[key] = [{'view': None, 'label': x, 'text': ''} if isinstance(x, str) else x for x in value] if key == 'reading_order' else value
     return normalise(data)
+
+
+def render_from_delivery(data):
+    """Optional projection of already selected bytes; never read original artifacts.
+
+    Called only by delivery_portal after audience/format selection and native
+    evidence qualification. The enclosing finalizer owns disclosure and delivery.
+    """
+    review = json.loads(json.dumps(data['review']))
+    review['target'] = data['engagement']['target']
+    files = []
+    for record in data.get('files', []):
+        if record['category'] != 'implementation':
+            continue
+        body = base64.b64decode(record['base64'], validate=True)
+        require(hashlib.sha256(body).hexdigest() == record['sha256'], 'Selected code digest changed')
+        try:
+            content = body.decode('utf-8')
+        except UnicodeDecodeError:
+            continue  # Binary artifacts stay in the canonical package, not a text inspector.
+        files.append({'path': record['path'], 'status': record.get('change_status') or 'unassessed', 'content': content})
+    review.pop('static_checks', None)  # Recompute only from selected bytes, not authored summaries.
+    selected = set(data.get('selected_categories', []))
+    notes = ['This companion contains only the files and evidence selected for this audience. '
+             'Use the package root START_HERE.html for delivery status, all formats and next steps.']
+    if 'implementation' not in selected:
+        notes.append('Implementation was not selected for this audience; no code is embedded.')
+    if 'dictionary' not in selected:
+        notes.append('The data dictionary was not selected; column details are omitted.')
+    if review['target'].get('framework') != 'dbt':
+        notes.append('Warehouse files retain their selected format. dbt-specific checks do not qualify this target.')
+    # Public native topology has already been selected, pinned and checked by the finalizer.
+    topology = review.get('omni', {}).get('topic_trees')
+    page = project(review, files, domain=review['domain_review']['domain'], infer_keys=False, topology=topology,
+                   overlay={'meta': {'access_note': 'Audience: ' + data['audience']}, 'remaining': notes})
+    if review['target'].get('framework') != 'dbt':
+        page['static'] = [c for c in page['static'] if c['label'] not in ('Models without YAML', 'Unresolved refs')]
+    return render(page)
 
 
 def files_from_artifacts(review, root, path_map, *, changed=()):
@@ -997,8 +1082,8 @@ def files_from_artifacts(review, root, path_map, *, changed=()):
     """
     root = Path(root).resolve()
     require(root.is_dir(), 'Artifact root must be a directory')
-    require(path_map and all(isinstance(k, str) and isinstance(v, str) and v.startswith((LAYOUT['code'] + '/', LAYOUT['semantic'] + '/'))
-                             for k, v in path_map.items()), f"Every path map target must start with {LAYOUT['code']}/ or {LAYOUT['semantic']}/")
+    require(path_map and all(isinstance(k, str) and isinstance(v, str) and v.startswith((LAYOUT['code'] + '/', '02_warehouse/', LAYOUT['semantic'] + '/'))
+                             for k, v in path_map.items()), f"Every path map target must start with {LAYOUT['code']}/ 02_warehouse/ or {LAYOUT['semantic']}/")
     changed, out = set(changed), []
     for record in review.get('artifacts', []):
         if record.get('category') != 'implementation':
@@ -1027,6 +1112,7 @@ def main(argv=None):
     p.add_argument('--overlay', help='JSON with authored presentation fields (meta, areas, dashboards, ...)')
     p.add_argument('--known-models', help='Text file of model names that exist in the base project')
     p.add_argument('--no-key-inference', action='store_true', help='Do not add joins from matching _fk/_pk column names')
+    p.add_argument('--omni-context', help='Private Omni model-context JSON; never embedded in the page')
     p.add_argument('--domain'); p.add_argument('--output', required=True)
     p = sub.add_parser('render', help='Write START_HERE.html from page data')
     p.add_argument('--data', required=True); p.add_argument('--output', required=True)
@@ -1047,7 +1133,8 @@ def main(argv=None):
         review = load_json(args.review)
         files = files_from_artifacts(review, args.artifacts, json.loads(args.path_map), changed=lines(args.changed))
         page = project(review, files, domain=args.domain, overlay=load_json(args.overlay) if args.overlay else None,
-                       known_models=lines(args.known_models), infer_keys=not args.no_key_inference)
+                       known_models=lines(args.known_models), infer_keys=not args.no_key_inference,
+                       model_context=load_json(args.omni_context) if args.omni_context else None)
         out = Path(args.output)
         require(not out.exists(), 'Output exists; choose a new file')
         out.write_text(json.dumps(page, indent=1, ensure_ascii=False) + '\n', encoding='utf-8')
