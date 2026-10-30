@@ -37,3 +37,15 @@ pre{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;
 .canvas{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px}
 .nd{cursor:pointer}.nd .bg{fill:#fff;stroke-width:1.6}.nd:hover .bg{fill:#fbf6f8}.nd .t1{font:600 11.5px ui-monospace,Menlo,monospace;fill:#1b2430}.nd .t2{font-size:10.5px;fill:#6b7584}
 .nd.k-shared .bg{stroke-dasharray:5 3}.edge.arr{marker-end:url(#ah)}.edge.same{stroke:#a596b3;stroke-dasharray:4 3}.relhit:hover+.edge{stroke:var(--acc);stroke-width:2}.nd.k-topic .bg{fill:#fde8ef}.nd.k-topic .t1{font-family:inherit;font-size:12.5px}
+.fbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:4px 0 12px}.fbar label{font-weight:600;font-size:13px}
+.fwrap{position:relative;flex:1 1 380px;max-width:520px}.fwrap input{width:100%;padding:7px 58px 7px 10px;border:1px solid var(--line);border-radius:6px;font:13px ui-monospace,Menlo,monospace;background:#fff;color:var(--ink)}
+.fwrap input:focus{outline:2px solid #f4a9c2;border-color:var(--acc)}
+.fbar .fx,.fbar .fdrop{position:absolute;top:50%;transform:translateY(-50%);width:24px;height:24px;padding:0;border:0;background:transparent;color:var(--mut);line-height:24px;text-align:center;cursor:pointer}
+.fbar .fx{right:30px;border-radius:50%;font-size:18px}.fbar .fdrop{right:5px;border-radius:4px;font-size:13px}.fbar .fx:hover,.fbar .fdrop:hover{background:#f2eef1;color:var(--ink)}
+.flist{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:8;margin:0;padding:4px 0;list-style:none;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(27,36,48,.12);max-height:340px;overflow:auto}
+.flist .fgrp{padding:8px 12px 3px;font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
+.flist .fopt{padding:5px 12px 5px 18px;font:12.5px ui-monospace,Menlo,monospace;cursor:pointer;color:var(--ink)}.flist .fopt.act{background:#fde8ef}.flist .fopt.sel{font-weight:700}
+.flist mark{background:#fbd3e0;color:inherit;border-radius:2px}.flist .fempty{padding:8px 12px;color:var(--mut);font-size:13px}#gmsg{font-size:12px}
+.fnote{background:#fde8ef;border:1px solid #f4a9c2;color:#7a1438;border-radius:8px;padding:8px 12px;margin:8px 0;font-size:13px}.fnote a{font-weight:600}
+.pills button.home{border-color:var(--acc);color:var(--acc)}.nd.focus .bg{stroke-width:3.2;filter:drop-shadow(0 0 5px rgba(232,48,110,.45))}
+button.iso{padding:6px 12px;border:1px solid var(--acc);border-radius:6px;background:#fff;color:var(--acc);font:inherit;font-size:13px;cursor:pointer}button.iso:hover{background:#fde8ef}

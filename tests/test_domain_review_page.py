@@ -286,6 +286,68 @@ class DomainReviewPageTests(unittest.TestCase):
         path.write_text(script, encoding='utf-8')
         subprocess.run([NODE, '--check', str(path)], check=True, capture_output=True)
 
+    def test_overview_does_not_list_repositories(self):
+        html = page_module.render(self.page)
+        script = re.findall(r'<script>(.*?)</script>', html, re.S)[-1]
+        self.assertNotIn('Repositories', script)
+        self.assertNotIn('Content fingerprint', script)
+        # the accelerator revision stays in the Overview facts line
+        self.assertIn("r.role==='Tooling'", script)
+
+    @unittest.skipUnless(NODE, 'Node is not installed')
+    def test_gold_table_filter_isolates_upstream_lineage_and_clears(self):
+        html = page_module.render(self.page)
+        script = re.findall(r'<script>(.*?)</script>', html, re.S)[-1]
+        data = re.search(r'id="domain-review-data">(.*?)</script>', html, re.S).group(1)
+        harness = r"""
+const DATA = process.argv[2];
+const els = Object.create(null);
+function el(id) {
+  if (!els[id]) {
+    const n = {id, innerHTML: '', textContent: id === 'domain-review-data' ? DATA : '', value: '', hidden: false, scrollTop: 0,
+      dataset: {}, style: {}, attrs: {}, classList: {toggle() {}, add() {}, remove() {}}, listeners: {},
+      setAttribute(k, v) { this.attrs[k] = String(v); }, removeAttribute(k) { delete this.attrs[k]; },
+      addEventListener(k, f) { (this.listeners[k] = this.listeners[k] || []).push(f); },
+      contains() { return false; }, querySelector() { return null; }, focus() {}, closest() { return null; }};
+    els[id] = n;
+  }
+  return els[id];
+}
+globalThis.document = {getElementById: el, querySelector: () => null, querySelectorAll: () => [], addEventListener() {}};
+globalThis.location = {hash: ''}; globalThis.history = {replaceState() {}}; globalThis.window = {scrollTo() {}};
+""" + script + r"""
+show('model');
+const out = {};
+const gold = GOLD_ORDER.find(g => M[g].domain === D.meta.domain && M[g].dep.length);
+out.gold = gold;
+out.typed = cleanName('`project.dataset.' + gold.toUpperCase() + '` ');
+openCombo('fct'); out.narrowed = CITEMS.slice(); out.listOpen = !el('glist').hidden;
+setFocus(gold);
+out.focus = FOC; out.input = el('gfilter').value; out.clearShown = !el('gclear').hidden;
+out.body = el('abody').innerHTML; out.upstream = [...upstream(gold)];
+MS = 'rel'; drawArea(MA); out.rel = el('abody').innerHTML;
+setFocus(''); out.cleared = {focus: FOC, input: el('gfilter').value, clearShown: !el('gclear').hidden, body: el('abody').innerHTML};
+console.log(JSON.stringify(out));
+"""
+        path = self.root / 'filter_harness.js'
+        path.write_text(harness, encoding='utf-8')
+        result = json.loads(subprocess.run([NODE, str(path), data], check=True, capture_output=True, text=True).stdout)
+        gold = result['gold']
+        self.assertEqual(result['typed'], gold)
+        self.assertTrue(result['listOpen'])
+        self.assertTrue(result['narrowed'] and all('fct' in g for g in result['narrowed']))
+        self.assertEqual((result['focus'], result['input'], result['clearShown']), (gold, gold, True))
+        self.assertIn('Filtered to', result['body'])
+        self.assertIn('nd k-', result['body'])
+        self.assertIn(' focus', result['body'])
+        self.assertGreater(len(result['upstream']), 1)
+        for model in result['upstream']:
+            self.assertIn(model[:40], result['body'])
+        self.assertIn('SELECTED TABLE', result['rel'])
+        self.assertEqual(result['cleared']['focus'], None)
+        self.assertEqual((result['cleared']['input'], result['cleared']['clearShown']), ('', False))
+        self.assertNotIn('Filtered to', result['cleared']['body'])
+
     def test_package_writes_the_review_layout_once_and_verifies(self):
         docs = {'DESIGN.md': b'# Design\n', 'model/physical_model_orders.dbml': b'Table a {}\n'}
         out = self.root / 'v1'
