@@ -272,7 +272,7 @@ def _pdf_worker(body, available_bytes):
                                   IndirectObject, NameObject, StreamObject, TextStringObject)
     except ImportError:
         raise _UnsupportedDocument('coverage.pdf_dependency_missing') from None
-    if pypdf.__version__ != '6.21.2':
+    if pypdf.__version__ != '6.21.4':
         raise _UnsupportedDocument('coverage.pdf_dependency_unqualified')
     for name in ('ZLIB_MAX_OUTPUT_LENGTH', 'LZW_MAX_OUTPUT_LENGTH', 'RUN_LENGTH_MAX_OUTPUT_LENGTH',
                  'MAX_DECLARED_STREAM_LENGTH', 'MAX_ARRAY_BASED_STREAM_OUTPUT_LENGTH'):

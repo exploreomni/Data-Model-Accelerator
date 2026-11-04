@@ -52,7 +52,6 @@ function rOverview(){
 <p class="meta">${facts.join(' · ')}</p>
 <div class="banner">${e(mt.banner)}</div>
 <div class="cards">${cards.map(([n,l,d])=>`<div class="card"><div class="n">${n}</div><div class="l">${e(l)}</div><div class="d">${d}</div></div>`).join('')}</div>
-${mt.repositories.length?`<h2>Repositories</h2><div class="tw"><table><thead><tr><th>Role</th><th>Repository</th><th>Commit</th><th>Content fingerprint</th></tr></thead><tbody>${mt.repositories.map(r=>`<tr><td>${e(r.role)}</td><td>${e(r.name)}</td><td>${r.commit?`<code>${e(r.commit.slice(0,12))}</code>`:'<span class="note">not recorded</span>'}</td><td>${r.fingerprint?`<code>${e(r.fingerprint.slice(0,12))}</code>`+(r.complete===false?' <span class="note">partial scan</span>':''):'—'}</td></tr>`).join('')}</tbody></table></div>`:''}
 <h2>Read in this order</h2>
 <ol>${D.reading_order.map(r=>`<li>${r.view?go(r.view,r.label):e(r.label)}${r.text?': '+e(r.text):''}</li>`).join('')}</ol>
 ${D.dashboards.length?`<h2>Dashboards</h2>
@@ -63,8 +62,8 @@ ${D.dashboards.length?`<h2>Dashboards</h2>
 
 /* ---------- data model ---------- */
 const COL={create:'#2f9e5b',extend:'#e0952b',reuse:'#8a94a6',shared:'#4a5bdc',topic:'#e8306e'};
-function box(x,y,w,h,id,l1,l2,k,a,tip){const c=COL[k]||COL.reuse;
- return `<g class="nd k-${k}" ${act(a,id)} role="button" tabindex="0"><rect class="bg" x="${x}" y="${y}" width="${w}" height="${h}" rx="5" style="stroke:${c}"/><rect x="${x}" y="${y}" width="5" height="${h}" rx="2" style="fill:${c}"/><text class="t1" x="${x+14}" y="${y+16}">${e(l1)}</text>${l2?`<text class="t2" x="${x+14}" y="${y+29}">${e(l2)}</text>`:''}<title>${e(tip||id)}</title></g>`}
+function box(x,y,w,h,id,l1,l2,k,a,tip,hl){const c=COL[k]||COL.reuse;
+ return `<g class="nd k-${k}${hl?' focus':''}" ${act(a,id)} role="button" tabindex="0"><rect class="bg" x="${x}" y="${y}" width="${w}" height="${h}" rx="5" style="stroke:${c}"/><rect x="${x}" y="${y}" width="5" height="${h}" rx="2" style="fill:${c}"/><text class="t1" x="${x+14}" y="${y+16}">${e(l1)}</text>${l2?`<text class="t2" x="${x+14}" y="${y+29}">${e(l2)}</text>`:''}<title>${e(tip||id)}</title></g>`}
 function curve(x1,y1,x2,y2,cls,tip){const m=(x1+x2)/2,d=`M${x1} ${y1} C${m} ${y1} ${m} ${y2} ${x2} ${y2}`;
  return tip?`<g><path d="${d}" class="relhit"><title>${e(tip)}</title></path><path d="${d}" class="${cls}"/></g>`:`<path d="${d}" class="${cls}"/>`}
 const canvas=(W,H,s)=>`<div class="wide canvas"><svg viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W,1100)}px">${s}</svg></div>`;
@@ -74,7 +73,7 @@ function pipeline(a){
  const order=['bronze','silver','gold'],P={};let rows=0;
  order.forEach((k,ci)=>{cols[k].sort((x,y)=>(isShared(M[x])-isShared(M[y]))||x.localeCompare(y));cols[k].forEach((id,ri)=>P[id]={x:16+ci*(NW+CG),y:34+ri*(NH+GAP)});rows=Math.max(rows,cols[k].length)});
  const W=32+3*NW+2*CG+CG-10,H=34+rows*(NH+GAP)+6;
- let s=order.map((k,ci)=>`<text x="${16+ci*(NW+CG)}" y="18" class="lh">${k.toUpperCase()} — ${cols[k].length} models</text>`).join('');
+ let s=order.map((k,ci)=>`<text x="${16+ci*(NW+CG)}" y="18" class="lh">${k.toUpperCase()} — ${cols[k].length} model${cols[k].length===1?'':'s'}</text>`).join('');
  let nSame=0;
  a.pipeline.forEach(i=>M[i].dep.forEach(d=>{if(!P[d]||!P[i])return;const p=P[d],q=P[i],tip=`${d} → ${i}`;
   if(p.x!==q.x){s+=curve(p.x+NW,p.y+NH/2,q.x-4,q.y+NH/2,'edge arr',tip);return}
@@ -82,18 +81,18 @@ function pipeline(a){
   const dd=`M${x} ${y1} C${bx} ${y1} ${bx} ${y2} ${x+4} ${y2}`;
   s+=`<g><path d="${dd}" class="relhit"><title>${e(tip+' (same layer)')}</title></path><path d="${dd}" class="edge same arr"/></g>`}));
  s=`<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#8f8799"/></marker></defs>`+s;
- a.pipeline.forEach(id=>{const p=P[id],m=M[id];s+=box(p.x,p.y,NW,NH,id,tr(id,46),subl(m)+(m.src.length?' · '+m.src.length+' source table'+(m.src.length>1?'s':''):''),kind(m),'model',`${id} · ${subl(m)}${m.src.length?'\nSources: '+m.src.join(', '):''}`)});
+ a.pipeline.forEach(id=>{const p=P[id],m=M[id];s+=box(p.x,p.y,NW,NH,id,tr(id,46),subl(m)+(m.src.length?' · '+m.src.length+' source table'+(m.src.length>1?'s':''):''),kind(m),'model',`${id} · ${subl(m)}${m.src.length?'\nSources: '+m.src.join(', '):''}`,id===FOC)});
  return `<p class="note">Arrows point from a model to the model built on it.${nSame?` Curved lines on the right of a column (${nSame}) join two models in the same layer.`:''}</p>${canvas(W,H,s)}`;
 }
 function erd(a){
  const g=new Set(a.gold),ids=a.erd.filter(i=>M[i]),isDim=i=>M[i].type==='dimension';
- const rels=D.rels.filter(r=>ids.includes(r.from)&&ids.includes(r.to)&&(g.has(r.from)||a.shared));
- const cols=a.shared?[ids.filter(i=>!isDim(i)).sort(),ids.filter(isDim).sort(),[]]:[ids.filter(i=>g.has(i)&&!isDim(i)).sort(),ids.filter(i=>g.has(i)&&isDim(i)).sort(),ids.filter(i=>!g.has(i)).sort()];
+ const rels=D.rels.filter(r=>ids.includes(r.from)&&ids.includes(r.to)&&(a.focus?(r.from===a.focus||r.to===a.focus):(g.has(r.from)||a.shared)));
+ const cols=a.focus?[[a.focus],ids.filter(i=>i!==a.focus).sort(),[]]:a.shared?[ids.filter(i=>!isDim(i)).sort(),ids.filter(isDim).sort(),[]]:[ids.filter(i=>g.has(i)&&!isDim(i)).sort(),ids.filter(i=>g.has(i)&&isDim(i)).sort(),ids.filter(i=>!g.has(i)).sort()];
  const BW=330,CG=90,P={};let H=0;
  const keys=i=>M[i].cols.filter(c=>c[2]==='PK'||c[2]==='FK');
  cols.forEach((col,ci)=>{let y=34;col.forEach(id=>{const k=keys(id).slice(0,8);const h=46+k.length*15;P[id]={x:16+ci*(BW+CG),y,h,k,more:keys(id).length-k.length};y+=h+16});H=Math.max(H,y)});
  const W=32+3*BW+2*CG;
- let s=(a.shared?['FACTS & EXTENDED TABLES','DIMENSIONS','']:['THIS AREA — FACTS & EXTENDED TABLES','THIS AREA — DIMENSIONS','RELATED TABLES']).map((t,i)=>t?`<text x="${16+i*(BW+CG)}" y="18" class="lh">${t}</text>`:'').join('');
+ let s=(a.focus?['SELECTED TABLE','RELATED TABLES','']:a.shared?['FACTS & EXTENDED TABLES','DIMENSIONS','']:['THIS AREA — FACTS & EXTENDED TABLES','THIS AREA — DIMENSIONS','RELATED TABLES']).map((t,i)=>t?`<text x="${16+i*(BW+CG)}" y="18" class="lh">${t}</text>`:'').join('');
  rels.forEach(r=>{const p=P[r.from],q=P[r.to];if(!p||!q)return;const y1=p.y+18,y2=q.y+18,t=`${r.from} → ${r.to}${r.card?` (${human(r.card)})`:''}${r.key?' on '+r.key:''}${r.basis?' · from '+r.basis:''}`;
   if(p.x<q.x)s+=curve(p.x+BW,y1,q.x,y2,'rel',t);else if(p.x>q.x)s+=curve(p.x,y1,q.x+BW,y2,'rel',t);
   else{const x=p.x+BW,bx=x+Math.min(CG-8,26+Math.abs(y2-y1)/12),d=`M${x} ${y1} C${bx} ${y1} ${bx} ${y2} ${x} ${y2}`;s+=`<g><path d="${d}" class="relhit"><title>${e(t)}</title></path><path d="${d}" class="rel"/></g>`}});
@@ -101,15 +100,16 @@ function erd(a){
   let t=`<rect class="bg" x="${p.x}" y="${p.y}" width="${BW}" height="${p.h}" rx="5" style="stroke:${c}"/><rect x="${p.x}" y="${p.y}" width="5" height="${p.h}" rx="2" style="fill:${c}"/><text x="${p.x+14}" y="${p.y+17}" class="t1">${e(tr(id,46))}</text><text x="${p.x+14}" y="${p.y+31}" class="t2">${e(tr(m.grain||subl(m),58))}</text>`;
   p.k.forEach((k,i)=>t+=`<text x="${p.x+14}" y="${p.y+48+i*15}" class="t2"><tspan class="${k[2]==='PK'?'kp':'kf'}">${k[2]}</tspan> ${e(tr(k[0],46))}</text>`);
   if(p.more>0)t+=`<text x="${p.x+BW-10}" y="${p.y+p.h-6}" class="t2" text-anchor="end">+${p.more} keys</text>`;
-  s+=`<g class="nd k-${kind(m)}" ${act('model',id)} role="button" tabindex="0">${t}<title>${e(id)} · ${subl(m)} · ${m.cols.length} columns</title></g>`});
+  s+=`<g class="nd k-${kind(m)}${id===FOC?' focus':''}" ${act('model',id)} role="button" tabindex="0">${t}<title>${e(id)} · ${subl(m)} · ${m.cols.length} columns</title></g>`});
  return ids.length?canvas(W,H,s):'<p class="note">No gold tables in this area.</p>';
 }
 function occurrence(t,id){return (t.nodes||[]).find(n=>n.id===id)}
 function occurrenceLabel(t,id){return occurrence(t,id)?.view_id||t.base_view||'Unresolved view'}
 function bindingLabel(n){return n?.binding_status==='complete'?n.model_ids.join(', '):'Unverified warehouse binding'}
 function occurrenceLinks(n){return n?.binding_status==='complete'?n.model_ids.map(link).join(', '):'<span class="b warn">Unverified warehouse binding</span>'}
+const bindsTo=(t,id)=>(t.nodes||[]).some(n=>n.binding_status==='complete'&&n.model_ids.includes(id));
 function topicLineage(a){
- const tps=D.topics.filter(t=>t.area===a.id).sort((x,y)=>x.label.localeCompare(y.label));
+ const tps=D.topics.filter(t=>a.focus?bindsTo(t,a.focus):t.area===a.id).sort((x,y)=>x.label.localeCompare(y.label));
  const NW=300,NH=36,GAP=10,CG=80,maxDepth=Math.max(1,...tps.flatMap(t=>t.joins.map(j=>j.depth)));
  const nc=2+maxDepth,W=32+nc*NW+(nc-1)*CG,X=i=>16+i*(NW+CG);
  let s=['SEMANTIC TOPIC','BASE VIEW',...Array.from({length:maxDepth},(_,i)=>'JOINED — LEVEL '+(i+1))].map((h,i)=>`<text x="${X(i)}" y="18" class="lh">${h}</text>`).join('');
@@ -121,26 +121,75 @@ function topicLineage(a){
   s+=curve(X(0)+NW,y+NH/2,X(1),y+NH/2,'rel',`${t.label} → ${t.base_view} (base view)`);
   t.joins.forEach(j=>{const p=pos[j.from],q=pos[j.to];if(p&&q)s+=curve(p.x+NW,p.y+NH/2,q.x,q.y+NH/2,'rel',`${occurrenceLabel(t,j.from)} → ${occurrenceLabel(t,j.to)} (${j.status === 'resolved'?human(j.card):'unresolved relationship'})`)});
   s+=box(X(0),y,NW,NH,t.topic,t.label,`${t.views.length} views · ${t.dashboards.length} dashboard${t.dashboards.length===1?'':'s'}`,'topic','topic','Topic '+t.label);
-  Object.entries(pos).forEach(([id,p])=>{const n=occurrence(t,id),label=occurrenceLabel(t,id);s+=box(p.x,p.y,NW,NH,t.topic,tr(label,42),tr(bindingLabel(n),48),'topic','topic',label+' · '+bindingLabel(n))});
+  Object.entries(pos).forEach(([id,p])=>{const n=occurrence(t,id),label=occurrenceLabel(t,id);s+=box(p.x,p.y,NW,NH,t.topic,tr(label,42),tr(bindingLabel(n),48),'topic','topic',label+' · '+bindingLabel(n),!!FOC&&n?.binding_status==='complete'&&n.model_ids.includes(FOC))});
   y+=h+24});
  return canvas(W,y,s);
 }
-let MA=null,MS='pipeline';
+let MA=null,MS='pipeline',FOC=null;
+/* ---------- gold-table filter: a dropdown of every gold table that also accepts typed or pasted text ---------- */
+const GOLD_ORDER=D.areas.flatMap(a=>a.gold.filter(g=>M[g]).slice().sort());
+const homeArea=id=>D.areas.find(a=>a.gold.includes(id));
+function upstream(id){const s=new Set([id]),st=[id];while(st.length){const n=st.pop();((M[n]||{}).dep||[]).forEach(d=>{if(M[d]&&!s.has(d)){s.add(d);st.push(d)}})}return s}
+function focusArea(id){const h=homeArea(id),nb=D.rels.filter(r=>r.from===id||r.to===id).map(r=>r.from===id?r.to:r.from);
+ return {id:h.id,name:h.name,focus:id,gold:[id],pipeline:[...upstream(id)],erd:[...new Set([id,...nb])].filter(x=>M[x]),shared:false}}
+function cleanName(v){const strip=s=>s.trim().replace(/^[`'"\[(]+|[`'"\])]+$/g,'').trim();
+ return strip(strip(String(v||'')).split('.').pop()).toLowerCase()}
+let CQ='',CACT=-1,CITEMS=[];
+const comboMatches=q=>GOLD_ORDER.filter(g=>!q||g.toLowerCase().includes(q));
+function renderCombo(){const ul=byId('glist'),inp=byId('gfilter');if(!ul)return;
+ CITEMS=comboMatches(CQ);
+ if(!CITEMS.length){ul.innerHTML='<li class="fempty">No gold table matches</li>';CACT=-1}
+ else{if(CACT>=CITEMS.length)CACT=CITEMS.length-1;
+  const hl=g=>{if(!CQ)return e(g);const i=g.toLowerCase().indexOf(CQ);return e(g.slice(0,i))+'<mark>'+e(g.slice(i,i+CQ.length))+'</mark>'+e(g.slice(i+CQ.length))};
+  ul.innerHTML=D.areas.map(a=>{const its=CITEMS.filter(g=>homeArea(g)===a);return its.length?`<li class="fgrp" role="presentation">${e(a.name)}</li>`+its.map(g=>{const k=CITEMS.indexOf(g);return `<li role="option" id="gopt-${k}" data-g="${e(g)}" class="fopt${k===CACT?' act':''}${g===FOC?' sel':''}" aria-selected="${g===FOC}">${hl(g)}</li>`}).join(''):''}).join('')}
+ ul.hidden=false;inp.setAttribute('aria-expanded','true');if(CACT>=0)inp.setAttribute('aria-activedescendant','gopt-'+CACT);else inp.removeAttribute('aria-activedescendant');
+ const cur=ul.querySelector('.act');if(cur)cur.scrollIntoView({block:'nearest'})}
+function openCombo(q){CQ=q||'';CITEMS=comboMatches(CQ);CACT=CQ?Math.max(0,CITEMS.findIndex(g=>g.toLowerCase()===CQ)):CITEMS.indexOf(FOC);renderCombo();if(CACT<0)byId('glist').scrollTop=0}
+function closeCombo(){const ul=byId('glist'),inp=byId('gfilter');if(ul)ul.hidden=true;if(inp){inp.setAttribute('aria-expanded','false');inp.removeAttribute('aria-activedescendant')}}
+function syncFilter(){const s=byId('gfilter'),c=byId('gclear'),m=byId('gmsg');if(s)s.value=FOC||'';if(c)c.hidden=!FOC;if(m)m.textContent='';closeCombo()}
+function setFocus(id){FOC=id&&M[id]&&homeArea(id)?id:null;if(FOC)MA=homeArea(FOC).id;syncFilter();if(byId('abody'))drawArea(MA)}
+function pickArea(id){FOC=null;syncFilter();drawArea(id)}
+function initCombo(){const inp=byId('gfilter'),ul=byId('glist'),tg=byId('gtoggle'),cl=byId('gclear'),wrap=byId('gwrap'),m=byId('gmsg');
+ const restore=()=>{if(inp.value!==(FOC||'')){inp.value=FOC||'';cl.hidden=!FOC}};
+ const typed=()=>inp.value&&inp.value!==FOC?cleanName(inp.value):'';
+ inp.addEventListener('focus',()=>{if(ul.hidden)openCombo(typed())});
+ inp.addEventListener('click',()=>{if(ul.hidden)openCombo(typed())});
+ inp.addEventListener('input',ev=>{cl.hidden=!inp.value&&!FOC;m.textContent='';const q=cleanName(inp.value),exact=GOLD_ORDER.find(g=>g.toLowerCase()===q);
+  if(exact&&(ev.inputType==='insertFromPaste'||inp.value.trim().length>exact.length+2)){closeCombo();setFocus(exact);return}
+  openCombo(q)});
+ inp.addEventListener('keydown',ev=>{const open=!ul.hidden;
+  if(ev.key==='ArrowDown'||ev.key==='ArrowUp'){ev.preventDefault();if(!open){openCombo(typed());return}
+   if(CITEMS.length){CACT=CACT<0?(ev.key==='ArrowDown'?0:CITEMS.length-1):(CACT+(ev.key==='ArrowDown'?1:-1)+CITEMS.length)%CITEMS.length;renderCombo()}}
+  else if(ev.key==='Enter'){ev.preventDefault();const q=cleanName(inp.value),exact=GOLD_ORDER.find(g=>g.toLowerCase()===q);
+   if(open&&CACT>=0&&CITEMS[CACT]){closeCombo();setFocus(CITEMS[CACT])}else if(exact){closeCombo();setFocus(exact)}else if(!q)setFocus('');
+   else{const hits=comboMatches(q);if(hits.length===1){closeCombo();setFocus(hits[0])}else m.textContent=hits.length?`${hits.length} gold tables match; pick one from the list.`:'No gold table matches.'}}
+  else if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();if(open){closeCombo();restore()}else setFocus('')}
+  else if(ev.key==='Tab')closeCombo()});
+ ul.addEventListener('mousedown',ev=>{ev.preventDefault();const li=ev.target.closest('[data-g]');if(li){closeCombo();setFocus(li.dataset.g)}});
+ tg.addEventListener('mousedown',ev=>{ev.preventDefault();if(ul.hidden){openCombo('');inp.focus()}else closeCombo()});
+ cl.addEventListener('click',()=>{setFocus('');inp.focus();openCombo('')});
+ document.addEventListener('mousedown',ev=>{if(!wrap.contains(ev.target)){closeCombo();restore()}})}
 function rModel(){
  if(!D.areas.length){byId('v-model').innerHTML='<h1>Data model</h1><p class="note">No subject areas in this review.</p>';return}
- byId('v-model').innerHTML=`<h1>Data model</h1><p class="meta">Pick a subject area, then a view. Click any table for grain, keys, columns, lineage and its code; click a topic for its joins, fields and dashboards. Hover a line for the join.</p>
+ byId('v-model').innerHTML=`<h1>Data model</h1><p class="meta">Pick a subject area, then a view, or isolate one gold table to see only its upstream lineage, the tables related to it and the topics that use it. Click any table for grain, keys, columns, lineage and its code; click a topic for its joins, fields and dashboards. Hover a line for the join.</p>
  <div class="lg"><span><i style="background:${COL.reuse}"></i>reuse</span><span><i style="background:${COL.extend}"></i>extend</span><span><i style="background:${COL.create}"></i>create</span><span><i style="background:${COL.shared}"></i>shared interface (other domain)</span><span><i style="background:${COL.topic}"></i>semantic topic</span><span class="note">— dashed border = owned by another domain</span></div>
+ ${GOLD_ORDER.length?`<div class="fbar"><label for="gfilter">Isolate a gold table</label><div class="fwrap" id="gwrap"><input id="gfilter" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="glist" autocomplete="off" spellcheck="false" placeholder="All gold tables (type to search, or pick from the list)"><button type="button" id="gclear" class="fx" aria-label="Clear filter" title="Clear filter" hidden>&times;</button><button type="button" id="gtoggle" class="fdrop" aria-label="Show gold tables" title="Show gold tables" tabindex="-1">&#9662;</button><ul id="glist" class="flist" role="listbox" hidden></ul></div><span id="gmsg" class="note" aria-live="polite"></span></div>`:''}
  <div class="pills" id="apills">${D.areas.map(a=>`<button type="button" data-a="${e(a.id)}" ${act('area',a.id)}>${e(a.name)} <span>${a.gold.length} gold</span></button>`).join('')}</div>
  <div class="pills sub" id="spills"></div><div id="abody"></div>`;
- drawArea(MA||D.areas[0].id)}
-function drawArea(id,sub){const a=D.areas.find(x=>x.id===id);if(!a)return;MA=id;if(sub)MS=sub;
- const tps=D.topics.filter(t=>t.area===a.id);
- const subs=[a.pipeline.length&&['pipeline','Pipeline'],['rel','Gold relationships'],tps.length&&['topics','Semantic topics']].filter(Boolean);
+ if(GOLD_ORDER.length)initCombo();syncFilter();drawArea(MA||D.areas[0].id)}
+function drawArea(id,sub){const base=D.areas.find(x=>x.id===id);if(!base)return;MA=id;if(sub)MS=sub;
+ const a=FOC?focusArea(FOC):base;
+ const tps=D.topics.filter(t=>a.focus?bindsTo(t,a.focus):t.area===a.id);
+ const hasPipe=a.focus?a.pipeline.length>1:a.pipeline.length>0;
+ const subs=[hasPipe&&['pipeline','Pipeline'],['rel','Gold relationships'],tps.length&&['topics','Semantic topics']].filter(Boolean);
  if(!subs.some(s=>s[0]===MS))MS=subs[0][0];
- document.querySelectorAll('#apills button').forEach(x=>x.classList.toggle('on',x.dataset.a===id));
+ document.querySelectorAll('#apills button').forEach(x=>{x.classList.toggle('on',x.dataset.a===id&&!FOC);x.classList.toggle('home',x.dataset.a===id&&!!FOC)});
  byId('spills').innerHTML=subs.map(([k,l])=>`<button type="button" class="${k===MS?'on':''}" ${act('sub',k)}>${l}</button>`).join('');
  const head={pipeline:'Pipeline — staging (bronze) → integration (silver) → warehouse (gold)',rel:'Gold relationships — facts and extended tables → dimensions',topics:'Semantic topics — topic → base view → joined views'}[MS];
- const note=a.shared?`<p class="note">Warehouse tables owned by other domains that the ${e(D.meta.domain_label)} tables and topics join to. Their pipelines belong to their own domains.</p>`:(tps.length?`<p class="note">Semantic topics in this area: ${tps.map(t=>topicLink(t.topic)).join(', ')}</p>`:'');
+ let note;
+ if(a.focus){const up=a.pipeline.filter(x=>x!==a.focus),n=l=>up.filter(x=>M[x].layer===l).length,s=(k,w)=>k===1?w:w+'s';
+  note=`<div class="fnote">Filtered to <code>${e(a.focus)}</code> (${e(a.name)}). ${MS==='pipeline'?`Showing it and its ${up.length} upstream ${s(up.length,'model')}: ${n('bronze')} bronze, ${n('silver')} silver, ${n('gold')} gold.`:MS==='rel'?`Showing it and the ${a.erd.length-1} ${s(a.erd.length-1,'table')} related to it.`:`Showing the ${tps.length} ${s(tps.length,'topic')} that ${tps.length===1?'uses':'use'} it.`}${hasPipe?'':' It has no upstream models in this review; its pipeline belongs to its own domain.'} <a href="#" ${act('clear','')}>Clear filter</a></div>`}
+ else note=base.shared?`<p class="note">Warehouse tables owned by other domains that the ${e(D.meta.domain_label)} tables and topics join to. Their pipelines belong to their own domains.</p>`:(tps.length?`<p class="note">Semantic topics in this area: ${tps.map(t=>topicLink(t.topic)).join(', ')}</p>`:'');
  byId('abody').innerHTML=`<h3 class="ah">${head}</h3>${note}${MS==='pipeline'?pipeline(a):MS==='rel'?erd(a):topicLineage(a)}`}
 
 /* ---------- inspectors ---------- */
@@ -167,6 +216,7 @@ function insp(n){const m=M[n];if(!m)return;const p=byId('insp');
  <p>${b(m.disp)} · ${e(m.layer)} · ${e(m.domain)}${m.area&&areaName[m.area]?' · '+e(areaName[m.area]):''}</p>
  <p><b>Grain:</b> ${m.grain?e(m.grain):'<span class="note">not stated in the model documentation</span>'}</p>
  <p><b>Existing source:</b> ${e(m.existing)}</p>
+ ${m.layer==='gold'&&homeArea(m.id)?`<p><button type="button" class="iso" ${act('isolate',m.id)}>Show only this table's lineage</button></p>`:''}
  <p><b>Code file:</b> ${m.code?fileLink(m.code):`<code>${e(m.source_path||'—')}</code> <span class="note">unchanged, not in this package</span>`}</p>
  <p>${e(m.desc)}</p>
  <h3>Keys</h3>${keys.length?keys.map(k=>`<div><code>${e(k[2])}</code> <code>${e(k[0])}</code>${relTo(k[0])}</div>`).join(''):'<p class="note">No keys declared.</p>'}
@@ -249,7 +299,7 @@ function rTodos(){byId('v-todos').innerHTML=`<h1>Open items</h1><p class="meta">
 
 /* ---------- events ---------- */
 const R={overview:rOverview,model:rModel,code:rCode,decisions:rDecisions,legacy:rLegacy,dict:rDict,valid:rValid,todos:rTodos};
-const ACTIONS={show:v=>{closeInsp();show(v)},model:insp,topic:inspTopic,area:v=>drawArea(v),sub:v=>drawArea(MA,v),
+const ACTIONS={show:v=>{closeInsp();show(v)},model:insp,topic:inspTopic,area:pickArea,isolate:v=>{closeInsp();show('model');setFocus(v);window.scrollTo(0,0)},clear:()=>setFocus(''),sub:v=>drawArea(MA,v),
  file:v=>{closeInsp();show('code');openFile(v)},decision:goDec,close:closeInsp};
 document.addEventListener('click',ev=>{const t=ev.target.closest('[data-act]');if(!t)return;ev.preventDefault();ACTIONS[t.dataset.act]?.(t.dataset.v)});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeInsp();

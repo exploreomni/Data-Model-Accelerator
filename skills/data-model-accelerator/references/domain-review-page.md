@@ -45,8 +45,8 @@ or evidence to make it fit.
 
 | Tab | Content, limited to the selected review |
 |---|---|
-| Overview | Candidate banner, scope, stack, counts, repositories, reading order, dashboard coverage and remaining work. |
-| Data model | Subject areas, upstream pipeline, gold relationships and semantic topic occurrences. Table and topic inspectors retain binding gaps. |
+| Overview | Candidate banner, scope, stack and accelerator revision, counts, reading order, dashboard coverage and remaining work. Repository commits and fingerprints stay in the page data and the input evidence; the Overview does not list them. |
+| Data model | Subject areas, upstream pipeline, gold relationships and semantic topic occurrences. A gold-table filter (a dropdown of every gold table that also accepts typed or pasted names and narrows as you type, cleared with its × button or Escape) isolates one table: the pipeline shows it and its upstream models, the relationships view shows the tables related to it, and the topics view shows the topics bound to it. The table inspector offers the same filter. Table and topic inspectors retain binding gaps. |
 | Code & files | Selected text files, supplied placement instructions and unresolved placeholders. |
 | Decisions | Recorded questions, options, assumptions and answered, assumed or open status. |
 | Legacy coverage | Supplied legacy-to-target mappings and unresolved or out-of-domain items. |
