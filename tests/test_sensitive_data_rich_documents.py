@@ -181,7 +181,7 @@ class RichDocumentScanTests(unittest.TestCase):
             self.assert_unsupported(text_pdf(), 'plan.pdf', 'coverage.pdf_decoded_byte_limit')
 
     def test_dependency_qualification_errors_are_actionable_and_value_free(self):
-        for version in ('6.10.0', 'unqualified'):
+        for version in ('6.10.0', '6.21.2', '6.21.3', 'unqualified'):
             with self.subTest(reader='pypdf', version=version), patch.object(pypdf, '__version__', version):
                 with self.assertRaisesRegex(scanner._UnsupportedDocument, 'pdf_dependency_unqualified'):
                     scanner._pdf_worker(text_pdf(), scanner.MAX_TOTAL_BYTES)
