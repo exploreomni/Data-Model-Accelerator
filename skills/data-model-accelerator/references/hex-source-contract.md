@@ -1,12 +1,14 @@
 # Hex source extraction contract
 
-Schema acquisition updated 2026-10-02; source-format review recorded 2026-09-10. This is a bounded static adapter plus a synthetic replay fixture, not a Hex connector or native runtime certification.
+Schema acquisition updated 2026-11-04; source-format review recorded 2026-09-10. This is a bounded static adapter plus a synthetic replay fixture, not a Hex connector or native runtime certification.
 
 ## Native format and pinned evidence
 
 Hex documents a native YAML project format that preserves logic and app layout while excluding project outputs. Hex recommends this format over Jupyter exports because Jupyter can lose SQL-cell and input behavior. Hex also documents programmatic validation using its public JSON schema and the `*.hex.yaml` filename convention. [Hex import/export documentation](https://learn.hex.tech/docs/explore-data/projects/import-export).
 
-The schema is an optional local dependency, excluded from the public repository and its MIT license. Its publisher URL and schema `$id` are [https://static.hex.site/hex-file-schema.json](https://static.hex.site/hex-file-schema.json). The current pin, retrieved 2026-10-02, is 127,155 bytes with SHA-256 `e0a8d6f4261983194de2230821bcd86604d817301dc054a42665df4eb421bde0`; it declares JSON Schema draft-07 and `schemaVersion: 3`. The schema contains no embedded license declaration; no broader redistribution grant is asserted.
+The schema is an optional local dependency, excluded from the public repository and its MIT license. Its publisher URL and schema `$id` are [https://static.hex.site/hex-file-schema.json](https://static.hex.site/hex-file-schema.json). The current pin, retrieved 2026-11-04, is 127,643 bytes with SHA-256 `39e195b7848461f52260c2e3d0e8f599faa92f6f89737cf85913cdd772da2026`; it declares JSON Schema draft-07 and `schemaVersion: 3`. The schema contains no embedded license declaration; no broader redistribution grant is asserted.
+
+The reviewed change from the 2026-10-02 pin (`e0a8d6f4261983194de2230821bcd86604d817301dc054a42665df4eb421bde0`, 127,155 bytes) adds `TaoProjectMention` to rich-text mentions. It does not change the existing cell, SQL, component or connection definitions. This schema addition does not expand the adapter's supported behavior or establish native runtime validation.
 
 Explicitly acquire this dependency before running Hex schema validation or the full optional test suite. From the repository root:
 
