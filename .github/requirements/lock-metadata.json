@@ -5,7 +5,7 @@
   "uv": "0.12.5",
   "inputs": {
     ".github/requirements/bootstrap.in": "0b897bd2e718a14e8883d8c162f3f2d97b62dba92d5dbd99d6f71abaa6c7901a",
-    ".github/requirements/browser.in": "a59ca745cb91e50ae38613877101f788c0c981de4ffdf820d2f28e2d9bda3f77",
+    ".github/requirements/browser.in": "20c0690352aa9bd1d94499335abda666a694e4edc166c7f2b16fad08256f785a",
     ".github/requirements/native-wheels.json": "473a81ff4c0fde01916f267eb7d4d9cbb17def8439a1f24c5816a2cdc5829ee9",
     ".github/requirements/security.in": "7b4acc391ab477d5fedd5d34f8d7c4da0afdae1a6c0643aa0f877220386c75ba",
     ".github/scripts/update_locks.py": "b68563f14bb53834ef9b5f474a3273f9ba6313baed09dc48d6f68ea766740cb5",
@@ -27,7 +27,7 @@
   },
   "locks": {
     "bootstrap.txt": "b646f930767d4d55559dbee0715dca16631bd36e0730137093f5c19b2339a7c5",
-    "browser.txt": "04a322f92308cc0a9063fc0498e2e161484010f20172c864284b49c1ae659968",
+    "browser.txt": "bddde92f4f170bc6ec6e6cc404fe125762c62e108dc1e0e77b6a33e9718bd23b",
     "dbt-metadata.txt": "457c72d0c9a878c7c06b6887ff86f0b3e8e22b986be5c025009ac478a43db700",
     "dbt-oss.txt": "08a466fdfb4568d4aca1f674cb0da5f8caadaff29b540c5059e4e6918cf4e030",
     "dbt-v2.txt": "a4a3ea209ecbf1c964a0583fd66722cd5ee20905c6d7147b30b197b06f426295",
