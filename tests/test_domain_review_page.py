@@ -94,6 +94,18 @@ def semantic_context(domain='orders', other='customers'):
     return value
 
 
+def gold_filter_page():
+    """An earlier area contains a longer name matching another area's exact name."""
+    value = review()
+    value['models'].append({'id': 'wh_orders__orders_fct_daily', 'layer': 'gold', 'domain': 'orders',
+                            'status': 'new', 'depends_on': ['int_orders__orders'], 'columns': []})
+    value['subject_areas'] = [
+        {'id': 'reporting', 'name': 'Reporting', 'gold': ['wh_orders__orders_fct_daily']},
+        {'id': 'orders', 'name': 'Orders', 'gold': ['wh_orders__orders_fct', 'wh_orders__channel_dim']},
+        {'id': 'shared', 'name': 'Shared interfaces', 'gold': ['wh_customers__customers_dim'], 'shared': True}]
+    return page_module.project(value, files(), model_context=semantic_context())
+
+
 @unittest.skipUnless(HAS_YAML, 'Optional YAML parser unavailable')
 class DomainReviewPageTests(unittest.TestCase):
     def setUp(self):
@@ -294,9 +306,8 @@ class DomainReviewPageTests(unittest.TestCase):
         # the accelerator revision stays in the Overview facts line
         self.assertIn("r.role==='Tooling'", script)
 
-    @unittest.skipUnless(NODE, 'Node is not installed')
-    def test_gold_table_filter_isolates_upstream_lineage_and_clears(self):
-        html = page_module.render(self.page)
+    def _run_page_script(self, body, page=None):
+        html = page_module.render(self.page if page is None else page)
         script = re.findall(r'<script>(.*?)</script>', html, re.S)[-1]
         data = re.search(r'id="domain-review-data">(.*?)</script>', html, re.S).group(1)
         harness = r"""
@@ -315,7 +326,14 @@ function el(id) {
 }
 globalThis.document = {getElementById: el, querySelector: () => null, querySelectorAll: () => [], addEventListener() {}};
 globalThis.location = {hash: ''}; globalThis.history = {replaceState() {}}; globalThis.window = {scrollTo() {}};
-""" + script + r"""
+""" + script + '\n' + body
+        path = self.root / 'filter_harness.js'
+        path.write_text(harness, encoding='utf-8')
+        return json.loads(subprocess.run([NODE, str(path), data], check=True, capture_output=True, text=True).stdout)
+
+    @unittest.skipUnless(NODE, 'Node is not installed')
+    def test_gold_table_filter_isolates_upstream_lineage_and_clears(self):
+        result = self._run_page_script(r"""
 show('model');
 const out = {};
 const gold = GOLD_ORDER.find(g => M[g].domain === D.meta.domain && M[g].dep.length);
@@ -328,10 +346,7 @@ out.body = el('abody').innerHTML; out.upstream = [...upstream(gold)];
 MS = 'rel'; drawArea(MA); out.rel = el('abody').innerHTML;
 setFocus(''); out.cleared = {focus: FOC, input: el('gfilter').value, clearShown: !el('gclear').hidden, body: el('abody').innerHTML};
 console.log(JSON.stringify(out));
-"""
-        path = self.root / 'filter_harness.js'
-        path.write_text(harness, encoding='utf-8')
-        result = json.loads(subprocess.run([NODE, str(path), data], check=True, capture_output=True, text=True).stdout)
+""")
         gold = result['gold']
         self.assertEqual(result['typed'], gold)
         self.assertTrue(result['listOpen'])
@@ -347,6 +362,53 @@ console.log(JSON.stringify(out));
         self.assertEqual(result['cleared']['focus'], None)
         self.assertEqual((result['cleared']['input'], result['cleared']['clearShown']), ('', False))
         self.assertNotIn('Filtered to', result['cleared']['body'])
+
+    @unittest.skipUnless(NODE, 'Node is not installed')
+    def test_gold_table_filter_exact_names_and_keyboard_choice(self):
+        result = self._run_page_script(r"""
+show('model');
+const gold = 'wh_orders__orders_fct';
+const fire = (id, type, event = {}) => (el(id).listeners[type] || []).forEach(fn => fn(event));
+const input = value => { el('gfilter').value = value; fire('gfilter', 'input', {inputType: 'insertText'}); };
+const key = key => fire('gfilter', 'keydown', {key, preventDefault() {}, stopPropagation() {}});
+const out = {};
+input(gold.toUpperCase()); out.matches = CITEMS.slice(); key('Enter'); out.exact = FOC;
+input(gold); key('ArrowUp'); key('Enter'); out.arrowUp = FOC;
+input(gold); key('ArrowDown'); key('Enter'); out.arrowDown = FOC;
+input(gold); key('ArrowUp'); input(gold.toUpperCase()); key('Enter'); out.edited = FOC;
+input('orders_fct'); key('ArrowDown'); key('Enter'); out.partial = FOC;
+console.log(JSON.stringify(out));
+""", gold_filter_page())
+        gold = 'wh_orders__orders_fct'
+        self.assertEqual(result['matches'], [gold + '_daily', gold])
+        self.assertEqual((result['exact'], result['edited'], result['partial']), (gold, gold, gold))
+        self.assertEqual((result['arrowUp'], result['arrowDown']), (gold + '_daily', gold + '_daily'))
+
+    @unittest.skipUnless(NODE, 'Node is not installed')
+    def test_gold_table_filter_pastes_qualified_and_quoted_names(self):
+        result = self._run_page_script(r"""
+show('model');
+const gold = 'wh_orders__orders_fct';
+const fire = (id, type, event = {}) => (el(id).listeners[type] || []).forEach(fn => fn(event));
+const values = [gold, gold.toUpperCase(), 'analytics.gold.' + gold,
+  '"analytics"."gold"."' + gold + '"', '[analytics].[gold].[' + gold + ']',
+  '`analytics`.`gold`.`' + gold + '`', '`analytics.gold.' + gold.toUpperCase() + '`',
+  '  "analytics" . "gold" . "' + gold.toUpperCase() + '"  '];
+const out = values.map(value => {
+  fire('gclear', 'click'); el('gfilter').value = value;
+  fire('gfilter', 'input', {inputType: 'insertFromPaste'});
+  return {value, focus: FOC, input: el('gfilter').value, closed: el('glist').hidden};
+});
+fire('gclear', 'click'); el('gfilter').value = '"analytics"."gold"."absent_table"';
+fire('gfilter', 'input', {inputType: 'insertFromPaste'});
+fire('gfilter', 'keydown', {key: 'Enter', preventDefault() {}, stopPropagation() {}});
+console.log(JSON.stringify({pastes: out, unknown: {focus: FOC, message: el('gmsg').textContent}}));
+""", gold_filter_page())
+        for row in result['pastes']:
+            with self.subTest(value=row['value']):
+                self.assertEqual((row['focus'], row['input'], row['closed']),
+                                 ('wh_orders__orders_fct', 'wh_orders__orders_fct', True))
+        self.assertEqual(result['unknown'], {'focus': None, 'message': 'No gold table matches.'})
 
     def test_package_writes_the_review_layout_once_and_verifies(self):
         docs = {'DESIGN.md': b'# Design\n', 'model/physical_model_orders.dbml': b'Table a {}\n'}

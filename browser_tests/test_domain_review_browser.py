@@ -14,7 +14,7 @@ from playwright.sync_api import expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
-from test_domain_review_page import files, page_module, review, semantic_context
+from test_domain_review_page import files, gold_filter_page, page_module, review, semantic_context
 
 
 class DomainReviewBrowserTests(unittest.TestCase):
@@ -112,6 +112,36 @@ class DomainReviewBrowserTests(unittest.TestCase):
         self.assertTrue(self.tab.evaluate('globalThis.__dmaProbe === undefined'))
         self.assert_offline_and_clean()
 
+    def test_gold_filter_exact_names_quotes_and_keyboard_selection(self):
+        self.open_page(gold_filter_page())
+        self.tab.locator('#nav button[data-v="model"]').click()
+        field = self.tab.get_by_role('combobox')
+        gold = 'wh_orders__orders_fct'
+        field.fill(gold.upper())
+        expect(self.tab.locator('#glist [role="option"]')).to_have_text([gold + '_daily', gold])
+        expect(self.tab.locator('#glist .act')).to_have_text(gold)
+        field.press('Enter')
+        expect(field).to_have_value(gold)
+        expect(self.tab.locator('#abody .fnote code')).to_have_text(gold)
+        for arrow in ('ArrowUp', 'ArrowDown'):
+            field.fill(gold)
+            field.press(arrow)
+            expect(self.tab.locator('#glist .act')).to_have_text(gold + '_daily')
+            field.press('Enter')
+            expect(field).to_have_value(gold + '_daily')
+            expect(self.tab.locator('#abody .fnote code')).to_have_text(gold + '_daily')
+        for value in (f'"analytics"."gold"."{gold}"', f'[analytics].[gold].[{gold}]',
+                      f'`analytics`.`gold`.`{gold}`', f'`analytics.gold.{gold.upper()}`'):
+            self.tab.get_by_role('button', name='Clear filter', exact=True).click()
+            field.fill(value)
+            expect(field).to_have_value(gold)
+            expect(self.tab.locator('#glist')).not_to_be_visible()
+            expect(self.tab.locator('#abody .fnote code')).to_have_text(gold)
+        self.tab.get_by_role('button', name='Clear filter', exact=True).click()
+        expect(field).to_have_value('')
+        expect(self.tab.locator('#abody .fnote')).to_have_count(0)
+        self.assert_offline_and_clean()
+
     def test_csp_blocks_injected_inline_handlers_and_scripts(self):
         self.tab.add_init_script("""globalThis.__dmaViolations = [];
             document.addEventListener('securitypolicyviolation', event =>
@@ -138,4 +168,4 @@ class DomainReviewBrowserTests(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(DomainReviewBrowserTests)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
-    sys.exit(0 if result.wasSuccessful() and result.testsRun == 3 and not result.skipped else 1)
+    sys.exit(0 if result.wasSuccessful() and result.testsRun == 4 and not result.skipped else 1)

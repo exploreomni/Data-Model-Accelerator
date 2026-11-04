@@ -132,7 +132,8 @@ const homeArea=id=>D.areas.find(a=>a.gold.includes(id));
 function upstream(id){const s=new Set([id]),st=[id];while(st.length){const n=st.pop();((M[n]||{}).dep||[]).forEach(d=>{if(M[d]&&!s.has(d)){s.add(d);st.push(d)}})}return s}
 function focusArea(id){const h=homeArea(id),nb=D.rels.filter(r=>r.from===id||r.to===id).map(r=>r.from===id?r.to:r.from);
  return {id:h.id,name:h.name,focus:id,gold:[id],pipeline:[...upstream(id)],erd:[...new Set([id,...nb])].filter(x=>M[x]),shared:false}}
-function cleanName(v){v=String(v||'').trim().replace(/^[`'"\[(]+|[`'"\])]+$/g,'').trim();const parts=v.split('.');return parts[parts.length-1].trim().toLowerCase()}
+function cleanName(v){const strip=s=>s.trim().replace(/^[`'"\[(]+|[`'"\])]+$/g,'').trim();
+ return strip(strip(String(v||'')).split('.').pop()).toLowerCase()}
 let CQ='',CACT=-1,CITEMS=[];
 const comboMatches=q=>GOLD_ORDER.filter(g=>!q||g.toLowerCase().includes(q));
 function renderCombo(){const ul=byId('glist'),inp=byId('gfilter');if(!ul)return;
@@ -143,7 +144,7 @@ function renderCombo(){const ul=byId('glist'),inp=byId('gfilter');if(!ul)return;
   ul.innerHTML=D.areas.map(a=>{const its=CITEMS.filter(g=>homeArea(g)===a);return its.length?`<li class="fgrp" role="presentation">${e(a.name)}</li>`+its.map(g=>{const k=CITEMS.indexOf(g);return `<li role="option" id="gopt-${k}" data-g="${e(g)}" class="fopt${k===CACT?' act':''}${g===FOC?' sel':''}" aria-selected="${g===FOC}">${hl(g)}</li>`}).join(''):''}).join('')}
  ul.hidden=false;inp.setAttribute('aria-expanded','true');if(CACT>=0)inp.setAttribute('aria-activedescendant','gopt-'+CACT);else inp.removeAttribute('aria-activedescendant');
  const cur=ul.querySelector('.act');if(cur)cur.scrollIntoView({block:'nearest'})}
-function openCombo(q){CQ=q||'';CITEMS=comboMatches(CQ);CACT=CQ?0:CITEMS.indexOf(FOC);renderCombo();if(CACT<0)byId('glist').scrollTop=0}
+function openCombo(q){CQ=q||'';CITEMS=comboMatches(CQ);CACT=CQ?Math.max(0,CITEMS.findIndex(g=>g.toLowerCase()===CQ)):CITEMS.indexOf(FOC);renderCombo();if(CACT<0)byId('glist').scrollTop=0}
 function closeCombo(){const ul=byId('glist'),inp=byId('gfilter');if(ul)ul.hidden=true;if(inp){inp.setAttribute('aria-expanded','false');inp.removeAttribute('aria-activedescendant')}}
 function syncFilter(){const s=byId('gfilter'),c=byId('gclear'),m=byId('gmsg');if(s)s.value=FOC||'';if(c)c.hidden=!FOC;if(m)m.textContent='';closeCombo()}
 function setFocus(id){FOC=id&&M[id]&&homeArea(id)?id:null;if(FOC)MA=homeArea(FOC).id;syncFilter();if(byId('abody'))drawArea(MA)}
