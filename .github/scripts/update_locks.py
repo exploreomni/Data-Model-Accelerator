@@ -191,6 +191,12 @@ def generate(uv, cache_dir, lanes=None):
         def compile_lane(item):
             name, sources = item
             output = temporary / (name + '.txt')
+            # uv prefers pins in an existing output, except where changed inputs
+            # require an update. Keep a patch update from refreshing unrelated
+            # transitive dependencies; the resolver still verifies compatibility.
+            existing = LOCKS / (name + '.txt')
+            if existing.is_file():
+                output.write_bytes(existing.read_bytes())
             command = [executable, 'pip', 'compile', *sources,
                        '--constraint', str(constraints), '--generate-hashes',
                        '--only-binary', ':all:', '--python-platform', PLATFORM,
