@@ -154,7 +154,7 @@ does not use `dbt parse` or `dbt compile` as an allegedly passive parser fallbac
 | Candidate | Decision and license evidence |
 | --- | --- |
 | Python JSON + pinned PyYAML 6.0.3 | Used through shared bounded readers; YAML safe loading rejects aliases, executable tags, duplicate keys and non-JSON primitive values. [PyYAML license](https://github.com/yaml/pyyaml/blob/6.0.3/LICENSE): MIT. |
-| Shared SQLGlot 30.18.0 | Used only for explicitly bound, non-templated authored SQL. [License](https://github.com/tobymao/sqlglot/blob/v30.18.0/LICENSE): MIT. A syntax tree is not native execution. |
+| Shared SQLGlot 30.25.0 | Used only for explicitly bound, non-templated authored SQL. [License](https://github.com/tobymao/sqlglot/blob/v30.25.0/LICENSE): MIT. A syntax tree is not native execution. |
 | dbt-extractor | Reviewed, not installed or invoked. Its [primary implementation notes](https://github.com/dbt-labs/dbt-extractor) document a limited tree-sitter/Jinja static subset and rejection when extraction cannot be certain. [License](https://github.com/dbt-labs/dbt-extractor/blob/main/LICENSE): Apache-2.0. Falling back to rendering would violate this source reader's boundary. |
 | dbt Core v1.10.0 | Reviewed only as a versioned engine baseline, not imported. [License at the reviewed tag](https://github.com/dbt-labs/dbt-core/blob/v1.10.0/License.md): Apache-2.0. This statement is not a license claim about every later dbt product/distribution. |
 

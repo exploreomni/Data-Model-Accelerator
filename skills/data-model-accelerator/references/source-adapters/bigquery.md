@@ -24,7 +24,7 @@ Unknown shapes produce gaps; filenames never supply missing identity.
 | Dataform query response | Action and canonical targets, source file, declared dependencies, relation/assertion/operation SQL, incremental SQL and options, column descriptions | Declaration metadata is documentation, not verified physical schema |
 | SQLX or JavaScript | Original supplied source expression | No compilation; requires separately supplied compiled evidence |
 
-The implementation uses the shared **SQLGlot 30.18.0** dependency pin and the
+The implementation uses the shared **SQLGlot 30.25.0** dependency pin and the
 `bigquery` dialect. The [upstream parser documentation](https://sqlglot.com/)
 explicitly distinguishes its lenient parser from database validation. All
 expressions and dependencies retain their source path, JSON locator and file

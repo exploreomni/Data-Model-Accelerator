@@ -2,4 +2,4 @@
 # The pinned wheel selects its matching Chromium revision; no system browser fallback.
 playwright==1.64.1
 PyYAML==6.0.3
-sqlglot==30.18.0
+sqlglot==30.25.0

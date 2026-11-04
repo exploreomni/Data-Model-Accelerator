@@ -8,7 +8,7 @@ Research reviewed: **2026-10-15**. Implementation:
 
 This first slice accepts supplied UTF-8 `.sql` and native `FORMAT JSON` response
 bodies. It never contacts ClickHouse, runs SQL, imports source projects or follows
-URLs. It uses the shared **SQLGlot 30.18.0** pin with the
+URLs. It uses the shared **SQLGlot 30.25.0** pin with the
 [`clickhouse` dialect](https://sqlglot.com/sqlglot/dialects/clickhouse.html).
 Compatibility is a tested syntax subset, not a qualified server-version range.
 Record the actual ClickHouse version separately when acquiring source evidence.
