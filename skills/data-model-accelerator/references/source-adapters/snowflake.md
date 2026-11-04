@@ -9,7 +9,7 @@ checks: [`test_source_snowflake.py`](../../../../tests/test_source_snowflake.py)
 This adapter reads authorized UTF-8 snapshots offline. It does not contact
 Snowflake, execute SQL, load credentials, invoke Snowflake CLI, or execute project
 code. Snowflake is a managed service; this contract pins the SQL API **v2** response
-shape and **SQLGlot 30.18.0** `snowflake` dialect, not a Snowflake engine release.
+shape and **SQLGlot 30.25.0** `snowflake` dialect, not a Snowflake engine release.
 
 | Input | Extracted evidence | Explicit boundary |
 | --- | --- | --- |

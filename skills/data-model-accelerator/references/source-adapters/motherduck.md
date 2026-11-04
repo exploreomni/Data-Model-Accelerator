@@ -6,7 +6,7 @@ Research reviewed: 2026-10-15. Implementation:
 
 ## Supported contract
 
-This first slice parses supplied UTF-8 snapshots using shared SQLGlot 30.18.0's
+This first slice parses supplied UTF-8 snapshots using shared SQLGlot 30.25.0's
 `duckdb` dialect. It never connects to a database, imports a DuckDB driver,
 executes SQL or source programs, opens referenced files, installs extensions,
 attaches databases or accesses the network. DuckDB local compatibility is not

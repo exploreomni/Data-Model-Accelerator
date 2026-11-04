@@ -9,7 +9,7 @@ Research reviewed: 2026-10-15. Implementation:
 This is bounded static extraction from supplied UTF-8 snapshots. It does not
 connect to Redshift, execute SQL, invoke AWS CLI, load credentials or import a
 database client. Nested repository-relative paths retain exact file hashes and
-locators. The shared SQLGlot 30.18.0 parser uses its `redshift` dialect; parser
+locators. The shared SQLGlot 30.25.0 parser uses its `redshift` dialect; parser
 success is not warehouse validation. Redshift is a managed service; these shapes
 refer to the current documented Data API, not a claimed fixed engine release.
 
