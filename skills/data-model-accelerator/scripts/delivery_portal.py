@@ -2048,12 +2048,19 @@ def generated_deliverables(data):
             _migration_markdown(data['migration_review']).encode())
     frontend = data.get('workflow', {}).get('frontend_continuation')
     if 'documentation' in selected and frontend:
-        lines = ['# Dashboard migration continuation', '', frontend['qualification'], '',
-                 'Use the existing Omni Artifact Accelerator handoff. These are selected scopes, not one-to-one dashboard bindings.', '']
+        has_surface_selection = any('target_surfaces' in row for row in frontend['items'])
+        title = 'Frontend continuation' if has_surface_selection else 'Dashboard migration continuation'
+        scope = ('Use the selected surfaces and task modes in the Omni Artifact Accelerator handoff.'
+                 if has_surface_selection else 'Use the existing Omni Artifact Accelerator handoff. These are selected scopes, not one-to-one dashboard bindings.')
+        lines = ['# ' + title, '', frontend['qualification'], '', scope, '']
         for row in frontend['items']:
             lines.extend(['## ' + _markdown_cell(row['domain_id'] or 'Selected scope'),
-                '- Continuation: ' + _markdown_cell(row['id']), '- Status: ' + _markdown_cell(row['status']),
-                '- Dashboards: ' + _markdown_cell(', '.join(row['dashboard_ids']) or 'Not selected'),
+                '- Continuation: ' + _markdown_cell(row['id']), '- Status: ' + _markdown_cell(row['status'])])
+            if 'target_surfaces' in row:
+                lines.extend(['- Target surfaces: ' + _markdown_cell(', '.join(row['target_surfaces'])),
+                              '- Task mode: ' + _markdown_cell(row['task_mode']),
+                              '- Source Apps: ' + _markdown_cell(', '.join(row['app_ids']) or 'Not selected')])
+            lines.extend(['- Dashboards: ' + _markdown_cell(', '.join(row['dashboard_ids']) or 'Not selected'),
                 '- Topics: ' + _markdown_cell(', '.join(row['topic_names']) or 'Not selected'),
                 '- Next action: ' + _markdown_cell(row['next_action']), ''])
         add('generated:frontend-continuation', '05_Migration/DASHBOARD_CONTINUATION.md', 'documentation',

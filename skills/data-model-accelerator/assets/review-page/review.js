@@ -247,7 +247,18 @@ function rFeedback(){byId('review-feedback').innerHTML=`<h1>Prepare review feedb
  <label for="fb-text">Correction or question</label><textarea id="fb-text" maxlength="10000" placeholder="What should change, and why?"></textarea><br>
  <button type="button" data-action="feedback-download"${feedbackBinding?'':' disabled'}>Download feedback</button> <button type="button" data-action="feedback-copy"${feedbackBinding?'':' disabled'}>Copy feedback</button>
  <p class="note" id="fb-note" role="status"></p><div id="fb-fallback" hidden><label for="fb-json">Feedback JSON — select and copy if needed</label><textarea id="fb-json" readonly spellcheck="false"></textarea></div>`}
-function rFrontend(){const f=P.frontend;byId('dashboard-migration').innerHTML=`<h1>Dashboard migration</h1>${f&&f.items?`<p class="meta">${e(f.qualification||'')}</p><table><thead><tr><th>Scope</th><th>Status</th><th>Dashboards</th><th>Topics</th><th>Next action</th></tr></thead><tbody>${f.items.map(r=>`<tr><td>${e(r.domain_id||r.id)}</td><td>${e(r.status)}</td><td>${e((r.dashboard_ids||[]).join(', '))}</td><td>${e((r.topic_names||[]).join(', '))}</td><td>${e(r.next_action||'')}</td></tr>`).join('')}</tbody></table>`:'<p class="note">No dashboard migration continuation was requested for this delivery.</p>'}`}
+function rFrontend(){
+ const f=P.frontend, rows=f?.items, selected=rows?.some(r=>r.target_surfaces);
+ const title=selected?'Frontend continuation':'Dashboard migration';
+ const nav=document.querySelector('a[data-nav="dashboard-migration"]');
+ if(nav)nav.textContent=title;
+ const headings=['Scope','Status',...(selected?['Target surfaces','Task mode','Source Apps']:[]),'Dashboards','Topics','Next action'];
+ const cells=r=>[r.domain_id||r.id,r.status,...(selected?[(r.target_surfaces||['dashboard']).join(', '),r.task_mode||'migration',(r.app_ids||[]).join(', ')]:[]),(r.dashboard_ids||[]).join(', '),(r.topic_names||[]).join(', '),r.next_action];
+ byId('dashboard-migration').innerHTML='<h1>'+title+'</h1>'+(rows?
+  '<p class="meta">'+e(f.qualification||'')+'</p><table><thead><tr>'+headings.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+
+  rows.map(r=>'<tr>'+cells(r).map(v=>'<td>'+e(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table>':
+  '<p class="note">No dashboard migration continuation was requested for this delivery.</p>');
+}
 
 // Data attributes carry names only. They are never evaluated as JavaScript.
 function dispatchAction(control){switch(control.dataset.action){

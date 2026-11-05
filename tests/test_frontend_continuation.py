@@ -22,6 +22,96 @@ class ContinuationTests(unittest.TestCase):
         self.request = dict(schema_version=1, domain_id='sales', choice='prepare_handoff',
             request_reference='synthetic://user/continue', dashboard_ids=['orders', 'customers'], topic_names=[])
 
+    def test_v2_surfaces_and_task_mode_survive_preparation_and_stable_retry(self):
+        req = dict(self.request, schema_version=2, target_surfaces=['app'], task_mode='net-new',
+                   dashboard_ids=[], app_ids=['entry'], topic_names=['orders'],
+                   destination={'base_url':'https://example.invalid','model_id':'model-1','branch_id':'branch-1',
+                                'model_version_id':'revision-1'})
+        identity = frontend.choose(self.state, req)
+        self.assertEqual(identity, frontend.choose(self.state, req))
+        output = self.root / 'v2-app'
+        first = frontend.prepare(self.state, identity, self.inputs, output, 'synthetic://disclosure')
+        packet = json.loads((output / 'continuation.json').read_bytes())
+        self.assertEqual(frontend.prepare(self.state, identity, self.inputs, output, 'synthetic://disclosure'), first)
+        for k in ('target_surfaces','task_mode','topic_names','destination','app_ids'):
+            self.assertEqual(packet[k], req[k])
+        self.assertIsNone(packet['semantic_review'])
+        self.assertFalse(packet['authorizes_target_write'])
+        self.assertFalse(any('dashboard inventory' in line.lower() for line in packet['unresolved']))
+        self.assertNotEqual(identity, frontend.choose(self.state, dict(req, target_surfaces=['app','dashboard'])))
+        self.assertNotEqual(identity, frontend.choose(self.state, dict(req, task_mode='enhancement')))
+        self.state['answers']['migration_scope'] = 'full_dashboard'
+        independent = frontend.choose(self.state, dict(req, app_ids=['separate-app']))
+        self.assertEqual(frontend.item(self.state, independent)['mode'], 'independent')
+
+    def test_v2_evidence_selection_requires_exact_unchanged_bytes(self):
+        readback = self.inputs / 'readback.json'
+        readback.write_text('{"example":"original"}')
+        row = {'path':'readback.json','purpose':'topic_readback','sha256':hashlib.sha256(readback.read_bytes()).hexdigest()}
+        request = dict(self.request, schema_version=2, target_surfaces=['app','dashboard'], task_mode='migration',
+                       context_files=[row])
+        identity = frontend.choose(self.state, request)
+        output = self.root / 'v2-bound'
+        frontend.prepare(self.state, identity, self.inputs, output, 'synthetic://disclosure')
+        packet = json.loads((output / 'continuation.json').read_bytes())
+        self.assertEqual(packet['topic_readback']['sha256'], row['sha256'])
+        self.assertEqual(packet['target_surfaces'], ['dashboard','app'])
+        self.assertIsNone(packet['native_validation'])
+        readback.write_text('{"example":"changed"}')
+        with self.assertRaisesRegex(ValueError, 'evidence bytes changed'):
+            frontend.prepare(self.state, identity, self.inputs, self.root / 'changed', 'synthetic://disclosure')
+        with self.assertRaisesRegex(ValueError, 'Pin the selected'):
+            frontend.choose(self.state, dict(request, context_files=[{'path':'readback.json','purpose':'topic_readback'}]))
+
+    def test_v2_delivery_shows_task_and_original_app_ids(self):
+        import base64
+        import delivery_portal as portal
+        import portal_checks
+        import shutil
+        request = dict(self.request, schema_version=2, target_surfaces=['app'], task_mode='enhancement',
+                       dashboard_ids=[], app_ids=['source-app'])
+        frontend.choose(self.state, request)
+        page = self.root / 'START_HERE.html'
+        portal.render_engagement(self.state, page)
+        self.assertTrue(portal.check_page(page, javascript=shutil.which('node') is not None))
+        _, data = portal_checks.parse_page(page.read_text())
+        data['selected_categories'] = ['documentation']
+        file = next(r for r in portal.generated_deliverables(data) if r['id'] == 'generated:frontend-continuation')
+        summary = base64.b64decode(file['base64']).decode()
+        self.assertIn('Target surfaces: app', summary)
+        self.assertIn('Task mode: enhancement', summary)
+        self.assertIn('Source Apps: source-app', summary)
+
+    def test_mixed_version_fallback_retains_app_without_dashboard_downgrade(self):
+        skills = self.root / 'skills'
+        for name in set(frontend.COMMON_SKILLS) | {'omni-dashboard-designer','omni-app-engineer',
+                                                    'omni-product-owner','omni-design-systems'}:
+            path = skills / name; path.mkdir(parents=True); (path / 'SKILL.md').write_text('synthetic')
+        for file in ('omni-artifact-accelerator/scripts/analyst_project.py',
+                     'omni-backend-handoff/scripts/dma_frontend.py', 'omni-backend-handoff/scripts/migration.py',
+                     'omni-backend-handoff/scripts/cowork.py','omni-backend-handoff/scripts/continuation.py'):
+            path = skills / file; path.parent.mkdir(exist_ok=True); path.write_text('raise AssertionError("discovery executed code")')
+        descriptor = {'schema_version':1,'kind':'omni_frontend_capabilities','continuation_protocol_versions':[1],
+                      'semantic_handoff_versions':['omni-handoff-v1'],'entrypoint':'scripts/continuation.py',
+                      'authorizes_target_write':False}
+        caps = skills / 'omni-backend-handoff/capabilities.json'; caps.write_text(json.dumps(descriptor))
+        self.assertEqual(frontend.discover(skills)['protocol_version'], 1)
+        req = dict(self.request, schema_version=2, target_surfaces=['app'], task_mode='net-new', dashboard_ids=[])
+        identity = frontend.choose(self.state, req)
+        output = self.root / 'portable'
+        prepared = frontend.prepare(self.state, identity, self.inputs, output, 'synthetic://disclosure', skills_root=skills)
+        self.assertEqual(prepared['route'], 'portable_handoff')
+        self.assertEqual(json.loads((output/'continuation.json').read_bytes())['target_surfaces'], ['app'])
+        descriptor.update(continuation_protocol_versions=[1,2], target_surfaces=['dashboard','app'],
+                          task_modes=['net-new','migration','enhancement'])
+        caps.write_text(json.dumps(descriptor))
+        app = skills / 'omni-app-designer'
+        self.assertIn(app.name, frontend.discover(skills, target_surfaces=['app'])['missing_skills'])
+        app.mkdir(); (app/'SKILL.md').write_text('synthetic')
+        (skills/'omni-dashboard-designer/SKILL.md').unlink()
+        self.assertEqual(frontend.discover(skills, target_surfaces=['app'])['protocol_version'], 2)
+        self.assertEqual(frontend.discover(skills, target_surfaces=['app','dashboard'])['status'], 'incompatible')
+
     def test_completed_domain_selection_closure_and_unrelated_design_change(self):
         self.assertIsNone(self.state['workflow']['domain_journey']['active_domain_id'])
         first = frontend.scoped_context(self.state, 'sales')

@@ -1,12 +1,12 @@
-# Optional dashboard continuation
+# Optional App and dashboard continuation
 
 After selected Omni Topics are generated, reviewed, or separately deployed, offer
-the installed **Omni Artifact Accelerator** for associated dashboards. Reuse an
+the installed **Omni Artifact Accelerator** for selected Apps, dashboards or both. Reuse an
 existing end-to-end request; otherwise ask once: continue now, prepare a handoff,
 or not now. Installation is optional and never a DMA implementation/packaging gate.
 Provisional frontend design remains available before catalogue or native validation.
 
-DMA owns warehouse and semantic objects. The companion owns dashboard requirements,
+DMA owns warehouse and semantic objects. The companion owns frontend requirements,
 query consumers, experience design and frontend QA. Use the existing
 `omni-backend-handoff` request/respond/receive/select loop for real model gaps,
 not another warehouse discovery. Preserve the source migrator's route and allowed
@@ -26,7 +26,8 @@ Missing, unknown or incompatible support means retain a portable handoff or use
 the existing manual route. Installation/update requires its own request. Preserve
 the host's configured models and delegation settings.
 
-Record `guided_workflow.py configure-frontend --run RUN --document CHOICE.json`:
+Record the actual choice with `guided_workflow.py configure-frontend --run RUN --document CHOICE.json`.
+Schema 1 retains the original dashboard migration route:
 
 ```json
 {
@@ -51,10 +52,28 @@ Other selected JSON purposes are `decisions`, `expectations`, `mapping` and
 `topic_readback`. Optional `destination` has `base_url` (HTTPS origin), `model_id`,
 `branch_id` (string or null). These values/readbacks supply context, not authority.
 
+For schema 2, set `schema_version: 2`, `target_surfaces` to a nonempty selection
+of `app` and `dashboard`, and `task_mode` to `net-new`, `migration` or
+`enhancement`. Supply original `app_ids` and `dashboard_ids` when known.
+Keep the selected `topic_names`. The destination may also include a
+`model_version_id`. To retain an existing native model validation receipt or
+Topic readback, select its original JSON in `context_files` with purpose
+`native_validation` or `topic_readback` and the SHA-256 of its exact bytes.
+Native validation must match the selected semantic candidate and destination.
+A packet can carry a simulation or a failed check. Inspect the underlying
+result separately before relying on it.
+
+Use `discover --skills-root TRUSTED_SKILLS --surface app --protocol-version 2
+--task-mode enhancement`, for example. Add `--surface dashboard` for both.
+Pass `--skills-root TRUSTED_SKILLS` to `prepare` to check the requested bundle
+and return its route. When only a schema-1 reader is installed, retain the
+requested schema-2 packet for manual handoff or explicit companion update.
+
 Exact repeated choices resume. Changed choices need the actual new request reference
 and retain history. `not_now` creates no frontend files/project. `model_semantic`
-follow-up stays independent; only already-selected `full_dashboard` scope creates
-an integrated obligation. Neither changes stage approvals or domain completion.
+follow-up stays independent. Integrated continuation requires both an already
+selected `full_dashboard` scope and a dashboard target. Stage approvals and
+domain completion remain separate.
 
 ## Prepare and dispatch
 

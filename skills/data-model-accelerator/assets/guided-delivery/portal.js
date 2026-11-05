@@ -408,10 +408,20 @@ el('frontend-nav').hidden=!frontendContinuation;
 if(frontendContinuation){
   el('frontend-qualification').textContent=frontendContinuation.qualification;
   const rows=frontendContinuation.items||[], selector=el('frontend-domain');
+  const hasSurfaceSelection=rows.some(r=>r.target_surfaces);
+  if(hasSurfaceSelection){
+    el('frontend-nav').querySelector('span').textContent='Frontend continuation';
+    const section=el('dashboard-migration');
+    section.querySelector('h2').textContent='Continue into App and dashboard work';
+    section.querySelector('.panel p').textContent='Review the selected surfaces, source artifacts and Topics for each task.';
+  }
   [...new Set(rows.map(r=>r.domain_id).filter(Boolean))].sort().forEach(id=>{const option=make('option',id);option.value=id;selector.append(option);});
   const renderFrontend=()=>{
     const scoped=rows.filter(r=>!selector.value||r.domain_id===selector.value);
-    table('frontend-table',[['Domain',r=>r.domain_id||'Selected scope'],['Status',r=>pretty(r.status)],['Dashboards requested',r=>r.dashboard_ids.join(', ')||'Not selected'],['Topics selected',r=>r.topic_names.join(', ')||'Not selected'],['Next action',r=>r.next_action]],scoped);
+    const selected=hasSurfaceSelection?[
+      ['Target surfaces',r=>(r.target_surfaces||['dashboard']).join(', ')],
+      ['Task mode',r=>r.task_mode||'migration'],['Source Apps',r=>(r.app_ids||[]).join(', ')||'Not selected']]:[];
+    table('frontend-table',[['Domain',r=>r.domain_id||'Selected scope'],['Status',r=>pretty(r.status)],...selected,['Dashboards requested',r=>r.dashboard_ids.join(', ')||'Not selected'],['Topics selected',r=>r.topic_names.join(', ')||'Not selected'],['Next action',r=>r.next_action]],scoped);
     el('frontend-prompt').value='Use the optional Omni Artifact Accelerator continuation for '+scoped.map(r=>r.id).join(', ')+'. Check compatibility, reuse the saved scope and decisions, and resume its linked frontend project. If not started, show the available continuation choices. Preserve provisional work and unresolved mappings; this request does not authorize deployment or publication.';
     const target=clear('frontend-files');
     const ids=new Set(scoped.flatMap(r=>r.artifact_ids||[]));
