@@ -57,7 +57,7 @@ and actual approval authentication remain host responsibilities.
 ## Qualified scope
 
 - Core comparison/planning/association helpers: Python 3.9+, standard library.
-- Reviewed execution: pinned dbt-core 1.12.4 evidence; external PyYAML/profile and
+- Reviewed execution: local DuckDB replay on dbt-core 1.12.6, legacy 1.12.4 evidence, external PyYAML/profile and
   selected adapter required. Native replay uses the pinned local DuckDB environment.
 - Full root-project builds only. External packages, operation/pre/post hooks,
   unit-test resources, functions, YAML snapshots, profile templates and ambient

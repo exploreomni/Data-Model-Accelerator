@@ -7,7 +7,7 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
-SCHEMA_SHA256 = '39e195b7848461f52260c2e3d0e8f599faa92f6f89737cf85913cdd772da2026'
+SCHEMA_SHA256 = 'c36ce74516236f5051adf2311acfd0b17217bbad11dd0f1d586acc337a2eb591'
 SCHEMA_PATH = Path(__file__).with_name('schemas') / 'hex-file-schema.v3.json'
 MAX_BYTES = 2_000_000
 
@@ -144,7 +144,7 @@ def inspect_repo(repo):
     root = Path(repo).resolve()
     validator = _schema_validator()
     result = {'schema_version':1,'kind':'hex_source_inventory','repo':str(root),
-              'schema':{'url':'https://static.hex.site/hex-file-schema.json','sha256':SCHEMA_SHA256,'retrieved_on':'2026-11-04'},
+              'schema':{'url':'https://static.hex.site/hex-file-schema.json','sha256':SCHEMA_SHA256,'retrieved_on':'2026-11-19'},
               'projects':[],'cells':[],'edges':[],'gaps':[],'definitions':[],'assets':[]}
     def gap(kind, message, asset=None, cell=None, severity='error'):
         result['gaps'].append({'kind':kind,'severity':severity,'message':message,'asset':asset,'cell':cell})

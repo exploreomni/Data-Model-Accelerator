@@ -18,7 +18,7 @@ from plan_refactor import make_plan
 from repair_events import append_event, ZERO_HEAD
 from run_dbt_project import run_project
 from verify_refactor_run import _actor, verify_run
-from verify_dbt_evidence import instant
+from verify_dbt_evidence import LOCAL_CORE_VERSION, instant
 
 FIXTURE = Path(__file__).resolve().parents[1] / 'examples/dbt-rental-trial'
 
@@ -97,6 +97,7 @@ def build(state, candidate_source, label, dbt_executable):
         'type': 'duckdb', 'path': str(database), 'schema': 'main', 'threads': 1}}}}
     (profiles / 'profiles.yml').write_text(yaml.safe_dump(profile), encoding='utf-8')
     request = {'schema_version': 1, 'project_sha256': candidate_hash, 'adapter_type': 'duckdb',
+               'expected_dbt_version': LOCAL_CORE_VERSION,
                'profile': 'rental_trial', 'target': 'dev', 'profiles_dir': str(profiles),
                'allowed_destinations': [{'database': label, 'schema': 'main'}],
                'expected_profile': {'path': str(database)}, 'timeout_seconds': 120}

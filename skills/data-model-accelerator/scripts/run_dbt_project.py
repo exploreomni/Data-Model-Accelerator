@@ -16,7 +16,7 @@ import sys
 
 from ae_common import hash_file, load_json, require, snapshot, write_json
 from verify_dbt_evidence import (DBT_VERSION, MANIFEST_SCHEMA, canonical,
-                                 expected_nodes, snapshot_project, verify)
+                                 expected_nodes, snapshot_project, supported_core_version, verify)
 
 REQUEST_FIELDS = {'schema_version', 'project_sha256', 'adapter_type', 'profile', 'target',
                   'profiles_dir', 'allowed_destinations', 'expected_profile', 'timeout_seconds'}
@@ -63,7 +63,8 @@ def validate_preflight(manifest, request):
     """Reject incompatible resources/destinations before build; return node IDs."""
     require(type(manifest) is dict and type(manifest.get('metadata')) is dict, 'Missing preflight metadata')
     meta = manifest['metadata']
-    version = request['dbt_runtime']['version'] if request.get('schema_version') == 2 else DBT_VERSION
+    version = (request['dbt_runtime']['version'] if request.get('schema_version') == 2
+               else request.get('expected_dbt_version', DBT_VERSION))
     require(meta.get('dbt_version') == version and meta.get('dbt_schema_version') == MANIFEST_SCHEMA,
             'Unqualified preflight version/schema')
     require(meta.get('adapter_type') == request['adapter_type'], 'Preflight adapter mismatch')
@@ -137,6 +138,8 @@ def _request(path, project, output):
     request = load_json(path)
     v2 = type(request) is dict and type(request.get('schema_version')) is int and request['schema_version'] == 2
     fields = REQUEST_FIELDS | {'dbt_runtime', 'runtime_identity', 'driver'} if v2 else REQUEST_FIELDS
+    if not v2 and isinstance(request, dict) and 'expected_dbt_version' in request:
+        fields = fields | {'expected_dbt_version'}
     require(type(request) is dict and set(request) == fields, 'Missing or unknown execution request fields')
     require(type(request['schema_version']) is int and request['schema_version'] in (1, 2), 'Unsupported request schema_version')
     if v2:
@@ -147,6 +150,9 @@ def _request(path, project, output):
                 'Unqualified runtime/adapter/mode/features execution contract')
     require(type(request['project_sha256']) is str and SHA.fullmatch(request['project_sha256']) is not None, 'Invalid project_sha256')
     require(request['adapter_type'] in ('duckdb', 'snowflake'), 'Only duckdb and snowflake are supported')
+    if not v2:
+        require(supported_core_version(request.get('expected_dbt_version', DBT_VERSION), request['adapter_type']),
+                'Unqualified Core version for the requested adapter')
     for field in ('profile', 'target', 'profiles_dir'):
         _text(request[field], field)
     require(Path(request['profiles_dir']).is_absolute(), 'profiles_dir must be absolute')
@@ -270,7 +276,7 @@ def run_project(project, request_path, output, dbt_executable, execute=False, pr
         require(hash_file(preflight_path) == preflight_hash, 'Preflight evidence drift')
         receipt = {'schema_version': 1, 'kind': 'native_dbt_build_evidence', 'project_root': str(copied),
                    'validation_scope': summary['validation_scope'], 'expected_adapter_type': request['adapter_type'],
-                   'expected_dbt_version': DBT_VERSION, 'expected_target_name': request['target'],
+                   'expected_dbt_version': request.get('expected_dbt_version', DBT_VERSION), 'expected_target_name': request['target'],
                    'project_snapshot': captured, 'expected_node_ids': ids,
                    'execution': {key: build[key] for key in ('exit_code', 'started_at', 'finished_at')}}
         for name, path in (('preflight_manifest', preflight_path), ('manifest', build_dir / 'manifest.json'),

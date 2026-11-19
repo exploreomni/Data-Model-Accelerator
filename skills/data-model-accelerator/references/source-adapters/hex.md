@@ -59,8 +59,8 @@ does not infer them from configuration or a connection ID.
 
 The existing [Hex source contract](../hex-source-contract.md) pins the publisher
 schema at `https://static.hex.site/hex-file-schema.json` to SHA-256
-`39e195b7848461f52260c2e3d0e8f599faa92f6f89737cf85913cdd772da2026`,
-retrieved on 2026-11-04. Missing or changed schema bytes produce
+`c36ce74516236f5051adf2311acfd0b17217bbad11dd0f1d586acc337a2eb591`,
+retrieved on 2026-11-19. Missing or changed schema bytes produce
 `hex.schema_unavailable`; setup must use the existing explicit bootstrap.
 The adapter never downloads or replaces a schema. Other export versions fail
 validation rather than being treated as v3. A schema match is structural

@@ -2,7 +2,7 @@
 
 The accelerator has six selectable warehouse profiles. A profile supplies routing, metadata templates, SQLFluff dialect and validation recipes; it does **not** establish live-provider qualification. `skills/data-model-accelerator/scripts/platform_matrix.py` is the shared source for intake, readiness, catalogue providers, specialist source types and hosted deployment compatibility.
 
-| Warehouse | SQLFluff 4.3.0 dialect | dbt Core candidate | dbt platform route | Coalesce candidate |
+| Warehouse | SQLFluff 4.4.0 dialect | dbt Core candidate | dbt platform route | Coalesce candidate |
 |---|---|---|---|---|
 | Snowflake | `snowflake` | Conditional adapter/runtime | Conditional hosted job/runtime | Conditional native contract |
 | Databricks | `databricks` | Conditional adapter/runtime | Conditional hosted job/runtime | Conditional native contract |
@@ -41,7 +41,7 @@ Native metadata dispatch is simulated locally; automatic live dispatch is blocke
 
 | Surface | Recipe | What remains unproved |
 |---|---|---|
-| All six | SQLFluff 4.3.0 with the explicit dialect and complete file/hash coverage | Vendor grammar coverage, references, native types, access and data accuracy; MotherDuck cloud extensions exceed the DuckDB baseline |
+| All six | SQLFluff 4.4.0 with the explicit dialect and complete file/hash coverage | Vendor grammar coverage, references, native types, access and data accuracy; MotherDuck cloud extensions exceed the DuckDB baseline |
 | Snowflake | `EXPLAIN USING JSON <eligible_statement>` | Unsupported DDL/scripting and execution behavior; compilation consumes Cloud Services resources |
 | Databricks | `EXPLAIN FORMATTED <query>`; selected bundle `validate` | All SQL/job behavior; connected compute and configuration identity still require review |
 | BigQuery | `bq ... query --use_legacy_sql=false --dry_run <query>` | Complete scripts: DDL stops after the first DDL; CALL bodies, dynamic SQL and control flow limit coverage |

@@ -33,7 +33,7 @@ class PlatformMatrixTests(unittest.TestCase):
                 profile = matrix.get_platform(warehouse)
                 json.dumps(profile, allow_nan=False)
                 self.assertFalse(profile['native_qualified'])
-                self.assertEqual(profile['static_lint']['version'], '4.3.0')
+                self.assertEqual(profile['static_lint']['version'], '4.4.0')
                 self.assertEqual(profile['static_lint']['dialect'], 'duckdb' if warehouse == 'motherduck' else warehouse)
                 self.assertTrue(profile['metadata']['identity_fields'])
                 self.assertTrue(profile['physical_design'])

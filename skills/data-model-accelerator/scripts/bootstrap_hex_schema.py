@@ -8,7 +8,7 @@ import urllib.request
 from pathlib import Path
 
 URL = 'https://static.hex.site/hex-file-schema.json'
-SHA256 = '39e195b7848461f52260c2e3d0e8f599faa92f6f89737cf85913cdd772da2026'
+SHA256 = 'c36ce74516236f5051adf2311acfd0b17217bbad11dd0f1d586acc337a2eb591'
 DESTINATION = Path(__file__).with_name('schemas') / 'hex-file-schema.v3.json'
 MAX_BYTES = 2_000_000
 
