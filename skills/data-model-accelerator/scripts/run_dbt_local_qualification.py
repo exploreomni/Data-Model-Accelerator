@@ -22,7 +22,7 @@ import sys
 
 import duckdb
 import yaml
-from verify_dbt_evidence import snapshot_project, expected_nodes, verify as verify_evidence
+from verify_dbt_evidence import LOCAL_CORE_VERSION, snapshot_project, expected_nodes, verify as verify_evidence
 
 SKILL = Path(__file__).resolve().parents[1]
 BASE_CHECKS = ('native_build_all_nodes', 'independent_fact_rows', 'development_schema_isolation',
@@ -188,7 +188,7 @@ def dbt(state, label, command='build', extra=()):
             preflight_path = artifact / 'preflight-manifest.json'
             shutil.copyfile(state['preflight'], preflight_path)
             receipt = {'schema_version': 1, 'kind': 'native_dbt_build_evidence', 'project_root': str(state['project']),
-                'validation_scope': 'local', 'expected_adapter_type': 'duckdb', 'expected_dbt_version': '1.12.4', 'expected_target_name': 'qualification',
+                'validation_scope': 'local', 'expected_adapter_type': 'duckdb', 'expected_dbt_version': LOCAL_CORE_VERSION, 'expected_target_name': 'qualification',
                 'project_snapshot': project_snapshot, 'expected_node_ids': expected_nodes(json.loads(preflight_path.read_text())),
                 'execution': {'exit_code': code, 'started_at': started, 'finished_at': finished},
                 'preflight_manifest': {'path': 'preflight-manifest.json', 'sha256': digest(preflight_path)},

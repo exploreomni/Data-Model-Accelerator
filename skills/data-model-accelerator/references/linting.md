@@ -4,7 +4,9 @@ Use `scripts/platform_matrix.py` for the selected framework/warehouse, including
 
 ## Static runner
 
-The optional `scripts/requirements-lint.txt` pins SQLFluff 4.3.0. Run it in an isolated environment through `scripts/lint_delivery.py`; the core assessment helpers remain standard-library only. The runner strips inherited credentials, disables ambient configuration, inline overrides and `noqa`, uses the raw templater, rejects unrendered templates, and reconciles native file receipts to the declared inventory. It never imports project code or renders dbt macros. Third-party linter plugins are refused.
+The optional `scripts/requirements-lint.txt` pins SQLFluff 4.4.0. Run it in an isolated environment through `scripts/lint_delivery.py`; the core assessment helpers remain standard-library only. The runner strips inherited credentials, disables ambient configuration, inline overrides and `noqa`, uses the raw templater, rejects unrendered templates, and reconciles native file receipts to the declared inventory. It never imports project code or renders dbt macros. Third-party linter plugins are refused.
+
+After upgrading the linter, rerun the reviewed manifest to produce a report with the current runtime fingerprint.
 
 The runner uses Snowflake, Databricks, BigQuery, Redshift and ClickHouse dialects; MotherDuck uses the DuckDB dialect for this static lane. Listed grammar support does not prove native compatibility. SQLFluff's default file skips and ignored templated areas require explicit controls and an independent denominator. [Dialects](https://docs.sqlfluff.com/en/stable/reference/dialects.html), [configuration defaults](https://docs.sqlfluff.com/en/stable/configuration/default_configuration.html).
 

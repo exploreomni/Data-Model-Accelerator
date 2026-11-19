@@ -188,6 +188,17 @@ class DbtEvidenceTests(unittest.TestCase):
         self.mutate('run_results', lambda data: data['metadata'].update(dbt_version='1.11.0'))
         self.assert_incomplete('version mismatch')
 
+    def test_patched_core_receipt_requires_exact_local_artifacts(self):
+        self.receipt['expected_dbt_version'] = '1.12.6'
+        for name in ('preflight_manifest', 'manifest', 'run_results'):
+            self.assert_incomplete('version mismatch')
+            self.mutate(name, lambda doc: doc['metadata'].update(dbt_version='1.12.6'))
+        self.assertTrue(self.check()['evidence_complete'])
+        self.receipt['expected_dbt_version'] = '1.12.5'
+        self.assert_incomplete('Unqualified dbt')
+        self.receipt.update(expected_dbt_version='1.12.6', expected_adapter_type='snowflake', validation_scope='target')
+        self.assert_incomplete('Unqualified dbt')
+
     def test_snapshot_taken_after_execution_rejected(self):
         self.receipt['project_snapshot']['captured_at'] = self.receipt['execution']['finished_at']
         self.assert_incomplete('chronology')

@@ -32,7 +32,7 @@ def main():
     # This reviewed verifier is a read-only evidence dependency, not customer code.
     helper = args.verifier.resolve(strict=True)
     sys.path.insert(0, str(helper.parent))
-    from verify_dbt_evidence import snapshot_project, expected_nodes, verify
+    from verify_dbt_evidence import LOCAL_CORE_VERSION, snapshot_project, expected_nodes, verify
     snapshot = snapshot_project(ROOT / 'dbt')
     env = dict(os.environ, DBT_SEND_ANONYMOUS_USAGE_STATS='false', DO_NOT_TRACK='1', DMA_RETAIL_DB_PATH=str(db))
     prefix = [str(Path(sys.executable).parent / 'dbt'), '--no-use-colors', '--log-path', str(runtime / 'logs')]
@@ -62,7 +62,7 @@ def main():
     receipt = {
         'schema_version': 1, 'kind': 'native_dbt_build_evidence',
         'project_root': str(ROOT / 'dbt'), 'validation_scope': 'local',
-        'expected_adapter_type': 'duckdb', 'expected_dbt_version': '1.12.4',
+        'expected_adapter_type': 'duckdb', 'expected_dbt_version': LOCAL_CORE_VERSION,
         'expected_target_name': 'local', 'project_snapshot': snapshot,
         'expected_node_ids': expected,
         'execution': {k: build[k] for k in ('exit_code', 'started_at', 'finished_at')},

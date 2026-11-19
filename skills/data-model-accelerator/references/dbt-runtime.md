@@ -17,7 +17,9 @@ the existing interview answers:
 
 Distributions are `dbt_core`, `dbt` (v2, formerly Fusion), and `dbt_oss`.
 `scripts/dbt_runtime.py` is the shared capability/version registry. The legacy
-Core 1.12.4 request and evidence contract stays available. An unselected runtime
+Core 1.12.4 request and evidence contract stays available. Local DuckDB
+qualification uses Core 1.12.6 with `expected_dbt_version` explicitly pinned
+in a schema version 1 request. An unselected runtime
 does not block design or explicitly requested provisional code; it remains a
 native-execution prerequisite. Never install over an existing customer runtime.
 

@@ -204,7 +204,7 @@ class LintContractTests(Fixture):
     def test_runtime_rejects_wrong_version_and_third_party_lint_plugins(self):
         observations = [
             {'sqlfluff_version': '4.2.1'},
-            {'sqlfluff_version': '4.3.0', 'sqlfluff_files': [['core.py', 'a' * 64]],
+            {'sqlfluff_version': '4.4.0', 'sqlfluff_files': [['core.py', 'a' * 64]],
              'plugins': [['third-party-plugin', 'unsafe', 'untrusted:code']], 'packages': []},
         ]
         for observed in observations:

@@ -22,8 +22,8 @@ import tempfile
 import time
 
 from ae_common import require, load_json, _json_bytes, hash_json
+from platform_matrix import SQLFLUFF_VERSION
 
-SQLFLUFF_VERSION = '4.3.0'
 DIALECTS = {'snowflake': 'snowflake', 'databricks': 'databricks', 'bigquery': 'bigquery',
             'redshift': 'redshift', 'clickhouse': 'clickhouse', 'duckdb': 'duckdb', 'motherduck': 'duckdb'}
 SQL_ROLES = {'model_sql', 'script_sql', 'generated_ddl', 'generated_dml', 'hook_sql', 'test_sql', 'materialization_sql'}
@@ -242,7 +242,7 @@ def inspect_runtime(python_executable, *, timeout_seconds=30):
         code, out, _ = _run(executable, ['-c', RUNTIME_PROBE], Path(folder).resolve(), timeout_seconds, DEFAULT_LIMITS['max_output_bytes'])
     require(code == 0, 'Pinned SQLFluff runtime is unavailable')
     runtime = json.loads(out)
-    require(runtime.get('sqlfluff_version') == SQLFLUFF_VERSION, 'SQLFluff runtime version differs from pinned 4.3.0')
+    require(runtime.get('sqlfluff_version') == SQLFLUFF_VERSION, f'SQLFluff runtime version differs from pinned {SQLFLUFF_VERSION}')
     require(runtime.get('sqlfluff_files'), 'SQLFluff implementation inventory is empty')
     require(all(p[0].lower().replace('_', '-') == 'sqlfluff' for p in runtime['plugins']), 'Third-party SQLFluff plugins are not allowed in the static lane')
     runtime['python_executable'] = str(executable)

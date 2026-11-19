@@ -235,6 +235,7 @@ def assess_repository(repo, framework, warehouse, **options):
     includes = {_relative(value) for value in raw_includes}
     fingerprint, coverage, files, texts = _scan(repo, limits, includes)
     from dbt_runtime import validate_selection
+    from verify_dbt_evidence import MANIFEST_SCHEMA, supported_core_version
     selected_runtime = validate_selection(options['dbt_runtime']) if options.get('dbt_runtime') is not None else None
     paths = {item['path'] for item in files}
     sources, findings, questions = {}, {}, []
@@ -312,7 +313,10 @@ def assess_repository(repo, framework, warehouse, **options):
                     adapter = metadata.get('adapter_type')
                     if isinstance(adapter, str) and adapter in ADAPTER_REGISTRY['warehouses']:
                         source(adapter, path)
-                    if metadata.get('dbt_version') != (selected_runtime['version'] if selected_runtime else '1.12.4') or metadata.get('dbt_schema_version') != 'https://schemas.getdbt.com/dbt/manifest/v12.json':
+                    version = metadata.get('dbt_version')
+                    version_matches = (version == selected_runtime['version'] if selected_runtime
+                                       else supported_core_version(version, adapter))
+                    if not version_matches or metadata.get('dbt_schema_version') != MANIFEST_SCHEMA:
                         finding('dbt.artifact_version', 'warning', 'Supplied dbt artifact is outside the bundled native evidence version contract.', route, path, ['execution'])
                     finding('dbt.artifact_provenance', 'warning', 'A manifest is present; source revision and environment association remain unverified.', 'Bind original artifacts to the reviewed source and execution identity; dependency maps do not prove column lineage.', path)
                     root_package = metadata.get('project_name')

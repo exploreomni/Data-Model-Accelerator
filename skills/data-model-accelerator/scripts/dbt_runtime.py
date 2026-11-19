@@ -13,6 +13,8 @@ from pathlib import Path
 import platform
 import re
 
+from verify_dbt_evidence import DBT_VERSION, LOCAL_CORE_VERSION, supported_core_version
+
 DISTRIBUTIONS = ('dbt_core', 'dbt', 'dbt_oss')
 FEATURES = ('sql_analysis', 'native_lint', 'information_schema', 'checks',
             'batch_tests', 'model_freshness', 'docs_v2', 'incremental', 'snapshots',
@@ -20,7 +22,7 @@ FEATURES = ('sql_analysis', 'native_lint', 'information_schema', 'checks',
             'local_unit_tests', 'multi_adapter')
 MANIFEST_SCHEMA = 'https://schemas.getdbt.com/dbt/manifest/v12.json'
 RESULTS_SCHEMA = 'https://schemas.getdbt.com/dbt/run-results/v6.json'
-PINNED_VERSIONS = {'dbt_core': '1.12.4', 'dbt': '2.0.8', 'dbt_oss': '2.0.8'}
+PINNED_VERSIONS = {'dbt_core': LOCAL_CORE_VERSION, 'dbt': '2.0.8', 'dbt_oss': '2.0.8'}
 _SEMVER = re.compile(r'(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?\Z')
 
 
@@ -53,7 +55,7 @@ def runtime_contract(selection, warehouse=None):
         raise ValueError('Invalid dbt warehouse')
     v2 = dist in ('dbt', 'dbt_oss')
     pinned = version == PINNED_VERSIONS[dist]
-    documented = pinned
+    documented = pinned or (dist == 'dbt_core' and version == DBT_VERSION)
     features = {}
     for feature in FEATURES:
         available = documented and (v2 or feature in {
@@ -68,9 +70,10 @@ def runtime_contract(selection, warehouse=None):
         if available and feature == 'sql_analysis' and mode == 'strict':
             status, reason = 'requires_login', 'Strict analysis requires login and may fall back to baseline; no login is performed.'
         features[feature] = {'documented': available, 'status': status, 'qualified': False, 'reason': reason}
-    qualified = pinned and ((dist == 'dbt_core' and warehouse in ('duckdb', 'snowflake')) or
-                            (v2 and warehouse == 'duckdb'))
-    reason = ('Legacy Core 1.12.4 full-root-project evidence contract; target execution still requires authorization.'
+    qualified = ((dist == 'dbt_core' and warehouse in ('duckdb', 'snowflake') and
+                  supported_core_version(version, warehouse)) or
+                 (v2 and pinned and warehouse == 'duckdb'))
+    reason = (f'Core {version} full-root-project evidence contract for {warehouse}. Execution requires authorization.'
               if qualified and not v2 else
               'Native 2.0.8 local DuckDB parse/build contract; plain models, seeds and data tests only.'
               if qualified else 'Native execution/evidence qualification is not established for this exact runtime and warehouse.')

@@ -62,6 +62,24 @@ class DbtProjectRunnerTests(unittest.TestCase):
         self.assertIn('model.billing.fact', ids)
         self.assertNotIn('model.billing.stg_invoice', ids)
 
+    def test_core_request_version_binds_preflight_and_preserves_legacy_default(self):
+        self.manifest['metadata']['dbt_version'] = '1.12.6'
+        denied = self.run_project()
+        self.assertEqual(len(self.calls), 1)
+        self.assertIn('Unqualified preflight version/schema', denied['errors'])
+        self.calls.clear()
+        self.output = self.root / 'selected-patch'
+        self.request['expected_dbt_version'] = '1.12.6'
+        self.run_project()
+        self.assertEqual([verb for args in self.calls for verb in ('parse', 'build') if verb in args],
+                         ['parse', 'build'])
+        self.calls.clear()
+        self.output = self.root / 'unknown-patch'
+        self.request['expected_dbt_version'] = '1.12.5'
+        with self.assertRaisesRegex(ValueError, 'Unqualified Core version'):
+            self.run_project()
+        self.assertFalse(self.calls)
+
     def test_preflight_rejects_destination_and_incompatible_contracts(self):
         changes = [lambda m: m['metadata'].update(dbt_version='0.0.0'),
                    lambda m: m['metadata'].update(dbt_schema_version='unknown'),

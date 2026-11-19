@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Read-only native dbt build evidence association, not execution or approval.
 
-Qualified artifact contract: dbt-core 1.12.4, manifest/v12, run-results/v6.
+Qualified artifact contract: dbt-core 1.12.4 and local DuckDB 1.12.6 builds,
+manifest/v12, run-results/v6.
 Version 2 receipts separately qualify dbt/dbt-oss 2.0.8 local DuckDB builds;
 they bind installed runtime and driver pins, the raw request/version output,
 exact commands and effective analysis mode. Identical artifact schema versions
@@ -44,12 +45,17 @@ MAX_FILES, MAX_FILE_BYTES, MAX_TOTAL_BYTES = 5000, 10 * 1024 * 1024, 100 * 1024 
 MANIFEST_SCHEMA = 'https://schemas.getdbt.com/dbt/manifest/v12.json'
 RESULTS_SCHEMA = 'https://schemas.getdbt.com/dbt/run-results/v6.json'
 DBT_VERSION = '1.12.4'
+LOCAL_CORE_VERSION = '1.12.6'
 TEST_RUNTIME_MACROS = {'macro.dbt.' + name for name in (
     'get_where_subquery', 'get_limit_subquery_sql', 'should_store_failures', 'statement')}
 
 
 def nonempty(value):
     return isinstance(value, str) and bool(value.strip())
+
+
+def supported_core_version(version, adapter):
+    return version == DBT_VERSION or (version == LOCAL_CORE_VERSION and adapter == 'duckdb')
 
 
 def need(condition, message):
@@ -273,8 +279,9 @@ def _verify(receipt_path, result, project_root=None):
     need(scope in ('local', 'target') and nonempty(adapter), 'Invalid validation scope/adapter')
     need(adapter != 'duckdb' or scope == 'local', 'DuckDB native execution cannot establish target warehouse validation')
     selection, request, commands = _runtime_receipt(receipt, root, result) if v2 else (None, None, None)
-    version = selection['version'] if v2 else DBT_VERSION
-    need(receipt.get('expected_dbt_version') == version, 'Unqualified dbt artifact/checksum version')
+    version = receipt.get('expected_dbt_version')
+    need(version == selection['version'] if v2 else supported_core_version(version, adapter),
+         'Unqualified dbt artifact/checksum version')
     need(nonempty(receipt.get('expected_target_name')), 'Expected target name is required')
     need(nonempty(receipt.get('project_root')) and Path(receipt['project_root']).is_absolute(), 'project_root must be absolute')
     project = canonical(receipt['project_root'] if project_root is None else project_root)

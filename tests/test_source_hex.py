@@ -73,6 +73,16 @@ class HexAdapterTests(unittest.TestCase):
         self.assertTrue({'hex.execution_order_unverified', 'hex.report_interactions_unverified',
                          'hex.external_inputs_unverified', 'hex.sql_dialect_unverified'} <= self.codes(result))
 
+    def test_app_tab_id_is_preserved_and_requires_a_uuid(self):
+        files = fixture()
+        tab_id = '56127fd4-7529-4b88-977c-ce296bed69e1'
+        modify(files, 'revenue.hex.yaml', lambda d: d['appLayout']['tabs'][0].update(tabId=tab_id))
+        result = parse(files)
+        project = next(o for o in result['objects'] if o['native_id'] == PROJECT)
+        self.assertEqual(project['details']['native_properties']['appLayout']['tabs'][0]['tabId'], tab_id)
+        modify(files, 'revenue.hex.yaml', lambda d: d['appLayout']['tabs'][0].update(tabId='invalid'))
+        self.assertIn('hex.schema_invalid', self.codes(parse(files)))
+
     def test_component_version_warehouse_and_file_dependency_evidence(self):
         result = parse(fixture())
         component = [d for d in result['dependencies'] if d['details']['kind'] == 'component_reference']

@@ -184,7 +184,7 @@
     },
     {
       "path": "candidate/validate_local.py",
-      "sha256": "b909fa1636d187542f74041aeee1bcf654a3398121c6d6049a5aa241a0ce0211"
+      "sha256": "5a530a0db4221ce74c053c1cf2a6256fb08320861aa05fe1c725cdb41098e097"
     },
     {
       "path": "expected/README.md",
