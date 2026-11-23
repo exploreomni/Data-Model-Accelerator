@@ -1,5 +1,5 @@
 # Native local dbt execution. This does not qualify the Snowflake adapter.
-dbt-core==1.12.6
+dbt-core==1.12.7
 # dbt-core's OpenTelemetry dependency needs the fix for GHSA-mf5v-w3w3-f6cg.
 opentelemetry-api>=1.45.2
 dbt-duckdb==1.11.0

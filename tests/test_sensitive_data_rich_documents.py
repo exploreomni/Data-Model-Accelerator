@@ -16,6 +16,7 @@ try:
     from PIL import Image, PngImagePlugin
     import pypdf
     from pypdf import PdfWriter
+    from pypdf.actions import JavaScript
     from pypdf.generic import (ArrayObject, DecodedStreamObject, DictionaryObject,
                               NameObject, TextStringObject)
     AVAILABLE = True
@@ -156,7 +157,7 @@ class RichDocumentScanTests(unittest.TestCase):
                                 'coverage.pdf_active_or_external_content')
 
     def test_pdf_active_content_attachments_external_actions_and_xfa_rejected(self):
-        cases = [lambda w, p: w.add_js('app.alert("synthetic")'),
+        cases = [lambda w, p: w.add_open_action(JavaScript('')),
                  lambda w, p: w.add_attachment('synthetic.txt', b'harmless'),
                  lambda w, p: w._root_object.update({NameObject('/XFA'): TextStringObject('synthetic')}),
                  lambda w, p: w._add_object(DictionaryObject({NameObject('/S'): NameObject('/URI'),
@@ -181,7 +182,7 @@ class RichDocumentScanTests(unittest.TestCase):
             self.assert_unsupported(text_pdf(), 'plan.pdf', 'coverage.pdf_decoded_byte_limit')
 
     def test_dependency_qualification_errors_are_actionable_and_value_free(self):
-        for version in ('6.10.0', '6.21.2', '6.21.3', 'unqualified'):
+        for version in ('6.10.0', '6.21.2', '6.21.3', '6.21.4', '7.0.1', 'unqualified'):
             with self.subTest(reader='pypdf', version=version), patch.object(pypdf, '__version__', version):
                 with self.assertRaisesRegex(scanner._UnsupportedDocument, 'pdf_dependency_unqualified'):
                     scanner._pdf_worker(text_pdf(), scanner.MAX_TOTAL_BYTES)

@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Literal, TypedDict
 
 MATRIX_VERSION = 1
 RESEARCH_DATE = '2026-09-24'
-SQLFLUFF_VERSION = '4.4.0'
+SQLFLUFF_VERSION = '4.5.0'
 WAREHOUSES = ('snowflake', 'databricks', 'bigquery', 'redshift', 'clickhouse', 'motherduck')
 FRAMEWORKS = ('dbt', 'coalesce', 'native_sql')
 DBT_PLATFORM_WAREHOUSES = ('snowflake', 'databricks', 'bigquery', 'redshift')

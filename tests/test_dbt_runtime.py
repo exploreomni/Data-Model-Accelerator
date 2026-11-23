@@ -45,7 +45,8 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertFalse(oss['features']['sql_analysis']['documented'])
         self.assertTrue(runtime.runtime_contract({'distribution': 'dbt_core', 'version': '1.12.4'})['features']['dbt_state']['documented'])
         for version, adapter, qualified in [('1.12.4', 'snowflake', True), ('1.12.6', 'duckdb', True),
-                                             ('1.12.6', 'snowflake', False), ('1.12.5', 'duckdb', False)]:
+                                             ('1.12.6', 'snowflake', False), ('1.12.7', 'duckdb', True),
+                                             ('1.12.7', 'snowflake', False), ('1.12.5', 'duckdb', False)]:
             with self.subTest(version=version, adapter=adapter):
                 core = runtime.runtime_contract({'distribution': 'dbt_core', 'version': version}, adapter)
                 self.assertEqual(core['execution']['qualified'], qualified)

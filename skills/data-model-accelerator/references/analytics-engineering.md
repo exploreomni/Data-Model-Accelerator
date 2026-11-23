@@ -172,7 +172,7 @@ installation. Profiles and environment are execution inputs and need trusted hos
 controls. Parse also evaluates project code. Approval of a plan is not automatic
 authorization to execute against a customer account.
 
-For the current local DuckDB environment, add `"expected_dbt_version": "1.12.6"`
+For the current local DuckDB environment, add `"expected_dbt_version": "1.12.7"`
 to the request. Omitting this field retains the original Core 1.12.4 pin.
 Both versions require manifest/v12 and run-results/v6. External package resources, hooks, unit-test resources, functions
 and YAML snapshots require separate qualification and are rejected. The runner
