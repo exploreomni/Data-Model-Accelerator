@@ -267,16 +267,21 @@ def _pdf_worker(body, available_bytes):
     logger.setLevel(logging.WARNING)
     try:
         import pypdf
-        from pypdf import PdfReader, filters
+        from pypdf import PdfReader
         from pypdf.generic import (ArrayObject, ByteStringObject, ContentStream, DictionaryObject,
                                   IndirectObject, NameObject, StreamObject, TextStringObject)
     except ImportError:
         raise _UnsupportedDocument('coverage.pdf_dependency_missing') from None
-    if pypdf.__version__ != '6.21.4':
+    if pypdf.__version__ != '7.1.0':
         raise _UnsupportedDocument('coverage.pdf_dependency_unqualified')
-    for name in ('ZLIB_MAX_OUTPUT_LENGTH', 'LZW_MAX_OUTPUT_LENGTH', 'RUN_LENGTH_MAX_OUTPUT_LENGTH',
-                 'MAX_DECLARED_STREAM_LENGTH', 'MAX_ARRAY_BASED_STREAM_OUTPUT_LENGTH'):
-        setattr(filters, name, min(MAX_BYTES, available_bytes))
+    stream_limit = min(MAX_BYTES, available_bytes)
+    pypdf.overwrite_configuration(
+        zlib_maximum_output_length=stream_limit,
+        lzw_maximum_output_length=stream_limit,
+        run_length_maximum_output_length=stream_limit,
+        maximum_declared_stream_length=stream_limit,
+        array_based_stream_maximum_output_length=stream_limit,
+    )
     if (not re.match(rb'%PDF-1\.[0-7][\r\n]', body)
             or not re.search(rb'%%EOF[\r\n \t]*\Z', body)):
         raise _UnsupportedDocument('coverage.invalid_pdf')

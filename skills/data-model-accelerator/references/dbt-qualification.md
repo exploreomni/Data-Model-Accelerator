@@ -37,9 +37,10 @@ placement decisions; labeling one "validation only" in prose is insufficient.
    skipped node, missing result or previous invocation is not full build evidence.
 5. Associate those artifacts in the v1 receipt described in
    `scripts/verify_dbt_evidence.py`, then run that read-only verifier. Its supported
-   association contract uses dbt Core 1.12.6 for local DuckDB, with legacy
-   Core 1.12.4 receipts supported. The receipt and all three artifacts must
-   agree on the exact version and use manifest v12 and run-results v6.
+   association contract uses dbt Core 1.12.7 for local DuckDB and accepts
+   earlier local Core 1.12.6 receipts and legacy Core 1.12.4 receipts. The
+   receipt and all three artifacts must agree on the exact version and use
+   manifest v12 and run-results v6.
    External package resources, unit tests, functions, hooks and YAML snapshots
    need additional qualification. Preserve failures; do not refresh a snapshot to
    make stale execution evidence pass.

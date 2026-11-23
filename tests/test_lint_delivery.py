@@ -204,7 +204,7 @@ class LintContractTests(Fixture):
     def test_runtime_rejects_wrong_version_and_third_party_lint_plugins(self):
         observations = [
             {'sqlfluff_version': '4.2.1'},
-            {'sqlfluff_version': '4.4.0', 'sqlfluff_files': [['core.py', 'a' * 64]],
+            {'sqlfluff_version': '4.5.0', 'sqlfluff_files': [['core.py', 'a' * 64]],
              'plugins': [['third-party-plugin', 'unsafe', 'untrusted:code']], 'packages': []},
         ]
         for observed in observations:
@@ -384,10 +384,11 @@ class RealLintTests(Fixture):
     def test_style_findings_are_not_misreported_as_invalid_vendor_syntax(self):
         self.target['warehouse'] = 'clickhouse'
         self.add('native_function.sql', 'SELECT arrayJoin([1, 2]) AS order_key\n')
+        self.add('spacing.sql', 'SELECT  arrayJoin([1, 2]) AS order_key\n')
         report = self.run_lint()
-        codes = {f['code'] for f in report['files'][0]['findings']}
-        self.assertIn('CP03', codes)
-        self.assertNotIn('PRS', codes)
+        by_path = {item['path']: item for item in report['files']}
+        self.assertEqual(by_path['native_function.sql']['status'], 'checked')
+        self.assertEqual({f['code'] for f in by_path['spacing.sql']['findings']}, {'LT01'})
         self.assertEqual(report['status'], 'failed')
         # No automatic capitalization fix: ClickHouse function case is semantic.
         self.assertIn('arrayJoin', (self.root / 'native_function.sql').read_text())

@@ -1,7 +1,7 @@
 name: rental_trial
 version: '1.0.0'
 config-version: 2
-require-dbt-version: '1.12.6'
+require-dbt-version: '1.12.7'
 profile: rental_trial
 model-paths: [models]
 analysis-paths: [analyses]

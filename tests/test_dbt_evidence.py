@@ -189,14 +189,16 @@ class DbtEvidenceTests(unittest.TestCase):
         self.assert_incomplete('version mismatch')
 
     def test_patched_core_receipt_requires_exact_local_artifacts(self):
-        self.receipt['expected_dbt_version'] = '1.12.6'
-        for name in ('preflight_manifest', 'manifest', 'run_results'):
-            self.assert_incomplete('version mismatch')
-            self.mutate(name, lambda doc: doc['metadata'].update(dbt_version='1.12.6'))
-        self.assertTrue(self.check()['evidence_complete'])
-        self.receipt['expected_dbt_version'] = '1.12.5'
-        self.assert_incomplete('Unqualified dbt')
-        self.receipt.update(expected_dbt_version='1.12.6', expected_adapter_type='snowflake', validation_scope='target')
+        for version in ('1.12.6', '1.12.7'):
+            with self.subTest(version=version):
+                self.receipt.update(expected_dbt_version=version, expected_adapter_type='duckdb', validation_scope='local')
+                for name in ('preflight_manifest', 'manifest', 'run_results'):
+                    self.assert_incomplete('version mismatch')
+                    self.mutate(name, lambda doc: doc['metadata'].update(dbt_version=version))
+                self.assertTrue(self.check()['evidence_complete'])
+                self.receipt.update(expected_adapter_type='snowflake', validation_scope='target')
+                self.assert_incomplete('Unqualified dbt')
+        self.receipt.update(expected_dbt_version='1.12.5', expected_adapter_type='duckdb', validation_scope='local')
         self.assert_incomplete('Unqualified dbt')
 
     def test_snapshot_taken_after_execution_rejected(self):

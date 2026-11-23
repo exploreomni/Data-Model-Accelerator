@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read-only native dbt build evidence association, not execution or approval.
 
-Qualified artifact contract: dbt-core 1.12.4 and local DuckDB 1.12.6 builds,
+Qualified artifact contract: dbt-core 1.12.4 and local DuckDB builds with Core 1.12.6 or 1.12.7,
 manifest/v12, run-results/v6.
 Version 2 receipts separately qualify dbt/dbt-oss 2.0.8 local DuckDB builds;
 they bind installed runtime and driver pins, the raw request/version output,
@@ -45,7 +45,8 @@ MAX_FILES, MAX_FILE_BYTES, MAX_TOTAL_BYTES = 5000, 10 * 1024 * 1024, 100 * 1024 
 MANIFEST_SCHEMA = 'https://schemas.getdbt.com/dbt/manifest/v12.json'
 RESULTS_SCHEMA = 'https://schemas.getdbt.com/dbt/run-results/v6.json'
 DBT_VERSION = '1.12.4'
-LOCAL_CORE_VERSION = '1.12.6'
+LOCAL_CORE_VERSION = '1.12.7'
+SUPPORTED_CORE_VERSIONS = (DBT_VERSION, '1.12.6', LOCAL_CORE_VERSION)
 TEST_RUNTIME_MACROS = {'macro.dbt.' + name for name in (
     'get_where_subquery', 'get_limit_subquery_sql', 'should_store_failures', 'statement')}
 
@@ -55,7 +56,7 @@ def nonempty(value):
 
 
 def supported_core_version(version, adapter):
-    return version == DBT_VERSION or (version == LOCAL_CORE_VERSION and adapter == 'duckdb')
+    return version == DBT_VERSION or (version in SUPPORTED_CORE_VERSIONS and adapter == 'duckdb')
 
 
 def need(condition, message):

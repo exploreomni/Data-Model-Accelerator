@@ -13,7 +13,7 @@ from pathlib import Path
 import platform
 import re
 
-from verify_dbt_evidence import DBT_VERSION, LOCAL_CORE_VERSION, supported_core_version
+from verify_dbt_evidence import LOCAL_CORE_VERSION, SUPPORTED_CORE_VERSIONS, supported_core_version
 
 DISTRIBUTIONS = ('dbt_core', 'dbt', 'dbt_oss')
 FEATURES = ('sql_analysis', 'native_lint', 'information_schema', 'checks',
@@ -55,7 +55,7 @@ def runtime_contract(selection, warehouse=None):
         raise ValueError('Invalid dbt warehouse')
     v2 = dist in ('dbt', 'dbt_oss')
     pinned = version == PINNED_VERSIONS[dist]
-    documented = pinned or (dist == 'dbt_core' and version == DBT_VERSION)
+    documented = pinned or (dist == 'dbt_core' and version in SUPPORTED_CORE_VERSIONS)
     features = {}
     for feature in FEATURES:
         available = documented and (v2 or feature in {

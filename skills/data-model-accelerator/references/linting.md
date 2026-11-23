@@ -4,7 +4,7 @@ Use `scripts/platform_matrix.py` for the selected framework/warehouse, including
 
 ## Static runner
 
-The optional `scripts/requirements-lint.txt` pins SQLFluff 4.4.0. Run it in an isolated environment through `scripts/lint_delivery.py`; the core assessment helpers remain standard-library only. The runner strips inherited credentials, disables ambient configuration, inline overrides and `noqa`, uses the raw templater, rejects unrendered templates, and reconciles native file receipts to the declared inventory. It never imports project code or renders dbt macros. Third-party linter plugins are refused.
+The optional `scripts/requirements-lint.txt` pins SQLFluff 4.5.0. Run it in an isolated environment through `scripts/lint_delivery.py`; the core assessment helpers remain standard-library only. The runner strips inherited credentials, disables ambient configuration, inline overrides and `noqa`, uses the raw templater, rejects unrendered templates, and reconciles native file receipts to the declared inventory. It never imports project code or renders dbt macros. Third-party linter plugins are refused.
 
 After upgrading the linter, rerun the reviewed manifest to produce a report with the current runtime fingerprint.
 
