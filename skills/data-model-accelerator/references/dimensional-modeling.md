@@ -28,17 +28,18 @@ State the grain of every gold table first, then classify it (Kimball):
 
 Rules:
 
-- A table whose key includes a date or period is a periodic snapshot, even when it holds only
-  descriptive columns. Do not name it `_dim`.
+- In a periodic snapshot, each row records a business entity at a regular interval. A calendar
+  dimension has a different grain. Each row describes a date or fiscal period, with attributes
+  such as month and holiday. A date key is appropriate for that dimension.
 - Keep attribute history on the dimension: a type 2 dimension (a new row per change, with
   valid-from and valid-to) or a mini-dimension whose key the fact carries. A monthly copy of
   attributes loses changes inside the month and repeats unchanged rows.
-- Periodic snapshot measures are usually semi-additive (balances, counts at period end). Say
-  so in their descriptions and never sum them across periods.
-- Lint: `period_keyed_dimension` flags a gold `_dim` whose primary key contains a period word
+- Document additivity per measure. End-of-period balances are semi-additive across time.
+  Period activity totals may be added across disjoint intervals when their definition permits it.
+- Lint: `period_keyed_dimension` flags a gold dimension whose primary key contains a period word
   (`date`, `day`, `week`, `month`, `quarter`, `year`, `period`, `snapshot`, `dt`, `ts`) or whose
-  stated grain is "per day/week/month/...". Valid-from keys of type 2 dimensions and
-  `_historical_dim` tables are not flagged. Resolve by reclassifying, or by a decision with area
+  stated grain is "per day/week/month/...". The check excludes calendar dimensions,
+  `_historical_dim` tables and valid-from keys of type 2 dimensions. Resolve by reclassifying or by a decision with area
   **Classification** naming the table. Advisory.
 
 ## One table per grain and purpose
@@ -47,8 +48,10 @@ Two gold tables at the same grain that repeat each other's columns drift apart a
 consumers (which one is right?). Keep one, merge them, or justify both, for example a
 narrow interface projection kept for a downstream contract.
 
-- Lint: `same_grain_overlap` flags two own-domain gold tables with the same stated grain or the
-  same primary key that share at least three non-key columns and at least half of the smaller
+- Lint: `same_grain_overlap` compares the stated business grains. When a grain is missing,
+  a matching entity-specific primary key can supply evidence. Generic keys such as `id` and
+  shared timestamps alone do not establish entity identity. The lint flags matching pairs
+  that share at least three non-key columns and at least half of the smaller
   table's non-key columns. Resolve with a decision with area **Same grain** that names both
   tables and says which is kept, merged or justified. **Gate**: blocks promotion.
 
@@ -80,22 +83,37 @@ filtering on it are wrong. Legacy code that does this must not be copied silentl
   leave the value empty (the lower-level value stays available in its own column).
 - Lint: `level_mixing_fallback` flags `COALESCE`, `IFNULL` and `NVL` calls whose column arguments
   carry different level numbers (`_2`, `lvl_2`, `level_2`, `description_2`, ...) or mix a levelled
-  descriptive column with an unlevelled one. Resolve by removing it, or by citing a recorded
-  decision ID (for example `-- D-32`) in a SQL comment on the same or preceding line. **Gate**.
+  descriptive column with an unlevelled one. Quoted column names are supported. **Gate**.
+- Remove the fallback or record why it is needed in an answered or assumed **Hierarchy fallback**
+  decision. An existing **Definition** decision that documents the fallback also qualifies.
+  When the decision names models, its scope must include the model containing the expression.
+  Cite its exact ID in a SQL comment within the call, after it on its closing line, or on a
+  comment line immediately before the call. For example, `COALESCE(name_2, name_1) -- D-32`
+  applies the decision to that expression.
 
 ## Semantic layer reach and language
 
 These complement [omni-static-contract.md](omni-static-contract.md):
 
-- Every own-domain gold table must be reached by a topic through an explicit binding. Lint
+- When an Omni semantic stage is in scope, every own-domain gold table must be reached by a topic
+  through a complete explicit binding. A partial binding leaves coverage open. Lint
   `gold_without_topic`; resolve by adding it to a topic or by a decision with area
   **Topic exemption** naming the table and the reason (for example a staging-only bridge).
-  **Gate**. Gold tables owned by another domain are that domain's concern.
+  **Gate**. Warehouse-only and design-only reviews can be promoted independently. For older
+  pages with no declared stage or target, packaged Omni definitions or topics establish applicability.
+  Gold tables owned by another domain are that domain's concern.
 - Semantic descriptions, labels, group labels, AI context and sample queries are business-facing.
   Lint `description_language` rejects legacy BI tool names (Looker, LookML), "legacy",
   migration notes, "provisional", dashboard/tile/look/explore numbers, ticket IDs, and every name
-  in the page's `meta.legacy_terms` (the systems being replaced). YAML comments are not checked.
-  Fix the text; keep migration context in the design documents. **Gate**.
+  in the page's `meta.legacy_terms` (the systems being replaced). Put migration context in the
+  design documents. The check reads business-facing YAML values in Omni model, view, query view,
+  topic and relationship files, including the native extensionless `model` and packaged files
+  such as `orders.view.yaml` and `orders.topic.yml`. A generic `model.yml` or
+  `relationships.yaml` needs Omni context because warehouse frameworks use the same filenames.
+  YAML comments are outside its scope.
+  If PyYAML is missing or the bounded Omni parser cannot assess a file, the review reports its
+  path and marks the language check **unverified**. The draft remains reviewable. Promotion
+  requires a successful assessment of each applicable file and resolution of its findings.
 
 ## Running the checks
 

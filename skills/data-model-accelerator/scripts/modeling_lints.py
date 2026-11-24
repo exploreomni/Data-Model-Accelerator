@@ -27,12 +27,12 @@ import itertools
 import json
 import re
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 
-try:
-    import yaml
-except ImportError:  # pragma: no cover - optional dependency
-    yaml = None
+from omni_contract import _load as load_omni_yaml, yaml
+from omni_inventory import is_omni_file
+from omni_query_views import _identity
 
 LINTS = {
     'period_keyed_dimension': {'label': 'Dimensions keyed by a date or period', 'area': 'classification', 'gate': False},
@@ -40,17 +40,27 @@ LINTS = {
     'placement': {'label': 'Logic placed in the other layer', 'area': 'placement', 'gate': False},
     'level_mixing_fallback': {'label': 'Fallbacks mixing hierarchy levels', 'area': None, 'gate': True},
     'gold_without_topic': {'label': 'Gold tables not reached by a topic', 'area': 'topic exemption', 'gate': True},
-    'description_language': {'label': 'Semantic descriptions with migration language', 'area': None, 'gate': True},
+    'description_language': {'label': 'Semantic description language', 'area': None, 'gate': True},
 }
 RESOLVING_STATUSES = ('answered', 'assumed')
 
 PERIOD_WORDS = ('date', 'day', 'week', 'month', 'quarter', 'year', 'period', 'snapshot', 'dt', 'ts')
 HISTORY_WORDS = ('valid_from', 'valid_to', 'effective_from', 'effective_to', 'row_valid_from')
 GRAIN_PERIOD = re.compile(r'\bper\s+(?:calendar\s+|fiscal\s+)?(?:day|date|week|month|quarter|year|period|snapshot)\b', re.I)
+CALENDAR_GRAIN = re.compile(r'(?:one row per |one record per )?(?:calendar|fiscal) (?:date|day|week|month|quarter|year|period)', re.I)
 
-LEVEL_TOKEN = re.compile(r'(?:^|_)(?:lvl|level|l|description|desc|code|name|tier)_?(\d)(?:_|$)', re.I)
+LEVEL_TOKEN = re.compile(r'(?:^|_)(?:lvl|level|l|description|desc|code|name|tier)_?(\d+)(?:_|$)', re.I)
 DESCRIPTIVE_TOKEN = re.compile(r'(?:^|_)(?:description|desc|code|name|label|category|segment|group|section|division)(?:_|$)', re.I)
-DECISION_ID = re.compile(r'\b(?:D|DEC)-\d+\b')
+FALLBACK_FUNCTIONS = {'COALESCE', 'IFNULL', 'NVL'}
+SQL_IDENTIFIER = r'(?:[a-zA-Z_][\w$]*|"(?:""|[^"])*"|`(?:``|[^`])*`|\[(?:\]\]|[^\]])+\])'
+SQL_COLUMN = re.compile(rf'(?:{SQL_IDENTIFIER}\s*\.\s*)*(?P<name>{SQL_IDENTIFIER})\Z')
+SQL_MORE_ON_LINE = re.compile(r'[^\S\n]*\S')
+SQL_TOKEN = re.compile(
+    r'(?P<comment>--[^\n]*|/\*.*?(?:\*/|\Z))'
+    r'|(?P<literal>\$(?P<tag>[A-Za-z_]\w*|)\$.*?\$(?P=tag)\$'
+    r"|'(?:''|\\.|[^'\\])*(?:'|\Z)|\{\{.*?\}\}|\{%.*?%\}|\{\#.*?\#\})"
+    rf'|(?P<identifier>{SQL_IDENTIFIER})|(?P<space>\s+)|.', re.S)
+FALLBACK_DESCRIPTION = re.compile(r'\b(?:fallbacks?|coalesce|ifnull|nvl|mix(?:ed|ing)? (?:hierarchy )?levels)\b', re.I)
 
 RATIO_SQL = re.compile(r'\bSAFE_DIVIDE\s*\(|\bDIV0(?:NULL)?\s*\(|/\s*NULLIF\s*\(', re.I)
 DISTINCT_SQL = re.compile(r'\bCOUNT\s*\(\s*DISTINCT\b', re.I)
@@ -128,9 +138,17 @@ def _sql_files(page):
 
 
 def _model_sql(page):
-    """Model id -> SQL text, by packaged file stem."""
-    by_stem = {PurePosixPath(f['path']).stem: f for f in _sql_files(page)}
-    return {m['id']: by_stem[m['id']] for m in page.get('models') or [] if m.get('id') in by_stem}
+    """Map each model to its packaged code, with a unique stem fallback for older pages."""
+    files = {row['path']: row for row in _sql_files(page)}
+    by_stem = {}
+    for path in files:
+        by_stem.setdefault(PurePosixPath(path).stem, []).append(path)
+    mapped = {}
+    for model in page.get('models') or []:
+        paths = [model['code']] if model.get('code') else by_stem.get(model['id'], [])
+        if len(paths) == 1 and paths[0] in files:
+            mapped[model['id']] = files[paths[0]]
+    return mapped
 
 
 def _strip_comments(sql):
@@ -138,27 +156,58 @@ def _strip_comments(sql):
 
 
 def _semantic_files(page):
-    return [f for f in page.get('files') or [] if f.get('path', '').endswith(('.view', '.topic'))
-            or '/03_omni/' in '/' + f.get('path', '') and f.get('path', '').endswith(('.yaml', '.yml'))]
+    rows = []
+    target = (page.get('meta') or {}).get('semantic_target') or {}
+    for row in page.get('files') or []:
+        path = PurePosixPath(row.get('path') or '')
+        kind, _ = _identity(path)
+        if kind not in ('view', 'topic', 'model', 'relationships'):
+            continue
+        if path.suffix in ('.yaml', '.yml') and path.stem == kind:
+            # model.yml and relationships.yaml are also ordinary framework filenames.
+            folders = {part.lower() for part in path.parts[:-1]}
+            if kind not in ('model', 'relationships'):
+                continue
+            if not folders.intersection({'omni', '03_omni', 'semantic'}):
+                warehouse = row.get('kind') in ('dbt', 'warehouse') or folders.intersection(
+                    {'dbt', 'coalesce', 'native_sql', '02_dbt', '02_warehouse', '02_implementation', '04_code_generation'})
+                if warehouse or (target.get('platform') != 'omni' and not is_omni_file(str(path), row.get('content'))):
+                    continue
+        rows.append(row)
+    return rows
 
 
-def _load(text):
+def _load(row):
+    """Return the bounded Omni document or a reason the language gate is unverified."""
     if yaml is None:
-        return None
+        return None, 'PyYAML is unavailable. Install the pinned YAML dependency and rerun the check.'
+    kind, _ = _identity(row['path'])
+    if not isinstance(row.get('content'), str):
+        return None, 'The packaged file has no text content.'
     try:
-        return yaml.safe_load(text)
-    except Exception:  # noqa: BLE001 - YAML errors are reported by the static checks
-        return None
+        doc = load_omni_yaml(row['content'])
+    except (ValueError, yaml.YAMLError, TypeError, OverflowError, RecursionError):
+        return None, 'The bounded Omni YAML parser could not read this file. Check its syntax and supported constructs.'
+    expected = list if kind == 'relationships' else dict
+    if not isinstance(doc, expected):
+        return None, 'Expected a YAML sequence of relationships.' if kind == 'relationships' else 'Expected a YAML mapping.'
+    return doc, None
 
 
 # ---------------------------------------------------------------- lints
 
 def period_keyed_dimensions(page):
-    """A ``_dim`` whose key or stated grain includes a date or period is a periodic snapshot, not a dimension."""
+    """Flag entity-by-period dimensions while retaining calendar and history dimensions."""
     out = []
     for model in _gold(page):
         model_id = model.get('id') or ''
-        if not (model_id.endswith('_dim') or model.get('type') == 'dimension') or 'historical' in model_id:
+        name = re.split(r'__|\.', model_id.lower())[-1]
+        if not (name.startswith('dim_') or name.endswith('_dim') or model.get('type') == 'dimension') or 'historical' in name:
+            continue
+        entity = name.removeprefix('dim_').removesuffix('_dim')
+        grain = (model.get('grain') or '').strip().rstrip('.')
+        if (re.fullmatch(r'(?:(?:calendar|fiscal)_)?(?:calendar|date|day|week|month|quarter|year)', entity)
+                or CALENDAR_GRAIN.fullmatch(grain)):
             continue
         reasons = []
         for name in _primary(model):
@@ -182,13 +231,22 @@ def same_grain_overlaps(page, *, min_shared=3, min_share=0.5):
     gold = _gold(page)
 
     def signature(model):
-        grain = re.sub(r'\s+', ' ', (model.get('grain') or '').strip().lower().rstrip('.'))
-        return grain or None, tuple(sorted(_primary(model)))
+        grain = ' '.join(_tokens(model.get('grain') or ''))
+        if grain in ('unknown', 'unspecified', 'tbd', 'not provided', 'not specified', 'unassessed',
+                     'one row per id', 'one row per record', 'one row per entity'):
+            grain = ''
+        keys = frozenset(name.lower() for name in _primary(model))
+        # Technical keys and timestamps occur on unrelated entities throughout a warehouse.
+        generic = {'id', 'pk', 'key', 'sk', 'uuid', 'row', 'record', 'surrogate', 'business', *PERIOD_WORDS}
+        entity_key = any(set(_tokens(key)) - generic for key in keys)
+        return grain, keys if entity_key else frozenset()
 
     out = []
+    signatures = {model['id']: signature(model) for model in gold}
     for a, b in itertools.combinations(gold, 2):
-        (ga, ka), (gb, kb) = signature(a), signature(b)
-        if not ((ga and ga == gb) or (ka and ka == kb)):
+        (ga, ka), (gb, kb) = signatures[a['id']], signatures[b['id']]
+        same_grain = ga == gb if ga and gb else bool(ka and ka == kb)
+        if not same_grain:
             continue
         cols_a = {n for n, k in _columns(a) if not _is_key(k)}
         cols_b = {n for n, k in _columns(b) if not _is_key(k)}
@@ -202,62 +260,132 @@ def same_grain_overlaps(page, *, min_shared=3, min_share=0.5):
     return out
 
 
-def _calls(sql, name):
-    """Top-level argument lists of every ``name(...)`` call, with the line of the call."""
-    out = []
-    for match in re.finditer(r'\b' + name + r'\s*\(', sql, re.I):
-        depth, start, args, current = 1, match.end(), [], ''
-        for ch in sql[start:]:
-            if ch == '(':
-                depth += 1
-            elif ch == ')':
-                depth -= 1
-                if depth == 0:
-                    args.append(current)
-                    break
-            if ch == ',' and depth == 1:
-                args.append(current); current = ''
+@dataclass
+class _FallbackCall:
+    name: str
+    line: int
+    arg_start: int
+    args: list = field(default_factory=list)
+    comments: list = field(default_factory=list)
+
+
+def _calls(sql):
+    """Read executable fallback calls and attach each SQL comment to at most one call."""
+    calls, stack, active = [], [], []
+    previous_name = trailing = None
+    preceding = []
+    line, code_on_line = 1, False
+    for token in SQL_TOKEN.finditer(sql):
+        value = token.group()
+        start_line = line
+        line += value.count('\n')
+        if preceding and preceding[-1][0] < start_line - 1:
+            preceding.clear()
+        if token.lastgroup == 'space':
+            if line != start_line:
+                code_on_line = False
+            continue
+        if token.lastgroup == 'comment':
+            comment = value[2:-2] if value.endswith('*/') and value.startswith('/*') else value[2:]
+            if active:
+                active[-1].comments.append(comment)
+            elif trailing and trailing[1] == start_line:
+                # A trailing comment belongs to the previous expression, never the next line.
+                between = sql[trailing[2]:token.start()].strip()
+                if between.endswith(',') and value.startswith('/*') and SQL_MORE_ON_LINE.match(sql, token.end()):
+                    preceding.append((line, False, comment))
+                elif ',' not in between.rstrip(',;') and ';' not in between.rstrip(',;'):
+                    trailing[0].comments.append(comment)
             else:
-                current += ch
-        out.append((sql.count('\n', 0, match.start()) + 1, [a.strip() for a in args]))
-    return out
+                # A comment after other SQL can introduce a call on this line only.
+                preceding.append((line, not code_on_line, comment))
+            if line != start_line:
+                code_on_line = False
+            continue
+        code_on_line = True
+        if value == '(':
+            call = None
+            if previous_name:
+                name, name_line = previous_name
+                call = _FallbackCall(name, name_line, token.end())
+                call.comments.extend(text for end_line, standalone, text in preceding
+                                     if end_line == name_line or (standalone and end_line == name_line - 1))
+                preceding.clear()
+                active.append(call)
+            stack.append(call)
+        elif value in (',', ')') and stack:
+            call = stack[-1]
+            if call is not None:
+                call.args.append(sql[call.arg_start:token.start()].strip())
+                call.arg_start = token.end()
+            if value == ')':
+                stack.pop()
+                if call is not None:
+                    calls.append(call)
+                    active.pop()
+                    trailing = (call, line, token.end())
+        elif value == ';':
+            preceding.clear()
+        name = value.upper() if token.lastgroup == 'identifier' else ''
+        previous_name = (name, start_line) if name in FALLBACK_FUNCTIONS else None
+    return calls
 
 
 def _level(arg):
     """Hierarchy level of a column argument (``None`` when unleveled), or ``False`` when not a descriptive column."""
-    ident = re.fullmatch(r'[A-Za-z_][\w.`"]*', arg.strip())
+    if '/*' in arg or '--' in arg:
+        arg = ''.join(' ' if t.lastgroup == 'comment' else t.group() for t in SQL_TOKEN.finditer(arg))
+    ident = SQL_COLUMN.fullmatch(arg.strip())
     if not ident:
         return False
-    name = arg.strip().strip('`"').split('.')[-1].strip('`"')
+    name = ident['name'].strip('`"[]').split('.')[-1]
     level = LEVEL_TOKEN.search(name)
     if level:
         return int(level.group(1))
     return None if DESCRIPTIVE_TOKEN.search(name) else False
 
 
+def _fallback_decisions(page, models):
+    decisions = {}
+    for decision in page.get('decisions') or []:
+        if decision.get('status') not in RESOLVING_STATUSES:
+            continue
+        scoped = set(decision.get('models') or decision.get('model_ids') or [])
+        if scoped and (not models or not set(models) <= scoped):
+            continue
+        answer = ' '.join(str(decision.get(key) or '') for key in ('assumed', 'answer', 'assumed_option', 'detail')).strip()
+        area = str(decision.get('area') or '').strip().lower()
+        question = decision.get('q') or decision.get('question') or ''
+        if not answer or not (area == 'hierarchy fallback'
+                              or (area == 'definition' and FALLBACK_DESCRIPTION.search(f'{question} {answer}'))):
+            continue
+        key = decision.get('id')
+        if isinstance(key, str) and key.strip():
+            decisions[key] = re.compile(r'(?<![\w./-])' + re.escape(key) + r'(?![\w/-]|\.\w)')
+    return decisions
+
+
 def level_mixing_fallbacks(page):
-    """COALESCE/IFNULL/NVL over columns of different hierarchy levels, without a decision ID beside it."""
+    """COALESCE/IFNULL/NVL over columns of different hierarchy levels, with scoped decision evidence."""
     out = []
-    decision_ids = {str(d.get('id')) for d in page.get('decisions') or []}
+    models_by_path = {}
+    for model_id, row in _model_sql(page).items():
+        models_by_path.setdefault(row['path'], []).append(model_id)
     for row in _sql_files(page):
-        raw = row.get('content') or ''
-        lines = raw.split('\n')
-        clean = '\n'.join(line.split('--')[0] for line in lines)
-        for func in ('COALESCE', 'IFNULL', 'NVL'):
-            for line, args in _calls(clean, func):
-                levels = [_level(a) for a in args]
-                described = [lv for lv in levels if lv is not False]
-                leveled = {lv for lv in described if lv is not None}
-                if len(described) < 2 or not leveled or (len(leveled) == 1 and None not in described):
-                    continue
-                nearby = ' '.join(lines[max(0, line - 2):line + 1])
-                cited = [d for d in DECISION_ID.findall(nearby) if d in decision_ids]
-                finding = _finding(page, 'level_mixing_fallback',
-                                   f'{func}({", ".join(args)}) mixes hierarchy levels. Reproduce or decline it through a '
-                                   'decision and cite the decision ID in a SQL comment beside it; never copy it silently.',
-                                   path=row['path'], line=line)
-                finding['resolved_by'] = cited[0] if cited else None
-                out.append(finding)
+        path = row['path']
+        model_ids = models_by_path.get(path, [])
+        decisions = _fallback_decisions(page, model_ids)
+        for call in _calls(row.get('content') or ''):
+            levels = {level for level in map(_level, call.args) if level is not False}
+            if len(levels) < 2:
+                continue
+            finding = _finding(page, 'level_mixing_fallback',
+                               f'{call.name}({", ".join(call.args)}) mixes hierarchy levels. Cite a recorded hierarchy '
+                               'fallback decision in a SQL comment beside the expression or remove the fallback.',
+                               models=model_ids, path=path, line=call.line)
+            finding['resolved_by'] = next((key for key, pattern in decisions.items()
+                                           if any(pattern.search(c) for c in call.comments)), None)
+            out.append(finding)
     return out
 
 
@@ -275,19 +403,21 @@ def placement(page):
                                 f'{model_id} stores a {" and ".join(kinds)}. Ratios, distinct counts and other query-time '
                                 'aggregations belong in the semantic layer unless a Placement decision records why not.',
                                 [model_id], path=row['path']))
+    if not _omni_review_in_scope(page):
+        return out
     view_models = {}
     for topic in page.get('topics') or []:
         for node in topic.get('nodes') or []:
             if node.get('view_id') and node.get('model_ids'):
                 view_models.setdefault(node['view_id'], set()).update(node['model_ids'])
     for row in _semantic_files(page):
-        if not row['path'].endswith('.view'):
+        kind, view_id = _identity(row['path'])
+        if kind != 'view':
             continue
-        doc = _load(row.get('content') or '')
-        if not isinstance(doc, dict):
+        doc, error = _load(row)
+        if error or not isinstance(doc.get('dimensions'), dict):
             continue
-        view_id = PurePosixPath(row['path']).stem
-        for name, field in (doc.get('dimensions') or {}).items():
+        for name, field in doc['dimensions'].items():
             sql = str((field or {}).get('sql') or '') if isinstance(field, dict) else ''
             rule = 'window function' if WINDOW_SQL.search(sql) else ('grouping' if len(WHEN_SQL.findall(sql)) >= 3 else None)
             if rule:
@@ -299,10 +429,26 @@ def placement(page):
     return out
 
 
+def _omni_review_in_scope(page):
+    meta = page.get('meta') or {}
+    stages = meta.get('requested_stages')
+    if meta.get('migration_scope') == 'model_only' or (stages is not None and 'semantic' not in stages):
+        return False
+    platform = (meta.get('semantic_target') or {}).get('platform')
+    if platform:
+        return platform == 'omni'
+    if meta.get('migration_scope') in ('model_semantic', 'full_dashboard'):
+        return True
+    # Older drafts did not store intake scope. Use the packaged semantic evidence.
+    return bool(page.get('topics') or _semantic_files(page))
+
+
 def gold_without_topic(page):
     """Own-domain gold tables that no topic reaches through an explicit binding."""
-    reached = {m for t in page.get('topics') or [] for n in t.get('nodes') or [] for m in n.get('model_ids') or []}
-    reached |= {m for t in page.get('topics') or [] for m in t.get('base_model_ids') or []}
+    if not _omni_review_in_scope(page):
+        return []
+    reached = {m for t in page.get('topics') or [] for n in t.get('nodes') or []
+               if n.get('binding_status') == 'complete' for m in n.get('model_ids') or []}
     return [_finding(page, 'gold_without_topic',
                      f'{m["id"]} is not reached by any topic. Add it to a topic or record a Topic exemption decision '
                      'naming it, with the reason.', [m['id']])
@@ -326,8 +472,14 @@ def description_language(page, *, extra_terms=()):
             yield '.'.join(trail), node
 
     for row in _semantic_files(page):
-        doc = _load(row.get('content') or '')
-        for where, text in walk(doc, []) if doc is not None else []:
+        doc, error = _load(row)
+        if error:
+            finding = _finding(page, 'description_language',
+                               f'{row["path"]}: semantic description language unverified. {error}', path=row['path'])
+            finding['assessment'] = 'unverified'
+            out.append(finding)
+            continue
+        for where, text in walk(doc, []):
             for label, pattern in patterns:
                 match = pattern.search(text)
                 if match:
@@ -346,12 +498,16 @@ def lint_page(page, *, extra_terms=()):
     Legacy system names come from ``extra_terms`` and the page's ``meta.legacy_terms``.
     """
     extra_terms = list(extra_terms) + list((page.get('meta') or {}).get('legacy_terms') or [])
+    omni_in_scope = _omni_review_in_scope(page)
     findings = (period_keyed_dimensions(page) + same_grain_overlaps(page) + placement(page)
-                + level_mixing_fallbacks(page) + gold_without_topic(page) + description_language(page, extra_terms=extra_terms))
+                + level_mixing_fallbacks(page) + gold_without_topic(page))
+    if omni_in_scope:
+        findings.extend(description_language(page, extra_terms=extra_terms))
     for row in findings:
         row['gate'] = LINTS[row['lint']]['gate']
     open_gate = [f for f in findings if f['gate'] and not f['resolved_by']]
     summary = {lint: {'label': spec['label'], 'gate': spec['gate'],
+                      'applicable': omni_in_scope or lint not in ('gold_without_topic', 'description_language'),
                       'open': sum(f['lint'] == lint and not f['resolved_by'] for f in findings),
                       'resolved': sum(f['lint'] == lint and bool(f['resolved_by']) for f in findings)}
                for lint, spec in LINTS.items()}
@@ -362,6 +518,9 @@ def static_rows(report):
     """Rows for the review page's static observations: one per lint, counting unresolved findings."""
     rows = []
     for lint, spec in LINTS.items():
+        if not report['summary'][lint]['applicable']:
+            rows.append({'label': spec['label'], 'count': 0, 'of': 'Omni is outside this review scope', 'items': []})
+            continue
         items = [f['message'] for f in report['findings'] if f['lint'] == lint and not f['resolved_by']]
         resolved = report['summary'][lint]['resolved']
         rows.append({'label': spec['label'], 'count': len(items),
@@ -397,7 +556,13 @@ def main(argv=None):
     if args.output:
         Path(args.output).write_text(body + '\n', encoding='utf-8')
     for lint, row in report['summary'].items():
+        if not row['applicable']:
+            print(f"{row['label']}: outside this review scope")
+            continue
         print(f"{row['label']}: {row['open']} open, {row['resolved']} resolved{' (gate)' if row['gate'] else ''}")
+    for finding in report['findings']:
+        if finding.get('assessment') == 'unverified':
+            print(finding['message'])
     print('status:', report['status'])
     return 0 if report['status'] == 'pass' else 1
 

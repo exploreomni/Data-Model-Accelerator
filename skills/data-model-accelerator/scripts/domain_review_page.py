@@ -226,6 +226,12 @@ def normalise(data):
     meta['repositories'] = repos
     meta['code_target'] = dict(meta.get('code_target') or {})
     meta['semantic_target'] = dict(meta.get('semantic_target') or {})
+    if meta.get('migration_scope') is not None:
+        from delivery_assurance import SCOPES
+        require(meta['migration_scope'] in SCOPES, 'Unknown migration scope')
+    if 'requested_stages' in meta:
+        meta['requested_stages'] = [_text(s, 'meta.requested_stages', empty=False)
+                                    for s in _list(meta['requested_stages'], 'meta.requested_stages')]
     # Names of the systems being replaced; the description lint bans them in semantic text.
     meta['legacy_terms'] = [_text(x, 'meta.legacy_terms', empty=False) for x in _list(meta.get('legacy_terms') or [], 'meta.legacy_terms')]
     meta.setdefault('access_note', '')
@@ -941,11 +947,18 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
     domain = _owning_domain(review, domain or (overlay.get('meta') or {}).get('domain'))
     review_meta = review.get('review_meta') or {}
     by_path = {f['path']: f for f in files}
-    sql_by_stem = {PurePosixPath(p).stem: p for p in by_path if p.endswith('.sql')}
+    sql_by_stem = collections.defaultdict(list)
+    for path in by_path:
+        if path.endswith('.sql'):
+            sql_by_stem[PurePosixPath(path).stem].append(path)
     models = {}
     for row in review.get('models', []):
         model_id = row['id']
-        code = sql_by_stem.get(model_id) or sql_by_stem.get(row.get('name') or '')
+        if isinstance(row.get('code'), str) and row['code']:
+            code = row['code'] if row['code'] in by_path and row['code'].endswith('.sql') else None
+        else:
+            matches = sql_by_stem.get(model_id) or sql_by_stem.get(row.get('name'), [])
+            code = matches[0] if len(matches) == 1 else None
         sources = row.get('sources')
         if sources is None and code:
             sources = sorted({f'{a}.{b}' for a, b in SOURCE.findall(by_path[code]['content'])})
@@ -1027,6 +1040,11 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
     meta = {k: v for k, v in meta.items() if v is not None}
     meta.update(overlay.get('meta') or {})
     meta['domain'] = domain
+    if target.get('semantic_target'):
+        meta['semantic_target'] = dict(meta.get('semantic_target') or {}, platform=target['semantic_target'])
+    for key in ('migration_scope', 'requested_stages'):
+        if review.get(key) is not None:
+            meta[key] = review[key]
     data = {'schema_version': SCHEMA_VERSION, 'kind': KIND, 'meta': meta, 'models': list(models.values()), 'rels': rels,
             'areas': areas, 'topics': topics, 'files': [{k: f[k] for k in ('path', 'status', 'content')} for f in files],
             'decisions': decisions, 'legacy': legacy, 'dashboards': dashboards,
@@ -1055,6 +1073,9 @@ def render_from_delivery(data):
     """
     review = json.loads(json.dumps(data['review']))
     review['target'] = data['engagement']['target']
+    migration_scope = data['engagement'].get('delivery_assurance', {}).get('migration_scope')
+    if migration_scope:
+        review['migration_scope'] = migration_scope
     files = []
     for record in data.get('files', []):
         if record['category'] != 'implementation':
@@ -1071,7 +1092,10 @@ def render_from_delivery(data):
     notes = ['This companion contains only the files and evidence selected for this audience. '
              'Use the package root START_HERE.html for delivery status, all formats and next steps.']
     if 'implementation' not in selected:
+        review['requested_stages'] = ['design']
         notes.append('Implementation was not selected for this audience; no code is embedded.')
+    elif 'requested_stages' in data.get('workflow', {}):
+        review['requested_stages'] = data['workflow']['requested_stages']
     if 'dictionary' not in selected:
         notes.append('The data dictionary was not selected; column details are omitted.')
     if review['target'].get('framework') != 'dbt':

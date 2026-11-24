@@ -104,6 +104,11 @@ layout does not supply the finalizer's audience and selection contract.
    Optional `--overlay`, `--changed` and `--known-models` inputs add supplied presentation,
    changed-file and base-project information; they are not approval evidence.
 
+   Standalone reviews can carry the intake's `migration_scope`, `target.semantic_target` and
+   the current review's `requested_stages`. For example, a design draft in an eventual Omni
+   migration can set `requested_stages` to `["design"]`; a semantic review includes `"semantic"`.
+   The delivery companion uses the engagement scope, workflow stages and files selected for its audience.
+
    Warehouse joins come from recorded relationships and supported declared dbt tests.
    The standalone tool also has an optional `_fk`/`_pk` name heuristic; keep
    `--no-key-inference` unless that convention is deliberately being reviewed as an inference.
