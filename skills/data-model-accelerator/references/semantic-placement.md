@@ -16,6 +16,8 @@ Placement considers behavior, reuse and operational ownership. Source language a
 
 These are defaults to evaluate, not automatic translations.
 
+Decide placement for every new or changed field, not only for whole rules: fixed reporting rules (flags, classifications, groupings, rankings reused as filters) go in the warehouse; ratios, distinct counts and query-time aggregations go in the semantic layer. Record the chosen layer in the field's design and coverage records. `scripts/modeling_lints.py` flags stored ratios and distinct counts in gold models and fixed groupings or rankings computed in semantic dimensions; resolve each with the move or a decision with area Placement. See [dimensional-modeling.md](dimensional-modeling.md).
+
 ## Required placement record
 
 For each rule ID retain observed source behavior and provide disposition, target layer/object, rationale, dependency bindings, grain before/after, filter/time/security semantics, existing model reuse, impacted consumers, proposed/accepted status, decision evidence, test IDs and unresolved questions. Distinguish code simplification, intended behavior change and confirmed equivalence.

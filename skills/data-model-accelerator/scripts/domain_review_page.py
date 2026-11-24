@@ -226,6 +226,8 @@ def normalise(data):
     meta['repositories'] = repos
     meta['code_target'] = dict(meta.get('code_target') or {})
     meta['semantic_target'] = dict(meta.get('semantic_target') or {})
+    # Names of the systems being replaced; the description lint bans them in semantic text.
+    meta['legacy_terms'] = [_text(x, 'meta.legacy_terms', empty=False) for x in _list(meta.get('legacy_terms') or [], 'meta.legacy_terms')]
     meta.setdefault('access_note', '')
 
     models = [_model(row) for row in _list(data.get('models'), 'models')]
@@ -631,11 +633,14 @@ def promote(draft, review, output):
     """Copy a verified, independently reviewed draft to the next version folder, with the review record included.
 
     Refuses when the draft fails verification, the review does not match the draft bytes, a finding is open, a
-    blocker is not fixed, or the output is not the next free ``v<N>`` folder. Never overwrites.
+    blocker is not fixed, a modeling gate lint is unresolved (``modeling_lints``), or the output is not the next
+    free ``v<N>`` folder. Never overwrites.
     """
     draft, output = Path(draft), Path(output)
     verify_package(draft)
     summary = check_review_record(review, manifest_sha256(draft))
+    from modeling_lints import lint_page, require_gate
+    require_gate(lint_page(page_data((draft / 'START_HERE.html').read_text(encoding='utf-8'))))
     require(output.parent.is_dir(), 'Domain folder must exist')
     require(VERSION_NAME.fullmatch(output.name) is not None, 'Output must be a version folder named v<N>')
     require(not output.exists(), 'Output exists; a version folder is never overwritten')
@@ -1034,6 +1039,11 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
         value = overlay.get(key) or (review_meta.get({'reading_order': 'read_order'}.get(key, key)))
         if value:
             data[key] = [{'view': None, 'label': x, 'text': ''} if isinstance(x, str) else x for x in value] if key == 'reading_order' else value
+    if review_meta.get('legacy_terms') and not meta.get('legacy_terms'):
+        meta['legacy_terms'] = list(review_meta['legacy_terms'])
+    # Modeling-standard lints (references/dimensional-modeling.md). Gate lints also block promote().
+    from modeling_lints import lint_page, static_rows
+    data['static'] = list(data['static']) + static_rows(lint_page(data))
     return normalise(data)
 
 

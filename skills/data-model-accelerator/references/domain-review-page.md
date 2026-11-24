@@ -144,7 +144,7 @@ layout does not supply the finalizer's audience and selection contract.
    ```
 
    Promotion refuses mismatched bytes, open findings, unresolved blockers, undocumented
-   accepted/deferred findings or an existing/non-next version. It retains the draft files,
+   accepted/deferred findings, an unresolved modeling gate lint (below) or an existing/non-next version. It retains the draft files,
    adds `04_docs/INDEPENDENT_REVIEW.json` and writes a new manifest. This freezes an internal
    review version; it does not authenticate the reviewer, prove review completeness or grant
    design, release or deployment approval. Finalize the selected delivery through the standard
@@ -167,6 +167,14 @@ visible. Do not reinterpret an occurrence ID as a warehouse-model ID.
 resource restrictions and template completion. The policy permits the bundled script by hash
 and blocks inline event handlers. Browser tests exercise offline navigation, inspectors and
 hostile text with Chromium; they do not establish warehouse or live Omni acceptance.
+The projection adds one static observation per modeling lint from `scripts/modeling_lints.py`
+([dimensional-modeling.md](dimensional-modeling.md)): dimensions keyed by a period and logic placed
+in the other layer (advisory), and same-grain tables repeating columns, fallbacks mixing hierarchy
+levels, gold tables not reached by a topic and semantic text with migration language (gates).
+A recorded decision (answered or assumed) with the lint's area that names the tables resolves a
+finding; list the replaced systems' names in `review_meta.legacy_terms` or the overlay's
+`meta.legacy_terms` so the description lint bans them. `promote` refuses a draft with an
+unresolved gate lint.
 Static observations remain supplemental: unsupported syntax, missing context and native
 checks not run must not become a pass. Preserve the existing package, disclosure,
 native-validation and authorization checks.
