@@ -226,6 +226,14 @@ def normalise(data):
     meta['repositories'] = repos
     meta['code_target'] = dict(meta.get('code_target') or {})
     meta['semantic_target'] = dict(meta.get('semantic_target') or {})
+    if meta.get('migration_scope') is not None:
+        from delivery_assurance import SCOPES
+        require(meta['migration_scope'] in SCOPES, 'Unknown migration scope')
+    if 'requested_stages' in meta:
+        meta['requested_stages'] = [_text(s, 'meta.requested_stages', empty=False)
+                                    for s in _list(meta['requested_stages'], 'meta.requested_stages')]
+    # Names of the systems being replaced; the description lint bans them in semantic text.
+    meta['legacy_terms'] = [_text(x, 'meta.legacy_terms', empty=False) for x in _list(meta.get('legacy_terms') or [], 'meta.legacy_terms')]
     meta.setdefault('access_note', '')
 
     models = [_model(row) for row in _list(data.get('models'), 'models')]
@@ -631,11 +639,14 @@ def promote(draft, review, output):
     """Copy a verified, independently reviewed draft to the next version folder, with the review record included.
 
     Refuses when the draft fails verification, the review does not match the draft bytes, a finding is open, a
-    blocker is not fixed, or the output is not the next free ``v<N>`` folder. Never overwrites.
+    blocker is not fixed, a modeling gate lint is unresolved (``modeling_lints``), or the output is not the next
+    free ``v<N>`` folder. Never overwrites.
     """
     draft, output = Path(draft), Path(output)
     verify_package(draft)
     summary = check_review_record(review, manifest_sha256(draft))
+    from modeling_lints import lint_page, require_gate
+    require_gate(lint_page(page_data((draft / 'START_HERE.html').read_text(encoding='utf-8'))))
     require(output.parent.is_dir(), 'Domain folder must exist')
     require(VERSION_NAME.fullmatch(output.name) is not None, 'Output must be a version folder named v<N>')
     require(not output.exists(), 'Output exists; a version folder is never overwritten')
@@ -936,11 +947,18 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
     domain = _owning_domain(review, domain or (overlay.get('meta') or {}).get('domain'))
     review_meta = review.get('review_meta') or {}
     by_path = {f['path']: f for f in files}
-    sql_by_stem = {PurePosixPath(p).stem: p for p in by_path if p.endswith('.sql')}
+    sql_by_stem = collections.defaultdict(list)
+    for path in by_path:
+        if path.endswith('.sql'):
+            sql_by_stem[PurePosixPath(path).stem].append(path)
     models = {}
     for row in review.get('models', []):
         model_id = row['id']
-        code = sql_by_stem.get(model_id) or sql_by_stem.get(row.get('name') or '')
+        if isinstance(row.get('code'), str) and row['code']:
+            code = row['code'] if row['code'] in by_path and row['code'].endswith('.sql') else None
+        else:
+            matches = sql_by_stem.get(model_id) or sql_by_stem.get(row.get('name'), [])
+            code = matches[0] if len(matches) == 1 else None
         sources = row.get('sources')
         if sources is None and code:
             sources = sorted({f'{a}.{b}' for a, b in SOURCE.findall(by_path[code]['content'])})
@@ -1022,6 +1040,11 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
     meta = {k: v for k, v in meta.items() if v is not None}
     meta.update(overlay.get('meta') or {})
     meta['domain'] = domain
+    if target.get('semantic_target'):
+        meta['semantic_target'] = dict(meta.get('semantic_target') or {}, platform=target['semantic_target'])
+    for key in ('migration_scope', 'requested_stages'):
+        if review.get(key) is not None:
+            meta[key] = review[key]
     data = {'schema_version': SCHEMA_VERSION, 'kind': KIND, 'meta': meta, 'models': list(models.values()), 'rels': rels,
             'areas': areas, 'topics': topics, 'files': [{k: f[k] for k in ('path', 'status', 'content')} for f in files],
             'decisions': decisions, 'legacy': legacy, 'dashboards': dashboards,
@@ -1034,6 +1057,11 @@ def project(review, files, *, domain=None, overlay=None, known_models=(), infer_
         value = overlay.get(key) or (review_meta.get({'reading_order': 'read_order'}.get(key, key)))
         if value:
             data[key] = [{'view': None, 'label': x, 'text': ''} if isinstance(x, str) else x for x in value] if key == 'reading_order' else value
+    if review_meta.get('legacy_terms') and not meta.get('legacy_terms'):
+        meta['legacy_terms'] = list(review_meta['legacy_terms'])
+    # Modeling-standard lints (references/dimensional-modeling.md). Gate lints also block promote().
+    from modeling_lints import lint_page, static_rows
+    data['static'] = list(data['static']) + static_rows(lint_page(data))
     return normalise(data)
 
 
@@ -1045,6 +1073,9 @@ def render_from_delivery(data):
     """
     review = json.loads(json.dumps(data['review']))
     review['target'] = data['engagement']['target']
+    migration_scope = data['engagement'].get('delivery_assurance', {}).get('migration_scope')
+    if migration_scope:
+        review['migration_scope'] = migration_scope
     files = []
     for record in data.get('files', []):
         if record['category'] != 'implementation':
@@ -1061,7 +1092,10 @@ def render_from_delivery(data):
     notes = ['This companion contains only the files and evidence selected for this audience. '
              'Use the package root START_HERE.html for delivery status, all formats and next steps.']
     if 'implementation' not in selected:
+        review['requested_stages'] = ['design']
         notes.append('Implementation was not selected for this audience; no code is embedded.')
+    elif 'requested_stages' in data.get('workflow', {}):
+        review['requested_stages'] = data['workflow']['requested_stages']
     if 'dictionary' not in selected:
         notes.append('The data dictionary was not selected; column details are omitted.')
     if review['target'].get('framework') != 'dbt':

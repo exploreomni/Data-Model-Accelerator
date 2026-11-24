@@ -60,6 +60,9 @@ class DomainReviewDeliveryTests(unittest.TestCase):
         rows = self.package('reviewer', audience='reviewer', include=['documentation'])
         data = page.page_data(rows['03_Design_Documents/Domain_Review.html'].decode())
         self.assertEqual(data['files'], [])
+        self.assertEqual(data['meta']['requested_stages'], ['design'])
+        topic_check = next(s for s in data['static'] if s['label'] == 'Gold tables not reached by a topic')
+        self.assertIn('outside this review scope', topic_check['of'])
         self.assertTrue(all(not m['cols'] for m in data['models']))
         self.assertNotIn('PRIVATE_VALUE_MARKER', json.dumps(data))
         self.assertNotIn('SENSITIVE_RAW_MARKER', json.dumps(data))
@@ -95,6 +98,7 @@ class DomainReviewDeliveryTests(unittest.TestCase):
         data = page.page_data(rows['03_Design_Documents/Domain_Review.html'].decode())
         topics = {t['topic']: t for t in data['topics']}
         self.assertEqual(set(topics), {'activity', 'health'})
+        self.assertEqual(data['meta']['semantic_target']['platform'], 'omni')
         self.assertEqual(topics['activity']['base_model_ids'], ['gold.orders'])
         self.assertEqual(topics['health']['base_model_ids'], [])
         self.assertEqual(topics['health']['domain'], 'Operations')

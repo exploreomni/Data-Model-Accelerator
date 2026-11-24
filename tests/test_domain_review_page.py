@@ -178,7 +178,19 @@ class DomainReviewPageTests(unittest.TestCase):
         kinds = sorted((o['kind'], o['id']) for o in page['open'])
         self.assertEqual(kinds, [('Question', 'OQ-01'), ('Semantic gap', 'orders'), ('Unresolved legacy model', 'mart__orders_daily'), ('Unverified', 'V-02')])
         self.assertTrue(all(o['owner'] == 'Not assigned' for o in page['open']))
-        self.assertEqual([s['count'] for s in page['static']], [0, 0, 0, 0, 0])
+        self.assertEqual([s['count'] for s in page['static']][:5], [0, 0, 0, 0, 0])
+        lints = {s['label']: s['count'] for s in page['static'][5:]}
+        # The channel dimension is in no topic and has no recorded exemption; every other lint is clear.
+        self.assertEqual(lints.pop('Gold tables not reached by a topic'), 1)
+        self.assertEqual(set(lints.values()), {0})
+
+    def test_duplicate_sql_filenames_need_an_explicit_packaged_path(self):
+        source = {'models': [{'id': 'fct_orders', 'layer': 'gold'}]}
+        paths = ['02_dbt/a/fct_orders.sql', '02_dbt/b/fct_orders.sql']
+        sql = [{'path': p, 'content': 'select 1', 'status': 'new'} for p in paths]
+        self.assertIsNone(page_module.project(source, sql, domain='orders')['models'][0]['code'])
+        source['models'][0]['code'] = paths[0]
+        self.assertEqual(page_module.project(source, sql, domain='orders')['models'][0]['code'], paths[0])
 
     def test_semantics_never_bind_by_matching_view_or_table_name(self):
         value = review(); value.pop('omni_warehouse_bindings')
@@ -472,7 +484,11 @@ class DomainReviewPromoteTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.domain = self.root / 'Orders'
         self.domain.mkdir()
-        self.page = page_module.project(review(), files(), model_context=semantic_context())
+        value = review()
+        value['decisions'].append({'id': 'D-02', 'area': 'Topic exemption', 'status': 'answered',
+                                   'question': 'Why is the channel dimension in no topic?',
+                                   'answer': 'Reached through the orders fact only.', 'model_ids': ['wh_orders__channel_dim']})
+        self.page = page_module.project(value, files(), model_context=semantic_context())
         self.draft = self.root / 'work' / 'draft-1'
         self.draft.parent.mkdir()
         page_module.write_package(self.page, self.draft, docs={'DESIGN.md': b'# Design\n'})
@@ -514,6 +530,40 @@ class DomainReviewPromoteTests(unittest.TestCase):
             with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
                 page_module.promote(self.draft, self.record(findings=findings), self.domain / 'v1')
         self.assertEqual(page_module.next_version(self.domain), 'v1')
+
+    def test_promote_refuses_an_unresolved_modeling_gate(self):
+        page = page_module.project(review(), files(), model_context=semantic_context())
+        draft = self.root / 'work' / 'draft-gate'
+        page_module.write_package(page, draft, docs={'DESIGN.md': b'# Design\n'})
+        with self.assertRaisesRegex(ValueError, 'Modeling gate failed: wh_orders__channel_dim is not reached by any topic'):
+            page_module.promote(draft, self.record(draft=draft), self.domain / 'v1')
+        self.assertEqual(page_module.next_version(self.domain), 'v1')
+
+    def test_warehouse_design_promotes_independently_of_omni_topic_delivery(self):
+        model = {'id': 'fct_invoices', 'layer': 'gold', 'domain': 'billing', 'grain': 'One row per invoice'}
+        for i, (scope, platform, stages, expect_topic_gate) in enumerate((
+                ('model_only', 'none', ['implementation'], False),
+                ('model_semantic', 'omni', ['design'], False),
+                ('model_semantic', 'omni', ['semantic'], True),
+                (None, 'retain_existing', None, False),
+                (None, None, None, False))):
+            with self.subTest(scope=scope, platform=platform, stages=stages):
+                source = {'models': [model], 'migration_scope': scope, 'target': {'semantic_target': platform}}
+                if stages is not None:
+                    source['requested_stages'] = stages
+                page = page_module.project(source, [], domain='billing')
+                draft = self.root / f'scoped-draft-{i}'
+                page_module.write_package(page, draft)
+                destination = self.root / f'domain-{i}'
+                destination.mkdir()
+                if expect_topic_gate:
+                    with self.assertRaisesRegex(ValueError, 'fct_invoices is not reached'):
+                        page_module.promote(draft, self.record(draft=draft), destination / 'v1')
+                else:
+                    stat = next(s for s in page['static'] if s['label'] == 'Gold tables not reached by a topic')
+                    self.assertIn('outside this review scope', stat['of'])
+                    page_module.promote(draft, self.record(draft=draft), destination / 'v1')
+                    self.assertEqual(page_module.verify_package(destination / 'v1')['status'], 'pass')
 
     def test_promote_only_writes_the_next_free_version_and_never_overwrites(self):
         with self.assertRaisesRegex(ValueError, 'next version: v1'):
