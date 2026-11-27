@@ -124,7 +124,7 @@ class DomainReviewPageTests(unittest.TestCase):
         self.assertTrue(set(own['gold']) <= set(own['pipeline']))
         self.assertIn('stg_shop__orders', own['pipeline'])
         self.assertTrue(shared['shared'])
-        self.assertEqual(shared['pipeline'], [])
+        self.assertEqual(shared['pipeline'], ['wh_customers__customers_dim'])
         topic = page['topics'][0]
         self.assertEqual(topic['base_model_ids'], ['wh_orders__orders_fct'])
         self.assertEqual(topic['area'], own['id'])
@@ -279,6 +279,36 @@ class DomainReviewPageTests(unittest.TestCase):
             change(data)
             with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
                 page_module.normalise(data)
+
+    def test_area_pipelines_show_end_to_end_lineage_across_gold_tables(self):
+        value = review()
+        value['models'].append({'id': 'stg_crm__customers', 'layer': 'bronze', 'domain': 'customers', 'status': 'reused', 'columns': []})
+        for model in value['models']:
+            if model['id'] == 'wh_customers__customers_dim':
+                model['depends_on'] = ['stg_crm__customers']
+            if model['id'] == 'wh_orders__orders_fct':
+                model['depends_on'] = model['depends_on'] + ['wh_customers__customers_dim']
+        page = page_module.project(value, files(), model_context=semantic_context())
+        own, shared = page['areas']
+        # the owned pipeline runs through the shared gold dimension down to its staging model
+        self.assertIn('wh_customers__customers_dim', own['pipeline'])
+        self.assertIn('stg_crm__customers', own['pipeline'])
+        # the shared area shows the pipeline that builds its tables too
+        self.assertEqual(shared['pipeline'], ['stg_crm__customers', 'wh_customers__customers_dim'])
+        self.assertEqual(page_module.pipeline_gaps(page), [])
+
+    def test_pages_with_an_empty_shared_pipeline_get_the_end_to_end_pipeline(self):
+        data = copy.deepcopy(self.page)
+        data['areas'][1]['pipeline'] = []
+        self.assertEqual(page_module.normalise(data)['areas'][1]['pipeline'], ['wh_customers__customers_dim'])
+
+    def test_package_refuses_a_model_outside_every_pipeline(self):
+        data = copy.deepcopy(self.page)
+        data['areas'][0]['pipeline'] = [m for m in data['areas'][0]['pipeline'] if m != 'stg_shop__orders']
+        self.assertEqual(page_module.pipeline_gaps(page_module.normalise(copy.deepcopy(data))), ['stg_shop__orders'])
+        with self.assertRaisesRegex(ValueError, 'end-to-end lineage'):
+            page_module.write_package(data, self.root / 'v1')
+        self.assertFalse((self.root / 'v1').exists())
 
     def test_render_is_self_contained_and_checks_its_counts(self):
         html = page_module.render(self.page)

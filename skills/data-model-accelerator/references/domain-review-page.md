@@ -163,6 +163,17 @@ The offline template in `assets/domain-review/` embeds `kind: domain_review_page
 Counts are recomputed from that data; optional dashboard tile counts must be nonnegative
 safe integers or null. Unknown counts are not zero coverage.
 
+Each area's `pipeline` is the end-to-end lineage of its gold tables: every model they are built
+from, through all layers, including gold tables built on other gold tables (for example a reused
+fact under a report table) and the staging and integration models behind those. When `pipeline`
+is omitted it is derived that way. The area of tables shared from other domains (`shared: true`)
+shows the pipeline that builds them as well; a page written before this rule, with an empty
+shared pipeline, is given the derived one. Every model on the page must appear in at least one
+area's pipeline: `write_package` refuses a draft with a model outside every pipeline
+(`pipeline_gaps`), so the page always shows the full lineage of the models the in-scope
+dashboards need. A practical layout is one area per in-scope dashboard (or group of dashboards
+that read the same tables), named after it, plus an area for tables shared from other domains.
+
 Topic `base` identifies an occurrence, while `base_view` and `base_model_ids` identify the
 semantic view and explicit warehouse bindings. Topic `nodes` retain occurrence IDs, view IDs,
 model IDs and binding status; `joins` retain direction/cardinality/status and `gaps` remain

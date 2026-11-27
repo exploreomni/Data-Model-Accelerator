@@ -277,7 +277,7 @@ function drawArea(id,sub){const base=D.areas.find(x=>x.id===id);if(!base)return;
  let note;
  if(a.focus){const up=a.pipeline.filter(x=>x!==a.focus),n=l=>up.filter(x=>M[x].layer===l).length,s=(k,w)=>k===1?w:w+'s';
   note=`<div class="fnote">Filtered to <code>${e(a.focus)}</code> (${e(a.name)}). ${MS==='pipeline'?`Showing it and its ${up.length} upstream ${s(up.length,'model')}: ${n('bronze')} bronze, ${n('silver')} silver, ${n('gold')} gold.`:MS==='rel'?`Showing it and the ${a.erd.length-1} ${s(a.erd.length-1,'table')} related to it.`:`Showing the ${tps.length} ${s(tps.length,'topic')} that ${tps.length===1?'uses':'use'} it.`}${hasPipe?'':' It has no upstream models in this review; its pipeline belongs to its own domain.'} <a href="#" ${act('clear','')}>Clear filter</a></div>`}
- else note=base.shared?`<p class="note">Warehouse tables owned by other domains that the ${e(D.meta.domain_label)} tables and topics join to. Their pipelines belong to their own domains.</p>`:(tps.length?`<p class="note">Semantic topics in this area: ${tps.map(t=>topicLink(t.topic)).join(', ')}</p>`:'');
+ else note=base.shared?`<p class="note">Warehouse tables owned by other domains that the ${e(D.meta.domain_label)} tables and topics are built on or join to, with the pipeline that builds them.</p>`:(tps.length?`<p class="note">Semantic topics in this area: ${tps.map(t=>topicLink(t.topic)).join(', ')}</p>`:'');
  byId('abody').innerHTML=`<h3 class="ah">${head}</h3>${note}${MS==='pipeline'?pipeline(a):MS==='rel'?erd(a):topicLineage(a)}`;
  if(MS==='pipeline')pipeInit()}
 

@@ -126,14 +126,23 @@ def placeholder_label(text):
 
 
 def _upstream(models, start):
+    """Every model ``start`` is built from, end to end: through all layers, including gold tables built on other gold
+    tables (for example a reused fact under a report table) and everything that builds those."""
     seen, stack = set(), list(models[start]['dep'])
     while stack:
         current = stack.pop()
-        if current in seen or current not in models or models[current]['layer'] == 'gold':
+        if current in seen or current not in models:
             continue
         seen.add(current)
         stack.extend(models[current]['dep'])
     return seen
+
+
+def pipeline_gaps(page):
+    """Models on the page that no subject area's pipeline shows. A review page shows the full end-to-end lineage of
+    the models the in-scope dashboards need, so every model must appear in at least one area's pipeline."""
+    shown = {m for a in page.get('areas') or [] for m in a.get('pipeline') or []}
+    return sorted(m['id'] for m in page.get('models') or [] if m['id'] not in shown)
 
 
 def _model(row):
@@ -260,12 +269,12 @@ def normalise(data):
         area['shared'] = bool(area.get('shared'))
         gold = _list(area.get('gold') or [], 'Area gold')
         require(all(g in by_id and by_id[g]['layer'] == 'gold' for g in gold), 'Area gold tables must be gold models: ' + area['id'])
-        if area['shared']:
-            area['pipeline'] = []
-        elif 'pipeline' not in area:
+        # Every area, including the one for tables shared from other domains, shows the end-to-end pipeline that
+        # builds its gold tables. Pages written before this rule stored an empty pipeline for the shared area.
+        if 'pipeline' not in area or (area['shared'] and not area['pipeline']):
             area['pipeline'] = sorted(set(gold).union(*[_upstream(by_id, g) for g in gold]))
         require(all(p in by_id for p in area['pipeline']), 'Area pipeline references an absent model: ' + area['id'])
-        require(area['shared'] or set(gold) <= set(area['pipeline']), 'Area pipeline must include its gold tables: ' + area['id'])
+        require(set(gold) <= set(area['pipeline']), 'Area pipeline must include its gold tables: ' + area['id'])
         if 'erd' not in area:
             own = set(gold)
             area['erd'] = sorted(own | {x for r in rels if r['from'] in own or r['to'] in own for x in (r['from'], r['to'])})
@@ -522,6 +531,9 @@ def _docs_from_directory(root):
 def write_package(data, output, *, docs=None, scan=True):
     """Write a new review version folder. Refuses to overwrite; writes atomically via a sibling temp folder."""
     page = normalise(data)
+    gaps = pipeline_gaps(page)
+    require(not gaps, 'Every model must appear in a subject area pipeline (end-to-end lineage): '
+            + ', '.join(gaps[:10]) + (f' (and {len(gaps) - 10} more)' if len(gaps) > 10 else ''))
     output = Path(output)
     require(output.parent.is_dir(), 'Output parent must exist')
     require(not output.exists(), 'Output exists; choose a new version folder')
