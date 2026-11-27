@@ -420,7 +420,70 @@ console.log(JSON.stringify({pastes: out, unknown: {focus: FOC, message: el('gmsg
             with self.subTest(value=row['value']):
                 self.assertEqual((row['focus'], row['input'], row['closed']),
                                  ('wh_orders__orders_fct', 'wh_orders__orders_fct', True))
-        self.assertEqual(result['unknown'], {'focus': None, 'message': 'No gold table matches.'})
+        self.assertEqual(result['unknown'], {'focus': None, 'message': 'No table matches.'})
+
+    @unittest.skipUnless(NODE, 'Node is not installed')
+    def test_table_filter_lists_every_layer_and_routes_by_layer(self):
+        result = self._run_page_script(r"""
+show('model');
+const out = {groups: GROUPS.map(g => g.label), all: ALL_ORDER.slice()};
+const silver = ALL_ORDER.find(i => M[i].layer === 'silver'), bronze = ALL_ORDER.find(i => M[i].layer === 'bronze');
+setFocus(silver); out.silver = {lin: LIN, foc: FOC, ms: MS, input: el('gfilter').value, area: MA, body: el('abody').innerHTML};
+setFocus(bronze); out.bronze = {lin: LIN, foc: FOC};
+const gold = GOLD_ORDER.find(g => M[g].domain === D.meta.domain && M[g].dep.length);
+setFocus(gold); out.gold = {lin: LIN, foc: FOC, input: el('gfilter').value};
+setFocus(''); out.cleared = {lin: LIN, foc: FOC, input: el('gfilter').value};
+out.silverId = silver; out.bronzeId = bronze; out.goldId = gold;
+console.log(JSON.stringify(out));
+""")
+        self.assertEqual(result['groups'][0].split(' · ')[0], 'Bronze')
+        self.assertTrue(all(' · ' in g for g in result['groups']))
+        self.assertEqual(len(result['all']), len(set(result['all'])))
+        silver = result['silverId']
+        self.assertEqual((result['silver']['lin'], result['silver']['foc'], result['silver']['ms'], result['silver']['input']),
+                         (silver, None, 'pipeline', silver))
+        self.assertIn('Lineage of', result['silver']['body'])
+        self.assertIn('× Close lineage view', result['silver']['body'])
+        self.assertNotIn('← Back', result['silver']['body'])
+        self.assertEqual(result['bronze'], {'lin': result['bronzeId'], 'foc': None})
+        self.assertEqual(result['gold'], {'lin': None, 'foc': result['goldId'], 'input': result['goldId']})
+        self.assertEqual(result['cleared'], {'lin': None, 'foc': None, 'input': ''})
+
+    @unittest.skipUnless(NODE, 'Node is not installed')
+    def test_pipeline_click_filters_lineage_with_history_and_zoom_memory(self):
+        result = self._run_page_script(r"""
+show('model');
+const out = {};
+const area = D.areas.find(a => !a.shared && a.pipeline.length);
+pickArea(area.id);
+const L = PIPE; out.full = {ids: L.ids.length, cols: L.cols.map(c => [c.layer, c.step, c.ids.length])};
+// every same-layer dependency sits in a later step
+out.stepsOk = L.edges.every(([s, t]) => M[s].layer !== M[t].layer || L.cols.findIndex(c => c.ids.includes(s)) < L.cols.findIndex(c => c.ids.includes(t)));
+Z.full = 0.5;
+const first = area.pipeline.find(i => M[i].layer === 'silver') || area.pipeline[0];
+ACTIONS.lineage(first); out.first = {lin: LIN, hist: HIST.length, zoom: Z.lin, body: el('abody').innerHTML, input: el('gfilter').value};
+const next = [...lineageOf(first)].find(i => i !== first);
+ACTIONS.lineage(next); out.next = {lin: LIN, hist: HIST.length, back: el('abody').innerHTML.includes('← Back')};
+ACTIONS.linback(); out.back = {lin: LIN, hist: HIST.length, input: el('gfilter').value};
+ACTIONS.linclose(); out.closed = {lin: LIN, hist: HIST.length, zoom: Z[zkey()], input: el('gfilter').value, body: el('abody').innerHTML};
+out.lineage = [...lineageOf(first)]; out.up = [...upstream(first)]; out.down = [...downstream(first)];
+out.ids = {first, next};
+console.log(JSON.stringify(out));
+""")
+        self.assertTrue(result['stepsOk'])
+        self.assertTrue(all(layer in ('bronze', 'silver', 'gold') and n > 0 for layer, _, n in result['full']['cols']))
+        first, nxt = result['ids']['first'], result['ids']['next']
+        self.assertEqual((result['first']['lin'], result['first']['hist'], result['first']['zoom'], result['first']['input']), (first, 0, 1, first))
+        self.assertIn(f'Lineage of <code>{first}</code>', result['first']['body'])
+        for model in result['lineage']:
+            self.assertIn(f'data-id="{model}"', result['first']['body'])
+        self.assertEqual(set(result['lineage']), set(result['up']) | set(result['down']))
+        self.assertEqual(result['next'], {'lin': nxt, 'hist': 1, 'back': True})
+        self.assertEqual(result['back'], {'lin': first, 'hist': 0, 'input': first})
+        self.assertEqual((result['closed']['lin'], result['closed']['hist'], result['closed']['zoom'], result['closed']['input']), (None, 0, 0.5, ''))
+        self.assertNotIn('Lineage of', result['closed']['body'])
+        self.assertIn('data-act="model"', result['closed']['body'])
+        self.assertIn('Jump to:', result['closed']['body'])
 
     def test_package_writes_the_review_layout_once_and_verifies(self):
         docs = {'DESIGN.md': b'# Design\n', 'model/physical_model_orders.dbml': b'Table a {}\n'}
