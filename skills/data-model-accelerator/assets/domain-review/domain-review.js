@@ -29,7 +29,7 @@ const built={};
 function show(v){if(!R[v])v='overview';if(!built[v]){R[v]();built[v]=1}
  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
  document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x.dataset.v===v));
- if(location.hash!=='#'+v)history.replaceState(null,'','#'+v);window.scrollTo(0,0)}
+ if(location.hash!=='#'+v)history.replaceState(null,'','#'+v);window.scrollTo(0,0);if(v==='model')checkJump()}
 function filt(inp,id){const q=inp.value.toLowerCase();document.querySelectorAll('#'+id+' tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none')}
 const closeInsp=()=>byId('insp').classList.remove('on');
 
@@ -67,23 +67,99 @@ function box(x,y,w,h,id,l1,l2,k,a,tip,hl){const c=COL[k]||COL.reuse;
 function curve(x1,y1,x2,y2,cls,tip){const m=(x1+x2)/2,d=`M${x1} ${y1} C${m} ${y1} ${m} ${y2} ${x2} ${y2}`;
  return tip?`<g><path d="${d}" class="relhit"><title>${e(tip)}</title></path><path d="${d}" class="${cls}"/></g>`:`<path d="${d}" class="${cls}"/>`}
 const canvas=(W,H,s)=>`<div class="wide canvas"><svg viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W,1100)}px">${s}</svg></div>`;
-function pipeline(a){
- const NW=330,NH=36,GAP=10,CG=110,cols={bronze:[],silver:[],gold:[]};
- a.pipeline.forEach(i=>cols[M[i].layer].push(i));
- const order=['bronze','silver','gold'],P={};let rows=0;
- order.forEach((k,ci)=>{cols[k].sort((x,y)=>(isShared(M[x])-isShared(M[y]))||x.localeCompare(y));cols[k].forEach((id,ri)=>P[id]={x:16+ci*(NW+CG),y:34+ri*(NH+GAP)});rows=Math.max(rows,cols[k].length)});
- const W=32+3*NW+2*CG+CG-10,H=34+rows*(NH+GAP)+6;
- let s=order.map((k,ci)=>`<text x="${16+ci*(NW+CG)}" y="18" class="lh">${k.toUpperCase()} — ${cols[k].length} model${cols[k].length===1?'':'s'}</text>`).join('');
- let nSame=0;
- a.pipeline.forEach(i=>M[i].dep.forEach(d=>{if(!P[d]||!P[i])return;const p=P[d],q=P[i],tip=`${d} → ${i}`;
-  if(p.x!==q.x){s+=curve(p.x+NW,p.y+NH/2,q.x-4,q.y+NH/2,'edge arr',tip);return}
-  nSame++;const x=p.x+NW,y1=p.y+NH/2,y2=q.y+NH/2,bx=x+Math.min(CG-14,22+Math.abs(y2-y1)/6);
-  const dd=`M${x} ${y1} C${bx} ${y1} ${bx} ${y2} ${x+4} ${y2}`;
-  s+=`<g><path d="${dd}" class="relhit"><title>${e(tip+' (same layer)')}</title></path><path d="${dd}" class="edge same arr"/></g>`}));
- s=`<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#8f8799"/></marker></defs>`+s;
- a.pipeline.forEach(id=>{const p=P[id],m=M[id];s+=box(p.x,p.y,NW,NH,id,tr(id,46),subl(m)+(m.src.length?' · '+m.src.length+' source table'+(m.src.length>1?'s':''):''),kind(m),'model',`${id} · ${subl(m)}${m.src.length?'\nSources: '+m.src.join(', '):''}`,id===FOC)});
- return `<p class="note">Arrows point from a model to the model built on it.${nSame?` Curved lines on the right of a column (${nSame}) join two models in the same layer.`:''}</p>${canvas(W,H,s)}`;
-}
+/* ---------- pipeline: layered layout, lineage filter, zoom and pan ---------- */
+const PL={NW:360,NH:36,GAP:10,CG:96,LG:70,PAD:16,TOP:58};
+const LAYERS=['bronze','silver','gold'],LNAME={bronze:'Bronze',silver:'Silver',gold:'Gold'},LROLE={bronze:'staging',silver:'integration',gold:'warehouse'};
+const USED=Object.create(null);D.models.forEach(m=>USED[m.id]=[]);
+D.models.forEach(m=>m.dep.forEach(d=>{if(USED[d]&&!USED[d].includes(m.id))USED[d].push(m.id)}));
+function walk(id,next){const s=new Set([id]),st=[id];while(st.length){const n=st.pop();(next(n)||[]).forEach(d=>{if(M[d]&&!s.has(d)){s.add(d);st.push(d)}})}return s}
+function upstream(id){return walk(id,n=>(M[n]||{}).dep)}
+function downstream(id){return walk(id,n=>USED[n])}
+function lineageOf(id){return new Set([...upstream(id),...downstream(id)])}
+function pav(z){const v=[],w=[];z.forEach(x=>{v.push(x);w.push(1);while(v.length>1&&v[v.length-2]>v[v.length-1]){const b2=v.pop(),bw=w.pop(),a2=v.pop(),aw=w.pop();v.push((a2*aw+b2*bw)/(aw+bw));w.push(aw+bw)}});
+ const out=[];v.forEach((x,i)=>{for(let k=0;k<w[i];k++)out.push(x)});return out}
+function layoutPipe(ids){const {NW,NH,GAP,CG,LG,PAD,TOP}=PL,R=NH+GAP,S=new Set(ids.filter(i=>M[i]));
+ const deps=id=>M[id].dep.filter(d=>S.has(d)&&d!==id),step=Object.create(null);
+ const st=id=>{if(step[id]!=null)return step[id];step[id]=1;let k=1;deps(id).forEach(d=>{if(M[d].layer===M[id].layer)k=Math.max(k,st(d)+1)});return step[id]=k};
+ const cols=[];LAYERS.forEach(l=>{const its=[...S].filter(i=>M[i].layer===l);if(!its.length)return;const n=Math.max(...its.map(st));
+  for(let k=1;k<=n;k++)cols.push({layer:l,step:k,ids:its.filter(i=>step[i]===k).sort((x,y)=>(isShared(M[x])-isShared(M[y]))||x.localeCompare(y))})});
+ const edges=[];S.forEach(t=>deps(t).forEach(s=>edges.push([s,t])));
+ const nb=Object.create(null),preds=Object.create(null),succs=Object.create(null);S.forEach(i=>{nb[i]=[];preds[i]=[];succs[i]=[]});
+ edges.forEach(([s,t])=>{nb[s].push(t);nb[t].push(s);preds[t].push(s);succs[s].push(t)});
+ const ci=Object.create(null);cols.forEach((c,k)=>c.ids.forEach(i=>ci[i]=k));
+ const Y=Object.create(null);cols.forEach(c=>c.ids.forEach((i,r)=>Y[i]=TOP+r*R));
+ const crossings=()=>{let n=0;for(let i=0;i<edges.length;i++)for(let j=i+1;j<edges.length;j++){const [a1,b1]=edges[i],[a2,b2]=edges[j];
+  if(ci[a1]===ci[a2]&&ci[b1]===ci[b2]&&a1!==a2&&b1!==b2&&(Y[a1]-Y[a2])*(Y[b1]-Y[b2])<0)n++}return n};
+ const snap=()=>({o:cols.map(c=>c.ids.slice()),y:Object.assign(Object.create(null),Y)});
+ let best=snap(),bestX=crossings();
+ const big=cols.reduce((m,c)=>c.ids.length>m.ids.length?c:m,cols[0]||{ids:[]});
+ for(let it=0;it<12&&cols.length>1;it++){const seq=it%2?cols.slice().reverse():cols;
+  seq.forEach(c=>{if(it===0&&c===big)return;
+   const des=Object.create(null);c.ids.forEach(i=>{const n=nb[i];des[i]=n.length?n.reduce((s2,x)=>s2+Y[x],0)/n.length:Y[i]});
+   c.ids.sort((x,y)=>des[x]-des[y]||Y[x]-Y[y]);
+   const fit=pav(c.ids.map((i,r)=>des[i]-r*R));c.ids.forEach((i,r)=>Y[i]=fit[r]+r*R)});
+  const lo=Math.min(...Object.values(Y));Object.keys(Y).forEach(i=>Y[i]=Y[i]-lo+TOP);
+  const x=crossings();if(x<bestX||(x===bestX&&it>0)){best=snap();bestX=x}}
+ cols.forEach((c,k)=>c.ids=best.o[k]);Object.assign(Y,best.y);Object.keys(Y).forEach(i=>Y[i]=Math.round(Y[i]));
+ const X=Object.create(null),bands=[];let x=PAD;
+ LAYERS.forEach(l=>{const lc=cols.filter(c=>c.layer===l);if(!lc.length)return;
+  lc.forEach((c,k)=>{c.x=x+PAD+k*(NW+CG);c.ids.forEach(i=>X[i]=c.x)});
+  const w=2*PAD+lc.length*NW+(lc.length-1)*CG;bands.push({layer:l,x,w,n:lc.reduce((s2,c)=>s2+c.ids.length,0),cols:lc});x+=w+LG});
+ const W=Math.max(x-LG+PAD,NW+4*PAD),H=Math.max(TOP+R,...Object.values(Y).map(y=>y+NH+PAD+6));
+ return {ids:[...S],cols,bands,edges,X,Y,W,H,preds,succs,crossings:bestX}}
+function pnode(id,x,y,sel){const {NW,NH}=PL,m=M[id],k=kind(m),c=COL[k]||COL.reuse,sub=subl(m)+(m.src.length?' · '+m.src.length+' source table'+(m.src.length>1?'s':''):''),ix=x+NW-17,iy=y+NH/2;
+ return `<g class="nd k-${k} pn${sel?' focus':''}" data-id="${e(id)}" ${act('lineage',id)} role="button" tabindex="0" aria-label="${e('Filter to the lineage of '+id)}"><rect class="bg" x="${x}" y="${y}" width="${NW}" height="${NH}" rx="5" style="stroke:${c}"/><rect x="${x}" y="${y}" width="5" height="${NH}" rx="2" style="fill:${c}"/><text class="t1" x="${x+14}" y="${y+16}">${e(tr(id,44))}</text><text class="t2" x="${x+14}" y="${y+29}">${e(tr(sub,54))}</text><title>${e(`${id} · ${subl(m)}${m.src.length?'\nSources: '+m.src.join(', '):''}`)}</title><g class="pinfo" ${act('model',id)} role="button" tabindex="0" aria-label="${e('Details of '+id)}"><circle cx="${ix}" cy="${iy}" r="8"/><text x="${ix}" y="${iy+4}" text-anchor="middle">i</text><title>Details</title></g></g>`}
+let PIPE=null,PZ=1,LIN=null,HIST=[],PEND=null,DRAG=null;const Z={full:1,foc:1,lin:1};
+const zkey=()=>LIN?'lin':FOC?'foc':'full';
+function pipeline(a){const {NW,NH}=PL,ids=LIN?[...lineageOf(LIN)]:a.pipeline,L=layoutPipe(ids);PIPE=L;
+ let s=`<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#8f8799"/></marker><marker id="ahp" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#e8306e"/></marker></defs>`;
+ L.bands.forEach(b=>{s+=`<rect class="band b-${b.layer}" id="band-${b.layer}" x="${b.x}" y="4" width="${b.w}" height="${L.H-8}" rx="10"/><text class="bh" x="${b.x+PL.PAD}" y="24">${LNAME[b.layer].toUpperCase()} (${LROLE[b.layer]}) · ${b.n} table${b.n===1?'':'s'}</text>`;
+  b.cols.forEach(c=>s+=`<text class="lh" x="${c.x}" y="46">${c.layer.toUpperCase()} · step ${c.step} · ${c.ids.length} model${c.ids.length===1?'':'s'}</text>`)});
+ L.edges.forEach(([f,t])=>{const x1=L.X[f]+NW,y1=L.Y[f]+NH/2,x2=L.X[t]-2,y2=L.Y[t]+NH/2,bend=x2>x1?(x2-x1)/2:90;
+  const d=x2>x1?`M${x1} ${y1} C${x1+bend} ${y1} ${x2-bend} ${y2} ${x2} ${y2}`:`M${x1} ${y1} C${x1+bend} ${y1} ${x2-bend} ${y2} ${x2} ${y2}`;
+  s+=`<g class="pe" data-s="${e(f)}" data-t="${e(t)}"><path d="${d}" class="relhit"><title>${e(f+' → '+t)}</title></path><path d="${d}" class="edge arr"/></g>`});
+ L.ids.forEach(id=>s+=pnode(id,L.X[id],L.Y[id],LIN?id===LIN:id===FOC));
+ const nu=LIN?upstream(LIN).size-1:0,nd=LIN?downstream(LIN).size-1:0;
+ const bar=LIN?`<div class="lbar" id="lbar"><span>Lineage of <code>${e(LIN)}</code> · ${nu} upstream · ${nd} downstream</span><span class="lbtn">${HIST.length?`<button type="button" ${act('linback','')}>← Back</button>`:''}<button type="button" ${act('linclose','')}>× Close lineage view</button></span></div>`:'';
+ return `<p class="note">Scroll, or drag the background, to move around. Pinch, or hold Ctrl/⌘ and scroll, to zoom. Hover a table to trace its lineage, click it to show only its lineage, and use ⓘ for its details. Arrows point from a table to the table built on it.</p>
+ <div class="ptools bo"><div class="pjump" id="pjump">Jump to: ${L.bands.map(b=>`<button type="button" ${act('jump',b.layer)}>${LNAME[b.layer]} <span>${b.n}</span></button>`).join(' / ')}</div><div class="pzoom"><button type="button" ${act('zoom','out')} aria-label="Zoom out" title="Zoom out">−</button><span id="pzl">${Math.round(Z[zkey()]*100)}%</span><button type="button" ${act('zoom','in')} aria-label="Zoom in" title="Zoom in">+</button><button type="button" ${act('zoom','fit')}>Fit</button><button type="button" ${act('zoom','100')}>100%</button></div></div>
+ <div class="pframe bo" id="pframe">${bar}<svg id="psvg" viewBox="0 0 ${L.W} ${L.H}" width="${L.W}" height="${L.H}" role="img" aria-label="Pipeline">${s}</svg></div>`}
+const barH=()=>{const b=byId('lbar');return b&&b.offsetHeight||0};
+function sizeTo(z){const f=byId('pframe'),svg=byId('psvg');if(!PIPE||!svg||!svg.style)return;PZ=z;Z[zkey()]=z;svg.style.width=Math.round(PIPE.W*z)+'px';svg.style.height=Math.round(PIPE.H*z)+'px';
+ const l=byId('pzl');if(l)l.textContent=Math.round(z*100)+'%';checkJump()}
+function zoomTo(z,cx,cy){const f=byId('pframe');if(!f||!PIPE||!f.getBoundingClientRect)return;z=Math.min(2,Math.max(.1,z));const old=PZ,bh=barH();
+ if(cx==null){cx=f.clientWidth/2;cy=(f.clientHeight+bh)/2}
+ const px=(f.scrollLeft+cx)/old,py=(f.scrollTop+cy-bh)/old;sizeTo(z);f.scrollLeft=px*z-cx;f.scrollTop=py*z-cy+bh;checkJump()}
+function fitZoom(){const f=byId('pframe');if(!f||!PIPE||!f.getBoundingClientRect)return;const bh=barH(),h=(window.innerHeight||800)-150-bh-4;
+ sizeTo(Math.max(.1,Math.min(1,(f.clientWidth-4)/PIPE.W,h/PIPE.H)));f.scrollLeft=0;f.scrollTop=0;checkJump()}
+function checkJump(){const f=byId('pframe'),j=byId('pjump');if(!f||!j||f.scrollWidth==null)return;j.hidden=f.scrollWidth<=f.clientWidth+1&&f.scrollHeight<=f.clientHeight+1}
+function jump(l){const f=byId('pframe'),b=PIPE&&PIPE.bands.find(x=>x.layer===l);if(!f||!b||!f.getBoundingClientRect)return;
+ const y0=Math.min(...b.cols[0].ids.map(i=>PIPE.Y[i]));f.scrollTo({left:Math.max(0,(b.x-8)*PZ),top:Math.max(0,(y0-PL.TOP)*PZ),behavior:'smooth'});
+ const h=document.querySelector('header'),r=f.getBoundingClientRect(),off=(h?h.offsetHeight:0)+8;if(r.top<off||r.top>(window.innerHeight||800)/2)window.scrollBy({top:r.top-off,behavior:'smooth'});
+ const band=byId('band-'+l);if(band){band.classList.remove('flash');void band.getBoundingClientRect();band.classList.add('flash');setTimeout(()=>band.classList.remove('flash'),1300)}}
+function hl(id){const svg=byId('psvg');if(!svg||!svg.querySelectorAll||!PIPE)return;svg.querySelectorAll('.on').forEach(x=>x.classList.remove('on'));svg.classList.toggle('hl',!!id);if(!id)return;
+ const up=walk(id,n=>PIPE.preds[n]),dn=walk(id,n=>PIPE.succs[n]);
+ svg.querySelectorAll('.pn').forEach(n=>{if(up.has(n.dataset.id)||dn.has(n.dataset.id))n.classList.add('on')});
+ svg.querySelectorAll('.pe').forEach(g=>{const s2=g.dataset.s,t=g.dataset.t;if((up.has(s2)&&up.has(t))||(dn.has(s2)&&dn.has(t)))g.classList.add('on')})}
+function pipeInit(){const f=byId('pframe'),svg=byId('psvg');if(!f||!svg||!f.getBoundingClientRect)return;
+ PZ=Z[zkey()];sizeTo(PZ);const p=PEND;PEND=null;f.scrollLeft=p?p.l:0;f.scrollTop=p?p.t:0;checkJump();
+ f.addEventListener('wheel',ev=>{if(!(ev.ctrlKey||ev.metaKey))return;ev.preventDefault();const r=f.getBoundingClientRect(),dy=ev.deltaMode?ev.deltaY*40:ev.deltaY;
+  zoomTo(PZ*(Math.abs(dy)>=40?(dy<0?1.2:1/1.2):Math.exp(-dy*.01)),ev.clientX-r.left,ev.clientY-r.top)},{passive:false});
+ let g0=1;f.addEventListener('gesturestart',ev=>{ev.preventDefault();g0=PZ});
+ f.addEventListener('gesturechange',ev=>{ev.preventDefault();const r=f.getBoundingClientRect();zoomTo(g0*ev.scale,ev.clientX-r.left,ev.clientY-r.top)});
+ f.addEventListener('pointerdown',ev=>{const r=f.getBoundingClientRect();if(ev.button!==0||ev.target.closest('.nd,.pe,.lbar')||ev.clientX-r.left>f.clientWidth||ev.clientY-r.top>f.clientHeight)return;
+  DRAG={x:ev.clientX,y:ev.clientY,l:f.scrollLeft,t:f.scrollTop};f.setPointerCapture(ev.pointerId);f.classList.add('drag');ev.preventDefault()});
+ f.addEventListener('pointermove',ev=>{if(!DRAG)return;f.scrollLeft=DRAG.l-(ev.clientX-DRAG.x);f.scrollTop=DRAG.t-(ev.clientY-DRAG.y)});
+ const end=()=>{DRAG=null;f.classList.remove('drag')};f.addEventListener('pointerup',end);f.addEventListener('pointercancel',end);
+ svg.addEventListener('mouseover',ev=>{const n=ev.target.closest('.pn');if(n)hl(n.dataset.id)});
+ svg.addEventListener('mouseout',ev=>{const n=ev.target.closest('.pn');if(n&&!(ev.relatedTarget&&n.contains(ev.relatedTarget)))hl(null)});
+ svg.addEventListener('focusin',ev=>{const n=ev.target.closest('.pn');if(n)hl(n.dataset.id)});svg.addEventListener('focusout',()=>hl(null))}
+if(typeof window.addEventListener==='function')window.addEventListener('resize',checkJump);
+function openLineage(id){if(!M[id])return;closeInsp();if(LIN)HIST.push(LIN);else{const f=byId('pframe');PEND=null;BASE=f&&f.getBoundingClientRect?{l:f.scrollLeft,t:f.scrollTop}:null}
+ LIN=id;Z.lin=1;syncFilter();drawArea(MA,'pipeline')}
+let BASE=null;
+function lineageBack(){if(!HIST.length)return;LIN=HIST.pop();Z.lin=1;syncFilter();drawArea(MA,'pipeline')}
+function closeLineage(){LIN=null;HIST=[];PEND=BASE;BASE=null;syncFilter();drawArea(MA,'pipeline')}
 function erd(a){
  const g=new Set(a.gold),ids=a.erd.filter(i=>M[i]),isDim=i=>M[i].type==='dimension';
  const rels=D.rels.filter(r=>ids.includes(r.from)&&ids.includes(r.to)&&(a.focus?(r.from===a.focus||r.to===a.focus):(g.has(r.from)||a.shared)));
@@ -126,43 +202,55 @@ function topicLineage(a){
  return canvas(W,y,s);
 }
 let MA=null,MS='pipeline',FOC=null;
-/* ---------- gold-table filter: a dropdown of every gold table that also accepts typed or pasted text ---------- */
+/* ---------- table filter: a dropdown of every table, grouped by layer and subject area, that also accepts typed or pasted names ---------- */
 const GOLD_ORDER=D.areas.flatMap(a=>a.gold.filter(g=>M[g]).slice().sort());
 const homeArea=id=>D.areas.find(a=>a.gold.includes(id));
-function upstream(id){const s=new Set([id]),st=[id];while(st.length){const n=st.pop();((M[n]||{}).dep||[]).forEach(d=>{if(M[d]&&!s.has(d)){s.add(d);st.push(d)}})}return s}
+// The home of a bronze or silver table is the first subject area whose pipeline uses it, skipping shared areas when possible.
+function tableHome(id){if(!M[id])return null;if(M[id].layer==='gold'&&homeArea(id))return homeArea(id);
+ return D.areas.find(a=>!a.shared&&a.pipeline.includes(id))||D.areas.find(a=>a.pipeline.includes(id))||D.areas.find(a=>(a.erd||[]).includes(id))||null}
+const GROUPS=[];LAYERS.forEach(l=>D.areas.forEach(a=>{const ids=D.models.filter(m=>m.layer===l&&tableHome(m.id)===a).map(m=>m.id).sort();
+ if(ids.length)GROUPS.push({label:`${LNAME[l]} · ${a.name}`,ids})}));
+const ALL_ORDER=GROUPS.flatMap(g=>g.ids);
+const current=()=>LIN||FOC||'';
 function focusArea(id){const h=homeArea(id),nb=D.rels.filter(r=>r.from===id||r.to===id).map(r=>r.from===id?r.to:r.from);
  return {id:h.id,name:h.name,focus:id,gold:[id],pipeline:[...upstream(id)],erd:[...new Set([id,...nb])].filter(x=>M[x]),shared:false}}
 function cleanName(v){const strip=s=>s.trim().replace(/^[`'"\[(]+|[`'"\])]+$/g,'').trim();
  return strip(strip(String(v||'')).split('.').pop()).toLowerCase()}
 let CQ='',CACT=-1,CITEMS=[];
-const comboMatches=q=>GOLD_ORDER.filter(g=>!q||g.toLowerCase().includes(q));
+const comboMatches=q=>ALL_ORDER.filter(g=>!q||g.toLowerCase().includes(q));
+const exactName=q=>ALL_ORDER.find(g=>g.toLowerCase()===q);
 function renderCombo(){const ul=byId('glist'),inp=byId('gfilter');if(!ul)return;
  CITEMS=comboMatches(CQ);
- if(!CITEMS.length){ul.innerHTML='<li class="fempty">No gold table matches</li>';CACT=-1}
+ if(!CITEMS.length){ul.innerHTML='<li class="fempty">No table matches</li>';CACT=-1}
  else{if(CACT>=CITEMS.length)CACT=CITEMS.length-1;
-  const hl=g=>{if(!CQ)return e(g);const i=g.toLowerCase().indexOf(CQ);return e(g.slice(0,i))+'<mark>'+e(g.slice(i,i+CQ.length))+'</mark>'+e(g.slice(i+CQ.length))};
-  ul.innerHTML=D.areas.map(a=>{const its=CITEMS.filter(g=>homeArea(g)===a);return its.length?`<li class="fgrp" role="presentation">${e(a.name)}</li>`+its.map(g=>{const k=CITEMS.indexOf(g);return `<li role="option" id="gopt-${k}" data-g="${e(g)}" class="fopt${k===CACT?' act':''}${g===FOC?' sel':''}" aria-selected="${g===FOC}">${hl(g)}</li>`}).join(''):''}).join('')}
+  const hl2=g=>{if(!CQ)return e(g);const i=g.toLowerCase().indexOf(CQ);return e(g.slice(0,i))+'<mark>'+e(g.slice(i,i+CQ.length))+'</mark>'+e(g.slice(i+CQ.length))};
+  const cur=current();
+  ul.innerHTML=GROUPS.map(gr=>{const its=gr.ids.filter(g=>CITEMS.includes(g));return its.length?`<li class="fgrp" role="presentation">${e(gr.label)}</li>`+its.map(g=>{const k=CITEMS.indexOf(g);return `<li role="option" id="gopt-${k}" data-g="${e(g)}" class="fopt${k===CACT?' act':''}${g===cur?' sel':''}" aria-selected="${g===cur}">${hl2(g)}</li>`}).join(''):''}).join('')}
  ul.hidden=false;inp.setAttribute('aria-expanded','true');if(CACT>=0)inp.setAttribute('aria-activedescendant','gopt-'+CACT);else inp.removeAttribute('aria-activedescendant');
- const cur=ul.querySelector('.act');if(cur)cur.scrollIntoView({block:'nearest'})}
-function openCombo(q){CQ=q||'';CITEMS=comboMatches(CQ);CACT=CQ?Math.max(0,CITEMS.findIndex(g=>g.toLowerCase()===CQ)):CITEMS.indexOf(FOC);renderCombo();if(CACT<0)byId('glist').scrollTop=0}
+ const act2=ul.querySelector('.act');if(act2)act2.scrollIntoView({block:'nearest'})}
+function openCombo(q){CQ=q||'';CITEMS=comboMatches(CQ);CACT=CQ?Math.max(0,CITEMS.findIndex(g=>g.toLowerCase()===CQ)):CITEMS.indexOf(current());renderCombo();if(CACT<0)byId('glist').scrollTop=0}
 function closeCombo(){const ul=byId('glist'),inp=byId('gfilter');if(ul)ul.hidden=true;if(inp){inp.setAttribute('aria-expanded','false');inp.removeAttribute('aria-activedescendant')}}
-function syncFilter(){const s=byId('gfilter'),c=byId('gclear'),m=byId('gmsg');if(s)s.value=FOC||'';if(c)c.hidden=!FOC;if(m)m.textContent='';closeCombo()}
-function setFocus(id){FOC=id&&M[id]&&homeArea(id)?id:null;if(FOC)MA=homeArea(FOC).id;syncFilter();if(byId('abody'))drawArea(MA)}
-function pickArea(id){FOC=null;syncFilter();drawArea(id)}
+function syncFilter(){const s=byId('gfilter'),c=byId('gclear'),m=byId('gmsg');if(s)s.value=current();if(c)c.hidden=!current();if(m)m.textContent='';closeCombo()}
+// Gold: the table across all three views. Bronze or silver: its pipeline lineage in its home area. Empty: clear.
+function setFocus(id){const h=id&&tableHome(id);LIN=null;HIST=[];BASE=null;PEND=null;FOC=null;
+ if(h&&M[id].layer==='gold'&&homeArea(id)){FOC=id;Z.foc=1;MA=h.id}
+ else if(h){MA=h.id;MS='pipeline';LIN=id;Z.lin=1}
+ syncFilter();if(byId('abody'))drawArea(MA)}
+function pickArea(id){FOC=null;LIN=null;HIST=[];BASE=null;PEND=null;syncFilter();drawArea(id)}
 function initCombo(){const inp=byId('gfilter'),ul=byId('glist'),tg=byId('gtoggle'),cl=byId('gclear'),wrap=byId('gwrap'),m=byId('gmsg');
- const restore=()=>{if(inp.value!==(FOC||'')){inp.value=FOC||'';cl.hidden=!FOC}};
- const typed=()=>inp.value&&inp.value!==FOC?cleanName(inp.value):'';
+ const restore=()=>{if(inp.value!==current()){inp.value=current();cl.hidden=!current()}};
+ const typed=()=>inp.value&&inp.value!==current()?cleanName(inp.value):'';
  inp.addEventListener('focus',()=>{if(ul.hidden)openCombo(typed())});
  inp.addEventListener('click',()=>{if(ul.hidden)openCombo(typed())});
- inp.addEventListener('input',ev=>{cl.hidden=!inp.value&&!FOC;m.textContent='';const q=cleanName(inp.value),exact=GOLD_ORDER.find(g=>g.toLowerCase()===q);
+ inp.addEventListener('input',ev=>{cl.hidden=!inp.value&&!current();m.textContent='';const q=cleanName(inp.value),exact=exactName(q);
   if(exact&&(ev.inputType==='insertFromPaste'||inp.value.trim().length>exact.length+2)){closeCombo();setFocus(exact);return}
   openCombo(q)});
  inp.addEventListener('keydown',ev=>{const open=!ul.hidden;
   if(ev.key==='ArrowDown'||ev.key==='ArrowUp'){ev.preventDefault();if(!open){openCombo(typed());return}
    if(CITEMS.length){CACT=CACT<0?(ev.key==='ArrowDown'?0:CITEMS.length-1):(CACT+(ev.key==='ArrowDown'?1:-1)+CITEMS.length)%CITEMS.length;renderCombo()}}
-  else if(ev.key==='Enter'){ev.preventDefault();const q=cleanName(inp.value),exact=GOLD_ORDER.find(g=>g.toLowerCase()===q);
+  else if(ev.key==='Enter'){ev.preventDefault();const q=cleanName(inp.value),exact=exactName(q);
    if(open&&CACT>=0&&CITEMS[CACT]){closeCombo();setFocus(CITEMS[CACT])}else if(exact){closeCombo();setFocus(exact)}else if(!q)setFocus('');
-   else{const hits=comboMatches(q);if(hits.length===1){closeCombo();setFocus(hits[0])}else m.textContent=hits.length?`${hits.length} gold tables match; pick one from the list.`:'No gold table matches.'}}
+   else{const hits=comboMatches(q);if(hits.length===1){closeCombo();setFocus(hits[0])}else m.textContent=hits.length?`${hits.length} tables match; pick one from the list.`:'No table matches.'}}
   else if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();if(open){closeCombo();restore()}else setFocus('')}
   else if(ev.key==='Tab')closeCombo()});
  ul.addEventListener('mousedown',ev=>{ev.preventDefault();const li=ev.target.closest('[data-g]');if(li){closeCombo();setFocus(li.dataset.g)}});
@@ -171,26 +259,27 @@ function initCombo(){const inp=byId('gfilter'),ul=byId('glist'),tg=byId('gtoggle
  document.addEventListener('mousedown',ev=>{if(!wrap.contains(ev.target)){closeCombo();restore()}})}
 function rModel(){
  if(!D.areas.length){byId('v-model').innerHTML='<h1>Data model</h1><p class="note">No subject areas in this review.</p>';return}
- byId('v-model').innerHTML=`<h1>Data model</h1><p class="meta">Pick a subject area, then a view, or isolate one gold table to see only its upstream lineage, the tables related to it and the topics that use it. Click any table for grain, keys, columns, lineage and its code; click a topic for its joins, fields and dashboards. Hover a line for the join.</p>
+ byId('v-model').innerHTML=`<h1>Data model</h1><p class="meta">Pick a subject area, then a view, or filter to one table. In the pipeline, click a table to show only its lineage and use ⓘ for its grain, keys, columns and code; in the other views, click a table or topic for its details. Hover a line for the join.</p>
  <div class="lg"><span><i style="background:${COL.reuse}"></i>reuse</span><span><i style="background:${COL.extend}"></i>extend</span><span><i style="background:${COL.create}"></i>create</span><span><i style="background:${COL.shared}"></i>shared interface (other domain)</span><span><i style="background:${COL.topic}"></i>semantic topic</span><span class="note">— dashed border = owned by another domain</span></div>
- ${GOLD_ORDER.length?`<div class="fbar"><label for="gfilter">Isolate a gold table</label><div class="fwrap" id="gwrap"><input id="gfilter" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="glist" autocomplete="off" spellcheck="false" placeholder="All gold tables (type to search, or pick from the list)"><button type="button" id="gclear" class="fx" aria-label="Clear filter" title="Clear filter" hidden>&times;</button><button type="button" id="gtoggle" class="fdrop" aria-label="Show gold tables" title="Show gold tables" tabindex="-1">&#9662;</button><ul id="glist" class="flist" role="listbox" hidden></ul></div><span id="gmsg" class="note" aria-live="polite"></span></div>`:''}
+ ${ALL_ORDER.length?`<div class="fbar"><label for="gfilter">Filter to a table</label><div class="fwrap" id="gwrap"><input id="gfilter" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="glist" autocomplete="off" spellcheck="false" placeholder="All tables (type to search, or pick from the list)"><button type="button" id="gclear" class="fx" aria-label="Clear filter" title="Clear filter" hidden>&times;</button><button type="button" id="gtoggle" class="fdrop" aria-label="Show tables" title="Show tables" tabindex="-1">&#9662;</button><ul id="glist" class="flist" role="listbox" hidden></ul></div><span id="gmsg" class="note" aria-live="polite"></span></div>`:''}
  <div class="pills" id="apills">${D.areas.map(a=>`<button type="button" data-a="${e(a.id)}" ${act('area',a.id)}>${e(a.name)} <span>${a.gold.length} gold</span></button>`).join('')}</div>
  <div class="pills sub" id="spills"></div><div id="abody"></div>`;
- if(GOLD_ORDER.length)initCombo();syncFilter();drawArea(MA||D.areas[0].id)}
+ if(ALL_ORDER.length)initCombo();syncFilter();drawArea(MA||D.areas[0].id)}
 function drawArea(id,sub){const base=D.areas.find(x=>x.id===id);if(!base)return;MA=id;if(sub)MS=sub;
  const a=FOC?focusArea(FOC):base;
  const tps=D.topics.filter(t=>a.focus?bindsTo(t,a.focus):t.area===a.id);
- const hasPipe=a.focus?a.pipeline.length>1:a.pipeline.length>0;
+ const hasPipe=!!LIN||(a.focus?a.pipeline.length>1:a.pipeline.length>0);
  const subs=[hasPipe&&['pipeline','Pipeline'],['rel','Gold relationships'],tps.length&&['topics','Semantic topics']].filter(Boolean);
  if(!subs.some(s=>s[0]===MS))MS=subs[0][0];
- document.querySelectorAll('#apills button').forEach(x=>{x.classList.toggle('on',x.dataset.a===id&&!FOC);x.classList.toggle('home',x.dataset.a===id&&!!FOC)});
+ document.querySelectorAll('#apills button').forEach(x=>{x.classList.toggle('on',x.dataset.a===id&&!FOC&&!LIN);x.classList.toggle('home',x.dataset.a===id&&!!(FOC||LIN))});
  byId('spills').innerHTML=subs.map(([k,l])=>`<button type="button" class="${k===MS?'on':''}" ${act('sub',k)}>${l}</button>`).join('');
  const head={pipeline:'Pipeline — staging (bronze) → integration (silver) → warehouse (gold)',rel:'Gold relationships — facts and extended tables → dimensions',topics:'Semantic topics — topic → base view → joined views'}[MS];
  let note;
  if(a.focus){const up=a.pipeline.filter(x=>x!==a.focus),n=l=>up.filter(x=>M[x].layer===l).length,s=(k,w)=>k===1?w:w+'s';
   note=`<div class="fnote">Filtered to <code>${e(a.focus)}</code> (${e(a.name)}). ${MS==='pipeline'?`Showing it and its ${up.length} upstream ${s(up.length,'model')}: ${n('bronze')} bronze, ${n('silver')} silver, ${n('gold')} gold.`:MS==='rel'?`Showing it and the ${a.erd.length-1} ${s(a.erd.length-1,'table')} related to it.`:`Showing the ${tps.length} ${s(tps.length,'topic')} that ${tps.length===1?'uses':'use'} it.`}${hasPipe?'':' It has no upstream models in this review; its pipeline belongs to its own domain.'} <a href="#" ${act('clear','')}>Clear filter</a></div>`}
- else note=base.shared?`<p class="note">Warehouse tables owned by other domains that the ${e(D.meta.domain_label)} tables and topics join to. Their pipelines belong to their own domains.</p>`:(tps.length?`<p class="note">Semantic topics in this area: ${tps.map(t=>topicLink(t.topic)).join(', ')}</p>`:'');
- byId('abody').innerHTML=`<h3 class="ah">${head}</h3>${note}${MS==='pipeline'?pipeline(a):MS==='rel'?erd(a):topicLineage(a)}`}
+ else note=base.shared?`<p class="note">Warehouse tables owned by other domains that the ${e(D.meta.domain_label)} tables and topics are built on or join to, with the pipeline that builds them.</p>`:(tps.length?`<p class="note">Semantic topics in this area: ${tps.map(t=>topicLink(t.topic)).join(', ')}</p>`:'');
+ byId('abody').innerHTML=`<h3 class="ah">${head}</h3>${note}${MS==='pipeline'?pipeline(a):MS==='rel'?erd(a):topicLineage(a)}`;
+ if(MS==='pipeline')pipeInit()}
 
 /* ---------- inspectors ---------- */
 function openFileLinks(paths){return paths.map(p=>fileLink(p)).join('<br>')}
@@ -216,7 +305,7 @@ function insp(n){const m=M[n];if(!m)return;const p=byId('insp');
  <p>${b(m.disp)} · ${e(m.layer)} · ${e(m.domain)}${m.area&&areaName[m.area]?' · '+e(areaName[m.area]):''}</p>
  <p><b>Grain:</b> ${m.grain?e(m.grain):'<span class="note">not stated in the model documentation</span>'}</p>
  <p><b>Existing source:</b> ${e(m.existing)}</p>
- ${m.layer==='gold'&&homeArea(m.id)?`<p><button type="button" class="iso" ${act('isolate',m.id)}>Show only this table's lineage</button></p>`:''}
+ ${tableHome(m.id)?`<p><button type="button" class="iso" ${act('isolate',m.id)}>Show only this table's lineage</button></p>`:''}
  <p><b>Code file:</b> ${m.code?fileLink(m.code):`<code>${e(m.source_path||'—')}</code> <span class="note">unchanged, not in this package</span>`}</p>
  <p>${e(m.desc)}</p>
  <h3>Keys</h3>${keys.length?keys.map(k=>`<div><code>${e(k[2])}</code> <code>${e(k[0])}</code>${relTo(k[0])}</div>`).join(''):'<p class="note">No keys declared.</p>'}
@@ -300,6 +389,7 @@ function rTodos(){byId('v-todos').innerHTML=`<h1>Open items</h1><p class="meta">
 /* ---------- events ---------- */
 const R={overview:rOverview,model:rModel,code:rCode,decisions:rDecisions,legacy:rLegacy,dict:rDict,valid:rValid,todos:rTodos};
 const ACTIONS={show:v=>{closeInsp();show(v)},model:insp,topic:inspTopic,area:pickArea,isolate:v=>{closeInsp();show('model');setFocus(v);window.scrollTo(0,0)},clear:()=>setFocus(''),sub:v=>drawArea(MA,v),
+ lineage:openLineage,linback:lineageBack,linclose:closeLineage,jump,zoom:v=>v==='fit'?fitZoom():zoomTo(v==='100'?1:v==='in'?PZ*1.2:PZ/1.2),
  file:v=>{closeInsp();show('code');openFile(v)},decision:goDec,close:closeInsp};
 document.addEventListener('click',ev=>{const t=ev.target.closest('[data-act]');if(!t)return;ev.preventDefault();ACTIONS[t.dataset.act]?.(t.dataset.v)});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeInsp();

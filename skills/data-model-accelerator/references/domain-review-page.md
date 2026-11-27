@@ -46,7 +46,7 @@ or evidence to make it fit.
 | Tab | Content, limited to the selected review |
 |---|---|
 | Overview | Candidate banner, scope, stack and accelerator revision, counts, reading order, dashboard coverage and remaining work. Repository commits and fingerprints stay in the page data and the input evidence; the Overview does not list them. |
-| Data model | Subject areas, upstream pipeline, gold relationships and semantic topic occurrences. A gold-table filter (a dropdown of every gold table that also accepts typed or pasted names and narrows as you type, cleared with its × button or Escape) isolates one table: the pipeline shows it and its upstream models, the relationships view shows the tables related to it, and the topics view shows the topics bound to it. The table inspector offers the same filter. Table and topic inspectors retain binding gaps. |
+| Data model | Subject areas, upstream pipeline, gold relationships and semantic topic occurrences. The pipeline is drawn left to right at full size in a frame that scrolls both ways and pans by dragging the background: bronze, silver and gold are shaded bands with table counts, and each layer is split into steps (the longest chain of same-layer dependencies, counted from 1), one column per step, ordered and aligned to keep lines short and crossings few. Hovering a table highlights its upstream and downstream lineage in Omni pink; clicking it redraws the diagram with only that lineage, under a pinned bar with its upstream and downstream counts, ← Back (one step at a time) and × Close lineage view. The ⓘ on each table is the only way to open its details from the pipeline. Pinch or Ctrl/⌘ + scroll zooms around the pointer from 10% to 200% without zooming the page; −, +, Fit and 100% sit beside the Jump to: Bronze / Silver / Gold buttons, which are hidden when the whole diagram fits. The full diagram keeps its zoom; a lineage view opens at 100%. A table filter (a dropdown of every table, grouped by layer and subject area, that also accepts typed or pasted names, cleared with its × button or Escape) opens a bronze or silver table's lineage in its home subject area, and isolates a gold table across the three views: the pipeline shows it and its upstream models, the relationships view shows the tables related to it, and the topics view shows the topics bound to it. The table inspector offers the same filter. Table and topic inspectors retain binding gaps. |
 | Code & files | Selected text files, supplied placement instructions and unresolved placeholders. |
 | Decisions | Recorded questions, options, assumptions and answered, assumed or open status. |
 | Legacy coverage | Supplied legacy-to-target mappings and unresolved or out-of-domain items. |
@@ -162,6 +162,17 @@ The offline template in `assets/domain-review/` embeds `kind: domain_review_page
 `files`, `decisions`, `legacy`, `dashboards`, recorded `checks` and remaining/open items.
 Counts are recomputed from that data; optional dashboard tile counts must be nonnegative
 safe integers or null. Unknown counts are not zero coverage.
+
+Each area's `pipeline` is the end-to-end lineage of its gold tables: every model they are built
+from, through all layers, including gold tables built on other gold tables (for example a reused
+fact under a report table) and the staging and integration models behind those. When `pipeline`
+is omitted it is derived that way. The area of tables shared from other domains (`shared: true`)
+shows the pipeline that builds them as well; a page written before this rule, with an empty
+shared pipeline, is given the derived one. Every model on the page must appear in at least one
+area's pipeline: `write_package` refuses a draft with a model outside every pipeline
+(`pipeline_gaps`), so the page always shows the full lineage of the models the in-scope
+dashboards need. A practical layout is one area per in-scope dashboard (or group of dashboards
+that read the same tables), named after it, plus an area for tables shared from other domains.
 
 Topic `base` identifies an occurrence, while `base_view` and `base_model_ids` identify the
 semantic view and explicit warehouse bindings. Topic `nodes` retain occurrence IDs, view IDs,
